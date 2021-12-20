@@ -6,6 +6,9 @@
 
 \prependtographicspath{{Figures/}}
 
+
+%Ontologies are representations of relevant concepts in a domain of interest and relations between them. They facilitate sharing of knowledge by establishing common terms, and have been used successfully in a variety of domains, for example in electronic health records and clinical decision support in the health care sector. Such ontologies can be created and maintained using advanced editors such as Protégé that come with a number of functionalities, based on plugins, that allow, e.g., the automatic verification of errors in the ontology design including debugging tools, query answering on top of such ontologies together with data, and visualisation of the ontology to name a few. However, such ontologies are sometimes of a private value, since they have a significant investment of time and money in their development. Moreover, some of the data used with such an ontology can contain sensitive information that should not be disclosed to third parties. This becomes a challenge when computations over these ontologies for the sake of reasoning services, such as answering queries or checking for consistency, have to be conducted outside of the infrastructure of the owner (or valid user) of the ontology or the data, for instance, when delegating such computations to cloud infrasctructures of other shared computing platforms (e.g., Grid5000). In such scenarios it would be relevant to define privacy mechanisms that would obfuscate the nature of the data, or even the ontology and the associated data, in a way that still allows to use it computationally without violating the private nature of both these components. In this thesis, we plan to explore this problem and define techniques that can be employed to secure both ontologies and data in an automatic way that allows particular computations to be conducted over these with minimal overhead.
+
 \section{Context}
 \label{sec:ch1:context}
 \begin{enumerate}
@@ -13,6 +16,15 @@
     \item State of adoption. How/where are ontologies being used? \mytodo{Enumerate industry/investigation examples.}
     \item Future expectations. How will the technology evolve? \mytodo{Mention cloud and external computing, general adoption growth...}
 \end{enumerate}
+
+In 2001, the term \emph{Semantic Web}\autocite{berners2001semantic} was first used to define what would be the evolution of the \emph{World Wide Web}. The \emph{World Wide Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. In the traditional \emph{Web} documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines can not reason over the information they access if they do not know the semantics of the data.
+
+The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
+\mycomment{Diogo}{A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, verb and object (similar to an elementary sentence).
+}{Very general explanation because details will be covered in the State-of-the-Art chapter.} To represent relevant concepts, and their relations, in specific domains, \emph{ontologies} are then built, using these specifications. 
+
+This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different \emph{knowledge bases}. With centralized representations both parties need to agree on the semantics of the data, in contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, \emph{automated agents} can truly communicate, share and reason about distinct \emph{knowledge bases}.
+
 
 \section{Problem}
 \label{sec:ch1:problem}
