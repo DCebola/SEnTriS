@@ -59,25 +59,29 @@
 % Custom TODOs and comments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[colorinlistoftodos,textsize=tiny]{todonotes}
-\usepackage{soul} 
+\usepackage{soul}
 \definecolor{babyblue}{rgb}{0.54, 0.81, 0.94}
 \definecolor{burntsienna}{rgb}{0.91, 0.45, 0.32}
 \definecolor{bananayellow}{rgb}{1.0, 0.88, 0.21}
 \definecolor{celadon}{rgb}{0.67, 0.88, 0.69}
 
-\newcommand{\mytodo}[1]
-{
-    \renewcommand{\baselinestretch}{1}
-    \todo[inline, color={bananayellow}]{\textit{TODO:} #1}
-}
-
-
 \makeatletter
 \if@todonotes@disabled
+    \newcommand{\mytodo}[1]{}
     \newcommand{\myrevise}[3]{#2}
     \newcommand{\mysuggestion}[4]{#2}
     \newcommand{\mycomment}[3]{#1}
 \else
+    \newcounter{todoCounter}
+    \newcommand{\mytodo}[1]
+    {
+        \stepcounter{todoCounter}
+        \sethlcolor{bananayellow}
+        \hl{T}\footnotemark[\thetodoCounter]
+        \sethlcolor{}
+        \renewcommand{\baselinestretch}{1}
+        \todo[color={bananayellow}, noline]{\thetodoCounter) \textit{TODO:} #1}
+    }
     % \myrevise{author}{text to revise}{explanation}
     \newcounter{notesCounter}
     \newcommand{\myrevise}[3]{
