@@ -1,3 +1,4 @@
+
 %!TEX root = ../template.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Config/3_cover.tex
@@ -15,17 +16,52 @@
 % SYNTAX: \nttitle[lang]{title}
 %         You may use "\\" to force line breaks
 %-------------------------------------------------------------------
-\nttitle[en]{Privacy-Enhanced Ontologies}%
-\nttitle[pt]{Privacy-Enhanced Ontologies}%
+\nttitle(main,en){Privacy-Enhanced Ontologies}%
+\nttitle(main,pt){Privacy-Enhanced Ontologies}%
 
 %-------------------------------------------------------------------
 % Thesis/Dissertation subtitle (valid for all languages unless redefined as below)
 % SYNTAX: \nttitle{title}
 %         You may use "\\" to force line breaks
 %-------------------------------------------------------------------
-\ntsubtitle[en]{TODO: Choose subtitle}%
-\ntsubtitle[pt]{TODO: Choose subtitle}%
+\nttitle(sub,en){TODO: Choose subtitle}%
+\nttitle(sub,pt){TODO: Choose subtitle}%
 
+%-------------------------------------------------------------------
+% DEPARTMENT NAME customization
+% SYNTAX: \ntdepartment(language){name}
+%         You may use "\\" to force line breaks
+% \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+%    For FCT-NOVA, please open file “9_nova_fct.tex” and uncomment 
+%    the right name for your Department from the given list
+%    otherwiese fill the entries below
+%-------------------------------------------------------------------
+\ntdepartment(pt){Departamento de\\\embrace{Nome do Departamento}}
+\ntdepartment(en){Department of\\\embrace{Name of the Department}}
+
+%-------------------------------------------------------------------
+% DEGREE NAME customization
+% SYNTAX: \ntdegreename(language){degree_name}
+% \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+%    For FCT-NOVA, please open file “9_nova_fct.tex” and uncomment 
+%    the right name(s) for the PhD/MSc program from the given list
+%    otherwiese fill the entries below
+%-------------------------------------------------------------------
+\ntdegreename(pt){\embrace{Nome do Programa de Estudos}}
+\ntdegreename(en){\embrace{PhD Program Name}}
+\ntdegreename(de){\embrace{Name des Studienprogramms}}
+\ntdegreename(es){\embrace{Nombre del Programa de Estudios}}
+\ntdegreename(fr){\embrace{Nom du Programme d'Études}}
+\ntdegreename(it){\embrace{Nome del Programma di Studio}}
+
+%-------------------------------------------------------------------
+% DEGREE SPECIALIZATION customization
+%   If the degree includes a specialization, otherwise comment the 
+%   lines below
+% SYNTAX: \ntspecialization(language){name}
+%-------------------------------------------------------------------
+\ntspecialization(pt){\embrace{Designação da Especialidade}}
+\ntspecialization(en){\embrace{Speciality Name}}
 
 %-------------------------------------------------------------------
 % SPONSORS customization
@@ -41,21 +77,20 @@
 % SYNTAX: \ntauthorname[gender]{full name}{abbreviated name}
 %         Use [f] for female and [m] for male
 %-------------------------------------------------------------------
-\ntauthorname[m]{Diogo Henrique Silvestre Matos Cebola}{Diogo Cebola}
+\ntauthorname(m){Diogo Henrique Silvestre Matos Cebola}{Diogo Cebola}
 
 %-------------------------------------------------------------------
 % AUTHOR previous degree
 % SYNTAX: \ntauthordegree{degree}
 %-------------------------------------------------------------------
-\ntauthordegree{BSc in \embrace{Computer Science}}
+\ntauthordegree(en){BSc in \embrace{name of previous degree}}
 
 %-------------------------------------------------------------------
 % SUBMISSION DATE
-% SYNTAX: \ntdatemonth{month}
-%         \ntdateyear{year}
+% SYNTAX: \ntdate{year,month}
+%         \ntdate{year}
 %-------------------------------------------------------------------
-\ntdatemonth{\embrace{month}}
-\ntdateyear{\embrace{year}}
+\ntdate{\embrace{year},\embrace{month}}
 
 %-------------------------------------------------------------------
 % ADVISERS LIST
@@ -67,10 +102,10 @@
 %                           [m] for male
 %         You may use "\\" to force line breaks
 % Advisers(s)
-\ntaddperson{adviser}[a,m]{Matthias Knorr, Auxiliar Professor, NOVA University Lisbon}
+\ntaddperson{adviser}(a,m){Matthias Knorr, Auxiliar Professor, NOVA University Lisbon}
 % Co-advisers(s)
-\ntaddperson{adviser}[a,m]{João Leitão, Auxiliar Professor, NOVA University Lisbon}
-\ntaddperson{adviser}[a,m]{Henrique Domingos, Associate Professor, NOVA University Lisbon}
+\ntaddperson{adviser}(a,m){João Leitão, Auxiliar Professor, NOVA University Lisbon}
+\ntaddperson{adviser}(a,m){Henrique Domingos, Associate Professor, NOVA University Lisbon}
 
 %-------------------------------------------------------------------
 % COMMITTEE MEMBERS
@@ -83,10 +118,10 @@
 %         For [gender] use: [f] for female
 %                           [m] for male
 %         You may use "\\" to force line breaks
-\ntaddperson{committee}[c,m]{Name of the committee chairperson, Full Professor, FCT-NOVA}
-\ntaddperson{committee}[r,m]{Name of a rapporteur, Associate Professor, Another University}
-% \ntaddperson{committee}[r,m]{Name of another rapporteur, Assistant Professor, Another University}
-% \ntaddperson{committee}[a,m]{Name of the adviser present in defense, Associate Professor, Some University}
-\ntaddperson{committee}[m,f]{Another member of the committee, Full Professor, Another University}
-\ntaddperson{committee}[m,f]{Yet another member of the committee, Assistant Professor, Another University}
-% \ntaddperson{committee}[g,m]{Guest member of the committee, Position, University}
+\ntaddperson{committee}(c,m){Name of the committee chairperson, Full Professor, FCT-NOVA}
+\ntaddperson{committee}(r,m){Name of a rapporteur, Associate Professor, Another University}
+% \ntaddperson{committee}(r,m){Name of another rapporteur, Assistant Professor, Another University}
+% \ntaddperson{committee}(a,m){Name of the adviser present in defense, Associate Professor, Some University}
+\ntaddperson{committee}(m,f){Another member of the committee, Full Professor, Another University}
+\ntaddperson{committee}(m,f){Yet another member of the committee, Assistant Professor, Another University}
+% \ntaddperson{committee}(g,m){Guest member of the committee, Position, University}
