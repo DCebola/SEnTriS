@@ -15,28 +15,28 @@
 
 In 2001, the term \emph{Semantic Web}\autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
-
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
-A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain. This is necessary to remove ambiguity in terminology.
+A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain. 
 
-This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. With centralized representations both parties need to agree on the semantics, in contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
+This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. Centralized representations tend to be more expensive to develop, with almost every knowledge base needing to be built from scratch\autocite{Neches1991-lx}. Furthermore, for sharing, both parties need to agree on the semantics. In contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
 
 
 
 \section{Problem}
 \label{sec:ch1:problem}
-\begin{enumerate}
-    \item How is the current state of ontology development/engineering? \mytodo{Explain tools and workflow used in ontology engineering.}
-    \item Why remote computation is gaining adoption in the area, but what are current limitations/problems unresolved? \mytodo{Contrast the usefulness with the limitation/security problems of cloud/remote computing}
-    \item Why is there need for privacy in ontologies? \mytodo{Explain why some ontologies need privacy mechanisms. Define the mechanisms needed.}
-\end{enumerate}
 
-Nowadays, ontologies are being developed and used in a variety of domains ranging from the health sector (e.g. NCI Thesaurus\autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO)\autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute) to linguistics (e.g. WordNet\autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked).
+Knowledge representation is essential in the industry\autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
+Nowadays, they are being developed and applied in a variety of domains\autocite{W3c_undated-pd} ranging from the health sector\footnote{NCI Thesaurus\autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO)\autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute.}, to linguistics \footnote{ WordNet\autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA \autocite{Ashish2005-qz}. \footnote{ Observing the visual representation provided by the Linked Open Data Cloud\autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.}
 
-To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the ontology design; debugging tools; query answering; graphic visualization of data).
 
-With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions and outsourcing computations, relying on cloud infrastructures or other shared computing platforms.
+To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design; debugging tools; query answering; graphic visualization of data).
 
+With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, do come with some new security concerns and engineering challenges.
+
+
+%Enummerate data concerns
+% This becomes a challenge when computations over these ontologies for the sake of reasoning services, such as answering queries or checking for consistency, have to be conducted outside of the infrastructure of the owner (or valid user) of the ontology or the data, for instance, when delegating such computations to cloud infrasctructures of other shared computing platforms (e.g., Grid5000). In such scenarios it would be relevant to define privacy mechanisms that would obfuscate the nature of the data, or even the ontology and the associated data, in a way that still allows to use it computationally without violating the private nature of both these components.
+% Introduce SE, approaches that exist, pratical solutions are few and interesting to explore.
 
 \section{Objectives}
 \label{sec:ch1:objectives}
