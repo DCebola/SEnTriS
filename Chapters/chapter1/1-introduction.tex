@@ -1,5 +1,6 @@
 %!TEX root = ../../template.tex
-\typeout{NT FILE chapter1.tex}%
+
+\typeout{NT FILE chapter1}
 
 \chapter{Introduction}
 \label{cha:introduction}
@@ -11,23 +12,16 @@
 
 \section{Context}
 \label{sec:ch1:context}
-\begin{enumerate}
-    \item Briefly contextualize the Semantic Web. Why are ontologies relevant? \mytodo{Explain the motivation for the Semantic Web and use of ontologies.}
-    \item State of adoption. How/where are ontologies being used? \mytodo{Enumerate industry/investigation examples.}
-    \item Future expectations. How will the technology evolve? \mytodo{Mention cloud and external computing, general adoption growth...}
-\end{enumerate}
 
-In 2001, the term \emph{Semantic Web}\autocite{berners2001semantic} was first used to define what would be the evolution of the \emph{World Wide Web}. The \emph{World Wide Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. In the traditional \emph{Web}, documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access if they do not know the semantics of the data.
+In 2001, the term \emph{Semantic Web}\autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
 
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
-\mycomment{Diogo}{A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence).
-}{Very general explanation because details will be covered in the State-of-the-Art chapter.} To represent relevant concepts, and their relations, in specific domains, \emph{ontologies} are then built, using these specifications. 
+A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain. This is necessary to remove ambiguity in terminology.
 
-This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different \emph{knowledge bases}. With centralized representations both parties need to agree on the semantics of the data, in contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, \emph{automated agents} can truly communicate, share and reason about distinct \emph{knowledge bases}.
+This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. With centralized representations both parties need to agree on the semantics, in contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
 
-Nowadays, this technology is becoming more widely used with ontologies being developed in a variety of domains ranging from the health sector (e.g. NCI Thesaurus, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO), the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute) to linguistics (e.g. WordNet, representing semantic relationship between words in over 200 languages). \mytodo{Add sources of the examples.}
-With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions and \emph{outsourcing} computations, relying on cloud infrastructures or other shared computing platforms (e.g., Grid5000).
+
 
 \section{Problem}
 \label{sec:ch1:problem}
@@ -37,10 +31,22 @@ With ontologies gradually growing in dimension, the industry is currently evolvi
     \item Why is there need for privacy in ontologies? \mytodo{Explain why some ontologies need privacy mechanisms. Define the mechanisms needed.}
 \end{enumerate}
 
+Nowadays, ontologies are being developed and used in a variety of domains ranging from the health sector (e.g. NCI Thesaurus\autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO)\autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute) to linguistics (e.g. WordNet\autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked).
 
-\section{Proposed Solution}
-\label{sec:ch1:solution}
+To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the ontology design; debugging tools; query answering; graphic visualization of data).
+
+With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions and outsourcing computations, relying on cloud infrastructures or other shared computing platforms.
+
+
+\section{Objectives}
+\label{sec:ch1:objectives}
 Briefly explain proposed solution. The scope of the solution, contributions, and how will it solve the problems mentioned in previous section.
+
+
+\section{Contributions}
+\label{sec:ch1:contributions}
+Enumerate the contributions.
+
 
 \section{Document Organization}
 \label{sec:ch1:organization}
