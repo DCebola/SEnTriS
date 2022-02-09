@@ -1,0 +1,1 @@
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QThis solution needs high-network requirements and results in heavy client-side computations, hindering all the benefits of using a cloud service to store the data.\\E$"}

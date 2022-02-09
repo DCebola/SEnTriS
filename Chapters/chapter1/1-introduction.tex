@@ -16,33 +16,30 @@
 In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
-A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain. 
+A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain.
 
 This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. Centralized representations tend to be more expensive to develop, usually needing to be built from scratch \autocite{Neches1991-lx}. Furthermore, for sharing, both parties need to agree on the semantics. In contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
 
-
-
-\section{Problem}
-\label{sec:ch1:problem}
-
 Knowledge representation is essential in the industry \autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
 Nowadays, they are being developed and applied in a variety of domains \autocite{W3c_undated-pd} ranging from the health sector\footnote{NCI Thesaurus \autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO) \autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute.}, to linguistics \footnote{ WordNet \autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA \autocite{Ashish2005-qz}. \footnote{ Observing the visual representation provided by the Linked Open Data Cloud \autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.}
-
 
 To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design; debugging tools; query answering; graphic visualization of data).
 
 With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, do present new security concerns and engineering challenges.
 
+As of 2021, cloud adoption as risen more than what was previously forecasted, with 50 percent of all enterprise workloads hosted in \emph{public clouds} and predictions of 7 percentage point gain in 2022 \autocite{Security_Compass2021-sh}. Research on secure cloud computing \autocite{Carroll2011-me} studies such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency\footnote{Cloud services reduce implementation and maintenance, power, cooling, floor space, storage and operational costs}, high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model is an easy entry point to the ecosystem.
 
-As of 2021, cloud adoption as risen more than what was previously forecasted, with 50 percent of all enterprise workloads hosted in \emph{public clouds} and predictions of 7 percentage point gain in 2022 \autocite{Security_Compass2021-sh}.  Research on secure cloud computing \autocite{Carroll2011-me} explains such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency (reduced implementation and maintenance, power, cooling, floor space, storage and operational costs), high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model allows for an easy entrance to the ecosystem.
+On the contrary, while delegation of responsibilities is beneficial for costs, it is prejudicial to control. Using cloud services implies trusting its owner. A \gls{SLA} defines, in accordance to metrics, the service levels of the system that the vendor should provide (e.g. percentage of availability), while also defining penalties in case of not achieving what was agreed-on. However, there still exist the risk of loss of privacy, potential privacy leaks and data breaches. This is especially concerning with sensitive data such as health records.
 
-%Cloud -> including high availability, elasticity, and ubiquity, pay-as-you-go model, the elimination of concerns relative to maintenance, high availability, and cheap geo-replication at the loss of privacy and control. trusting its owners, a problem many end-users are aware. Recent news have proven data stored on Cloud servers is susceptible to privacy leaks and data breaches... Especially concerning with sensitive data like health records
+On the setting of outsourcing data to third parties we usually consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. This adversary will follow the protocol properly but keep a record of all its intermediate computations\autocite{Goldreich2001-sr}. Furthermore, it cannot do any other action except attempting to learn private information via observation of views of the protocol execution \autocite{Evans2018-it}.
 
-%Considering honest-but-curious adversary, which observes all data and computations on the Cloud server without interfering; such model implies that sensitive data can never be decrypted on the server
-
-%Classical approach -> Encryption at Rest (Encripted in the cloud, download, decrypted at the client for updates and searches) inneficient and require high-network and client-side computations
+A first approach to secure data in the cloud would be to use \emph{Encryption at Rest}, which naively encrypts all data stored in the untrusted servers. If a user wants to do to write or search operation over the data, they will have to download all the data, and decrypt it. This incurs in high-network requirements and is computationally expensive on the client-side, hindering all the benefits of using a cloud service to store the data. Nonetheless, this is the mechanism usually provided by database services \autocite{Oracle_Corporation_andor_its_affiliates_undated-rt, Affiliates_undated-lr, MongoDB_Inc_undated-mz}.
 
 %Is there a way to perform operations in the cloud without decrypting the data? -> Intro to HE, explain that it is not practical and then SE... talk that there exists SSE and PEKS.
+
+
+\section{Problem}
+\label{sec:ch1:problem}
 
 %Most of these schemes considered only solution for collections of documents without a particular structured opposed to ontologies where the structure stores the semantics of data -> Interested in a field of SSE exploring the context of Searchable Encryption ove Structured Data
 
