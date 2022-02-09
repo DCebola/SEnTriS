@@ -13,30 +13,41 @@
 \section{Context}
 \label{sec:ch1:context}
 
-In 2001, the term \emph{Semantic Web}\autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
+In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
 A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain. 
 
-This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. Centralized representations tend to be more expensive to develop, with almost every knowledge base needing to be built from scratch\autocite{Neches1991-lx}. Furthermore, for sharing, both parties need to agree on the semantics. In contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
+This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. Centralized representations tend to be more expensive to develop, usually needing to be built from scratch \autocite{Neches1991-lx}. Furthermore, for sharing, both parties need to agree on the semantics. In contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
 
 
 
 \section{Problem}
 \label{sec:ch1:problem}
 
-Knowledge representation is essential in the industry\autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
-Nowadays, they are being developed and applied in a variety of domains\autocite{W3c_undated-pd} ranging from the health sector\footnote{NCI Thesaurus\autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO)\autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute.}, to linguistics \footnote{ WordNet\autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA \autocite{Ashish2005-qz}. \footnote{ Observing the visual representation provided by the Linked Open Data Cloud\autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.}
+Knowledge representation is essential in the industry \autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
+Nowadays, they are being developed and applied in a variety of domains \autocite{W3c_undated-pd} ranging from the health sector\footnote{NCI Thesaurus \autocite{Sioutos2007-ep}, developed by the National Cancer Institute (NCI) or the Gene Ontology (GO) \autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, funded by the National Human Genome Research Institute.}, to linguistics \footnote{ WordNet \autocite{Miller1995-ic}, a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA \autocite{Ashish2005-qz}. \footnote{ Observing the visual representation provided by the Linked Open Data Cloud \autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.}
 
 
 To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design; debugging tools; query answering; graphic visualization of data).
 
-With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, do come with some new security concerns and engineering challenges.
+With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, do present new security concerns and engineering challenges.
 
 
-%Enummerate data concerns
-% This becomes a challenge when computations over these ontologies for the sake of reasoning services, such as answering queries or checking for consistency, have to be conducted outside of the infrastructure of the owner (or valid user) of the ontology or the data, for instance, when delegating such computations to cloud infrasctructures of other shared computing platforms (e.g., Grid5000). In such scenarios it would be relevant to define privacy mechanisms that would obfuscate the nature of the data, or even the ontology and the associated data, in a way that still allows to use it computationally without violating the private nature of both these components.
-% Introduce SE, approaches that exist, pratical solutions are few and interesting to explore.
+As of 2021, cloud adoption as risen more than what was previously forecasted, with 50 percent of all enterprise workloads hosted in \emph{public clouds} and predictions of 7 percentage point gain in 2022 \autocite{Security_Compass2021-sh}.  Research on secure cloud computing \autocite{Carroll2011-me} explains such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency (reduced implementation and maintenance, power, cooling, floor space, storage and operational costs), high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model allows for an easy entrance to the ecosystem.
+
+%Cloud -> including high availability, elasticity, and ubiquity, pay-as-you-go model, the elimination of concerns relative to maintenance, high availability, and cheap geo-replication at the loss of privacy and control. trusting its owners, a problem many end-users are aware. Recent news have proven data stored on Cloud servers is susceptible to privacy leaks and data breaches... Especially concerning with sensitive data like health records
+
+%Considering honest-but-curious adversary, which observes all data and computations on the Cloud server without interfering; such model implies that sensitive data can never be decrypted on the server
+
+%Classical approach -> Encryption at Rest (Encripted in the cloud, download, decrypted at the client for updates and searches) inneficient and require high-network and client-side computations
+
+%Is there a way to perform operations in the cloud without decrypting the data? -> Intro to HE, explain that it is not practical and then SE... talk that there exists SSE and PEKS.
+
+%Most of these schemes considered only solution for collections of documents without a particular structured opposed to ontologies where the structure stores the semantics of data -> Interested in a field of SSE exploring the context of Searchable Encryption ove Structured Data
+
+%Futhermore few solutions provide practical implementations. Considering that ontologies can be expensive to develop and may work with sensitive data it is interesting to explore, in a problem driven and pratical approach the deveolpemnt of techniques to maintain privacy of data and, possibly of topology of the relationships, relying on SSE when using external computational resources such as cloud infraestrucutres. All of this considering the needed query expressivity with graph like data to comply with the use of reasoners and query languages like SPARQL.
+
 
 \section{Objectives}
 \label{sec:ch1:objectives}
