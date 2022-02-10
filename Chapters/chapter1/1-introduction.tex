@@ -29,13 +29,13 @@ With ontologies gradually growing in dimension, the industry is currently evolvi
 
 As of 2021, cloud adoption as risen more than what was previously forecasted, with 50 percent of all enterprise workloads hosted in \emph{public clouds} and predictions of 7 percentage point gain in 2022 \autocite{Security_Compass2021-sh}. Research on secure cloud computing \autocite{Carroll2011-me} studies such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency\footnote{Cloud services reduce implementation and maintenance, power, cooling, floor space, storage and operational costs.}, high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model is an easy entry point to the ecosystem.
 
-On the contrary, while delegation of responsibilities is beneficial for costs, it is prejudicial to control. Using cloud services implies trusting its owner. A \gls{SLA} defines, in accordance to metrics, the service levels of the system that the vendor should provide (e.g. percentage of availability), while also defining penalties in case of not achieving what was agreed-on. However, the risk of loss of privacy and data breaches still exists. A problem that is especially concerning when sensitive data, such as health records, is being stored in such services. This is much more relevant in \emph{public clouds} where, compared to \emph{private clouds}, trust is distributed between various actors and not on a single organization \autocite{Carroll2011-me}. 
+On the contrary, while delegation of responsibilities is beneficial for costs, it is prejudicial to control. Using cloud services implies trusting its owner. A \gls{SLA} defines, in accordance to metrics, the service levels of the system that the vendor should provide (e.g. percentage of availability), while also defining penalties in case of not achieving what was agreed-on. However, the risk of loss of privacy and data breaches still exists. A problem that is especially concerning when sensitive data, such as health records, is being stored in such services. This is much more relevant in \emph{public clouds} where, compared to \emph{private clouds}, trust is distributed between various actors and not on a single organization \autocite{Carroll2011-me}.
 
-In cloud storage services, administrators, or hacker with root rights, might have access to the data \autocite{Bosch2014-eb}. Additionally, these cloud services might outsource computations to third parties whom we do not trust. In this setting, we usually consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. This adversary will follow the protocol properly but keep a record of all its intermediate computations \autocite{Goldreich2001-sr}. Furthermore, it cannot do any other action except attempting to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. 
+In cloud storage services, administrators, or hacker with root rights, might have access to the data \autocite{Bosch2014-eb}. Additionally, these cloud services might outsource computations to third parties whom we do not trust. In this setting, we usually consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. This adversary will follow the protocol properly but keep a record of all its intermediate computations \autocite{Goldreich2001-sr}. Furthermore, it cannot do any other action except attempting to learn private information while observing views of the protocol execution \autocite{Evans2018-it}.
 
 A first approach to secure data in the cloud would be to use \emph{Encryption at Rest}, which naively encrypts all data stored in the untrusted servers. If a user wants to do to write or search operation over the data, they will have to download all the data, and decrypt it. This incurs in high network requirements and is computationally expensive on the client-side, hindering all the benefits of using a cloud service to store the data. Nonetheless, this is the mechanism usually provided by database services \autocite{Oracle_Corporation_andor_its_affiliates_undated-rt, Oracle_Corporation_andor_its_affiliates_undated-lr, MongoDB_Inc_undated-mz}.
 
-Recently, active research is being done in the fields of \gls{SE} and \gls{HE}, because these techniques support search, and other operations, to be done over encrypted data, minimizing privacy loss. 
+Recently, active research is being done in the fields of \gls{SE} and \gls{HE}, because these techniques support search, and other operations, to be done over encrypted data, minimizing privacy loss.
 
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \glsxtrlong{HE}, based on the type and number of operations allowed, can be classified as: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
 
@@ -46,21 +46,45 @@ Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theo
 \section{Problem}
 \label{sec:ch1:problem}
 
-%Most of these schemes considered only solution for collections of documents without a particular structured opposed to ontologies where the structure stores the semantics of data -> Interested in a field of SSE exploring the context of Searchable Encryption ove Structured Data
+Taking into considerations the efficiency and security trade-offs from the various alternative techniques, the \gls{SSE} approach seems to be the most practical solution for protecting ontologies in untrusted servers. However, most \gls{SSE} protocols only consider \emph{unstructured} collections of documents with no semantic relationships. More recently, Chase and Kamara, on their work on \gls{STE}, generalized index-based \gls{SSE} to support queries on \emph{structured} data \autocite{Chase2010-xx}.
 
-%Futhermore few solutions provide practical implementations. Considering that ontologies can be expensive to develop and may work with sensitive data it is interesting to explore, in a problem driven and pratical approach the deveolpemnt of techniques to maintain privacy of data and, possibly of topology of the relationships, relying on SSE when using external computational resources such as cloud infraestrucutres. All of this considering the needed query expressivity with graph like data to comply with the use of reasoners and query languages like SPARQL.
+Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required on searches over ontologies as not yet been studied, more specifically for languages like \emph{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
 
+Furthermore, write operations that are supported in \gls{DSSE} \autocite{Kamara2012-lm}, have not yet been studied in the context of ontologies.
+
+Additionally, information leakage can be a problem while trying to guaranty privacy of the topology of an ontology.
+
+To conclude, we will focus on answering the following questions:
+
+\begin{enumerate}
+    \item \emph{How to support expressive queries and other operations in privacy-enhanced encrypted ontologies, using techniques such as \glsxtrlong{STE} and \glsxtrlong{DSSE}?}
+    \item \emph{Besides preserving data privacy, how can we minimize information leakage and avoid possible exposure of the topology of the encrypted ontologies?}
+\end{enumerate}
 
 \section{Objectives}
 \label{sec:ch1:objectives}
-Briefly explain proposed solution. The scope of the solution, contributions, and how will it solve the problems mentioned in previous section.
+
+The main objective of this thesis will be to provide answers to the two questions defined in section \ref{sec:ch1:problem} through a problem driven approach and guide future work in this field of research. We will first study a static \gls{STE} approach focusing on support for \emph{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
 
 
 \section{Contributions}
 \label{sec:ch1:contributions}
-Enumerate the contributions.
 
+Our contributions will be the proposal of a protocol that extends upon \gls{STE} and supports expressive and secure \emph{SPARQL} queries over privacy-enhanced encrypted ontologies. We now present a summary of the contributions:
+
+\begin{description}
+    \item [\gls{SSE} M/M Protocol for Privacy-Enhaced Ontologies] A novel multi-user protocol, based on \gls{STE}, that supports \emph{SPARQL} queries over encrypted ontologies, stored in untrusted servers.
+    \item [P1 - Static Setting] A protocol implementation for a static setting, supporting only search operations, based on \gls{STE}.
+    \item [P2 - Dynamic Setting] A protocol implementation for a dynamic setting, supporting search, write and delete operations, based on \gls{STE} and \gls{SSE}.
+\end{description}
 
 \section{Document Organization}
 \label{sec:ch1:organization}
-Specify the document organization, per chapter.
+
+The remaining of the document will be organized as follows:
+
+\begin{description}
+    \item [Chapter 2] Analyses related work on \emph{Semantic Web}, \emph{Ontologies} and \emph{Searchable Encryption}.
+    \item [Chapter 3] Presents requirements and informally defines the protocols and system models. Furthermore, in this chapter we describe our implementation and testing approaches.
+    \item [Chapter 4] Describes the work plan of the elaboration phase tasks.
+\end{description}
