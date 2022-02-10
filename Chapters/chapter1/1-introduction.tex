@@ -41,6 +41,7 @@ Recently, active research is being done in the fields of \gls{SE} and \gls{HE}, 
 
 \glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries, sequentially over the ciphertext \autocite{Song2000-hu}, or through the generation of searchable \emph{encrypted indexes} accessible with \emph{tokens}, generated via \emph{trapdoor} functions. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when asymmetric key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. Most approaches leak, at least, the \emph{search} and \emph{access patterns} \autocite{Bosch2014-eb}.
 
+Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theoretically be used as an alternative. However, \gls{ORAM} and \gls{HE} are not efficient enough, when used exclusively, to be feasible yet \autocite{Bosch2014-eb} in real world applications. Also, \gls{SSE} tends to be more practical than \gls{PEKS}, due to the efficiency comparison between asymmetric and symmetric cryptographic schemes \autocite{Pearson2017-ve}.
 
 \section{Problem}
 \label{sec:ch1:problem}
