@@ -6,32 +6,35 @@
 
 \prependtographicspath{{Figures/}}
 
-\section{Semantic Web}
+\section{Semantic Web: A layered architecture}
 \label{sec:ch2:semantic-web}
-% Recontextuallize and state organization of subsections.
 
-\subsection{Languages}
-\label{sec:ch2:semantic-web:languages}
-%Broad overview of languages, classify and enumerate. state organization of subsubsections.
+In section \ref{sec:ch1:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web} for the most granular level (a triple of subject, predicate and object). Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
-\subsubsection{RDF: Resource Description Framework}
-\label{sec:ch2:semantic-web:languages:rdf}
-%Describe syntax, principle, give example
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{semantic-web-stack.png}
+    \caption{The \emph{Semantic Web} stack \protect\autocite{Wikipedia_contributors_undated-bj}}
+    \label{fig:semantic-web-stack}
+\end{figure}
 
-\subsubsection{RDFS: RDF Schema}
-\label{sec:ch2:semantic-web:languages:rdf-schema}
-%Describe syntax, terms, novelty vs rdf.
-
-\subsubsection{OWL2: Web Ontology Language}
-\label{sec:ch2:semantic-web:languages:owl}
-%Describe syntax and terms + variants
-
-\subsection{Querying the Semantic Web}
-\label{sec:ch2:semantic-web:querying}
+% Analyse the layers of the stack
 %Briefly mention rdf stores, sparql and swrl state organization of subsubsections.
 
-\subsubsection{SPARQL}
-\label{sec:ch2:semantic-web:querying:sparql}
+\subsection{RDF: Resource Description Framework}
+\label{sec:ch2:semantic-web:rdf}
+%Describe syntax, principle, give example
+
+\subsection{RDFS: RDF Schema}
+\label{sec:ch2:semantic-web:rdf-schema}
+%Describe syntax, terms, novelty vs rdf.
+
+\subsection{OWL2: Web Ontology Language}
+\label{sec:ch2:semantic-web:owl}
+%Describe syntax and terms + variants
+
+\subsection{SPARQL}
+\label{sec:ch2:semantic-web:sparql}
 %Describe queries used and the 1.1 and http variants
 
 \subsection{Tools \& Development Software for Ontologies}
@@ -40,13 +43,23 @@
 %Describe protege, its collaborative and web based solutions... explain the plugins, technology
 
 
-\section{Searchable Encryption}
-\label{sec:ch2:searchable-encryption}
-%Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SSE. Talk about write/read server model and disclosure of information
+\section{Secure Computations}
+\label{sec:ch2:secure-computations}
+%Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
 
 \subsection{Homomorphic Encryption}
 \label{sec:ch2:homomorphic-encryption}
+\glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \gls{HE} allows for computations done over encrypted data to be preserved after decryption of the ciphertext. An encryption scheme is homomorphic if such operations preserve additive or multiplicative properties.
+\gls{HE} is classified in four main types: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
+%Talk about additive and multiplicative homomorphism
 % Explain a summary more popular scheme
+
+\subsection{Searchable Encryption}
+\label{sec:ch2:searchable-encryption}
+%Talk about write/read server model and disclosure of information
+\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries.
+\glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution.
+% Explain more about each type of leakage
 
 \subsection{Symmetric Searchable Encryption}
 \label{sec:ch2:symmetric-searchable-encryption}

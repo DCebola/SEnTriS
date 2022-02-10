@@ -8,7 +8,7 @@
 \section{Context}
 \label{sec:ch1:context}
 
-In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \emph{World Wide Web}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
+In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \gls{WWW}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
 A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain.
@@ -30,9 +30,9 @@ In cloud storage services, administrators, or hacker with root rights, might hav
 
 A first approach to secure data in the cloud would be to use \emph{Encryption at Rest}, which naively encrypts all data stored in the untrusted servers. If a user wants to do to write or search operation over the data, they will have to download all the data, and decrypt it. This incurs in high network requirements and is computationally expensive on the client-side, hindering all the benefits of using a cloud service to store the data. Nonetheless, this is the mechanism usually provided by database services \autocite{Oracle_Corporation_andor_its_affiliates_undated-rt, Oracle_Corporation_andor_its_affiliates_undated-lr, MongoDB_Inc_undated-mz}.
 
-Recently, active research is being done in the fields of \gls{SE} and \gls{HE}, because these techniques support search, and other operations, to be done over encrypted data, minimizing privacy loss.
+Recently, active research is being done in the fields of \gls{SE} and \gls{HE}.
 
-\glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \glsxtrlong{HE}, based on the type and number of operations allowed, can be classified as: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
+\glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \glsxtrlong{HE}, based on the type and number of operations allowed to be done on the encrypted data, can be classified as: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
 
 \glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries, sequentially over the ciphertext \autocite{Song2000-hu}, or through the generation of searchable \emph{encrypted indexes} accessible with \emph{tokens}, generated via \emph{trapdoor} functions. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when asymmetric key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. Most approaches leak, at least, the \emph{search} and \emph{access patterns} \autocite{Bosch2014-eb}.
 
@@ -41,9 +41,11 @@ Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theo
 \section{Problem}
 \label{sec:ch1:problem}
 
+Ontologies usually only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. Furthermore, they can hold private value, due to the investment of time and money in their development.
+
 Taking into considerations the efficiency and security trade-offs from the various alternative techniques, the \gls{SSE} approach seems to be the most practical solution for protecting ontologies in untrusted servers. However, most \gls{SSE} protocols only consider \emph{unstructured} collections of documents with no semantic relationships. More recently, Chase and Kamara, on their work on \gls{STE}, generalized index-based \gls{SSE} to support queries on \emph{structured} data \autocite{Chase2010-xx}.
 
-Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required on searches over ontologies as not yet been studied, more specifically for languages like \emph{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
+Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required for searches over ontologies has not yet been studied, more specifically for languages like \emph{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
 
 Furthermore, write operations that are supported in \gls{DSSE} \autocite{Kamara2012-lm}, have not yet been studied in the context of ontologies.
 
