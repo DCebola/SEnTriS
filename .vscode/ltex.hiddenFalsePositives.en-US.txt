@@ -1,1 +1,2 @@
 {"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QThis solution needs high-network requirements and results in heavy client-side computations, hindering all the benefits of using a cloud service to store the data.\\E$"}
+{"rule":"EN_A_VS_AN","sentence":"^\\QHE is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
