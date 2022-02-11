@@ -45,7 +45,7 @@ Ontologies usually only contain public, and non-sensitive data, but sometimes th
 
 Taking into considerations the efficiency and security trade-offs from the various alternative techniques, the \gls{SSE} approach seems to be the most practical solution for protecting ontologies in untrusted servers. However, most \gls{SSE} protocols only consider \emph{unstructured} collections of documents with no semantic relationships. More recently, Chase and Kamara, on their work on \gls{STE}, generalized index-based \gls{SSE} to support queries on \emph{structured} data \autocite{Chase2010-xx}.
 
-Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required for searches over ontologies has not yet been studied, more specifically for languages like \emph{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
+Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required for searches over ontologies has not yet been studied, more specifically for languages like \gls{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
 
 Furthermore, write operations that are supported in \gls{DSSE} \autocite{Kamara2012-lm}, have not yet been studied in the context of ontologies.
 
@@ -61,19 +61,21 @@ To conclude, we will focus on answering the following questions:
 \section{Objectives}
 \label{sec:ch1:objectives}
 
-The main objective of this thesis will be to provide answers to the two questions defined in section \ref{sec:ch1:problem} through a problem driven approach and guide future work in this field of research. We will first study a static \gls{STE} approach focusing on support for \emph{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
+The main objective of this thesis will be to provide answers to the two questions defined in section \ref{sec:ch1:problem} through a problem driven approach and guide future work in this field of research. We will first study a static \gls{STE} approach focusing on support for \gls{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
 
 
 \section{Contributions}
 \label{sec:ch1:contributions}
 
-Our contributions will be the proposal of a protocol that extends upon \gls{STE} and supports expressive and secure \emph{SPARQL} queries over privacy-enhanced encrypted ontologies. We now present a summary of the contributions:
+Our contributions will be the proposal of a protocol that extends upon \gls{STE} and supports expressive and secure \gls{SPARQL} queries over privacy-enhanced encrypted ontologies. We now present a summary of the contributions:
 
 \begin{description}
-    \item [\gls{SSE} M/M Protocol for Privacy-Enhaced Ontologies] A novel multi-user protocol, based on \gls{STE}, that supports \emph{SPARQL} queries over encrypted ontologies, stored in untrusted servers.
+    \item [\gls{SSE} M/M Protocol for Privacy-Enhanced Ontologies] A novel multi-user protocol, based on \gls{STE}, that supports \gls{SPARQL} queries over encrypted ontologies, stored in untrusted servers.
     \item [P1 - Static Setting] A protocol implementation for a static setting, supporting only search operations, based on \gls{STE}.
     \item [P2 - Dynamic Setting] A protocol implementation for a dynamic setting, supporting search, write and delete operations, based on \gls{STE} and \gls{SSE}.
 \end{description}
+
+All the prototypes developed will be available as open-source code in a public repository, alongside the benchmark results.
 
 \section{Document Organization}
 \label{sec:ch1:organization}

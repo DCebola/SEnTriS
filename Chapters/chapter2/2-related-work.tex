@@ -9,14 +9,29 @@
 \section{Semantic Web: A layered architecture}
 \label{sec:ch2:semantic-web}
 
-In section \ref{sec:ch1:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web} for the most granular level (a triple of subject, predicate and object). Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
+In section \ref{sec:ch1:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
+\begin{enumerate}
+    \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
+    \item All data items are identified by \gls{URI};
+    \item Usage of ontologies to model semantics within a domain.
+\end{enumerate}
 
-\begin{figure}[H]
+Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
+
+\begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.6\textwidth]{semantic-web-stack.png}
+    \includegraphics[width=0.5\textwidth]{semantic-web-stack.png}
     \caption{The \emph{Semantic Web} stack \protect\autocite{Wikipedia_contributors_undated-bj}}
     \label{fig:semantic-web-stack}
 \end{figure}
+
+Briefly describing this layered architecture, at the root level we have the \gls{URI}s and a character set providing the baseline of communication - distinguishable identification of resources, with an agreed encoding.
+
+At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited tags, that can be placed in the text of a document. These tags facilitate the creation of hierarchy, thus giving \emph{structure} to information. \mytodo{Add XML figure example.}
+
+From structured data, the basic data model is defined. Using \gls{RDF} \autocite{}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, giving semantics to the information. \mytodo{Add basic RDF figure example.}
+
+In the following of this subsection we will describe the \gls{RDF}, \gls{OWL2} and \gls{SPARQL} languages in additional detail, as well as discussing the common tools a software used in this field.
 
 % Analyse the layers of the stack
 %Briefly mention rdf stores, sparql and swrl state organization of subsubsections.
@@ -36,6 +51,10 @@ In section \ref{sec:ch1:context}, we have contextualized the main philosophy and
 \subsection{SPARQL}
 \label{sec:ch2:semantic-web:sparql}
 %Describe queries used and the 1.1 and http variants
+%Graph isomorphism problem
+
+\subsubsection{Graph Isomorphism Problem}
+\label{sec:ch2:semantic-web:sparql:graph-isomorphism}
 
 \subsection{Tools \& Development Software for Ontologies}
 \label{sec:ch2:semantic-web:tools}
