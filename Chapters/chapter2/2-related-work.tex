@@ -4,100 +4,114 @@
 \chapter{Related Work}
 \label{cha:related-work}
 
-On this chapter we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on section \ref{sec:ch2:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; section \ref{sec:ch2:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on section \ref{sec:ch2:summary} we summarize and discuss which work is relevant.
+On this chapter we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on section \ref{ch2:sec:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; section \ref{ch2:sec:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on section \ref{ch2:sec:summary} we summarize and discuss which work is relevant.
 
 \prependtographicspath{{Figures/}}
 
 \section{Semantic Web: A layered architecture}
-\label{sec:ch2:semantic-web}
+\label{ch2:sec:semantic-web}
 
-In section \ref{sec:ch1:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
+In section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
 \begin{enumerate}
     \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
     \item All data items are identified by \gls{URI};
     \item Usage of ontologies to model semantics within a domain.
 \end{enumerate}
 
-Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
+Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj}, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
-\begin{figure}[hbt]
+Briefly describing this layered architecture, at the root level, we have the \gls{URI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{semantic-web-stack.png}
-    \caption{The \emph{Semantic Web} stack \protect\autocite{Wikipedia_contributors_undated-bj}}
+    \caption{The \emph{Semantic Web} stack \protect\autocite{Wikipedia_contributors_undated-bj}.}
     \label{fig:semantic-web-stack}
 \end{figure}
 
-Briefly describing this layered architecture, at the root level we have the \gls{URI}s and a character set providing the baseline of communication - distinguishable identification of resources, with an agreed encoding.
 
-At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to information. \mytodo{Add XML figure example.}
+At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
-From structured data, the basic data model is defined. Using \gls{RDF} \autocite{W3c_undated-vq}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, giving \emph{semantics} to the information. \mytodo{Add basic RDF figure example.}
+From structured data, the basic data model is defined. Using \gls{RDF} \autocite{W3c_undated-vq}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, keeping \emph{semantics} within the information.
 
-In the following of this section we will describe in more detail \gls{RDF}, on section \ref{sec:ch2:semantic-web:rdf}, \gls{OWL2}, on section \ref{sec:ch2:semantic-web:owl}, and \gls{SPARQL}, on section \ref{sec:ch2:semantic-web:sparql}, as well as, on section \ref{sec:ch2:semantic-web:tools} discussing the common tools and software used in this field.
+The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to organize \gls{RDF} resources into hierarchies, based on primitives such as \emph{classes} and \emph{properties}. It can be seen as a rudimentary \emph{ontology language} \autocite{Antoniou2012-nj}.
 
-% Analyse the layers of the stack
-%Briefly mention rdf stores, sparql and swrl state organization of subsubsections.
+Ontologies are defined with the \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
+
+\gls{RDF} triples can be interpreted as a logical binary predicates. As such, reasoning over \gls{RDF}-based data is possible. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{Horrocks2004-rn}, facilitate interaction based on \emph{descriptive-logic}. 
+
+To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}. 
+
+The Proof and Unifying Logic layers include the notion of interconnectivity of terminologies between \emph{knowledge basis}, with explainable operations and interconnection.
+
+Only with secure cryptographic schemes can we reach the trust layer. Such schemes are yet to be standardized.
+
+The top layer, references all the applications and interfaces that use this new paradigm of data representation.
+
+In the following of this section we will describe in more detail some languages and tools. We will focus on \gls{RDF} in section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in section \ref{ch2:sec:semantic-web:sparql}; as well as, on section \ref{ch2:sec:semantic-web:tools}, discuss the common tools and software used in this field.
 
 \subsection{RDF: Resource Description Framework}
-\label{sec:ch2:semantic-web:rdf}
+\label{ch2:sec:semantic-web:rdf}
 %Describe syntax, principle, give example
 
+
 \subsection{RDFS: RDF Schema}
-\label{sec:ch2:semantic-web:rdf-schema}
+\label{ch2:sec:semantic-web:rdf-schema}
 %Describe syntax, terms, novelty vs rdf.
 
 \subsection{OWL2: Web Ontology Language}
-\label{sec:ch2:semantic-web:owl}
+\label{ch2:sec:semantic-web:owl}
 %Describe syntax and terms + variants
 
 \subsection{SPARQL}
-\label{sec:ch2:semantic-web:sparql}
+\label{ch2:sec:semantic-web:sparql}
 %Describe queries used and the 1.1 and http variants
+%mention rdf stores
 %Graph isomorphism problem
 
 \subsubsection{Graph Isomorphism Problem}
-\label{sec:ch2:semantic-web:sparql:graph-isomorphism}
+\label{ch2:sec:semantic-web:sparql:graph-isomorphism}
 
 \subsection{Tools \& Development Software for Ontologies}
-\label{sec:ch2:semantic-web:tools}
+\label{ch2:sec:semantic-web:tools}
 %Mention editors and reasoners.
 %Describe protege, its collaborative and web based solutions... explain the plugins, technology
 
 
 \section{Secure Computations}
-\label{sec:ch2:secure-computations}
+\label{ch2:sec:secure-computations}
 %Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
 
 \subsection{Homomorphic Encryption}
-\label{sec:ch2:homomorphic-encryption}
+\label{ch2:sec:homomorphic-encryption}
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \gls{HE} allows for computations done over encrypted data to be preserved after decryption of the ciphertext. An encryption scheme is homomorphic if such operations preserve additive or multiplicative properties.
 \gls{HE} is classified in four main types: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
 %Talk about additive and multiplicative homomorphism
 % Explain a summary more popular scheme
 
 \subsection{Searchable Encryption}
-\label{sec:ch2:searchable-encryption}
+\label{ch2:sec:searchable-encryption}
 %Talk about write/read server model and disclosure of information
 \glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries.
 \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution.
 % Explain more about each type of leakage
 
 \subsection{Symmetric Searchable Encryption}
-\label{sec:ch2:symmetric-searchable-encryption}
+\label{ch2:sec:symmetric-searchable-encryption}
 %Summarise first 2 Song (full ciphertext) and index-based Curtomola
 %Provide security definitions
 
 
 \subsubsection{Structured Searchable Encryption}
-\label{sec:ch2:structured-searchable-encryption}
+\label{ch2:sec:structured-searchable-encryption}
 
 
 \subsubsection{Dynamic Symmetric Searchable Encryption}
-\label{sec:ch2:dynamic-symmetric-searchable-encryption}
+\label{ch2:sec:dynamic-symmetric-searchable-encryption}
 
 
 \section{Summary}
-\label{sec:ch2:summary}
+\label{ch2:sec:summary}
 
 
 
