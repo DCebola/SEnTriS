@@ -4,6 +4,8 @@
 \chapter{Related Work}
 \label{cha:related-work}
 
+On this chapter we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on section \ref{sec:ch2:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; section \ref{sec:ch2:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on section \ref{sec:ch2:summary} we summarize and discuss which work is relevant.
+
 \prependtographicspath{{Figures/}}
 
 \section{Semantic Web: A layered architecture}
@@ -27,11 +29,11 @@ Additionally, the \emph{Semantic Web} can also be seen as a stack of various lay
 
 Briefly describing this layered architecture, at the root level we have the \gls{URI}s and a character set providing the baseline of communication - distinguishable identification of resources, with an agreed encoding.
 
-At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited tags, that can be placed in the text of a document. These tags facilitate the creation of hierarchy, thus giving \emph{structure} to information. \mytodo{Add XML figure example.}
+At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to information. \mytodo{Add XML figure example.}
 
-From structured data, the basic data model is defined. Using \gls{RDF} \autocite{}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, giving semantics to the information. \mytodo{Add basic RDF figure example.}
+From structured data, the basic data model is defined. Using \gls{RDF} \autocite{W3c_undated-vq}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, giving \emph{semantics} to the information. \mytodo{Add basic RDF figure example.}
 
-In the following of this subsection we will describe the \gls{RDF}, \gls{OWL2} and \gls{SPARQL} languages in additional detail, as well as discussing the common tools a software used in this field.
+In the following of this section we will describe in more detail \gls{RDF}, on section \ref{sec:ch2:semantic-web:rdf}, \gls{OWL2}, on section \ref{sec:ch2:semantic-web:owl}, and \gls{SPARQL}, on section \ref{sec:ch2:semantic-web:sparql}, as well as, on section \ref{sec:ch2:semantic-web:tools} discussing the common tools and software used in this field.
 
 % Analyse the layers of the stack
 %Briefly mention rdf stores, sparql and swrl state organization of subsubsections.
