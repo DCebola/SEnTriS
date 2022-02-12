@@ -18,7 +18,7 @@ In section \ref{ch1:sec:context}, we have contextualized the main philosophy and
     \item Usage of ontologies to model semantics within a domain.
 \end{enumerate}
 
-Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj}, figure \ref{fig:semantic-web-stack}. Most of these layers are standardized due to the collective work of the \gls{W3C}.
+Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
 Briefly describing this layered architecture, at the root level, we have the \gls{URI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
 
@@ -32,27 +32,69 @@ Briefly describing this layered architecture, at the root level, we have the \gl
 
 At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
-From structured data, the basic data model is defined. Using \gls{RDF} \autocite{W3c_undated-vq}, with \gls{XML} like syntax, we define statements about resources, embedding \emph{metadata} in the documents' data. Thus, keeping \emph{semantics} within the information.
+From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With a \gls{XML} like syntax, we can write statements about resources. Thus, embedding  \emph{semantics} within the information, as \emph{metadata}.
 
 The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to organize \gls{RDF} resources into hierarchies, based on primitives such as \emph{classes} and \emph{properties}. It can be seen as a rudimentary \emph{ontology language} \autocite{Antoniou2012-nj}.
 
 Ontologies are defined with the \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
 
-\gls{RDF} triples can be interpreted as a logical binary predicates. As such, reasoning over \gls{RDF}-based data is possible. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{Horrocks2004-rn}, facilitate interaction based on \emph{descriptive-logic}. 
+\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{Horrocks2004-rn}, facilitate interaction based on \emph{descriptive-logic}.
 
-To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}. 
+To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}.
 
-The Proof and Unifying Logic layers include the notion of interconnectivity of terminologies between \emph{knowledge basis}, with explainable operations and interconnection.
+The Proof and Unifying Logic layers include the notion of interconnectivity of terminologies between \emph{knowledge bases}, with explainable proofs to operations.
 
-Only with secure cryptographic schemes can we reach the trust layer. Such schemes are yet to be standardized.
+Only with secure cryptographic schemes can we reach the trust layer. The security layer is still not standardized.
 
 The top layer, references all the applications and interfaces that use this new paradigm of data representation.
 
-In the following of this section we will describe in more detail some languages and tools. We will focus on \gls{RDF} in section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in section \ref{ch2:sec:semantic-web:sparql}; as well as, on section \ref{ch2:sec:semantic-web:tools}, discuss the common tools and software used in this field.
+In the following of this section we will describe, in more detail, some languages and tools. We will focus on \gls{RDF} in section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in section \ref{ch2:sec:semantic-web:sparql}; on common tools and software, in section \ref{ch2:sec:semantic-web:tools}.
 
 \subsection{RDF: Resource Description Framework}
 \label{ch2:sec:semantic-web:rdf}
-%Describe structure, give example comparing to XML, refeer abbreviations. Enumerate possible syntaxes
+
+\subsubsection{Data Model}
+\gls{RDF} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
+
+Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without an \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
+
+To make statement $B$ about a statement $A$ we can use a technique called \emph{reitification}. Reitification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
+
+\subsubsection{Syntax}
+
+\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement. Graphs can be named.
+
+\mytodo{ADD graphical example}
+
+\paragraph{Turtle}
+
+\mytodo{ADD turtle full example}
+
+\begin{listing}[H]
+    \begin{minted}[fontsize=\small, breaklines,breakanywhere, frame=single, framesep=10pt]{Turtle}
+# FCT is located in Almada
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
+
+# FCT has 8.000 students
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#totalStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
+
+    \end{minted}
+    \caption{Simple RDF Example, in Turtle syntax.}
+    \label{}
+\end{listing}
+
+\paragraph{Trig}
+
+\mytodo{ADD trig example}
+
+\paragraph{RDF/XML}
+
+\mytodo{ADD rdf/xml example}
+
+\paragraph{RDFa}
+
+\mytodo{ADD RDFa example}
+
 
 \subsection{RDFS: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
