@@ -58,41 +58,28 @@ In the following of this section we will describe, in more detail, some language
 
 Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without an \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
-\begin{lstlisting}[language=XML, caption={Simple RDF Example.}]
-# FCT is located in Almada
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
-
-# FCT has 8.000 students
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#totalStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
-\end{lstlisting}
-
 To make statement $B$ about a statement $A$ we can use a technique called \emph{reitification}. Reitification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
 
 \subsubsection{Syntax}
 
-\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement. Graphs can be named.
-
-
+\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement.
 
 \mytodo{ADD graphical example}
 
-\paragraph{Turtle}
-
-\mytodo{ADD turtle full example}
+\paragraph{Text-Based}
 
 
+There are multiple text-based syntaxes\footnote{We recommend the curious reader to read the W3C recommendations to learn the syntaxes.} for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq}, and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}, \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}.
 
-\paragraph{Trig}
+\pagebreak
 
-\mytodo{ADD trig example}
+\begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}]
+# FCT is located in Almada
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
 
-\paragraph{RDF/XML}
-
-\mytodo{ADD rdf/xml example}
-
-\paragraph{RDFa}
-
-\mytodo{ADD RDFa example}
+# FCT has 8.000 students
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
+\end{lstlisting}
 
 
 \subsection{RDFS: RDF Schema}
