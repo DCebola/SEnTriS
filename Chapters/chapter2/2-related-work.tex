@@ -58,7 +58,7 @@ In the following of this section we will describe, in more detail, some language
 
 Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without an \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
-To make statement $B$ about a statement $A$ we can use a technique called \emph{reitification}. Reitification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
+To make statement $B$ about a statement $A$ we can use a technique called \emph{reification}. Reification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
 
 \subsubsection{Syntax}
 
@@ -69,9 +69,10 @@ To make statement $B$ about a statement $A$ we can use a technique called \emph{
 \paragraph{Text-Based}
 
 
-There are multiple text-based syntaxes\footnote{We recommend the curious reader to read the W3C recommendations to learn the syntaxes.} for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq}, and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}, \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}.
+There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq}, and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
+In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mention, the value is inferred as being a string). We can also define abbreviations of \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon and the \gls{URI}) and simplify of statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
-\pagebreak
+\emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}. 
 
 \begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}]
 # FCT is located in Almada
@@ -85,6 +86,13 @@ There are multiple text-based syntaxes\footnote{We recommend the curious reader 
 \subsection{RDFS: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
 %Describe structure, give example extending on the RDF example, enumerate terms and possible syntaxes
+
+In order to define semantics within a particular domain, \gls{RDF} is not enough. The \glsxtrlong{RDFS} brings primitives to \gls{RDF} in order to group and organize individual resources and relationships by means of a set of primitives. A \emph{class} defines
+
+%The core classes are rdfs:Resource,the class of all resources rdfs:Class,the class of all classes rdfs:Literal,the class of all literals (strings) rdf:Property,the class of all properties rdf:Statement,the class of all reified statements
+%RDF Schema is a primitive ontology language. It offers certain modeling prim-itives with fixed meaning. Key concepts of RDF Schema are class, subclassrelations, property, subproperty relations, and domain and range restrictions.
+
+
 
 \subsection{OWL2: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}
