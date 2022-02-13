@@ -58,11 +58,21 @@ In the following of this section we will describe, in more detail, some language
 
 Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without an \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
+\begin{lstlisting}[language=XML, caption={Simple RDF Example.}]
+# FCT is located in Almada
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
+
+# FCT has 8.000 students
+<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#totalStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
+\end{lstlisting}
+
 To make statement $B$ about a statement $A$ we can use a technique called \emph{reitification}. Reitification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
 
 \subsubsection{Syntax}
 
 \paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement. Graphs can be named.
+
+
 
 \mytodo{ADD graphical example}
 
@@ -70,18 +80,7 @@ To make statement $B$ about a statement $A$ we can use a technique called \emph{
 
 \mytodo{ADD turtle full example}
 
-\begin{listing}[H]
-    \begin{minted}[fontsize=\small, breaklines,breakanywhere, frame=single, framesep=10pt]{Turtle}
-# FCT is located in Almada
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
 
-# FCT has 8.000 students
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#totalStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
-
-    \end{minted}
-    \caption{Simple RDF Example, in Turtle syntax.}
-    \label{}
-\end{listing}
 
 \paragraph{Trig}
 
