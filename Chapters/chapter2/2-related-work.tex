@@ -186,23 +186,11 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}.
     \label{fig:owl2-structure}
 \end{figure}
 
-\subsubsection{OWL2 DL}
-
-Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. In this section, we specify the restrictions imposed by \emph{OWL2 DL} \autocite{Antoniou2012-nj}: 
-
-\begin{itemize}
-    \item The application of \gls{OWL2} primitives to each other is not allowed; only classes and non-literals resources may be defined, with all classes being individuals of owl:Class;
-    
-    \item Properties are disjoint individuals of either \emph{owl:ObjectProperty} or \emph{owl:DatatypeProperty}; 
-    \item Properties, for which range includes non-literal resources, are separated from those which relate to literal values; 
-    \item A resource can only be a class, property, or instance at the same time simultaneously, classes, properties or instances with the same name will be treated as distinct (a mechanism called \emph{punning});
-    \item Only \emph{functional properties} can be assigned to \emph{datatype properties}; \item \emph{Property chains} can only involve object properties 
-\end{itemize}
-
-
 \subsubsection{Owl Language}
 
 In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} specifies that a resource is of a certain type. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes.
+
+\pagebreak
 
 \begin{lstlisting}[language=XML, caption={Simple OWL2 Example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
@@ -233,14 +221,14 @@ _:x rdf:type owl:Class ;
 
 \subsubsection*{Property Types}
 
-\paragraph{\emph{Object Properties}}
-\paragraph{\emph{Datatype Properties}}   
-\paragraph{\emph{Annotation Properties}} 
-\paragraph{\emph{Top and Bottom  Properties}}
-\paragraph{\emph{Transitive Properties}}
-\paragraph{\emph{Symmetric and Asymmetric Properties}}
-\paragraph{\emph{Functional and Inverse-Functional Properties}}  
-\paragraph{\emph{Reflexive and Irreflexive Properties}} 
+\gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations (in \emph{OWL DL} these are ignored by a reasoner). 
+
+
+ 
+The \emph{top} and \emph{bottom} properties specify, respectively, properties that relate to all and no individuals: owl:topObjectProperty is the superproperty of all owl:ObjectProperties and owl:bottomObjectProperty relates to no individual; owl:topDataProperty is the superproperty of all owl:DatatypeProperties, relating an individual to any possible literal value and owl:bottomDataProperty relates to no individual to any literal value.
+
+Properties can have different characteristics: they can be \emph{transitive}, if $a$ relates to $b$ via property $p$ and  $c$ relates $a$ via property $p$ then $c$ relates to  $b$ via property $p$; \emph{symmetric}, if $a$ relates to $b$ via property $p$ then inverse is true; \emph{asymmetric},if $a$ relates to $b$ via property $p$ then the inverse is $\bot$; \emph{functional}, if for each instance the property can only have one unique value; \emph{inverse-functional} if the object of a property statement relates to a single subject; \emph{reflexive}, if every individual relates to itself via the property; \emph{irreflexive}, if no individual relates to itself via the property.
+
 
 
 \paragraph{Property Axioms}
@@ -278,6 +266,19 @@ _:x rdf:type owl:Class ;
 \paragraph{\emph{Class and Property Assertions}} 
 \paragraph{\emph{Identity Assertions}}      
 \paragraph{\emph{Negative Assertions}}
+
+\subsubsection{OWL2 DL}
+
+Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. In this section, we specify the restrictions imposed by \emph{OWL2 DL} \autocite{Antoniou2012-nj}: 
+
+\begin{itemize}
+    \item The application of \gls{OWL2} primitives to each other is not allowed; only classes and non-literals resources may be defined, with all classes being individuals of owl:Class;
+    \item Properties are disjoint individuals of either owl:ObjectProperty or owl:DatatypeProperty; 
+    \item Properties, for which range includes non-literal resources, are separated from those which relate to literal values; 
+    \item A resource can only be a class, property, or instance at the same time simultaneously, classes, properties or instances with the same name will be treated as distinct (a mechanism called punning);
+    \item Only functional properties can be assigned to datatype properties; 
+    \item Property chains can only involve object properties.
+\end{itemize}
 
 \subsection{SPARQL}
 \label{ch2:sec:semantic-web:sparql}
