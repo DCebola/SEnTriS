@@ -209,7 +209,6 @@ In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \e
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix fac:  <http://www.my-custom-domain/faculties.ttl .
 
 # The base namespace of the FCT ontology
 @base<http://www.my-custom-domain/fct.ttl> .
@@ -220,17 +219,15 @@ In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \e
     rdfs:comment   "An example OWL2 ontology"^^xsd:string ;
     owl:versionIRI <http://www.my-custom-domain/fct.ttl#1.0> .
 
-# Class Assertion
-:class101 rdf:type :Course .
-
 # Class Expression
-_:x rdf:type owl:Course ;
+_:x rdf:type owl:Class ;
     owl:unionOf ( :Mandatory :Optional ) .
 
 # Class Axiom
 :Course owl:equivalentClass _:x .
-_:x rdf:type owl:Class ;
-    owl:unionOf (:Mandatory :Optional ) .
+
+# Class Assertion
+:class101 rdf:type :Course .
 
 \end{lstlisting}
 
