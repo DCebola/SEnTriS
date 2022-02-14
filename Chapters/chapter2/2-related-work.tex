@@ -54,11 +54,11 @@ In the following of this section we will describe, in more detail, some language
 \label{ch2:sec:semantic-web:rdf}
 
 \subsubsection{Data Model}
-\gls{RDF} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
+\gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
 
-Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without an \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
+Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without a \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
-To make statement $B$ about a statement $A$ we can use a technique called \emph{reification}. Reification consists in: firstly, defining a statement $B$ where the object, that we shall name $objA$, represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and object of $A$.
+To make a statement $B$ about a statement $A$ we can use a technique called \emph{reification}. Reification consists in: firstly, defining a statement $B$ where the object $objA$ represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and original object of statement $A$ \autocite{Antoniou2012-nj}.
 
 \subsubsection{Syntax}
 
@@ -69,12 +69,12 @@ To make statement $B$ about a statement $A$ we can use a technique called \emph{
 \paragraph{Text-Based}
 
 
-There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq}, and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
-In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mention, the value is inferred as being a string). We can also define abbreviations of \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon and the \gls{URI}) and simplify of statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
+There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
+In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mention, the value is inferred as being a string). We can also define \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon, the \gls{URI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
-\emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}. 
+\pagebreak
 
-\begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}]
+\begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
 <http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
 
@@ -82,17 +82,77 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 <http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
 \end{lstlisting}
 
+\emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
 
 \subsection{RDFS: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
 %Describe structure, give example extending on the RDF example, enumerate terms and possible syntaxes
 
-In order to define semantics within a particular domain, \gls{RDF} is not enough. The \glsxtrlong{RDFS} groups and organize individual resources and relationships by means of a set of primitives. A \emph{class} defines
+\gls{RDF} is a flexible data-model because it is not domain-specified. However, for interconnectivity of different \gls{RDF} knowledge bases, semantics for restricting meaning in a specific domain are needed.
 
-%The core classes are rdfs:Resource,the class of all resources rdfs:Class,the class of all classes rdfs:Literal,the class of all literals (strings) rdf:Property,the class of all properties rdf:Statement,the class of all reified statements
-%RDF Schema is a primitive ontology language. It offers certain modeling prim-itives with fixed meaning. Key concepts of RDF Schema are class, subclassrelations, property, subproperty relations, and domain and range restrictions.
+\gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under the \url{http://www.w3.org/2000/01/rdf-schema#}{}.
 
+\emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
+% Specify how domain and range works.
+% Specify subPropery and subClass
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{ |l|l| }
+            \hline
+            \multicolumn{2}{|c|}{\textbf{\gls{RDFS} Core Classes}} \\
+            \hline
+            \textbf{Class} & \textbf{Description} \\
+            \hline
+            rdfs:Resource & The class resource, everything. \\
+            rdfs:Class & The class of classes. \\
+            rdfs:Literal & The class of literal values, e.g. textual strings and integers. \\
+            rdf:Property & The class of RDF properties. \\
+            rdfs:Statement & The class of RDF statements. \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \caption{\gls{RDFS} Core Classes and respective description (rdfs:comment).}
+    \label{tbl:rdfs-classes}
+\end{table}
+
+\begin{table}[h]
+    \begin{center}
+        \resizebox{\textwidth}{!}{\begin{tabular}{ |l|l|l|l| }
+            \hline
+            \multicolumn{4}{|c|}{\textbf{Core \gls{RDFS} Properties}} \\
+            \hline
+            \textbf{Property} & \textbf{Description} & \textbf{Domain} & \textbf{Range}\\
+            \hline
+            \multicolumn{4}{|c|}{\textbf{Relationship Definition}} \\
+            \hline
+            rdf:type & The subject is an instance of a class. & rdfs:Resource & rdfs:Class \\
+            rdfs:subClassOf & The subject is a subclass of a class. & rdfs:Class & rdfs:Class \\
+            rdfs:subPropertyOf & The subject is a subproperty of a property. & rdf:Property & rdf:Property \\
+            \hline
+            \multicolumn{4}{|c|}{\textbf{Property Restriction}} \\
+            \hline
+            rdfs:domain & A domain of the subject property. & rdf:Property & rdfs:Class \\
+            rdfs:range & A range of the subject property. & rdf:Property & rdfs:Class \\
+            \hline
+            \multicolumn{4}{|c|}{\textbf{Reification}} \\
+            \hline
+            rdf:subject & The subject of the subject RDF statement. & rdf:Statement & rdfs:Resource \\
+            rdf:predicate & The class of RDF statements. & rdf:Statement & rdfs:Resource \\
+            rdf:object & The class of RDF statements. & rdf:Statement & rdfs:Resource \\
+            \hline
+            \multicolumn{4}{|c|}{\textbf{Utility}} \\
+            \hline
+            rdfs:seeAlso & Further information about the subject resource. & rdfs:Resource & rdfs:Resource \\
+            rdfs:isDefinedBy & The definition of the subject resource. & rdf:Resource	 & rdfs:Resource \\
+            rdfs:comment & A description of the subject resource. & rdf:Resource & rdfs:Literal \\
+            rdfs:label & 	A human-readable name for the subject. & rdf:Resource & rdfs:Literal \\
+            \hline
+        \end{tabular}}
+    \end{center}
+    \caption{\gls{RDFS} Core Properties and respective description (rdfs:comment).}
+    \label{tbl:rdfs-properties}
+\end{table}
 
 \subsection{OWL2: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}

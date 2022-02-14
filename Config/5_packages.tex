@@ -24,7 +24,7 @@
 \usepackage{listings}    % Fontification of source code listingsConfig/5_packages.tex
                          % In alternative, use the package “minted” (highly recomended)
 
- \lstset{
+\lstset{
     aboveskip=20pt,
     captionpos=b,
     basicstyle={\ttfamily\footnotesize},
@@ -51,13 +51,16 @@
        {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
        {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
        {€}{{\EUR}}1 {£}{{\pounds}}1
- }
-
+}
+\newcommand*\lsin{\lstinline[columns=fixed]}
 \newcommand{\novathesis}{\emph{NOVAthesis}}
 
 \setcounter{tocdepth}{3}
 
 \usepackage{float}
+\usepackage{caption}
+\captionsetup[table]{position=bottom}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Custom TODOs and comments
