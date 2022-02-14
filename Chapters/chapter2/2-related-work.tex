@@ -76,10 +76,10 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 
 \begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/ontology/location> <http://my-custom-domain/resource/Almada> .
+<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/ontology/location> <http://www.my-custom-domain/resource/Almada> .
 
 # FCT has 8.000 students
-<http://my-custom-domain/faculties.ttl#FCT> <http://my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
 \end{lstlisting}
 
 \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
@@ -175,7 +175,7 @@ An \emph{ontology} was defined by Studer et al. as "a formal, explicit specifica
 
 The correspondence theorem of \autocite{W3c_undated-xs} states that: given an \emph{OWL2 DL} ontology, inferences drawn using its \emph{Direct Semantics} will still be valid if the ontology is mapped into an RDF graph and interpreted using the \emph{RDF-Based Semantics}, the semantics of \emph{OWL2 Full}.
 
-\gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr}, which allows compatibility with \gls{XML} authoring tools.
+\gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr}, which allows easier processing with \gls{XML} tools.
 
 Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}.
 
@@ -201,6 +201,38 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 
 \subsubsection{Owl Language}
+
+In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} specifies that a resource is of a certain type. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes.
+
+\begin{lstlisting}[language=XML, caption={Simple OWL2 Example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix fac:  <http://www.my-custom-domain/faculties.ttl .
+
+# The base namespace of the FCT ontology
+@base<http://www.my-custom-domain/fct.ttl> .
+
+<http://www.my-custom-domain/fct.ttl>
+    rdf:typeowl:Ontology ;
+    rdfs:label"FCT Ontology"^^xsd:string ;
+    rdfs:comment   "An example OWL2 ontology"^^xsd:string ;
+    owl:versionIRI <http://www.my-custom-domain/fct.ttl#1.0> .
+
+# Class Assertion
+:class101 rdf:type :Course .
+
+# Class Expression
+_:x rdf:type owl:Course ;
+    owl:unionOf ( :Mandatory :Optional ) .
+
+# Class Axiom
+:Course owl:equivalentClass _:x .
+_:x rdf:type owl:Class ;
+    owl:unionOf (:Mandatory :Optional ) .
+
+\end{lstlisting}
 
 \subsubsection*{Property Types}
 
