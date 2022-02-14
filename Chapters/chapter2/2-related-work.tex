@@ -94,8 +94,14 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 
 \emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
-% Specify how domain and range works.
-% Specify subPropery and subClass
+To state that a resource is an instance of a class we use the \emph{rdf:type} property.
+
+The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$.The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
+
+The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
+
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties.
+
 \begin{table}[h]
     \begin{center}
         \begin{tabular}{ |l|l| }
@@ -138,8 +144,8 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
             \multicolumn{4}{|c|}{\textbf{Reification}} \\
             \hline
             rdf:subject & The subject of the subject RDF statement. & rdf:Statement & rdfs:Resource \\
-            rdf:predicate & The class of RDF statements. & rdf:Statement & rdfs:Resource \\
-            rdf:object & The class of RDF statements. & rdf:Statement & rdfs:Resource \\
+            rdf:predicate & The predicate of RDF statements. & rdf:Statement & rdfs:Resource \\
+            rdf:object & The object of RDF statements. & rdf:Statement & rdfs:Resource \\
             \hline
             \multicolumn{4}{|c|}{\textbf{Utility}} \\
             \hline
