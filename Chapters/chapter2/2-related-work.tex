@@ -53,8 +53,8 @@ In the following of this section we will describe, in more detail, some language
 \subsection{RDF: Resource Description Framework}
 \label{ch2:sec:semantic-web:rdf}
 
-\subsubsection{Data Model}
-\gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
+\subsubsection{Overview}
+\gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{Properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
 
 Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without a \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
@@ -88,9 +88,13 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 \label{ch2:sec:semantic-web:rdf-schema}
 %Describe structure, give example extending on the RDF example, enumerate terms and possible syntaxes
 
+\subsubsection{Overview}
+
 \gls{RDF} is a flexible data-model because it is not domain-specified. However, for interconnectivity of different \gls{RDF} knowledge bases, semantics for restricting meaning in a specific domain are needed.
 
 \gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under the \url{http://www.w3.org/2000/01/rdf-schema#}{}.
+
+\subsubsection{RDFS primitives}
 
 \emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
@@ -100,7 +104,7 @@ The \emph{rdfs:subClassOf} is used to define that all the instances of a class a
 
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
-In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties.
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In figure ..., we extend the \gls{RDF} graphical example ... with \gls{RDFS}.
 
 \begin{table}[h]
     \begin{center}
@@ -162,7 +166,69 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
 
 \subsection{OWL2: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}
-%Describe structure, give example extending the RDFS example, enumerate terms + variants and syntaxes
+
+\subsubsection{Overview}
+
+An \emph{ontology} was defined by Studer et al. as "a formal, explicit specification of a shared conceptualisation" \autocite{Studer1998-kp}. Meaning that an ontology should specify consensual and machine-readable knowledge by means of a formal definition of concepts, where concepts have explicit types and restrictions. Therefore, an \emph{ontology language} should provide a well-defined syntax, formal semantics, convenient and sufficient expressiveness and efficient reasoning support. 
+
+\gls{RDFS} can be considered a very limited \emph{ontology language}. \gls{OWL2} \autocite{W3c_undated-dr} provides a number of additional features (e.g. cardinality constraints, class equivalence, intersection and disjunction). \gls{OWL2} does not simply extend \gls{RDFS} because \gls{RDFS} primitives are too expressive. This would make reasoning very inefficient and computationally expensive \autocite{Antoniou2012-nj}. As such, \gls{OWL2} is divided in two sublanguages: \emph{OWL2 Full} \autocite{W3c_undated-ae}, a direct extension of \gls{RDFS} with all \gls{OWL2} semantics; \emph{OWL2 DL} \autocite{W3c_undated-xs}, a language with some restrictions on the way \gls{OWL2}, \gls{RDF} and \gls{RDFS} primitives may be used.
+
+Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. The correspondence theorem of \autocite{W3c_undated-xs} states that: given an \emph{OWL2 DL} ontology, inferences drawn using its \emph{Direct Semantics} will still be valid if the ontology is mapped into an RDF graph and interpreted using the \emph{RDF-Based Semantics}, the semantics of \emph{OWL2 Full}.
+
+\gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various \gls{OWL2} specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr} which permits compatibility with \gls{XML} authoring tools.
+
+\subsubsection{OWL2 DL}
+
+
+\subsubsection{Owl Language}
+
+\subsubsection*{Property Types}
+
+\paragraph{\emph{Object Properties}}
+\paragraph{\emph{Datatype Properties}}   
+\paragraph{\emph{Annotation Properties}} 
+\paragraph{\emph{Top and Bottom  Properties}}
+\paragraph{\emph{Transitive Properties}}
+\paragraph{\emph{Symmetric and Asymmetric Properties}}
+\paragraph{\emph{Functional and Inverse-Functional Properties}}  
+\paragraph{\emph{Reflexive and Irreflexive Properties}} 
+
+
+\paragraph{Property Axioms}
+
+\paragraph{\emph{Domain and Range}}  
+\paragraph{\emph{Inverse Properties}}
+\paragraph{\emph{Equivalent Properties}}  
+\paragraph{\emph{Disjoint Properties}} 
+\paragraph{\emph{Property Chains}} 
+
+\paragraph{Class Axioms}
+
+\paragraph{\emph{Subclass Relations}}  
+\paragraph{\emph{Class Equivalence}}
+\paragraph{\emph{Punning}}      
+\paragraph{\emph{Enumerations}}      
+\paragraph{\emph{Disjoint Classes}}      
+\paragraph{\emph{Complement}}      
+\paragraph{\emph{Union and Disjoint Union}}      
+\paragraph{\emph{Intersection}}      
+ 
+
+\paragraph{Class Axioms on Properties}
+
+\paragraph{\emph{Universal Restrictions}}  
+\paragraph{\emph{Existential Restrictions}}       
+\paragraph{\emph{Necessary and Sufficient Conditions}}   
+\paragraph{\emph{Value Restrictions}}  
+\paragraph{\emph{Cardinality Restrictions}}  
+\paragraph{\emph{Data Range Restrictions and Datatypes}}   
+\paragraph{\emph{Self Restrictions}}
+
+\paragraph{Individual Facts}
+
+\paragraph{\emph{Class and Property Assertions}} 
+\paragraph{\emph{Identity Assertions}}      
+\paragraph{\emph{Negative Assertions}}
 
 \subsection{SPARQL}
 \label{ch2:sec:semantic-web:sparql}
@@ -176,7 +242,7 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
 \label{ch2:sec:semantic-web:tools}
 %Mention editors and reasoners.
 %Describe protege, its collaborative and web based solutions... explain the plugins, technology
-
+%APIs, parsers...
 
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
