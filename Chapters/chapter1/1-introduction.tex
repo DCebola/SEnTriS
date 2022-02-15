@@ -41,38 +41,36 @@ Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theo
 \section{Problem}
 \label{ch1:sec:problem}
 
-Ontologies usually only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. Furthermore, they can hold private value, due to the investment of time and money in their development.
+Ontologies usually only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. Additionally, they can hold private value, due to the investment of time and money in their development.
 
 Taking into considerations the efficiency and security trade-offs from the various alternative techniques, the \gls{SSE} approach seems to be the most practical solution for protecting ontologies in untrusted servers. However, most \gls{SSE} protocols only consider \emph{unstructured} collections of documents with no semantic relationships. More recently, Chase and Kamara, on their work on \gls{STE}, generalized index-based \gls{SSE} to support queries on \emph{structured} data \autocite{Chase2010-xx}.
 
-Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, \gls{STE} with direct support for the query expressiveness required for searches over ontologies has not yet been studied, more specifically for languages like \gls{SPARQL} \autocite{Prudhommeaux2008-vf, The_W3C_SPARQL_Working_Group2013-hd}.
-
-Furthermore, write operations that are supported in \gls{DSSE} \autocite{Kamara2012-lm}, have not yet been studied in the context of ontologies.
-
-Additionally, information leakage can be a problem while trying to guaranty privacy of the topology of an ontology.
+Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, a \gls{STE} algorithm that supports the query expressiveness required by \gls{SPARQL} \autocite{The_W3C_SPARQL_Working_Group2013-hd}, the recommended language to query published semantic data, has yet to be implemented. Existing schemes, adapted to conceptual graphs, need to pre-compute all possible query answers \emph{a priori}, which is not practical for large ontologies \autocite{Poh2012-qs}. Furthermore, the information leakage can be a problem while trying to protect the topology of an ontology, without first pre-computing all query answers.
 
 To conclude, we will focus on answering the following questions:
 
 \begin{enumerate}
-    \item \emph{How to support expressive queries and other operations in privacy-enhanced encrypted ontologies, using techniques such as \glsxtrlong{STE} and \glsxtrlong{DSSE}?}
+    \item \emph{How to support expressive queries and operations in privacy-enhanced encrypted ontologies, using \glsxtrlong{SSE}?}
     \item \emph{Besides preserving data privacy, how can we minimize information leakage and avoid possible exposure of the topology of the encrypted ontologies?}
 \end{enumerate}
 
 \section{Objectives}
 \label{ch1:sec:objectives}
 
-The main objective of this thesis will be to provide answers to the two questions defined in section \ref{ch1:sec:problem} through a problem driven approach and guide future work in this field of research. We will first study a static \gls{STE} approach focusing on support for \gls{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
+The main objective of this thesis will be to provide answers to the two questions defined in section \ref{ch1:sec:problem} through a problem driven approach and guide future work in this field of research.
+
+We will first study a static \gls{SSE} scheme for structured data, focusing on supporting \gls{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
 
 
 \section{Contributions}
 \label{ch1:sec:contributions}
 
-Our contributions will be the proposal of a protocol that extends upon \gls{STE} and supports expressive and secure \gls{SPARQL} queries over privacy-enhanced encrypted ontologies. We now present a summary of the contributions:
+Our contributions will be the proposal of a protocol that extends upon existing \gls{SSE} schemes for structured data. The protocol supports expressive and secure \gls{SPARQL} queries over privacy-enhanced encrypted ontologies. We now present a summary of the contributions:
 
 \begin{description}
-    \item [\gls{SSE} M/M Protocol for Privacy-Enhanced Ontologies] A novel multi-user protocol, based on \gls{STE}, that supports \gls{SPARQL} queries over encrypted ontologies, stored in untrusted servers.
-    \item [P1 - Static Setting] A protocol implementation for a static setting, supporting only search operations, based on \gls{STE}.
-    \item [P2 - Dynamic Setting] A protocol implementation for a dynamic setting, supporting search, write and delete operations, based on \gls{STE} and \gls{SSE}.
+    \item [P - A Protocol for Secure Operations over Privacy-Enhanced Ontologies] A novel multi-user \gls{SSE} protocol to support \gls{SPARQL} queries over encrypted ontologies, stored in untrusted servers.
+    \item [P1 - Static Setting] The protocol implementation for a static setting, supporting only query operations.
+    \item [P2 - Dynamic Setting] The protocol implementation for a dynamic setting, supporting search, write and delete operations.
 \end{description}
 
 All the prototypes developed will be available as open-source code in a public repository, alongside the benchmark results.

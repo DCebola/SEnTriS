@@ -321,7 +321,7 @@ The basis of \gls{SPARQL} queries is finding matches, on triple patterns, also r
 
 \paragraph{Syntax}
 
-In a \gls{SPARQL} query, we define variables, which will map onto the values of the corresponding matching triples. We call the result set of each variable its \emph{bindings}. \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the triple pattern to match, enclosed in brackets, and, optionally, some modifiers of the result. The \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can also specify prefixes for namespaces.
+In a \gls{SPARQL} query we define variables, which will be mapped onto the values of the corresponding matching triples. We call the result set for each variable, the \emph{bindings} of that variable. \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the triple pattern to match, enclosed in brackets, and, optionally, some modifiers of the result. The \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can also specify prefixes for namespaces. 
 
 The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query operations: 
 
@@ -429,7 +429,6 @@ Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options
 
 
 
-
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
 %Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
@@ -439,12 +438,12 @@ In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, ad
 
 \emph{Encryption at Rest} is too inflexible and computationally expensive. In contrary, \gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
 
-When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}.
+When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}. In section \ref{ch2:sec:other-approaches-for-ontologies} we discuss alternative approaches to \gls{SSE} schemes for graph-structured data and research about integrity and access-control for  \gls{RDF} graphs.
 
 \subsection{Homomorphic Encryption}
 \label{ch2:sec:homomorphic-encryption}
 
-The term homomorphism in security was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
+The term homomorphism, in security, was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
 
 From \autocite{Acar2018-mp}, we can define an encryption scheme to be homomorphic over an operation $\bullet$ if it satisfies the following equation, where $E$ is the encryption algorithm and $M$ the set of all possible messages: 
@@ -454,7 +453,7 @@ From \autocite{Acar2018-mp}, we can define an encryption scheme to be homomorphi
 \end{equation}
 
 
-Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, others preserve multiplicative \autocite{Rivest1978-mu, Elgamal1985-rk}, and some preserve both additive and multiplicative properties \autocite{Gentry2009-zv}. The \gls{HE} schemes that preserve both properties allow for any arbitrary operation, because boolean circuits can be represented using only \emph{XOR} (addition) and \emph{AND} (multiplication) gates \autocite{Acar2018-mp}. 
+Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, others maintain multiplicative properties \autocite{Rivest1978-mu, Elgamal1985-rk}, and some conserve both additive and multiplicative properties \autocite{Gentry2009-zv}. The \gls{HE} schemes that preserve both properties allow for any arbitrary operation, because boolean circuits can be represented using only \emph{XOR} (addition) and \emph{AND} (multiplication) gates \autocite{Acar2018-mp}. 
 
 \gls{HE} is classified in four main types: 
 \begin{itemize}
@@ -469,25 +468,25 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 \label{ch2:sec:searchable-encryption}
 %Talk about write/read server model and disclosure of information
 \glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries.
-\glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution.
+\glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. We will focus on \gls{SSE} due to its higher efficiency compared to \gls{PEKS}.
 % Explain more about each type of leakage
 
 \subsection{Symmetric Searchable Encryption}
 \label{ch2:sec:symmetric-searchable-encryption}
-%Summarise first 2 Song (full ciphertext) and index-based Curtomola
+%Summarise first 2 Song (full ciphertext), index-based Curtomola refer some generalizations of the index-based 
 %Provide security definitions
 
 
-\subsubsection{Structured Searchable Encryption}
-\label{ch2:sec:structured-searchable-encryption}
+\section{Discussion}
+\label{ch2:sec:discussion}
 
+%Summary on previous semantic web sections.
 
-\subsubsection{Dynamic Symmetric Searchable Encryption}
-\label{ch2:sec:dynamic-symmetric-searchable-encryption}
-
-
-\section{Summary}
-\label{ch2:sec:summary}
-
-% SPARQL Summary
 \gls{SPARQL} has been widely studied in the literature. There has been research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
+
+
+%Summary on previous security sections.
+
+Besides the previous \gls{SSE} approaches, there has been work where the authors propose using an onion-encryption scheme, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} for protecting graph-structured data \autocite{Aburawi2018-pq}. Some research has been done about protecting data in \gls{OWL2} ontologies \autocite{}, but in this work they only protect values, leaving the schema of the ontology public. Our approach aims to fully secure the data and topology of the ontology. 
+
+Additionally, there exists related research in specific security fields regarding \gls{RDF} graphs. One of those fields is ensuring \emph{integrity} and \emph{authenticity} of data. This has been widely studied with various signage schemes having been proposed \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and one service-oriented approach \autocite{Mana2011-bm}. The other field is \emph{access control}. Various policies have been studied and most try to embed the data with the policies, using annotations. This allows for high-granularity in the access control, but needs to resolve conflicts \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. A more simple approach is token-based \autocite{Khaled2010-yg}. We will not discuss these any further, as they are not the main focus of this thesis, being only complementary work on the areas of security and ontology-engineering. 
