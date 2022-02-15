@@ -447,7 +447,7 @@ When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} s
 The term homomorphism in security was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
 
-From \autocite{}, we can define an encryption scheme to be homomorphic over an operation $\bullet$ if it satisfies the following equation, where $E$ is the encryption algorithm and $M$ the set of all possible messages: 
+From \autocite{Acar2018-mp}, we can define an encryption scheme to be homomorphic over an operation $\bullet$ if it satisfies the following equation, where $E$ is the encryption algorithm and $M$ the set of all possible messages: 
 
 \begin{equation}
     E(m_{1}) \, \bullet \, E(m_{2}) = E(m_{1} \bullet m_{2}), \forall m_{1}, m_{2} \in M
@@ -490,4 +490,4 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 \label{ch2:sec:summary}
 
 % SPARQL Summary
-\gls{SPARQL} has been widely studied in the literature. There has research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
+\gls{SPARQL} has been widely studied in the literature. There has been research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
