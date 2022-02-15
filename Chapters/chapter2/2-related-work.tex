@@ -219,36 +219,55 @@ _:x rdf:type owl:Class ;
 
 \end{lstlisting}
 
-\subsubsection*{Property Types}
+\subsubsection*{Classes}
+
+In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are the \emph{owl:Thing} and \emph{owl:Nothing}. These two respectively, specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
+
+\paragraph{Class Axioms}
+
+In \gls{OWL2} we can relate \emph{expressions} to classes using \emph{axioms}. These can define:
+
+\begin{itemize}
+    \item\emph{Subclass Relations}, with equivalent usage like in \gls{RDFS};
+    \item\emph{Class Equivalence}, in equivalent classes every individual must be a member of each class;
+    \item\emph{Enumerations}, a type of class definition via explicitly stating all individuals who belong to the class membership;
+    \item\emph{Intersection}, in a class described as the intersection of various classes, all of its members must be also individuals belonging to the membership of each of those classes;
+    \item \emph{Union and Disjoint Union}, in a class described as the union of various classes, every individual belonging to its membership must also belong to the membership of at least one of those classes. In the particular case of disjoint union, the intersection of the classes is equivalent to owl:Nothing;
+    \item\emph{Disjoint Classes}, in disjoint classes no individual can be a member of both class (the intersection of the classes is equivalent to owl:Nothing);
+    \item\emph{Complement}, complement classes contain all the individual such that the union of both classes is equivalent to owl:Thing.
+      
+\end{itemize}
+
+
+\subsubsection*{Properties}
 
 \gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations (in \emph{OWL DL} these are ignored by a reasoner). 
 
 
- 
-The \emph{top} and \emph{bottom} properties specify, respectively, properties that relate to all and no individuals: owl:topObjectProperty is the superproperty of all owl:ObjectProperties and owl:bottomObjectProperty relates to no individual; owl:topDataProperty is the superproperty of all owl:DatatypeProperties, relating an individual to any possible literal value and owl:bottomDataProperty relates to no individual to any literal value.
+The \emph{top} and \emph{bottom} properties specify, respectively, properties that relate to all and no individuals: owl:topObjectProperty is the superproperty of all owl:ObjectProperties and owl:bottomObjectProperty relates to no individual; owl:topDataProperty is the superproperty of all owl:DatatypeProperties, relating an individual to any possible literal value, and owl:bottomDataProperty relates no individual to any literal value.
 
-Properties can have different characteristics: they can be \emph{transitive}, if $a$ relates to $b$ via property $p$ and  $c$ relates $a$ via property $p$, then $c$ relates to  $b$ via property $p$; \emph{symmetric}, if $a$ relates to $b$ via property $p$ then inverse is true; \emph{asymmetric},if $a$ relates to $b$ via property $p$ then the inverse is $\bot$; \emph{functional}, if for each instance the property can only have one unique value; \emph{inverse-functional} if the object of a property statement relates to a single subject; \emph{reflexive}, if every individual relates to itself via the property; \emph{irreflexive}, if no individual relates to itself via the property.
-
-
+Properties can have different characteristics:
+\begin{itemize}
+    \item \emph{Transitive Properties}, if $a$ relates to $b$ via property $p$ and  $c$ relates to $a$ via property $p$, then $c$ relates to  $b$ via property $p$;
+    \item \emph{Symmetric Properties}, if $a$ relates to $b$ via property $p$ then inverse is true;
+    \item \emph{Asymmetric Properties}, if $a$ relates to $b$ via property $p$ then the inverse is $\bot$;
+    \item \emph{Functional Properties}, if for each instance the property can only have one unique value;
+    \item \emph{Inverse-functional Properties} if the object of a property statement relates to a single subject;
+    \item \emph{Reflexive Properties}, if every individual relates to itself via the property;
+    \item \emph{Irreflexive Properties}, if no individual relates to itself via the property.
+\end{itemize}
 
 \paragraph{Property Axioms}
 
-\paragraph{\emph{Domain and Range}}  
-\paragraph{\emph{Inverse Properties}}
-\paragraph{\emph{Equivalent Properties}}  
-\paragraph{\emph{Disjoint Properties}} 
-\paragraph{\emph{Property Chains}} 
+Just like class axioms, we can specify \emph{property axioms} to describe the way properties relate to classes and other properties. These allow us to define:
 
-\paragraph{Class Axioms}
-
-\paragraph{\emph{Subclass Relations}}  
-\paragraph{\emph{Class Equivalence}}
-\paragraph{\emph{Punning}}      
-\paragraph{\emph{Enumerations}}      
-\paragraph{\emph{Disjoint Classes}}      
-\paragraph{\emph{Complement}}      
-\paragraph{\emph{Union and Disjoint Union}}      
-\paragraph{\emph{Intersection}}      
+\begin{itemize}
+    \item \emph{Domain and Range}, used to determine class membership of individuals;
+    \item \emph{Inverse Relationship}, used to specify the inverse of the property;
+    \item \emph{Equivalence}, used to specify equivalent properties. Individuals related by one property will always relate by all equivalent properties;
+    \item \emph{Disjointness}, used to specify disjoint properties, where individuals related by one property can never be related by the other;
+    \item \emph{Property Chains}, used to aggregate connected properties under another property.
+\end{itemize}
  
 
 \paragraph{Class Axioms on Properties}
@@ -276,7 +295,8 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
     \item Properties are disjoint individuals of either owl:ObjectProperty or owl:DatatypeProperty; 
     \item Properties, for which range includes non-literal resources, are separated from those which relate to literal values; 
     \item A resource can only be a class, property, or instance at the same time simultaneously, classes, properties or instances with the same name will be treated as distinct (a mechanism called punning);
-    \item Only functional properties can be assigned to datatype properties; 
+    \item Only functional properties can be assigned to datatype properties;
+    \item Only object properties can have an inverse.
     \item Property chains can only involve object properties.
 \end{itemize}
 
