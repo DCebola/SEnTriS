@@ -393,9 +393,53 @@ Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options
 %Describe protege, its collaborative and web based solutions... explain the plugins, technology
 %APIs, parsers...
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
 %Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
+In section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over cloud or other distributed networks.
+
+In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. As such an adversary will follow the protocol properly but keep a record of all intermediate computations \autocite{Goldreich2001-sr} in an attempt to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. Security concerns should take into account the operation history, data stored in the server and also the memory access pattern, as the adversary will have access to all of this information.
+
+\emph{Encryption at Rest} is too inflexible and computationally expensive. In contrary, \gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
+
+\glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough, when used exclusively, to be feasible \autocite{Bosch2014-eb} in real-world applications. However, they are used in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}.
 
 \subsection{Homomorphic Encryption}
 \label{ch2:sec:homomorphic-encryption}
