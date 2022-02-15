@@ -38,7 +38,7 @@ The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to
 
 Ontologies are defined with the \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
 
-\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{Horrocks2004-rn}, facilitate interaction based on \emph{descriptive-logic}.
+\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{W3c2004-rn}, facilitate interaction based on \emph{descriptive-logic}.
 
 To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}.
 
@@ -74,7 +74,7 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 
 \pagebreak
 
-\begin{lstlisting}[language=XML, caption={Simple RDF Example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
+\begin{lstlisting}[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
 <http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/ontology/location> <http://www.my-custom-domain/resource/Almada> .
 
@@ -177,7 +177,7 @@ The correspondence theorem of \autocite{W3c_undated-xs} states that: given an \e
 
 \gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr}, which allows easier processing with \gls{XML} tools.
 
-Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}.
+Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \emph{OWL2} can have different specification, called profiles \autocite{W3c_undated-jk}, their coverage is not on the scope of this work.
 
 \begin{figure}[H]
     \centering
@@ -188,11 +188,11 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}.
 
 \subsubsection{Owl Language}
 
-In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes.
+In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes \footnote{For an overview of the language we recommend the reader to consult the reference guide \autocite{W3c_undated-ls}.}.
 
 \pagebreak
 
-\begin{lstlisting}[language=XML, caption={Simple OWL2 Example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
+\begin{lstlisting}[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -305,10 +305,86 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 \subsection{SPARQL}
 \label{ch2:sec:semantic-web:sparql}
-%Mention rdf stores
-%Describe queries with examples over the data that is being used for examples.
-%BGP Pattern Matching -> refer that in section... of preparation we give the mappings.
 
+\subsubsection{Overview}
+
+In the previous section we've discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
+
+\gls{RDF} triples are stored in \emph{triple stores}, specialized databases for this type of data. The underlying architecture of such databases varies, from relational to NoSQL approaches \autocite{Cure2014-vm, Modoni2014-cz}. The recommended query language to use is \gls{SPARQL} \autocite{The_W3C_SPARQL_Working_Group2013-hd}. It provides a range of operations over published \gls{RDF} graphs, accessible via SPARQL endpoints: from read queries \autocite{W3c2008-vf} to write operations \autocite{W3c_undated-tw, Ogbuji2013-rr}.
+
+\subsubsection{SPARQL Queries}
+
+\paragraph{Mathematical Basis}
+An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+
+The basis of \gls{SPARQL} queries is finding matches, on triple patterns, also referred as \emph{Basic Graph Pattern}, in a \gls{RDF} graph \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the subgraph isomorphism problem, a generalization of the graph isomorphism problem: given two graphs $G1$ and $G2$, we try to find if $G1$ contains a subgraph that is isomorphic to $G2$. In the context of \gls{SPARQL} queries, $G1$ is the published \gls{RDF} graph and $G2$ is the query triple pattern. 
+
+\paragraph{Syntax}
+
+In a \gls{SPARQL} query, we define variables, which will map onto the values of the corresponding matching triples. We call the result set of each variable its \emph{bindings}. \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the triple pattern to match, enclosed in brackets, and, optionally, some modifiers of the result. The \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can also specify prefixes for namespaces.
+
+The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query operations: 
+
+\begin{itemize}
+    \item \emph{SELECT}, used to extract values from a \gls{RDF} graph. The result is a table with the variable bindings;
+    \item \emph{ASK}, which returns a boolean, true if there was a match in the \gls{RDF} graph, false otherwise; 
+    \item \emph{CONSTRUCT}, which returns a set of triples from the constructions of a new \gls{RDF} graph, based on the matching pattern;
+    \item \emph{DESCRIBE}, which usually return a set of RDF triples that describes the matching patterns.The results depend on implementation \autocite{Picalausa2011-ca}. 
+\end{itemize}
+
+In listing \ref{listing-sparql-example} we show a simple query. However, \gls{SPARQL} provides additional features for more complex queries (listings \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example}): definition of the disjunction and conjunction of triple patterns, using the keywords \emph{UNION} and \emph{AND}; definition of optional patterns, using the \emph{OPTIONAL} construct; filtering bindings, using the \emph{FILTER} construct; elimination of duplicates with \emph{DISTINCT}; application of aggregate and various functions to variables; matching 
+regex patterns; ordering of results with \emph{ORDER BY}; and, usage of named graphs, with the \emph{FROM} and \emph{FROM NAMED} constructs.
+
+\begin{lstlisting}[language=XML, caption={Simple \gls{SPARQL} example}, label={listing-sparql-example}]
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+
+# Operation and variables
+SELECT ?opt_course ?man_course ?popular_course
+# Query Pattern
+WHERE
+{
+    ?opt_course rdf:type fct:Optional .
+    ?man_course rdf:type fct:Mandatory .
+}
+
+\end{lstlisting}
+
+\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with filters and modifiers example}, label={listing-sparql-modifiers-example}]
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+
+# Operation and variables
+SELECT DISTINCT ?popular_course
+# Query Pattern
+WHERE
+{
+    ?popular_course fct:hasStudentEnrolled ?num_students
+    FILTER (?num_students > 60).
+}
+# Optional Modifiers
+LIMIT 20
+\end{lstlisting}
+
+\pagebreak
+
+\begin{lstlisting}[language=XML, caption={\gls{SPARQL} a more complex pattern example}, label={listing-sparql-complex-example}]
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+@prefix nova: <http://www.my-custom-domain/nova.ttl>
+
+# Operation and variables
+SELECT DISTINCT ?optional_course
+# Query Pattern
+WHERE
+{
+    {?optional_course rdf:type fct:Optional}
+    UNION
+    {?optional_course rdf:type nova:Elective}
+}
+\end{lstlisting}
+
+Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options for inserting, publishing and deleting data in triple stores. For operations over the \gls{HTTP}, \emph{\gls{SPARQL} 1.1 graph store \gls{HTTP} protocol} has similar, but more limited, features\footnote{Full examples and syntax can be found in the \gls{W3C} recommendations.}.
 
 
 \subsection{Tools \& Development Software for Ontologies}
@@ -352,5 +428,5 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 \section{Summary}
 \label{ch2:sec:summary}
 
-
-
+% SPARQL Summary
+\gls{SPARQL} has been widely studied in the literature. There has research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
