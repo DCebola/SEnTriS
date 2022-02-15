@@ -188,7 +188,7 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}.
 
 \subsubsection{Owl Language}
 
-In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} specifies that a resource is of a certain type. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes.
+In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes.
 
 \pagebreak
 
@@ -219,9 +219,13 @@ _:x rdf:type owl:Class ;
 
 \end{lstlisting}
 
+\subsubsection*{Individual Assertions}
+
+In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{URI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}. 
+
 \subsubsection*{Classes}
 
-In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are the \emph{owl:Thing} and \emph{owl:Nothing}. These two respectively, specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
+In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are the \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
 
 \paragraph{Class Axioms}
 
@@ -241,7 +245,7 @@ In \gls{OWL2} we can relate \emph{expressions} to classes using \emph{axioms}. T
 
 \subsubsection*{Properties}
 
-\gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations (in \emph{OWL DL} these are ignored by a reasoner). 
+\gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations. 
 
 
 The \emph{top} and \emph{bottom} properties specify, respectively, properties that relate to all and no individuals: owl:topObjectProperty is the superproperty of all owl:ObjectProperties and owl:bottomObjectProperty relates to no individual; owl:topDataProperty is the superproperty of all owl:DatatypeProperties, relating an individual to any possible literal value, and owl:bottomDataProperty relates no individual to any literal value.
@@ -270,21 +274,18 @@ Just like class axioms, we can specify \emph{property axioms} to describe the wa
 \end{itemize}
  
 
-\paragraph{Class Axioms on Properties}
+\subsubsection*{More Granular Class Axioms}
 
-\paragraph{\emph{Universal Restrictions}}  
-\paragraph{\emph{Existential Restrictions}}       
-\paragraph{\emph{Necessary and Sufficient Conditions}}   
-\paragraph{\emph{Value Restrictions}}  
-\paragraph{\emph{Cardinality Restrictions}}  
-\paragraph{\emph{Data Range Restrictions and Datatypes}}   
-\paragraph{\emph{Self Restrictions}}
+We can write more granular class definitions in \gls{OWL2} than by simply defining class axioms. This is achieved by combining class and property axioms. It is done by defining a class axiom that relates to an anonymous class (owl:Restriction) which contains axioms on its properties. The anonymous class definition captures all individuals that satisfy such restrictions. As such we can define:
+\begin{itemize}
+    \item \emph{Universal and Existential Restrictions} which the members of the class must satisfy. The class is defined as a subclass of an anonymous class with property restrictions on, respectively, owl:allValuesFrom and owl:someValuesFrom;      
+    \item \emph{Necessary and Sufficient Conditions} similar to the above restriction but using a class equivalence axiom instead of rdfs:subClassOf;
+    \item \emph{Value, Cardinality, Data Range and Datatype Restrictions} on the anonymous class, limiting the value, cardinality of the value, range of possible values and the datatype of the property value relating to members of the superclass; 
+    \item \emph{Self Restrictions} on the individuals captured by the anonymous class.
 
-\paragraph{Individual Facts}
+\end{itemize}
 
-\paragraph{\emph{Class and Property Assertions}} 
-\paragraph{\emph{Identity Assertions}}      
-\paragraph{\emph{Negative Assertions}}
+
 
 \subsubsection{OWL2 DL}
 
@@ -292,12 +293,14 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 \begin{itemize}
     \item The application of \gls{OWL2} primitives to each other is not allowed; only classes and non-literals resources may be defined, with all classes being individuals of owl:Class;
-    \item Properties are disjoint individuals of either owl:ObjectProperty or owl:DatatypeProperty; 
+    \item Properties are disjoint individuals of either owl:ObjectProperty or owl:DatatypeProperty;
+    \item Annotation properties are ignored by reasoners;
     \item Properties, for which range includes non-literal resources, are separated from those which relate to literal values; 
     \item A resource can only be a class, property, or instance at the same time simultaneously, classes, properties or instances with the same name will be treated as distinct (a mechanism called punning);
     \item Only functional properties can be assigned to datatype properties;
-    \item Only object properties can have an inverse.
-    \item Property chains can only involve object properties.
+    \item Only object properties can have an inverse;
+    \item Property chains can only involve object properties;
+    \item Self restrictions on datatype properties are not allowed.
 \end{itemize}
 
 \subsection{SPARQL}
