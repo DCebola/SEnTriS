@@ -439,14 +439,31 @@ In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, ad
 
 \emph{Encryption at Rest} is too inflexible and computationally expensive. In contrary, \gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
 
-\glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough, when used exclusively, to be feasible \autocite{Bosch2014-eb} in real-world applications. However, they are used in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}.
+When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}.
 
 \subsection{Homomorphic Encryption}
 \label{ch2:sec:homomorphic-encryption}
-\glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \gls{HE} allows for computations done over encrypted data to be preserved after decryption of the ciphertext. An encryption scheme is homomorphic if such operations preserve additive or multiplicative properties.
-\gls{HE} is classified in four main types: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any number of operations, but with a pre-determined expected depth-$L$.
-%Talk about additive and multiplicative homomorphism
-% Explain a summary more popular scheme
+
+The term homomorphism in security was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
+\glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
+
+From \autocite{}, we can define an encryption scheme to be homomorphic over an operation $\bullet$ if it satisfies the following equation, where $E$ is the encryption algorithm and $M$ the set of all possible messages: 
+
+\begin{equation}
+    E(m_{1}) \, \bullet \, E(m_{2}) = E(m_{1} \bullet m_{2}), \forall m_{1}, m_{2} \in M
+\end{equation}
+
+
+Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, others preserve multiplicative \autocite{Rivest1978-mu, Elgamal1985-rk}, and some preserve both additive and multiplicative properties \autocite{Gentry2009-zv}. The \gls{HE} schemes that preserve both properties allow for any arbitrary operation, because boolean circuits can be represented using only \emph{XOR} (addition) and \emph{AND} (multiplication) gates \autocite{Acar2018-mp}. 
+
+\gls{HE} is classified in four main types: 
+\begin{itemize}
+    \item \glsxtrlong{FHE}, which supports any number of operations with no restriction on the number of operations; 
+    \item \glsxtrlong{SHE}, which permits some types of operations, a limited number of times;
+    \item \glsxtrlong{PHE}, that allows for one type of operation with no restriction on the number of times;
+    \item \glsxtrlong{LFHE} \autocite{Brakerski2014-nm}, which supports any number of operations, but with a pre-determined expected depth-$L$.
+\end{itemize}
+
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
