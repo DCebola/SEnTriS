@@ -8,14 +8,14 @@
 \section{Context}
 \label{ch1:sec:context}
 
-In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \gls{WWW}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
+\paragraph{The Semantic Web} In 2001, the term \emph{Semantic Web} \autocite{Berners-Lee2001-ux} was first used to define what would be the evolution of the \gls{WWW}. The traditional \emph{Web} solved the challenge of distributing information at scale and globally, however it was designed for human use. Documents are easily accessible and readable by humans, but for automated agents little more than document retrieval is possible. Contrary to humans, machines cannot reason over the information they access, if they do not know the \emph{semantics of the data}.
 
 The \emph{Semantic Web} addresses this issue, by redesigning the representation of information, in a way that not only preserves meaning and relationships but is also machine-readable.
 A concept is mapped to a unique identifier, and meaning is encoded in sets of triples, each triple consisting of a subject, predicate and object (similar to an elementary sentence). \emph{Ontologies} provide a shared understanding of a domain by formalizing the specification of relevant concepts, and their relations, in such domain.
 
 This novel method of knowledge representation differs from the previous, centralized way, and greatly simplifies the process of interconnecting different knowledge bases. Centralized representations tend to be more expensive to develop, usually needing to be built from scratch \autocite{Neches1991-lx}. Furthermore, for sharing, both parties need to agree on the semantics. In contrast, using ontologies, information is semantically linked by default. In the \emph{Semantic Web}, machines can truly communicate, share and reason about distinct knowledge bases.
 
-Knowledge representation is essential in the industry \autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
+\paragraph{Industry Landscape} Knowledge representation is essential in the industry \autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
 Nowadays, they are being developed and applied in a variety of domains \autocite{W3c_undated-pd} ranging from the health sector\footnote{The NCI Thesaurus \autocite{Sioutos2007-ep}, developed by the \gls{NCI} or the \gls{GO} \autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, are some existing applications.}, to linguistics \footnote{The WordNet \autocite{Miller1995-ic} is a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA\footnote{Observing the visual representation provided by the Linked Open Data Cloud \autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.} \autocite{Ashish2005-qz}.
 
 To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design; debugging tools; query answering; graphic visualization of data).
@@ -24,11 +24,11 @@ With ontologies gradually growing in dimension, the industry is currently evolvi
 
 As of 2021, cloud adoption as risen more than what was previously forecasted, with 50 percent of all enterprise workloads hosted in \emph{public clouds} and predictions of 7 percentage point gain in 2022 \autocite{Security_Compass2021-sh}. Research on secure cloud computing \autocite{Carroll2011-me} studies such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency\footnote{Cloud services reduce implementation and maintenance, power, cooling, floor space, storage and operational costs.}, high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model is an easy entry point to the ecosystem.
 
-On the contrary, while delegation of responsibilities is beneficial for costs, it is prejudicial to control. Using cloud services implies trusting its owner. A \gls{SLA} defines, in accordance to metrics, the service levels of the system that the vendor should provide (e.g. percentage of availability), while also defining penalties in case of not achieving what was agreed-on. However, the risk of loss of privacy and data breaches still exists. A problem that is especially concerning when sensitive data, such as health records, is being stored in such services. This is much more relevant in \emph{public clouds} where, compared to \emph{private clouds}, trust is distributed between various actors and not on a single organization \autocite{Carroll2011-me}.
+\paragraph{Cloud Security Concerns} While delegation of responsibilities is beneficial for costs, it is prejudicial to control. Using cloud services implies trusting its owner. A \gls{SLA} defines, in accordance to metrics, the service levels of the system that the vendor should provide (e.g. percentage of availability), while also defining penalties in case of not achieving what was agreed-on. However, the risk of loss of privacy and data breaches still exists. A problem that is especially concerning when sensitive data, such as health records, is being stored in such services. This is much more relevant in \emph{public clouds} where, compared to \emph{private clouds}, trust is distributed between various actors and not on a single organization \autocite{Carroll2011-me}.
 
 In cloud storage services, administrators, or hacker with root rights, might have access to the data \autocite{Bosch2014-eb}. Additionally, these cloud services might outsource computations to third parties whom we do not trust. In this setting, we usually consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. This adversary will follow the protocol properly but keep a record of all its intermediate computations \autocite{Goldreich2001-sr}. Furthermore, it cannot do any other action except attempting to learn private information while observing views of the protocol execution \autocite{Evans2018-it}.
 
-A first approach to secure data in the cloud would be to use \emph{Encryption at Rest}, which naively encrypts all data stored in the untrusted servers. If a user wants to do to write or search operation over the data, they will have to download all the data, and decrypt it. This incurs in high network requirements and is computationally expensive on the client-side, hindering all the benefits of using a cloud service to store the data. Nonetheless, this is the mechanism usually provided by database services \autocite{Oracle_Corporation_andor_its_affiliates_undated-rt, Oracle_Corporation_andor_its_affiliates_undated-lr, MongoDB_Inc_undated-mz}.
+\paragraph{Security Approaches} A first approach to secure data in the cloud would be to use \emph{Encryption at Rest}, which naively encrypts all data stored in the untrusted servers. If a user wants to do to write or search operation over the data, they will have to download all the data, and decrypt it. This incurs in high network requirements and is computationally expensive on the client-side, hindering all the benefits of using a cloud service to store the data. Nonetheless, this is the mechanism usually provided by database services \autocite{Oracle_Corporation_andor_its_affiliates_undated-rt, Oracle_Corporation_andor_its_affiliates_undated-lr, MongoDB_Inc_undated-mz}.
 
 Recently, active research is being done in the fields of \gls{SE} and \gls{HE}.
 
@@ -41,11 +41,11 @@ Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theo
 \section{Problem}
 \label{ch1:sec:problem}
 
-Ontologies usually only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. Additionally, they can hold private value, due to the investment of time and money in their development.
+Usually, ontologies only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. Additionally, they can hold private value, due to the investment of time and money in their development.
 
 Taking into considerations the efficiency and security trade-offs from the various alternative techniques, the \gls{SSE} approach seems to be the most practical solution for protecting ontologies in untrusted servers. However, most \gls{SSE} protocols only consider \emph{unstructured} collections of documents with no semantic relationships. More recently, Chase and Kamara, on their work on \gls{STE}, generalized index-based \gls{SSE} to support queries on \emph{structured} data \autocite{Chase2010-xx}.
 
-Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, a \gls{STE} algorithm that supports the query expressiveness required by \gls{SPARQL} \autocite{The_W3C_SPARQL_Working_Group2013-hd}, the recommended language to query published semantic data, has yet to be implemented. Existing schemes, adapted to conceptual graphs, need to pre-compute all possible query answers \emph{a priori}, which is not practical for large ontologies \autocite{Poh2012-qs}. Furthermore, the information leakage can be a problem while trying to protect the topology of an ontology, without first pre-computing all query answers.
+Ontologies can be represented as graphs and \gls{STE} supports various types of query operations in graph-structured data. Nevertheless, a \gls{STE} algorithm that supports the query expressiveness required by \gls{SPARQL} \autocite{W3c2008-vf, W3c2013-hd}, the recommended language to query published semantic data, has yet to be implemented. Existing schemes, adapted to conceptual graphs, need to pre-compute all possible query answers \emph{a priori}, which is not practical for large ontologies \autocite{Poh2012-qs}. Furthermore, the information leakage can be a problem while trying to protect the topology of an ontology, without first pre-computing all query answers.
 
 To conclude, we will focus on answering the following questions:
 
@@ -57,7 +57,7 @@ To conclude, we will focus on answering the following questions:
 \section{Objectives}
 \label{ch1:sec:objectives}
 
-The main objective of this thesis will be to provide answers to the two questions defined in section \ref{ch1:sec:problem} through a problem driven approach and guide future work in this field of research.
+The main objective of this thesis will be to provide answers to the two questions defined in section \ref{ch1:sec:problem}, through a problem driven approach, and guide future work in this field of research.
 
 We will first study a static \gls{SSE} scheme for structured data, focusing on supporting \gls{SPARQL} queries in a multi-user setting, later expanding to a dynamic setting. Finally, we will study how to minimize information leakage about the topology of the encrypted data.
 
@@ -81,7 +81,7 @@ All the prototypes developed will be available as open-source code in a public r
 The remaining of the document will be organized as follows:
 
 \begin{description}
-    \item [Chapter 2] Analyses related work on \emph{Semantic Web}, \emph{Ontologies} and \emph{Searchable Encryption}.
-    \item [Chapter 3] Presents requirements and informally defines the protocols and system models. Furthermore, in this chapter we describe our implementation and testing approaches.
+    \item [Chapter 2] Analyses related work on \emph{Semantic Web} and \emph{Secure Computations}.
+    \item [Chapter 3] Presents requirements and informally defines the protocol. Furthermore, in this chapter we describe our implementation and testing approaches.
     \item [Chapter 4] Describes the work plan of the elaboration phase tasks.
 \end{description}
