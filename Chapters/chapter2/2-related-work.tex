@@ -442,7 +442,9 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 
 %Generic model
 
-\paragraph{\gls{SE} General Index-Based Model} A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generated an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
+\subsubsection{\gls{SE} General Index-Based Model} 
+
+A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generated an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
 
 \begin{equation}
     \begin{array}{l}
@@ -455,7 +457,8 @@ To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{
 
 \mytodo{Add interaction scheme between client and server}
 
-\paragraph{Client/Server Model}
+\subsubsection{Client/Server Model}
+
 In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data in a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures:
 
 \begin{itemize}
@@ -470,31 +473,41 @@ Extension of the single reader schemes to multiple reader schemes can be done wi
 
 In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext, encrypted using key $K$, and generates a new ciphertext, that is decrypted using key $K'$, where $K \neq K'$ and the decrypted plaintext remains unchanged. Proxy re-encryption is usually employed with public key cryptography \autocite{Blaze1998-pz, Ivan2003-uu, Dong2008-qw}, but there are some schemes that support the symmetric key setting \autocite{Syalim2011-fb, Sakurai2017-ui, Peng2017-ia}.
 
-\paragraph{Information Leakage}
+\subsubsection{Information Leakage}
 
 % Explain more about each type of leakage
 Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This can leak \emph{index} information, \emph{search pattern}, and \emph{access pattern} during execution:
 
 \begin{itemize}
     \item \emph{Index Information} refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
-    \item \emph{Search Pattern} includes the information about keywords, and predicates, that is derived from different searches that produce equal results. The search pattern can be targeted using statistical analysis;
-    \item \emph{Access Pattern} includes the information that may be derived from the query results (e.g. whether a query is more restrictive than other, based on the total of documents retrieved). 
+    \item \emph{Search Pattern} includes the information about keywords, and predicates, that is inferred by correlating equal results from different searches. The search pattern can be targeted using statistical analysis;
+    \item \emph{Access Pattern} includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total of documents retrieved; or if some files are more accessed than others). 
 \end{itemize}
-
-\paragraph{Security Definitions}
-
-In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security definitions for \gls{SE} schemes, contributing with two new definitions, \gls{IND-CKA1} and \gls{IND-CKA2}, which are still the standard in use:
-
-\begin{itemize}
-    \item \gls{IND-CKA1}
-    \item \gls{IND-CKA2}
-\end{itemize}
-%Curtmola et al. [2006] revisited the existing security definitions and pointed out thatprevious definitions are not adequate for SSE and that the security of indexes and thesecurity of trapdoors are inherently linked. They introduce two new adversarial modelsfor searchable encryption, anonadaptive(IND-CKA1)and anadaptive(IND-CKA2)one, which are widely used as the standard definitions for SSE to date. Intuitively,the definitions require that nothing should be leaked from the remotely stored filesand index beyond the outcome and the search pattern of the queries. The IND-CKA1/2security definitions include security for trapdoors and guarantee that the trapdoorsdo not leak information about the keywords (except for what can be inferred from thesearch and access patterns). Nonadaptive definitions only guarantee the security of ascheme if the client generates all queries at once. This might not be feasible for certain(practical) scenarios [Curtmola et al. 2006]. The adaptive definition allowsAto chooseits queries as a function of previously obtained trapdoors and search outcomes. Thus,IND-CKA2 is considered a strong security definition for SSE.
 
 \subsection{Symmetric Searchable Encryption}
 \label{ch2:sec:symmetric-searchable-encryption}
-%Summarise first 2 Song (full ciphertext), index-based Curtomola refer some generalizations of the index-based 
-%Provide security definitions
+
+\subsubsection{Overview}
+
+\gls{SSE} is a type of \gls{SSE} based on symmetric key cryptography. We will first review the standard security definitions for \gls{SSE} and then focus on describing a few reference schemes.
+
+\subsubsection{Security Definitions}
+
+In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security definitions for \gls{SSE} schemes, contributing with two new definitions, which are still the standard in use. Both require that only the outcome of search patterns may be leaked. Additionally, they guarantee that trapdoors do not leak information about the keywords, apart from what can be inferred from the search and access pattern. \gls{IND-CKA1} and \gls{IND-CKA2} differ from each based on whether the adversary can produce an adaptive or non-adaptive attack.
+
+\begin{itemize}
+    \item \gls{IND-CKA1} guarantees security if the client generates all queries at once;
+    \item \gls{IND-CKA2} guarantees security even if the client  chooses the queries based on previously obtained trapdoors and search outcomes.
+\end{itemize}
+
+\subsubsection{\gls{SSE} Schemes}
+
+\paragraph{Song et al.}
+
+\paragraph{Curtmola et al.}
+
+\paragraph{Kamara et al.} %Dynamic and Structured
+
 
 
 \section{Discussion}
