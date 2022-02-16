@@ -4,14 +4,14 @@
 \chapter{Related Work}
 \label{cha:related-work}
 
-On this chapter we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on section \ref{ch2:sec:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; section \ref{ch2:sec:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on section \ref{ch2:sec:discussion} we summarize and discuss which work is relevant.
+On this chapter, we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on Section \ref{ch2:sec:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; Section \ref{ch2:sec:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on Section \ref{ch2:sec:discussion} we summarize and discuss which work is relevant.
 
 \prependtographicspath{{Figures/}}
 
 \section{Semantic Web: A layered architecture}
 \label{ch2:sec:semantic-web}
 
-In section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
+In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
 \begin{enumerate}
     \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
     \item All data items are identified by \gls{URI};
@@ -32,13 +32,13 @@ Briefly describing this layered architecture, at the root level, we have the \gl
 
 At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
-From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With a \gls{XML} like syntax, we can write statements about resources. Thus, embedding  \emph{semantics} within the information, as \emph{metadata}.
+From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With a \gls{XML} like syntax, we can write statements about resources, thus embedding  \emph{semantics} within the information, as \emph{metadata}.
 
 The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to organize \gls{RDF} resources into hierarchies, based on primitives such as \emph{classes} and \emph{properties}. It can be seen as a rudimentary \emph{ontology language} \autocite{Antoniou2012-nj}.
 
-Ontologies are defined with the \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
+Ontologies are defined with \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
 
-\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. Many rule languages, like the \gls{SWRL} \autocite{W3c2004-rn}, facilitate interaction based on \emph{descriptive-logic}.
+\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. There exist various languages, such as the \gls{SWRL} \autocite{W3c2004-rn}, that allow us to express rules as well as logic.
 
 To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}.
 
@@ -48,13 +48,13 @@ Only with secure cryptographic schemes can we reach the trust layer. The securit
 
 The top layer, references all the applications and interfaces that use this new paradigm of data representation.
 
-In the following of this section we will describe, in more detail, some languages and tools. We will focus on \gls{RDF} in section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in section \ref{ch2:sec:semantic-web:sparql}; on common tools and software, in section \ref{ch2:sec:semantic-web:tools}.
+In the following of this Section we will describe, in more detail, some languages and tools. We will focus on \gls{RDF} in Section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in Section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in Section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in Section \ref{ch2:sec:semantic-web:sparql}; on common tools and software, in Section \ref{ch2:sec:semantic-web:tools}.
 
 \subsection{RDF: Resource Description Framework}
 \label{ch2:sec:semantic-web:rdf}
 
 \subsubsection{Overview}
-\gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{Properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed by a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
+\gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain-independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed of a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
 
 Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without a \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
 
@@ -70,7 +70,7 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 
 
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
-In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mention, the value is inferred as being a string). We can also define \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon, the \gls{URI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
+In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon, the \gls{URI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
 \pagebreak
 
@@ -90,7 +90,7 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 
 \subsubsection{Overview}
 
-\gls{RDF} is a flexible data-model because it is not domain-specified. However, for interconnectivity of different \gls{RDF} knowledge bases, semantics for restricting meaning in a specific domain are needed.
+\gls{RDF} is a flexible data-model. However, for interconnectivity of different \gls{RDF} knowledge bases, semantics for restricting meaning in a specific domain are needed.
 
 \gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under the \url{http://www.w3.org/2000/01/rdf-schema#}{}.
 
@@ -100,7 +100,7 @@ In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, propert
 
 To state that a resource is an instance of a class we use the \emph{rdf:type} property.
 
-The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$.The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
+The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances of its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$.The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
 
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
@@ -174,13 +174,13 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
 
 An \emph{ontology} was defined by Studer et al. as "a formal, explicit specification of a shared conceptualisation" \autocite{Studer1998-kp}. An ontology should specify consensual and machine-readable knowledge by means of a formal definition of concepts, where concepts have explicit types and restrictions. Therefore, an \emph{ontology language} should provide a well-defined syntax, formal semantics, convenient and sufficient expressiveness and efficient reasoning support. 
 
-\gls{RDFS} can be considered a very limited \emph{ontology language}. \gls{OWL2} \autocite{W3c_undated-dr} provides a number of additional features (e.g. cardinality constraints, class equivalence, intersection and disjunction). \gls{OWL2} does not simply extend \gls{RDFS}, because \gls{RDFS} primitives are too expressive. This would make reasoning very inefficient and computationally expensive \autocite{Antoniou2012-nj}. As such, \gls{OWL2} is divided in two sublanguages: \emph{OWL2 Full} \autocite{W3c_undated-ae}, a direct extension of \gls{RDFS} with all \gls{OWL2} semantics; \emph{OWL2 DL} \autocite{W3c_undated-xs}, a language with some restrictions on the way \gls{OWL2}, \gls{RDF} and \gls{RDFS} primitives may be used. 
+\gls{RDFS} can be considered a very limited \emph{ontology language}. \gls{OWL2} \autocite{W3c_undated-dr} provides a number of additional features (e.g. cardinality constraints, class equivalence, intersection and disjunction). \gls{OWL2} does not simply extend \gls{RDFS}, because \gls{RDFS} primitives are too expressive. This would make reasoning undecidable \autocite{Antoniou2012-nj}. As such, \gls{OWL2} is divided in two sublanguages: \emph{OWL2 Full} \autocite{W3c_undated-ae}, a direct extension of \gls{RDFS} with all \gls{OWL2} semantics; \emph{OWL2 DL} \autocite{W3c_undated-xs}, a language with some restrictions on the way \gls{OWL2}, \gls{RDF} and \gls{RDFS} primitives may be used. 
 
 The correspondence theorem of \autocite{W3c_undated-xs} states that: given an \emph{OWL2 DL} ontology, inferences drawn using its \emph{Direct Semantics} will still be valid if the ontology is mapped into an RDF graph and interpreted using the \emph{RDF-Based Semantics}, the semantics of \emph{OWL2 Full}.
 
 \gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr}, which allows easier processing with \gls{XML} tools.
 
-Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \emph{OWL2} can have different specification, called profiles \autocite{W3c_undated-jk}, their coverage is not on the scope of this work.
+Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \emph{OWL2} can have different specification, called profiles \autocite{W3c_undated-jk}, which provide reasoning in polynomial time. The coverage of \gls{OWL2} profiles is not on the scope of this work.
 
 \begin{figure}[H]
     \centering
@@ -189,9 +189,9 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \e
     \label{fig:owl2-structure}
 \end{figure}
 
-\subsubsection{Owl Language}
+\subsubsection{OWL Language}
 
-In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph {assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes \footnote{For an overview of the language we recommend the reader to consult the reference guide \autocite{W3c_undated-ls}.}.
+In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph{assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes\footnote{For an overview of the language we recommend the reader to consult the reference guide \autocite{W3c_undated-ls}.}. Listing \ref{listing-owl2-example} provides a simple \gls{OWL2} example.
 
 \pagebreak
 
@@ -228,7 +228,7 @@ In \gls{OWL2} \emph{assertions} about individual resources can be used to define
 
 \subsubsection*{Classes}
 
-In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are the \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
+In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
 
 \paragraph{Class Axioms}
 
@@ -255,9 +255,9 @@ The \emph{top} and \emph{bottom} properties specify, respectively, properties th
 
 Properties can have different characteristics:
 \begin{itemize}
-    \item \emph{Transitive Properties}, if $a$ relates to $b$ via property $p$ and  $c$ relates to $a$ via property $p$, then $c$ relates to  $b$ via property $p$;
-    \item \emph{Symmetric Properties}, if $a$ relates to $b$ via property $p$ then inverse is true;
-    \item \emph{Asymmetric Properties}, if $a$ relates to $b$ via property $p$ then the inverse is $\bot$;
+    \item \emph{Transitive Properties}, if $a$ relates to $b$ via property $p$ and $c$ relates to $a$ via property $p$, then $c$ relates to  $b$ via property $p$;
+    \item \emph{Symmetric Properties}, if $a$ relates to $b$ via property $p$, then inverse is true;
+    \item \emph{Asymmetric Properties}, if $a$ relates to $b$ via property $p$, then the inverse is $\bot$;
     \item \emph{Functional Properties}, if for each instance the property can only have one unique value;
     \item \emph{Inverse-functional Properties} if the object of a property statement relates to a single subject;
     \item \emph{Reflexive Properties}, if every individual relates to itself via the property;
@@ -282,24 +282,22 @@ Just like class axioms, we can specify \emph{property axioms} to describe the wa
 We can write more granular class definitions in \gls{OWL2} than by simply defining class axioms. This is achieved by combining class and property axioms. It is done by defining a class axiom that relates to an anonymous class (owl:Restriction) which contains axioms on its properties. The anonymous class definition captures all individuals that satisfy such restrictions. As such we can define:
 \begin{itemize}
     \item \emph{Universal and Existential Restrictions} which the members of the class must satisfy. The class is defined as a subclass of an anonymous class with property restrictions on, respectively, owl:allValuesFrom and owl:someValuesFrom;      
-    \item \emph{Necessary and Sufficient Conditions} similar to the above restriction but using a class equivalence axiom instead of rdfs:subClassOf;
+    \item \emph{Necessary and Sufficient Conditions}, relating a class to a property, using rdfs:subClass\-Of, does not provide sufficient information to conclude whether an individual belongs to the class membership or not (it only states necessary, not sufficient, conditions for class membership). With owl:equivalentClass, it becomes clear that an individual belongs to the class membership, if it satisfies the restriction (the conditions are necessary and sufficient).
     \item \emph{Value, Cardinality, Data Range and Datatype Restrictions} on the anonymous class, limiting the value, cardinality of the value, range of possible values and the datatype of the property value relating to members of the superclass; 
     \item \emph{Self Restrictions} on the individuals captured by the anonymous class.
 
 \end{itemize}
 
-
-
 \subsubsection{OWL2 DL}
 
-Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. In this section, we specify the restrictions imposed by \emph{OWL2 DL} \autocite{Antoniou2012-nj}: 
+Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. In this Section, we specify the restrictions imposed by \emph{OWL2 DL} \autocite{Antoniou2012-nj}: 
 
 \begin{itemize}
     \item The application of \gls{OWL2} primitives to each other is not allowed; only classes and non-literals resources may be defined, with all classes being individuals of owl:Class;
     \item Properties are disjoint individuals of either owl:ObjectProperty or owl:DatatypeProperty;
     \item Annotation properties are ignored by reasoners;
     \item Properties, for which range includes non-literal resources, are separated from those which relate to literal values; 
-    \item A resource can only be a class, property, or instance at the same time simultaneously, classes, properties or instances with the same name will be treated as distinct (a mechanism called punning);
+    \item A resource can only be a class, property, or instance at the same time. Classes, properties or instances with the equal names will be treated as distinct (a mechanism called punning);
     \item Only functional properties can be assigned to datatype properties;
     \item Only object properties can have an inverse;
     \item Property chains can only involve object properties;
@@ -311,7 +309,7 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 \subsubsection{Overview}
 
-In the previous section we've discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
+In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
 
 \gls{RDF} triples are stored in \emph{triple stores}, specialized databases for this type of data. The underlying architecture of such databases varies, from relational to NoSQL approaches \autocite{Cure2014-vm, Modoni2014-cz}. The recommended query language to use is \gls{SPARQL} \autocite{W3c2013-hd}. It provides a range of operations over published \gls{RDF} graphs, accessible via SPARQL endpoints: from read queries \autocite{W3c2008-vf} to write operations \autocite{W3c_undated-tw, W3c2013-rr}.
 
@@ -398,50 +396,18 @@ Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
 %Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
-In section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over cloud or other distributed networks.
+In Section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over cloud or other distributed networks.
 
 In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. As such an adversary will follow the protocol properly but keep a record of all intermediate computations \autocite{Goldreich2001-sr} in an attempt to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. Security concerns should take into account the operation history, data stored in the server and also the memory access pattern, as the adversary will have access to all of this information.
 
-\emph{Encryption at Rest} is too inflexible and computationally expensive. In contrary, \gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
+The \emph{Encryption at Rest} approach encrypts all data stored in the untrusted server. To perform computations we need to download the full dataset, decrypt it, and only then can we execute operations on the data. This is too inflexible and computationally expensive. 
 
-When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following sections we will discuss related work in the fields of \gls{HE}, in section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in section \ref{ch2:sec:searchable-encryption}.
+\gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
+
+When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following Sections we will discuss related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}.
 
 
 \subsection{Homomorphic Encryption}
@@ -464,7 +430,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
     \item \glsxtrlong{FHE}, which supports any number of operations with no restriction on the number of operations; 
     \item \glsxtrlong{SHE}, which permits some types of operations, a limited number of times;
     \item \glsxtrlong{PHE}, that allows for one type of operation with no restriction on the number of times;
-    \item \glsxtrlong{LFHE} \autocite{Brakerski2014-nm}, which supports any number of operations, but with a pre-determined expected depth-$L$.
+    \item \glsxtrlong{LFHE} \autocite{Brakerski2014-nm}, which supports any type of operations for a limited, and expected, number of $L$ times (referred to as depth-$L$).
 \end{itemize}
 
 
@@ -506,12 +472,12 @@ These techniques may leak some information about the \emph{indexes}, \emph{searc
 \section{Discussion}
 \label{ch2:sec:discussion}
 
-%Summary on previous semantic web sections.
+%Summary on previous semantic web Sections.
 
 \gls{SPARQL} has been widely studied in the literature. There has been research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
 
 
-%Summary on previous security sections.
+%Summary on previous security Sections.
 
 Besides the previous \gls{SSE} approaches, there has been work where the authors propose using an onion-encryption scheme, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} for protecting graph-structured data \autocite{Aburawi2018-pq}. Some research has been done about protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, but in this work they only protect values, leaving the schema of the ontology public. Our approach aims to fully secure the data and topology of the ontology. 
 
