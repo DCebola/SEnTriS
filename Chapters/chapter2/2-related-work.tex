@@ -455,7 +455,20 @@ To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{
 
 \mytodo{Add interaction scheme between client and server}
 
-\paragraph{Server/Writer Model}
+\paragraph{Client/Server Model}
+In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data in a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures:
+
+\begin{itemize}
+    \item \gls{S/S};
+    \item \gls{S/M};
+    \item \gls{M/S};
+    \item \gls{M/M}.
+\end{itemize}
+
+The \gls{S/S} architecture is usually used for \emph{data outsourcing} and \gls{M/S}, \gls{S/M} and \gls{M/M} employed in \emph{data sharing} scenarios \autocite{Bosch2014-eb}. Symmetric key schemes are typically \gls{S/S}, while public key schemes \gls{M/S} (multiple users can write using a \emph{public key}, but only the owner of the \emph{private} key can generate trapdoors).
+Extension of the single reader schemes to multiple reader schemes can be done with \emph{key sharing} or with the usage of \emph{proxy re-encryption}. 
+
+In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext, encrypted using key $K$, and generates a new ciphertext, that is decrypted using key $K'$, where $K \neq K'$ and the decrypted plaintext remains unchanged. Proxy re-encryption is usually employed with public key cryptography \autocite{Blaze1998-pz, Ivan2003-uu, Dong2008-qw}, but there are some schemes that support the symmetric key setting \autocite{Syalim2011-fb, Sakurai2017-ui, Peng2017-ia}.
 
 \paragraph{Information Leakage}
 
