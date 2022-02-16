@@ -473,8 +473,23 @@ In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext,
 \paragraph{Information Leakage}
 
 % Explain more about each type of leakage
-These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. 
+Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This can leak \emph{index} information, \emph{search pattern}, and \emph{access pattern} during execution:
 
+\begin{itemize}
+    \item \emph{Index Information} refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
+    \item \emph{Search Pattern} includes the information about keywords, and predicates, that is derived from different searches that produce equal results. The search pattern can be targeted using statistical analysis;
+    \item \emph{Access Pattern} includes the information that may be derived from the query results (e.g. whether a query is more restrictive than other, based on the total of documents retrieved). 
+\end{itemize}
+
+\paragraph{Security Definitions}
+
+In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security definitions for \gls{SE} schemes, contributing with two new definitions, \gls{IND-CKA1} and \gls{IND-CKA2}, which are still the standard in use:
+
+\begin{itemize}
+    \item \gls{IND-CKA1}
+    \item \gls{IND-CKA2}
+\end{itemize}
+%Curtmola et al. [2006] revisited the existing security definitions and pointed out thatprevious definitions are not adequate for SSE and that the security of indexes and thesecurity of trapdoors are inherently linked. They introduce two new adversarial modelsfor searchable encryption, anonadaptive(IND-CKA1)and anadaptive(IND-CKA2)one, which are widely used as the standard definitions for SSE to date. Intuitively,the definitions require that nothing should be leaked from the remotely stored filesand index beyond the outcome and the search pattern of the queries. The IND-CKA1/2security definitions include security for trapdoors and guarantee that the trapdoorsdo not leak information about the keywords (except for what can be inferred from thesearch and access patterns). Nonadaptive definitions only guarantee the security of ascheme if the client generates all queries at once. This might not be feasible for certain(practical) scenarios [Curtmola et al. 2006]. The adaptive definition allowsAto chooseits queries as a function of previously obtained trapdoors and search outcomes. Thus,IND-CKA2 is considered a strong security definition for SSE.
 
 \subsection{Symmetric Searchable Encryption}
 \label{ch2:sec:symmetric-searchable-encryption}
