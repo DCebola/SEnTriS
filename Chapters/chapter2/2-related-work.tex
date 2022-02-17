@@ -511,9 +511,15 @@ To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}
 
 \mytodo{Add visual scheme}
 
-\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database instead of per document.
+A security analysis of the scheme reveals that it leaks keyword position in the
+document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can inferred).
 
-\paragraph{Kamara et al.} %Dynamic and Structured
+
+\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one are, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document.
+
+\mytodo{Add visual scheme}
+
+\paragraph{Other} % %Dynamic and Structured and specific for graph based ones
 
 \subsection{Other Approaches}
 
