@@ -438,7 +438,8 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 \label{ch2:sec:searchable-encryption}
 
 \subsubsection{Overview}
-\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries. While the first approach implemented it via a searchable ciphertext \autocite{Song2000-hu}, most modern schemes do it using encrypted searchable indexes. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used.  We will focus on index-based \gls{SE} schemes, more specifically in index-based \gls{SSE} ones, due to their higher efficiency compared to \gls{PEKS} approaches.
+\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries. While the first approach implemented it via a searchable ciphertext \autocite{Song2000-hu}, most modern schemes do it using encrypted searchable indexes. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. We will focus on index-based \gls{SE} schemes, more specifically in index-based \gls{SSE} ones, due to their higher efficiency compared to \gls{PEKS} approaches.
+
 
 %Generic model
 
@@ -514,7 +515,19 @@ To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}
 
 \paragraph{Kamara et al.} %Dynamic and Structured
 
+\subsection{Other Approaches}
 
+Besides the previous \gls{SSE} approaches, some authors proposed using onion-encryption, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}, for protecting graph-structured data \autocite{Aburawi2018-pq}. 
+
+Additionally, some research has been done for protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, protecting only their values, leaving the schema of the ontology public. Our approach aims to fully secure the individuals and schema information. 
+ 
+For mitigating information leakage, \emph{hybrid} \gls{SE} schemes, that require \emph{trusted hardware}, have been proposed \autocite{Ferreira2020-ze}, but solutions based on special hardware are not on the scope of this thesis.
+
+Finally, there exists related research in specific security fields regarding \gls{RDF} graphs. 
+
+One of those fields is ensuring \emph{integrity} and \emph{authenticity} of data. This has been widely studied with various signage schemes \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and one service-oriented approach \autocite{Mana2011-bm} having been proposed. 
+
+The other field is \emph{access control}. Various schemes have been studied and most try to embed the data with the policies, using annotations. This allows for high-granularity in the access control, which can be inferred, but requires conflict resolution \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. A more simple approach is token-based \autocite{Khaled2010-yg}. As they are not the main focus of this thesis, being only complementary work on the areas of security and ontology-engineering, we will not elaborate further on these.
 
 \section{Discussion}
 \label{ch2:sec:discussion}
@@ -526,6 +539,6 @@ To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}
 
 %Summary on previous security Sections.
 
-Besides the previous \gls{SSE} approaches, there has been work where the authors propose using an onion-encryption scheme, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} for protecting graph-structured data \autocite{Aburawi2018-pq}. Some research has been done about protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, but in this work they only protect values, leaving the schema of the ontology public. Our approach aims to fully secure the data and topology of the ontology. 
 
-Additionally, there exists related research in specific security fields regarding \gls{RDF} graphs. One of those fields is ensuring \emph{integrity} and \emph{authenticity} of data. This has been widely studied with various signage schemes having been proposed \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and one service-oriented approach \autocite{Mana2011-bm}. The other field is \emph{access control}. Various policies have been studied and most try to embed the data with the policies, using annotations. This allows for high-granularity in the access control, but needs to resolve conflicts \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. A more simple approach is token-based \autocite{Khaled2010-yg}. We will not discuss these any further, as they are not the main focus of this thesis, being only complementary work on the areas of security and ontology-engineering. 
+
+ 
