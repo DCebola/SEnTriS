@@ -527,25 +527,26 @@ To search, we generate trapdoor $T_{w}=\langle PRF_{k}(w), PRP_{k'}(w)\rangle$. 
 
 \emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing the $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
 
-To search, we generate trapdoor $T_{w}= (t_{1},...,t{n}) = (PRP_{k}(w \, | \, str(1)),\cdots,PRP_{k}(w \, | \, str(n)))$. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
+To search, we generate the trapdoor $T_{w}= (t_{1},...,t{n}) = (PRP_{k}(w \, | \, str(1)),\cdots,PRP_{k}(w \, | \, str(n)))$. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
 
 \mytodo{Add visual scheme}
 
-\paragraph{Generalization to the Dynamic Setting} The previous schemes where considered static, as they do not allow modifications on the database after setting up the scheme. In 2012, Kamara et al. \autocite{Kamara2012-lm} proposed a \emph{dynamic} extension to the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. They used a \emph{deletion} array to track the positions on the search array that needed to be modified after an update. They also used homomorphically encrypted array pointers to support modifications on their values without decryption.
+\paragraph{Generalization to the Dynamic Setting} The previous schemes where considered static, as they do not allow modifications on the database after setting up the scheme. In 2012, Kamara et al. \autocite{Kamara2012-lm} proposed a \emph{dynamic} extension to the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. They used a \emph{deletion} array to track the positions on the search array that needed to be modified, after an update. They encrypted the array pointers, using homomorphic encryption, to support modifications on their values without decryption.
 
-\paragraph{Generalization to Structured Data} In 2010, Chase and Kamara \autocite{Chase2010-xx} proposed a new adaptively secure scheme based on the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi} that supports arbitrarily-structured data. Their \glsxtrlong{STE} approach is based on generating an inverted index in the form of a padded and permuted dictionary. They associated data items with metadata, allowing information about structure to be preserved if needed. 
+\paragraph{Generalization to Structured Data} In 2010, Chase and Kamara \autocite{Chase2010-xx} proposed a new adaptively secure scheme based on the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. This new scheme supports arbitrarily-structured data. \glsxtrlong{STE} is based on generating an inverted index in the form of a padded and permuted dictionary. They associated data items with metadata, allowing information about structure to be preserved if needed. 
 
 \paragraph{Generalization to Graph-Structured Data}
 After \gls{STE}, additional research has been conducted to support operations on graph-structured data. 
 
-Some authors extended \gls{STE} to support queries on conceptual graphs \autocite{Poh2012-qs}, but they precompute all queries \emph{a priori}. 
+Some authors extended \gls{STE} to support queries on conceptual graphs \autocite{Poh2012-qs}, but they need to compute all possible query answers \emph{a priori}. 
 
-Others, proposed a \gls{SSE} scheme that supports \emph{subgraph isomorphism queries} \autocite{Cao2011-is}. In their approach, they extract features from the graphs and generate the encrypted-indexes based on the extracted features. This scheme was planned for generic graphs.
+Others, proposed a \gls{SSE} scheme that supports \emph{subgraph isomorphism queries} \autocite{Cao2011-is}. In their approach, they extract features from the graphs and generate the encrypted-indexes from the extracted features. This scheme was planned for generic graphs.
 
-Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with a bucketization algorithm, so that queries over the graph data does not leak information about the structure of the graph. Although the authors state that their approach works with any kind of query, they only focused on neighbor and adjacency ones. 
-
+Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with a bucketization algorithm. By doing so, queries do not leak information about the structure of the graph. Although the authors state that their approach works with any kind of query, they only focused on neighbor and adjacency ones. 
 
 \subsection{Other Approaches}
+\label{ch2:sec:other}
+
 
 Besides the previous \gls{SSE} approaches, some authors proposed using onion-encryption, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}, for protecting graph-structured data \autocite{Aburawi2018-pq}. 
 
@@ -559,15 +560,28 @@ One of those fields is ensuring \emph{integrity} and \emph{authenticity} of data
 
 The other field is \emph{access control}. Various schemes have been studied and most try to embed the data with the policies, using annotations. This allows for high-granularity in the access control, which can be inferred, but requires conflict resolution \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. A more simple approach is token-based \autocite{Khaled2010-yg}. As they are not the main focus of this thesis, being only complementary work on the areas of security and ontology-engineering, we will not elaborate further on these.
 
-\section{Discussion}
-\label{ch2:sec:discussion}
+\section{Summary}
+\label{ch2:sec:summary}
 
-%Summary on previous semantic web Sections.
+In Section \ref{ch2:sec:semantic-web}, we described the layered architecture of the \emph{Semantic Web} and discussed the standard languages for describing its \emph{data model} and \emph{ontologies}. More specifically, we covered the semantics and syntax of \gls{RDF} and explained the primitives of \gls{RDFS}. 
 
-\gls{SPARQL} has been widely studied in the literature. There has been research on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and survey  on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, there have been no works about the usage of \gls{SPARQL} with encrypted \gls{RDF} data.
+Additionally, we specified the structure of \gls{OWL2}, focusing on the mechanism it provides to write ontologies. We also discussed the restriction imposed by \emph{OWL DL} to remain decidable. 
 
+Furthermore, we wrote about \gls{SPARQL}, discussing its mathematical basis, describing its syntax and enumerating its various types of queries. In an additional note, \gls{SPARQL} has been widely studied in the literature. Research has been conducted on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, no work has yet been done on its usage with encrypted \gls{RDF} data.
 
-%Summary on previous security Sections.
+We finished Section \ref{ch2:sec:semantic-web} by explaining tools and software that is used in this field of research.
+
+In Section \ref{ch2:sec:secure-computations}, we discussed various solutions to execute secure computations in untrusted servers. We started by describing the \emph{honest-but-curious}, or \emph{passive}, adversary model and explained why \emph{Encryption at Rest} and \gls{ORAM} are not practical approaches. 
+
+We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathematical basis of \gls{HE} and enumerating the type of schemes available.
+
+In Section \ref{ch2:sec:searchable-encryption}, we explained the difference between \gls{SSE} and \gls{PEKS}. We then described the general model for index-based \gls{SE}, as well as the \emph{Client/Server} architecture of \gls{SE} systems. We continued by discussing how to extend \gls{S/S} architectures, and covered the types of privacy leakage that schemes typically have.
+
+In Section \ref{ch2:sec:symmetric-searchable-encryption} we specified the standard security definitions in use, and gave an in depth explanation of reference \gls{SSE} schemes. We finished the \gls{SSE} Section by showing recent generalizations, focusing on dynamic solutions and schemes that support structured data.
+
+In Section \ref{ch2:sec:other}, we mentioned approaches that try to secure ontologies but are not based on \gls{SE}. Additionally, we briefly covered parallel work on security and ontologies in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}.
+
+To conclude, we state that there still needs to be conducted more research in the field of \gls{SSE} for graph-structured data. To justify our statement, we argue that approaches are either too generic \autocite{Cao2011-is}, lack schema protection \autocite{Nejjahi2019-ig}, have been implemented considering types of queries not used by \gls{SPARQL} \autocite{Suntaxi2021-sj}, or require pre-computation of all possible query answers beforehand \autocite{Poh2012-qs}.
 
 
 
