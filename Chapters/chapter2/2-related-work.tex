@@ -502,9 +502,15 @@ In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security defin
 
 \subsubsection{\gls{SSE} Schemes}
 
-\paragraph{Song et al.} %Sequential
+\paragraph{Song et al.} In 2000, the first practical \gls{SSE} scheme was proposed \autocite{Song2000-ir}. The general basis of their method is to encrypt each word of a document and embed hash values with a specific format in the ciphertext. During search, the server executes a \emph{sequential scan} of the document, extracts the hashes and checks for matches on their values. 
 
-\paragraph{Curtmola et al.} %Index-Based sse1-2
+First, the plaintext is divided into \emph{fixed-size} blocks $w_i$ and each one is encrypted with a \emph{deterministic}\footnote{Deterministic encryption leaks  message  equality.} encryption algorithm $Enc$, using key $k$. The ciphertexts $X_{i} = Enc_{k}(w_{i})$ are split into two parts $X_{i}=\langle l_{i},r_{i}\rangle$. Using a \emph{stream cipher}\footnote{For information on stream ciphers we recommend reading chapter 8.4 of \autocite{Pearson2017-ve}.} as a \gls{PRF}, a pseudo-random string of bytes $S_{i}=PRF_{k'}(i)$ is generated from the index position using key $k' \neq k$. Then, a hash $Y_{i} = \langle S_{i},F_{k_{i}}(S_{i})\rangle$ of this string of bytes is computed using a keyed hash function $F_{k_{i}}$, where the key is the output of a pseudo-random function $k_{i}=PRF_{k''}(l_{i})$ that takes $l_{i}$ as an input, with key $k''' \neq k''$. Finally, we compute the \emph{XOR} of $X_{i}$ with $S_{i}$ to generate the final ciphertexts $C_{i} = X_{i} \oplus Y_{i}$.
+
+To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}(w) = \langle L, R \rangle$ is the encryption of keyword $w$ and $K_{s}=PRF_{k''}(L)$. A server searches for the keyword in a document by iterating over all ciphertexts $C_{i}$, computing $C_{i} \oplus X$ and checking if the output is of the form $\langle S, PRF_{K_{s}}(S) \rangle$ for some $S$.
+
+\mytodo{Add visual scheme}
+
+\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database instead of per document.
 
 \paragraph{Kamara et al.} %Dynamic and Structured
 
