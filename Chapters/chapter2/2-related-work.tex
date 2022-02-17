@@ -515,11 +515,35 @@ A security analysis of the scheme reveals that it leaks keyword position in the
 document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can inferred).
 
 
-\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one are, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document.
+\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one are, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document. 
+
+\emph{Non-Adaptive Scheme} Considering a database with $n$ documents, we define two data structures: an array $A$, where each position of the array contains a node $n_{i,j}$ which belongs to the linked list $L_{i}$ associated to the keyword $w_{i}$; a look-up table $T$ to identify the first node of a linked list associated with a keyword.
+
+To build $A$, we start by constructing the nodes. These nodes are encrypted, stored in random order (using permutations) and augmented with information do find and decrypt the next node in the list. The augmentation step happens before the encryption of the node. Each node $n_{i,j} = \langle id_{m}, k_{next}, p_{next} \, || \, \varnothing \rangle$, includes information about the $id$ of document $m$ ($0 \leq m \leq n$) which contains the keyword, a randomly generated key used to encrypt the next node and a pointer to the next node in the list, or $\varnothing$ if it is the last one. The randomized disposition of the nodes, hides the length of the lists.
+
+The look-up table $I$ associates each keyword $w_{i}$ with the node $n_{i,0} = \langle k_{i,1}, p_{i,1} \rangle \oplus PRF_{k}(w_{i})$ stored in a random position using a \gls{PRP}, $PRP_{k'}(w_{i})$, where $k \neq k'$. This node contains the encryption key and the pointer to the first node of the linked list $L_{i}$.
+
+To search, we generate trapdoor $T_{w}=\langle PRF_{k}(w), PRP_{k'}(w)\rangle$. The server uses the trapdoor to find the correct node $n_{i,0} = T[PRP_{k'}(w)]$ and then retrieve all the identifiers of the documents that contain the keyword.
+
+\emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing the $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
+
+To search, we generate trapdoor $T_{w}= (t_{1},...,t{n}) = (PRP_{k}(w \, | \, str(1)),\cdots,PRP_{k}(w \, | \, str(n)))$. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
 
 \mytodo{Add visual scheme}
 
-\paragraph{Other} % %Dynamic and Structured and specific for graph based ones
+\paragraph{Generalization to the Dynamic Setting} The previous schemes where considered static, as they do not allow modifications on the database after setting up the scheme. In 2012, Kamara et al. \autocite{Kamara2012-lm} proposed a \emph{dynamic} extension to the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. They used a \emph{deletion} array to track the positions on the search array that needed to be modified after an update. They also used homomorphically encrypted array pointers to support modifications on their values without decryption.
+
+\paragraph{Generalization to Structured Data} In 2010, Chase and Kamara \autocite{Chase2010-xx} proposed a new adaptively secure scheme based on the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi} that supports arbitrarily-structured data. Their \glsxtrlong{STE} approach is based on generating an inverted index in the form of a padded and permuted dictionary. They associated data items with metadata, allowing information about structure to be preserved if needed. 
+
+\paragraph{Generalization to Graph-Structured Data}
+After \gls{STE}, additional research has been conducted to support operations on graph-structured data. 
+
+Some authors extended \gls{STE} to support queries on conceptual graphs \autocite{Poh2012-qs}, but they precompute all queries \emph{a priori}. 
+
+Others, proposed a \gls{SSE} scheme that supports \emph{subgraph isomorphism queries} \autocite{Cao2011-is}. In their approach, they extract features from the graphs and generate the encrypted-indexes based on the extracted features. This scheme was planned for generic graphs.
+
+Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with a bucketization algorithm, so that queries over the graph data does not leak information about the structure of the graph. Although the authors state that their approach works with any kind of query, they only focused on neighbor and adjacency ones. 
+
 
 \subsection{Other Approaches}
 
