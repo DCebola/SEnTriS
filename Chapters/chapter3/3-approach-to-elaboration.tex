@@ -6,17 +6,56 @@
 
 \prependtographicspath{{Figures/}}
 
-\section{System Requirements}
-\label{ch3:sec:requirements} %Queries needed to fullfill
+On this chapter we will present our approach to the elaboration phase. The remaining of
+the chapter is organized as follows: in Section \ref{ch3:sec:solution}, we introduce the proposed solution; in Section \ref{ch3:sec:architecture-and-system-model} we will define the system model and architecture; in Section \ref{ch3:sec:evaluation-guidelines} we present the expected testing and validation scenarios.
 
-\section{Privacy Guaranties}
-\label{ch3:sec:privacy-guaranties}
+\section{A Protocol for Secure Operations over Privacy-Enhanced Ontologies}
+\label{ch3:sec:solution}
 
-\section{Architecture \& System Model}
+As an answer to the lack of solutions for the problems exposed in Section \ref{ch1:sec:problem}, we propose a new protocol that extends upon existing \gls{SSE} schemes for graph-structured data. This protocol will be designed taking into consideration the necessary privacy and system requirements that exist when working with \gls{OWL2} ontologies:
+
+
+\paragraph{Privacy Requirements}
+
+Ontologies are used in various different domains, as such, they might contain sensitive information. An appropriate solution must be a \gls{SSE} scheme at least \gls{IND-CKA2} secure.
+
+\paragraph{System Requirements}
+The solution should be \emph{transparent} and as \emph{efficient} as possible. Working with encrypted ontologies must not affect a user's workflow in any significant way. Furthermore, it should also be \emph{flexible} and \emph{modular}, so that it supports future improvements or modifications if needed.
+
+Finally, professionals must still be able to execute the majority of operations that they would be able to, with normal ontologies, even if they are working with encrypted ontologies:
+
+\begin{itemize}
+    \item \textbf{P1 - Static Setting} In this setting the protocol will only support \gls{SPARQL} queries, for read operations only (\emph{SELECT}, \emph{ASK}, \emph{CONSTRUCT}, \emph{DESCRIBE}). Focusing strictly on preserving query expressiveness.
+    \item \textbf{P2 - Dynamic Setting} In this setting, the protocol will introduce support for \gls{SPARQL} queries that modify the encrypted ontology.
+\end{itemize}
+
+\section{System Model \& Architecture}
 \label{ch3:sec:architecture-and-system-model}
 
-\subsection{Implementation Guidelines}
-\label{ch3:sec:system-model:implementation-guidelines}
+\paragraph{System Model} The system will follow the \emph{client/server} model of \gls{SE} schemes. More specifically, it will be, initially, a \gls{S/S} solution, further extended to \gls{M/M} using a \emph{key sharing} approach. 
+We will that communication channels used are \emph{reliable} and \emph{secure}. The system model will include a \emph{data-owner}, \emph{users}, an \emph{untrusted server} and \emph{adversaries}:
 
-\subsection{Validation}
-\label{ch3:sec:validation}
+\begin{itemize}
+    \item \emph{Data-Owner} The data-owner is the entity that owns the ontology, originally. Therefore, it is the one responsible for generating the secret keys and secure-indexes, encrypting the ontology and uploading it to a remote server. It will also be responsible for sharing the secret keys with authorized users. Additionally, the data-owner must execute \emph{user revocation} when needed, updating the secret keys and re-encrypting the ontology. 
+    \item \emph{Users} The users are entities who have access to the ontology and have the right secret keys. This allows them to execute secure \emph{SPARQL} queries, over the remote encrypted ontology.
+    \item \emph{Untrusted Server} The untrusted server is the machine where the encrypted ontology will be stored.
+    \item \emph{Adversaries} An adversary is an entity that has access to the untrusted servers or possesses hold secret keys (has lost access to the ontology). The adversaries follow the \emph{honest-but-curious} model.
+\end{itemize}
+
+\mytodo{Add figure}
+
+\paragraph{System Architecture} At a macro level, the solution will be a distributed software solution, including a \emph{client} and a \emph{server} component. Besides the necessary communication modules, they will include:
+
+\begin{itemize}
+    \item \emph{Client} The modules to encrypt \gls{OWL2} ontologies, parse \gls{SPARQL} queries and generate secret keys, encrypted indexes and trapdoors
+    \item \emph{Server} The modules to load the encrypted ontology and indexes, parse trapdoors and execute secure searches.
+\end{itemize}
+
+\section{Evaluation Guidelines}
+\label{ch3:sec:evaluation-guidelines}
+
+After every implementation step we will proceed with evaluation of the prototype. The testing will follow the existing \glsxtrlong{BSBM} \autocite{Chris_undated-hq}, executing the protocol in two scenarios, with the same dataset. In the first, operations will be executed with the ontology in plaintext and, in the second, with the ontology encrypted. 
+
+For evaluation, we will check performance metrics (e.g. throughput, latency). 
+
+For validation, we will compare whether the output of the benchmark, using the plaintext ontology, is the same to the one, using the encrypted ontology. Additionally, we will also evaluate the security guarantees of the solution.
