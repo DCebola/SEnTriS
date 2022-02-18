@@ -33,7 +33,7 @@ Finally, professionals must still be able to execute the majority of operations 
 \section{System Model \& Architecture}
 \label{ch3:sec:architecture-and-system-model}
 
-\paragraph{System Model} There exist mechanisms to provide secure and reliable communication channels, (e.g. the \gls{TLS} protocol \autocite{noauthor_undated-kt}) and which are adopted by trusted cloud providers. These provide security guarantees in transit (while data is being transferred from or loaded into servers). They do not, however, protect against an adversary who might have access to the servers where the data is stored. 
+\paragraph{System Model} There exist mechanisms to provide secure and reliable communication channels, (e.g. \gls{TLS} \autocite{noauthor_undated-kt}, \gls{HTTPS} \autocite{noauthor_undated-yf} and \gls{TCP}) and which are adopted by trusted cloud providers. These provide security guarantees in transit (while data is being transferred from or loaded into servers). They do not, however, protect against an adversary who might have access to the servers where the data is stored. 
 
 The latter is the type of adversary which our protocol will target. Therefore, we will assume that all communication channels are \emph{reliable} and \emph{secure}. The system will follow the \emph{client/server} model of \gls{SE} schemes. More specifically, it will be, initially, a \gls{S/S} solution, further extended to \gls{M/M} using a \emph{key sharing} approach. It will include a \emph{data-owner}, \emph{users}, an \emph{untrusted server} and \emph{adversaries}:
 
@@ -44,7 +44,12 @@ The latter is the type of adversary which our protocol will target. Therefore, w
     \item \emph{Adversaries} An adversary is an entity that has access to the untrusted servers or possesses secret keys but whose access to the ontology has been revoked. The adversaries follow the \emph{honest-but-curious} model.
 \end{itemize}
 
-\mytodo{Add figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{system-model.png}
+    \caption{The System Model.}
+    \label{fig:system-model}
+\end{figure}
 
 \paragraph{System Architecture} At a macro level, the solution will be a distributed software solution, including a \emph{client} and a \emph{server} component. Besides the necessary communication modules, they will include:
 
