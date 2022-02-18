@@ -62,17 +62,21 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 
 \subsubsection{Syntax}
 
-\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement.
+\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement. Figure \ref{fig:rdf-grafical-example} provides an example of a \gls{RDF} graph.
 
-\mytodo{ADD graphical example}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rdf-example.png}
+    \caption{A simple RDF graphical example.}
+    \label{fig:rdf-grafical-example}
+\end{figure}
 
 \paragraph{Text-Based}
 
 
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
 In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon, the \gls{URI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
-
-\pagebreak
 
 \begin{lstlisting}[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
@@ -104,9 +108,15 @@ The \emph{rdfs:subClassOf} is used to define that all the instances of a class a
 
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
-In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In figure ..., we extend the \gls{RDF} graphical example ... with \gls{RDFS}.
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
 
-\mytodo{ADD graphical example}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rdfs-example.png}
+    \caption{A simple RDFS graphical example.}
+    \label{fig:rdfs-grafical-example}
+\end{figure}
 
 
 \begin{table}[h]
@@ -193,7 +203,9 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \e
 
 In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph{assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes\footnote{For an overview of the language we recommend the reader to consult the reference guide \autocite{W3c_undated-ls}.}. Listing \ref{listing-owl2-example} provides a simple \gls{OWL2} example.
 
-\pagebreak
+\subsubsection*{Individual Assertions}
+
+In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{URI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
 
 \begin{lstlisting}[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
@@ -222,11 +234,7 @@ _:x rdf:type owl:Class ;
 
 \end{lstlisting}
 
-\subsubsection*{Individual Assertions}
-
-In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{URI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}. 
-
-\subsubsection*{Classes}
+ \subsubsection*{Classes}
 
 In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
 

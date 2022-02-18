@@ -33,8 +33,9 @@ Finally, professionals must still be able to execute the majority of operations 
 \section{System Model \& Architecture}
 \label{ch3:sec:architecture-and-system-model}
 
-\paragraph{System Model} The system will follow the \emph{client/server} model of \gls{SE} schemes. More specifically, it will be, initially, a \gls{S/S} solution, further extended to \gls{M/M} using a \emph{key sharing} approach. 
-We will assume that all communication channels are \emph{reliable} and \emph{secure}. The system model will include a \emph{data-owner}, \emph{users}, an \emph{untrusted server} and \emph{adversaries}:
+\paragraph{System Model} There exist mechanisms to provide secure and reliable communication channels, (e.g. the \gls{TLS} protocol \autocite{noauthor_undated-kt}) and which are adopted by trusted cloud providers. These provide security guarantees in transit (while data is being transferred from or loaded into servers). They do not, however, protect against an adversary who might have access to the servers where the data is stored. 
+
+The latter is the type of adversary which our protocol will target. Therefore, we will assume that all communication channels are \emph{reliable} and \emph{secure}. The system will follow the \emph{client/server} model of \gls{SE} schemes. More specifically, it will be, initially, a \gls{S/S} solution, further extended to \gls{M/M} using a \emph{key sharing} approach. It will include a \emph{data-owner}, \emph{users}, an \emph{untrusted server} and \emph{adversaries}:
 
 \begin{itemize}
     \item \emph{Data-Owner} The data-owner is the entity that owns the ontology, originally. Therefore, it is the one responsible for generating the secret keys and secure-indexes, encrypting the ontology and uploading it to a remote server. It will also be responsible for sharing the secret keys with authorized users. Additionally, the data-owner must execute \emph{user revocation} when needed, updating the secret keys and re-encrypting the ontology. 
