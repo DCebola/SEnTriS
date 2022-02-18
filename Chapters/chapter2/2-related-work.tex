@@ -455,7 +455,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 
 %Generic model
 
-\subsubsection{\gls{SE} General Index-Based Model} 
+\subsubsection{\gls{SE} General Index-Based Model}
 
 A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generated an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
 
@@ -466,9 +466,14 @@ A general model, for the index-based \gls{SE} schemes was defined in \autocite{B
     \end{array}
 \end{equation}
 
-To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{j}))$, for a predicate $f$ a keyword $w_{j}$. With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. If there is a keyword $w$ that satisfies the predicate $f$, it returns to the client the corresponding ciphertexts associated with $i$ or $\bot$ if no match was found. 
+To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{j}))$, for a predicate $f$ a keyword $w_{j}$. With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. If there is a keyword $w$ that satisfies the predicate $f$, it returns to the client the corresponding ciphertexts associated with $i$ or $\bot$ if no match was found. In figure \ref{fig:se-general} we demonstrate the interaction between client and server.
 
-\mytodo{Add interaction scheme between client and server}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{se-general.png}
+    \caption{Interaction between client and server.}
+    \label{fig:se-general}
+\end{figure}
 
 \subsubsection{Client/Server Model}
 
@@ -521,8 +526,6 @@ First, the plaintext is divided into \emph{fixed-size} blocks $w_i$ and each one
 
 To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}(w) = \langle L, R \rangle$ is the encryption of keyword $w$ and $K_{s}=PRF_{k''}(L)$. A server searches for the keyword in a document by iterating over all ciphertexts $C_{i}$, computing $C_{i} \oplus X$ and checking if the output is of the form $\langle S, PRF_{K_{s}}(S) \rangle$ for some $S$.
 
-\mytodo{Add visual scheme}
-
 A security analysis of the scheme reveals that it leaks keyword position in the
 document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can inferred).
 
@@ -540,8 +543,6 @@ To search, we generate trapdoor $T_{w}=\langle PRF_{k}(w), PRP_{k'}(w)\rangle$. 
 \emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing the $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
 
 To search, we generate the trapdoor $T_{w}= (t_{1},...,t{n}) = (PRP_{k}(w \, | \, str(1)),\cdots,PRP_{k}(w \, | \, str(n)))$. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
-
-\mytodo{Add visual scheme}
 
 \paragraph{Generalization to the Dynamic Setting} The previous schemes where considered static, as they do not allow modifications on the database after setting up the scheme. In 2012, Kamara et al. \autocite{Kamara2012-lm} proposed a \emph{dynamic} extension to the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. They used a \emph{deletion} array to track the positions on the search array that needed to be modified, after an update. They encrypted the array pointers, using homomorphic encryption, to support modifications on their values without decryption.
 
