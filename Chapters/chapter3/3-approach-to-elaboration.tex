@@ -6,7 +6,7 @@
 
 \prependtographicspath{{Figures/}}
 
-On this chapter we will present our approach to the elaboration phase. The remaining of
+In this chapter we will present our approach to the elaboration phase. The remaining of
 the chapter is organized as follows: in Section \ref{ch3:sec:solution}, we introduce the proposed solution; in Section \ref{ch3:sec:architecture-and-system-model} we will define the system model and architecture; in Section \ref{ch3:sec:evaluation-guidelines} we present the expected testing and validation scenarios.
 
 \section{A Protocol for Secure Operations over Privacy-Enhanced Ontologies}
@@ -17,7 +17,8 @@ As an answer to the lack of solutions for the problems exposed in Section \ref{c
 
 \paragraph{Privacy Requirements}
 
-Ontologies are used in various different domains, as such, they might contain sensitive information. An appropriate solution must be a \gls{SSE} scheme at least \gls{IND-CKA2} secure.
+Ontologies are used in various different domains, as such, they might contain sensitive information.
+Both \gls{IND-CKA1} and \gls{IND-CKA2} solutions guarantee that trapdoors do not leak information about keywords (besides leakage from search and access patterns). However, \gls{IND-CKA1} only does so if trapdoors are generated all at once. This is not practical for our protocol. An appropriate solution must be a \gls{SSE} scheme at least \gls{IND-CKA2} secure.
 
 \paragraph{System Requirements}
 The solution should be \emph{transparent} and as \emph{efficient} as possible. Working with encrypted ontologies must not affect a user's workflow in any significant way. Furthermore, it should also be \emph{flexible} and \emph{modular}, so that it supports future improvements or modifications if needed.
