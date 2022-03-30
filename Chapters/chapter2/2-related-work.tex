@@ -457,7 +457,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 
 \subsubsection{\gls{SE} General Index-Based Model}
 
-A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generated an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
+A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generates an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
 
 \begin{equation}
     \begin{array}{l}
@@ -530,7 +530,7 @@ A security analysis of the scheme reveals that it leaks keyword position in the
 document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can inferred).
 
 
-\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one are, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document. 
+\paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one is, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document. 
 
 \emph{Non-Adaptive Scheme} Considering a database with $n$ documents, we define two data structures: an array $A$, where each position of the array contains a node $n_{i,j}$ which belongs to the linked list $L_{i}$ associated to the keyword $w_{i}$; a look-up table $T$ to identify the first node of a linked list associated with a keyword.
 
