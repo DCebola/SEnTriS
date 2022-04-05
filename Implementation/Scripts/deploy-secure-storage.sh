@@ -7,8 +7,10 @@ fi
 
 version=$1
 dockerhub=$2
+cp ./server.xml ../Secure-Storage
+cp -r ./ssl ../Secure-Storage
 
-cd ../Secure-Storage
+cd ../Secure-Storage 
 mvn -Dversion=$version clean compile package
 wait
 echo "-----------------------------------------------------[FINISHED PACKAGING]"
@@ -25,5 +27,7 @@ docker push $dockerhub/secure-storage
 wait
 echo "-------------------------------------------------------[PUSHED NEW IMAGE]"
 
+rm ./server.xml
+rm -r ./ssl
 
 

@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv;
 
 
-import pt.fct.nova.id.srv.Resources.ControlResource;
+import pt.fct.nova.id.srv.presentation.controllers.ControlController;
 
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
@@ -12,7 +12,7 @@ public class MainApplication extends Application {
     private final Set<Class<?>> resources = new HashSet<>();
 
     public MainApplication() {
-        resources.add(ControlResource.class);
+        resources.add(ControlController.class);
     }
 
     @Override

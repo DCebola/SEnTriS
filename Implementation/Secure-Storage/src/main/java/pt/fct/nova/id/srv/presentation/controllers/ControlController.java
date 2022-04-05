@@ -1,20 +1,16 @@
-package pt.fct.nova.id.srv.Resources;
+package pt.fct.nova.id.srv.presentation.controllers;
 
-import javax.ws.rs.GET;
+import pt.fct.nova.id.srv.presentation.api.ControlAPI;
+
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
  * Resource providing endpoints with control information.
  */
 @Path("/ctrl")
-public class ControlResource {
+public class ControlController implements ControlAPI {
 
-    @Path("/version")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
     public Response version() {
         return Response.ok(System.getProperty("deployment.version")).build();
     }

@@ -8,31 +8,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="323dfd9a-8061-4e37-810e-8be32a392aad" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/artifacts/Secure_Storage_war_exploded.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/Secure_Storage_war_exploded.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_annotations_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_core_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_databind_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_base_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_jaxrs_jackson_jaxrs_json_provider_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_module_jackson_module_jaxb_annotations_2_11_4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_java_json_tools_btf_1_3.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_java_json_tools_jackson_coreutils_2_0.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_java_json_tools_json_patch_1_13.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_java_json_tools_msg_simple_1_2.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__jakarta_activation_jakarta_activation_api_1_2_1.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_tomcat_embed_tomcat_embed_core_9_0_60.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_tomcat_tomcat_annotations_api_9_0_60.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_jboss_resteasy_resteasy_jackson2_provider_4_6_0_Final.xml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/config/CustomHttpsProtocol.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/presentation/api/ControlAPI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Scripts/deploy-secure-storage.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../Scripts/deploy-secure-storage.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure-Storage.iml" beforeDir="false" afterPath="$PROJECT_DIR$/Secure-Storage.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WebContent/WEB-INF/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/WebContent/WEB-INF/web.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WebContent/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/WebContent/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/MainApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/MainApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/Resources/ControlResource.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pt/fct/nova/id/srv/presentation/controllers/ControlController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/Secure-Storage-1.0.war" beforeDir="false" afterPath="$PROJECT_DIR$/target/Secure-Storage-1.0.war" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Secure-Storage-1.0/WEB-INF/classes/pt/fct/nova/id/srv/MainApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Secure-Storage-1.0/WEB-INF/classes/pt/fct/nova/id/srv/MainApplication.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Secure-Storage-1.0/WEB-INF/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/Secure-Storage-1.0/WEB-INF/web.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Secure-Storage-1.0/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/Secure-Storage-1.0/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pt/fct/nova/id/srv/MainApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pt/fct/nova/id/srv/MainApplication.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +26,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -75,19 +60,6 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="CLASS" />
-      <properties />
-      <listeners />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Unnamed" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
       <option name="BROWSER_ID" value="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" />
       <option name="UPDATING_POLICY" value="restart-server" />
@@ -180,6 +152,10 @@
       <workItem from="1648824462288" duration="339000" />
       <workItem from="1648824815477" duration="3126000" />
       <workItem from="1649064685358" duration="6440000" />
+      <workItem from="1649081936852" duration="195000" />
+      <workItem from="1649151639084" duration="1030000" />
+      <workItem from="1649157236804" duration="55000" />
+      <workItem from="1649157305322" duration="718000" />
     </task>
     <servers />
   </component>
