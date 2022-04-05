@@ -12,6 +12,6 @@ import javax.ws.rs.core.Response;
 public class ControlController implements ControlAPI {
 
     public Response version() {
-        return Response.ok(System.getProperty("deployment.version")).build();
+        return Response.ok(System.getProperty("system.version")).build();
     }
 }

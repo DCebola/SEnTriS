@@ -1,25 +1,23 @@
 #!/bin/bash
 
-if [ $# -ne 2  ]; then
-    echo "Usage: push-secure-storage <version> <dockerhub>"
+if [ $# -ne 1  ]; then
+    echo "Usage: build&push-secure-storage <dockerhub>"
     exit 1
 fi
 
-version=$1
-dockerhub=$2
+dockerhub=$1
 cp ./server.xml ../Secure-Storage
 cp -r ./ssl ../Secure-Storage
 
 cd ../Secure-Storage 
-mvn -Dversion=$version clean compile package
+mvn clean compile package
 wait
 echo "-----------------------------------------------------[FINISHED PACKAGING]"
-
-docker rmi $dockerhub/secure-storage
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=${dockerhub}/secure-storage")) &> /dev/null
 wait
-echo "------------------------------------------------------[DELETED OLD IMAGE]"
-
-docker build --build-arg VERSION=${version} -t $dockerhub/secure-storage .
+docker rmi $(docker image ls $dockerhub/secure-storage)&> /dev/null
+wait
+docker build -t $dockerhub/secure-storage .
 wait
 echo "--------------------------------------------------------[BUILT NEW IMAGE]"
 

@@ -7,7 +7,7 @@
         <packaging>war</packaging>
       </options>
     </properties>
-    <root id="archive" name="${project.artifactId}-${project.version}.war">
+    <root id="archive" name="Secure-Storage.war">
       <element id="artifact" artifact-name="Secure-Storage:war exploded" />
     </root>
   </artifact>

@@ -1,11 +1,3 @@
-<Connector
-           protocol="org.apache.coyote.http11.Http11AprProtocol"
-           port="8443" maxThreads="200"
-           scheme="https" secure="true" SSLEnabled="true"
-           SSLCertificateFile="/usr/local/ssl/server.crt"
-           SSLCertificateKeyFile="/usr/local/ssl/server.pem"
-           SSLVerifyClient="optional" SSLProtocol="TLSv1.3"/>
-
 <?xml version="1.0" encoding="UTF-8"?>
 <Server port="8005" shutdown="SHUTDOWN">
   <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
@@ -18,20 +10,14 @@
 
     <Executor name="tomcatThreadPool" namePrefix="catalina-exec-" maxThreads="200" minSpareThreads="10"/>
     
-    <Connector executor="tomcatThreadPool"
-               port="8080" protocol="HTTP/1.1"
-               connectionTimeout="20000"
-               redirectPort="8443" />
-
-    <Connector port="8443" protocol="org.apache.coyote.http11.Http11AprProtocol"
-               maxThreads="200" scheme="https" secure="true" SSLEnabled="true" 
-               SSLVerifyClient="optional" SSLProtocol="TLSv1.3"
-               sslImplementationName="org.apache.tomcat.util.net.openssl.OpenSSLImplementation"> 
+    <Connector executor="tomcatThreadPool" 
+               port="8443" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
+               maxThreads="200" scheme="https" secure="true" SSLEnabled="true" > 
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
-        <SSLHostConfig>
+        <SSLHostConfig SSLVerifyClient="optional" SSLProtocol="TLSv1.3">
             <Certificate certificateKeyFile="ssl/key.pem"
                          certificateFile="ssl/cert.pem" 
-                         certificateKeyPassword="changeit" 
+                         certificateKeyPassword="password" 
                          type="RSA" />
         </SSLHostConfig>
     </Connector>

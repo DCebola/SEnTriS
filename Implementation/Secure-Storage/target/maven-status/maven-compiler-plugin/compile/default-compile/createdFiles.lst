@@ -1,2 +1,3 @@
+pt/fct/nova/id/srv/presentation/controllers/ControlController.class
 pt/fct/nova/id/srv/MainApplication.class
-pt/fct/nova/id/srv/Resources/ControlResource.class
+pt/fct/nova/id/srv/presentation/api/ControlAPI.class
