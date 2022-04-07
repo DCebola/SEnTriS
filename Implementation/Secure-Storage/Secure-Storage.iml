@@ -52,8 +52,65 @@
     <orderEntry type="library" name="Maven: io.smallrye.config:smallrye-config-common:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_2.1_spec:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.logging:jboss-logging:3.4.1.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-repository-sail:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-repository-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-transaction:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-util:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-sail-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-http-client:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-http-protocol:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-rio-ntriples:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryresultio-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.eclipse.rdf4j:rdf4j-queryresultio-binary:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryresultio-sparqlxml:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.5.13" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.13" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.15" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.slf4j:jcl-over-slf4j:1.7.32" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryparser-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryalgebra-model:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-query:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.11.4" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.11.4" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.11.4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-text:1.9" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.11" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-rio-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-xml:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: jakarta.xml.bind:jakarta.xml.bind-api:2.3.3" level="project" />
+    <orderEntry type="library" name="Maven: jakarta.activation:jakarta.activation-api:1.2.2" level="project" />
+    <orderEntry type="library" name="Maven: com.github.jsonld-java:jsonld-java:0.13.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient-osgi:4.5.13" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.5.13" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient-cache:4.5.13" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:fluent-hc:4.5.13" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore-osgi:4.4.14" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore-nio:4.4.14" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-model:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-model-api:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-annotation:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-model-vocabulary:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-exception:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-text:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-io:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-common-iterator:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryalgebra-evaluation:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-repository-sparql:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-queryparser-sparql:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-rio-trig:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.mapdb:mapdb:1.0.8" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-rio-turtle:4.0.0-M2" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.eclipse.rdf4j:rdf4j-rio-datatypes:4.0.0-M2" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.eclipse.rdf4j:rdf4j-rio-languages:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: commons-io:commons-io:2.11.0" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-sail-nativerdf:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-sail-base:4.0.0-M2" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.32" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:guava:30.1.1-jre" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:failureaccess:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.rdf4j:rdf4j-sail-memory:4.0.0-M2" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-simple:1.7.36" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.36" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.17.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.17.2" level="project" />
   </component>

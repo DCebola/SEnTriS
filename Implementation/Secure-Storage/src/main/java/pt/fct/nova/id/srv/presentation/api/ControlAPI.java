@@ -8,8 +8,8 @@ import javax.ws.rs.core.Response;
 
 public interface ControlAPI {
 
-    @Path("/version")
     @GET
+    @Path("/version")
     @Produces(MediaType.TEXT_PLAIN)
     Response version();
 }

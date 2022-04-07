@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv;
 
 
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
+import pt.fct.nova.id.srv.presentation.controllers.StorageController;
 
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
@@ -13,6 +14,7 @@ public class MainApplication extends Application {
 
     public MainApplication() {
         resources.add(ControlController.class);
+        resources.add(StorageController.class);
     }
 
     @Override
