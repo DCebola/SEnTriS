@@ -26,10 +26,11 @@
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-servlet-initializer</artifactId>
-            <version>4.6.0.Final</version>
+            <version>6.0.0.Final</version>
         </dependency>
 
-        <!--RDF dependencies -->
+        <!--RDF4J Memory Store
+
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-repository-sail</artifactId>
@@ -44,6 +45,25 @@
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-sail-memory</artifactId>
             <version>4.0.0-M2</version>
+        </dependency>
+
+        -->
+
+        <!-- JENA TDB2
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-tdb2</artifactId>
+            <version>4.4.0</version>
+        </dependency>
+
+         -->
+
+
+        <!-- JENA ARQ -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+            <version>4.4.0</version>
         </dependency>
 
 
@@ -76,8 +96,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
         </plugins>
