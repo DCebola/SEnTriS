@@ -1,4 +1,4 @@
-FROM tomcat:9.0.62-jdk17-openjdk
+FROM tomcat:jdk17-openjdk
 WORKDIR /usr/local/tomcat
 COPY server.xml conf
 COPY ssl ssl
