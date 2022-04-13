@@ -1,6 +1,7 @@
 pt/fct/nova/id/srv/presentation/api/ControlAPI.class
-pt/fct/nova/id/srv/presentation/controllers/ControlController.class
 pt/fct/nova/id/srv/presentation/controllers/StorageController.class
 pt/fct/nova/id/srv/application/SecureStore.class
 pt/fct/nova/id/srv/presentation/api/StorageAPI.class
+pt/fct/nova/id/srv/application/storage/MongoDBLayer.class
+pt/fct/nova/id/srv/presentation/controllers/ControlController.class
 pt/fct/nova/id/srv/MainApplication.class

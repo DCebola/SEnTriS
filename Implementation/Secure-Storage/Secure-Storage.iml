@@ -42,6 +42,8 @@
     <orderEntry type="library" name="Maven: com.ibm.async:asyncutil:0.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_3.0_spec:1.0.0.Final" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.logging:jboss-logging:3.4.2.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.mongodb:mongodb-driver-core:4.5.1" level="project" />
+    <orderEntry type="library" name="Maven: org.mongodb:bson:4.5.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-arq:4.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-core:4.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-base:4.4.0" level="project" />

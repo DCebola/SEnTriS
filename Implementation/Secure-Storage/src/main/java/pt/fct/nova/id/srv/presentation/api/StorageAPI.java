@@ -12,4 +12,9 @@ public interface StorageAPI {
     @Produces(MediaType.APPLICATION_JSON)
     Response upload();
 
+    @GET
+    @Path("query/{protocol}")
+    @Produces(MediaType.APPLICATION_JSON)
+    Response query(@PathParam("protocol") String protocol, @QueryParam("body") String body);
+
 }
