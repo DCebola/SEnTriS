@@ -5,10 +5,8 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-#docker network rm $(docker network ls -q -f 'name=secure-storage-backend-network')
-#wait
-#docker network create -d bridge secure-storage-backend-network
-#wait
+docker network rm $(docker network ls -q -f 'name=secure-storage-backend-network')
+wait
 export var DOCKER_REGISTRY=$1
 wait
 docker-compose up

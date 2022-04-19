@@ -10,19 +10,14 @@ services:
         - backend
       env_file:
         - Secrets/db-secrets.env
-      environment:
-        - MONGO_INITDB_ROOT_USERNAME
-        - MONGO_INITDB_ROOT_PASSWORD
-        - MONGO_INITDB_DATABASE
-        - DB_USER
-        - DB_PWD
-        - DB_NAME
 
     api:
       depends_on:
         - db
       image: ${DOCKER_REGISTRY}/secure-storage
       container_name: secure-storage-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
       volumes:
         - ./SSL:/usr/local/tomcat/ssl
         - ./API/server.xml:/usr/local/tomcat/conf/server.xml
@@ -33,10 +28,7 @@ services:
       env_file:
         - API/system-properties.env
         - Secrets/api-secrets.env
-      environment:
-        - DB_NAME
-        - DB_CONNECTION
-        - SERVER_CERT_PWD
+
 volumes:
     db_data:
 

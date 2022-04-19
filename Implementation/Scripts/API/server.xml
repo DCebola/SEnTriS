@@ -17,7 +17,7 @@
         <SSLHostConfig SSLVerifyClient="optional" SSLProtocol="TLSv1.3">
             <Certificate certificateKeyFile="ssl/key.pem"
                          certificateFile="ssl/cert.pem" 
-                         certificateKeyPassword="${SERVER_CERT_PWD}" 
+                         certificateKeyPassword="${SERVER_CERT_PWD}"
                          type="RSA" />
         </SSLHostConfig>
     </Connector>
