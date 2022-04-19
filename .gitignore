@@ -278,3 +278,5 @@ Implementation/Scripts/SSL/
 Implementation/Scripts/Secrets/
 
 Implementation/Scripts/db_data/
+
+Implementation/Secure-Storage/target/
