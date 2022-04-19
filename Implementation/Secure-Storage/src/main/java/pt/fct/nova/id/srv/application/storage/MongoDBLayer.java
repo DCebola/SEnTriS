@@ -33,7 +33,7 @@ public class MongoDBLayer {
         if (mongoClient == null) {
             MongoClientSettings settings =
                     MongoClientSettings.builder()
-                            .applyConnectionString(new ConnectionString(System.getenv("MONGODB")))
+                            .applyConnectionString(new ConnectionString(System.getenv("DB_CONNECTION")))
                             .addCommandListener(commandListener)
                             .build();
             mongoClient = MongoClients.create(settings);

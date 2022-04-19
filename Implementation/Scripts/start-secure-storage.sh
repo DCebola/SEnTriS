@@ -1,10 +1,16 @@
 #!/bin/bash
-if [ $# -ne 2  ]; then
-    echo "Usage: start-secure-storage <version> <dockerhub>" 
+
+if [ $# -ne 1 ]; then
+    echo "Usage: start-secure-storage <docker-registry>"
     exit 1
 fi
-version=$1
-dockerhub=$2
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=${dockerhub}/secure-storage")) &> /dev/null
+
+#docker network rm $(docker network ls -q -f 'name=secure-storage-backend-network')
+#wait
+#docker network create -d bridge secure-storage-backend-network
+#wait
+export var DOCKER_REGISTRY=$1
 wait
-docker run -e JAVA_OPTS="-Dsystem.version=${version}" --publish 8443:8443 -d dcebola/secure-storage
+docker-compose up
+wait
+unset DOCKER_REGISTRY

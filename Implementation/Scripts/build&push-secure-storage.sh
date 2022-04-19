@@ -1,31 +1,28 @@
 #!/bin/bash
 
 if [ $# -ne 1  ]; then
-    echo "Usage: build&push-secure-storage <dockerhub>"
+    echo "Usage: build&push-secure-storage <docker-registry>"
     exit 1
 fi
 
-dockerhub=$1
-cp ./server.xml ../Secure-Storage
-cp -r ./ssl ../Secure-Storage
-
 cd ../Secure-Storage 
 mvn clean compile package
+cp ./target/Secure-Storage.war ../Scripts/API/Secure-Storage.war
 wait
-echo "-----------------------------------------------------[FINISHED PACKAGING]"
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=${dockerhub}/secure-storage")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/secure-storage")) &> /dev/null
 wait
-docker rmi $(docker image ls $dockerhub/secure-storage)&> /dev/null
+docker rmi $(docker image ls $1/secure-storage) &> /dev/null
 wait
-docker build -t $dockerhub/secure-storage .
-wait
-echo "--------------------------------------------------------[BUILT NEW IMAGE]"
 
-docker push $dockerhub/secure-storage
+cd ../Scripts/API
+docker build -t $1/secure-storage .
 wait
-echo "-------------------------------------------------------[PUSHED NEW IMAGE]"
+docker push $1/secure-storage
+wait
 
-rm ./server.xml
-rm -r ./ssl
-
-
+cd ../DB
+docker build -t $1/secure-storage-db .
+wait
+docker push $1/secure-storage-db
+wait
+cd ..
