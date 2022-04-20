@@ -37,36 +37,6 @@
         </dependency>
 
 
-        <!--RDF4J Memory Store
-
-        <dependency>
-            <groupId>org.eclipse.rdf4j</groupId>
-            <artifactId>rdf4j-repository-sail</artifactId>
-            <version>4.0.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.rdf4j</groupId>
-            <artifactId>rdf4j-sail-nativerdf</artifactId>
-            <version>4.0.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.rdf4j</groupId>
-            <artifactId>rdf4j-sail-memory</artifactId>
-            <version>4.0.0-M2</version>
-        </dependency>
-
-        -->
-
-        <!-- JENA TDB2
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-tdb2</artifactId>
-            <version>4.4.0</version>
-        </dependency>
-
-         -->
-
-
         <!-- JENA ARQ -->
         <dependency>
             <groupId>org.apache.jena</groupId>
