@@ -1,0 +1,68 @@
+s <-> p-o,
+p <-> s-o,
+o <-> s-p,
+
+
+PO -> [OBX(S1) | ENC(S1) | NEXT] , [OBX(S2) | ENC(S2)], [OBX(S3) | ENC(S3) ... ]
+
+S1 -> [OBX(PO1) | ENC(PO1) | ENC(P) | ENC(O)] , [OBX(PO2) | ENC(PO2) ... ]
+
+-----------------------------------------------------------------------------------
+Data Structures:
+
+	URIS -> [(id, URI) ... ]
+	REV_URIS -> [(URI, [(id, type) ... ]) ... ]
+	S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
+	P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
+	O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 
+	PO  -> [((p_id,o_id), [s_id ... ]) ... ] 
+	SO  -> [((s_id,o_id), [p_id ... ]) ... ] 
+	SP  -> [((s_id,p_id), [o_id ... ]) ... ] 
+	
+-----------------------------------------------------------------------------------	
+Operations:
+
+GET(a, b, c) -> 1) FILTER(S[a], (b,c))
+                2) FILTER(P[b], (a,c))
+                3) FILTER(O[c], (a,b))
+
+GET(?, a, b) -> PO[(a,b)]
+GET(a, ?, b) -> SO[(a,b)]
+GET(a, b, ?) -> SP[(a,b)]
+
+JOIN((?, a, b),(c, d, f)) -> 1) GET(c,d,f) AND FILTER(PO[(a,b)], c)
+			      2) GET(c,d,f) AND FILTER(S[c], (a,b))
+
+
+JOIN((?, a, b),(?, c, d)) -> 1) FILTER(PO[(a,b)], PO[(c,d)])
+			      
+JOIN((?, a, b),(c, ?, d)) -> 1) FILTER(PO[(a,b)], c)
+                             2) FILTER(SP[(c,d)], a)		      
+
+
+JOIN((?, a, b),(?, ?, c)) -> 1) FILTER(PO[(a,b)], O[c])                           
+			      
+JOIN((?, a, b),(c, ?, ?)) -> 1) FILTER(PO[(a,b)], c)
+
+                             						     
+JOIN((?, ?, a),(?, ?, b)) -> 1) FILTER(O[a], O[b])
+		      
+JOIN((?, ?, a),(?, b, ?)) -> 1) FILTER(FILTER(O[a], b), FILTER(P[b], a)) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -7,10 +7,11 @@ import jakarta.ws.rs.core.Response;
 public interface StorageAPI {
 
     @POST
-    @Path("upload")
+    @Path("upload/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     Response upload();
+
 
     @GET
     @Path("query/{protocol}")
