@@ -50,19 +50,3 @@ JOIN((?, ?, a),(?, ?, b)) -> 1) FILTER(O[a], O[b])
 JOIN((?, ?, a),(?, b, ?)) -> 1) FILTER(FILTER(O[a], b), FILTER(P[b], a)) 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
