@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.Response;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.riot.RDFParser;
 import pt.fct.nova.id.srv.presentation.api.StorageAPI;
 
 import java.io.ByteArrayInputStream;
@@ -19,8 +18,6 @@ public class StorageController implements StorageAPI {
         Model model = ModelFactory.createDefaultModel();
         model.read(new ByteArrayInputStream(new byte[10]), "lang");
         for (Triple t : model.getGraph().stream().toList()) {
-
-
         }
         //TODO: Store Indexes
         //TODO: Store Triples

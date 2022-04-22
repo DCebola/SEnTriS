@@ -2,14 +2,22 @@ version: "3.9"
 
 services:
     db:
-      image: ${DOCKER_REGISTRY}/secure-storage-db
+      image: redis:latest
       container_name: secure-storage-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      ports:
+        - 6379:6379
       volumes:
-        - ./db_data:/data/db
+        - ./db_data:/data
+        - ./SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ./SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ./SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ./SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       networks:
         - backend
-      env_file:
-        - Secrets/db-secrets.env
+      environment:
+        REDIS_TLS_ENABLED: "yes"
 
     api:
       depends_on:
@@ -19,7 +27,9 @@ services:
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
       volumes:
-        - ./SSL:/usr/local/tomcat/ssl
+        - ./SSL/server-truststore.ks:/usr/local/tomcat/ssl/server-truststore.ks
+        - ./SSL/server-cert.pem:/usr/local/tomcat/ssl/server-cert.pem
+        - ./SSL/server-key.pem:/usr/local/tomcat/ssl/server-key.pem
         - ./API/server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8443:8443"

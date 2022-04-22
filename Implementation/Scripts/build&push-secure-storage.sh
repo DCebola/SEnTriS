@@ -19,10 +19,3 @@ docker build -t $1/secure-storage .
 wait
 docker push $1/secure-storage
 wait
-
-cd ../DB
-docker build -t $1/secure-storage-db .
-wait
-docker push $1/secure-storage-db
-wait
-cd ..

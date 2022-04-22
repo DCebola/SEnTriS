@@ -3,11 +3,40 @@ if [ $# -ne 1  ]; then
     echo "Usage: generate-x509-certificate <password>"
     exit 1
 fi
-
-if [ -f "./SSL/cert.pem" ]; then
-    sed -i '$ d' ./Secrets/api-secrets.env
-fi
 password=$1
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -passout pass:$password -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola"
+
+rm SSL/*
+
+generate_cert() {
+    local name=$1
+    local opts="$2"
+
+    local keyfile=./SSL/${name}-key.pem
+    local certfile=./SSL/${name}-cert.pem
+    [ -f $keyfile ] || touch $keyfile && openssl genrsa -out $keyfile 4096
+    openssl req \
+        -new -sha256 \
+        -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" \
+        -key $keyfile | \
+        openssl x509 \
+            -req -sha256 \
+            -CA ./SSL/ca-cert.pem \
+            -CAkey ./SSL/ca-key.pem \
+            -CAserial ./SSL/ca-serial.txt \
+            -CAcreateserial \
+            -days 365 \
+            $opts \
+            -out $certfile
+}
+
 printf "SERVER_CERT_PWD=$password" >> ./Secrets/api-secrets.env
-mv *.pem ./SSL
+
+openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -passout pass:$password -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
+generate_cert server '-ext .SSL/openssl.conf -extensions server_cert'
+generate_cert client '-ext ./SSL/openssl.conf -extensions client_cert'
+generate_cert redis 
+
+[ -f ./SSL/redis.dh ] || openssl dhparam -out ./SSL/redis.dh 2048
+
+keytool -import -file ./SSL/redis-cert.pem -alias redis -keystore ./SSL/server-truststore.ks
+keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/server-truststore.ks
