@@ -21,7 +21,7 @@ public class StorageController implements StorageAPI {
         Model model = ModelFactory.createDefaultModel();
         if (SyntaxChecker.check(syntax)) {
             try {
-                model.read(contents, syntax);
+                model.read(contents, syntax).getGraph();
                 //TODO: Store Indexes
                 //TODO: Store Triples
                 return Response.ok("NOT IMPLEMENTED").status(Response.Status.NOT_IMPLEMENTED).build();

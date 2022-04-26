@@ -12,7 +12,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_17">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_X">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -34,11 +34,11 @@
     <orderEntry type="library" name="Maven: com.ibm.async:asyncutil:0.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_3.0_spec:1.0.0.Final" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.logging:jboss-logging:3.4.2.Final" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.9.0" level="project" />
     <orderEntry type="library" name="Maven: redis.clients:jedis:4.2.2" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.32" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-pool2:2.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.json:json:20211205" level="project" />
-    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.9" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-arq:4.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-core:4.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.jena:jena-base:4.4.0" level="project" />
