@@ -12,8 +12,7 @@
     
     <Connector executor="tomcatThreadPool" 
                port="8443" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
-               maxThreads="200" scheme="https" secure="true" SSLEnabled="true"
-               truststoreFile="/ssl/server-truststore.ks" truststorePass="${SERVER_TRUSTSTORE_PWD}" > 
+               maxThreads="200" scheme="https" secure="true" SSLEnabled="true"> 
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig protocols="TLSv1.3">
             <Certificate certificateKeyFile="ssl/server-key.pem"

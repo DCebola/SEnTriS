@@ -1,9 +1,8 @@
 #!/bin/bash
-if [ $# -ne 1  ]; then
-    echo "Usage: generate-x509-certificate <password>"
+if [ $# -ne 0  ]; then
+    echo "Usage: generate-x509-certificate"
     exit 1
 fi
-password=$1
 
 rm SSL/*
 
@@ -29,9 +28,7 @@ generate_cert() {
             -out $certfile
 }
 
-printf "SERVER_CERT_PWD=$password" >> ./Secrets/api-secrets.env
-
-openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -passout pass:$password -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
+openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
 generate_cert server '-ext .SSL/openssl.conf -extensions server_cert'
 generate_cert client '-ext ./SSL/openssl.conf -extensions client_cert'
 generate_cert redis 
