@@ -9,6 +9,6 @@ docker network rm $(docker network ls -q -f 'name=secure-storage-backend-network
 wait
 export var DOCKER_REGISTRY=$1
 wait
-docker-compose up --force-recreate --remove-orphans
+docker-compose up --force-recreate --remove-orphans --detach
 wait
 unset DOCKER_REGISTRY
