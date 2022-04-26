@@ -6,6 +6,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import pt.fct.nova.id.srv.presentation.api.StorageAPI;
+import pt.fct.nova.id.srv.presentation.dto.UploadRequestBody;
 
 import java.io.ByteArrayInputStream;
 
@@ -14,10 +15,13 @@ import java.io.ByteArrayInputStream;
 public class StorageController implements StorageAPI {
 
     @Override
-    public Response upload() {
+    public Response upload(String id, UploadRequestBody body) {
         Model model = ModelFactory.createDefaultModel();
-        model.read(new ByteArrayInputStream(new byte[10]), "lang");
+
+        //TODO: Verify body syntax
+        model.read(new ByteArrayInputStream(body.getContents()), body.getSyntax());
         for (Triple t : model.getGraph().stream().toList()) {
+            System.out.println("[" + t.getSubject() + "] -> " + "[" + t.getPredicate() + "] -> " + "[" + t.getObject() + "]");
         }
         //TODO: Store Indexes
         //TODO: Store Triples
@@ -25,7 +29,7 @@ public class StorageController implements StorageAPI {
     }
 
     @Override
-    public Response query(String protocol, String body) {
+    public Response query(String protocol) {
         //TODO: Check protocol type (e.g SPARQL, ...)
         //TODO: Parse query body
         //TODO: Collect results to send into correct type (boolean, graph or binding tables)

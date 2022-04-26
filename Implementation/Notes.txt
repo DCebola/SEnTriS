@@ -9,15 +9,15 @@ S1 -> [OBX(PO1) | ENC(PO1) | ENC(P) | ENC(O)] , [OBX(PO2) | ENC(PO2) ... ]
 
 -----------------------------------------------------------------------------------
 Data Structures:
-
-	URIS -> [(id, URI) ... ]
-	REV_URIS -> [(URI, [(id, type) ... ]) ... ]
-	S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
-	P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
-	O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 
-	PO  -> [((p_id,o_id), [s_id ... ]) ... ] 
-	SO  -> [((s_id,o_id), [p_id ... ]) ... ] 
-	SP  -> [((s_id,p_id), [o_id ... ]) ... ] 
+	
+	STORE_ID:URIS -> [(id, URI) ... ]
+	STORE_ID:REV_URIS -> [(URI, [(id, type) ... ]) ... ]
+	STORE_ID:S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
+	STORE_ID:P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
+	STORE_ID:O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 
+	STORE_ID:PO  -> [((p_id,o_id), [s_id ... ]) ... ] 
+	STORE_ID:SO  -> [((s_id,o_id), [p_id ... ]) ... ] 
+	STORE_ID:SP  -> [((s_id,p_id), [o_id ... ]) ... ] 
 	
 -----------------------------------------------------------------------------------	
 Operations:
