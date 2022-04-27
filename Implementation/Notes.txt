@@ -2,7 +2,6 @@ s <-> p-o,
 p <-> s-o,
 o <-> s-p,
 
-
 PO -> [OBX(S1) | ENC(S1) | NEXT] , [OBX(S2) | ENC(S2)], [OBX(S3) | ENC(S3) ... ]
 
 S1 -> [OBX(PO1) | ENC(PO1) | ENC(P) | ENC(O)] , [OBX(PO2) | ENC(PO2) ... ]
@@ -10,8 +9,9 @@ S1 -> [OBX(PO1) | ENC(PO1) | ENC(P) | ENC(O)] , [OBX(PO2) | ENC(PO2) ... ]
 -----------------------------------------------------------------------------------
 Data Structures:
 	
-	STORE_ID:URIS -> [(id, URI) ... ]
-	STORE_ID:REV_URIS -> [(URI, [(id, type) ... ]) ... ]
+	STORE_ID:INFO -> [(S_COUNT, long), (P_COUNT, long), (O_COUNT, long), ...]
+	STORE_ID:NODE -> [(id, NODE) ... ]
+	STORE_ID:REV_NODES -> [(NODE, [id ... ]) ... ]
 	STORE_ID:S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
 	STORE_ID:P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
 	STORE_ID:O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 

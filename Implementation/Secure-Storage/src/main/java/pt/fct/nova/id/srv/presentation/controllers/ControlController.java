@@ -1,6 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import pt.fct.nova.id.srv.application.storage.Redis;
+import pt.fct.nova.id.srv.application.storage_clients.redis.Redis;
 import pt.fct.nova.id.srv.presentation.api.ControlAPI;
 
 import jakarta.ws.rs.Path;

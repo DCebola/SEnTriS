@@ -1,24 +1,21 @@
-package pt.fct.nova.id.srv.application.storage;
+package pt.fct.nova.id.srv.application.triplestores;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.Index;
-import static pt.fct.nova.id.srv.application.storage.RedisClient.*;
+import pt.fct.nova.id.srv.application.indexes.IndexType;
 
 public class Triplestore {
 
     public void upload(Graph graph) {
         //TODO: Use bytes instead of ints for ids
-        int count = 0;
         for (Triple t : graph.stream().toList()) {
-            for (Index i : Index.values())
-                generateIndex(i, count, t.getSubject(), t.getPredicate(), t.getObject());
-            count++;
+            for (IndexType i : IndexType.values())
+                generateIndex(i, t.getSubject(), t.getPredicate(), t.getObject());
         }
     }
 
-    private void generateIndex(Index type, int id, Node subject, Node predicate, Node object) {
+    private void generateIndex(IndexType type, Node subject, Node predicate, Node object) {
         switch (type) {
             case S -> {
 
