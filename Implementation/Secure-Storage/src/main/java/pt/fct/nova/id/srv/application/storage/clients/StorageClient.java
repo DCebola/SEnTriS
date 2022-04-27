@@ -1,8 +1,10 @@
-package pt.fct.nova.id.srv.application.storage_clients;
+package pt.fct.nova.id.srv.application.storage.clients;
 
 import org.apache.jena.graph.Node;
-import pt.fct.nova.id.srv.application.indexes.Index;
+import org.apache.jena.graph.Triple;
+import pt.fct.nova.id.srv.application.storage.indexes.Index;
 
+import java.util.Iterator;
 import java.util.Set;
 
 public interface StorageClient {
@@ -10,6 +12,7 @@ public interface StorageClient {
     Set<Index> findNode(String storeID, String uri);
 
     Set<Node> getNodes(String storeID, Set<Index> idxs);
+    Iterator<Triple> getTriples(String storeID);
 
     Node getNode(String storeID, Index idx);
 
@@ -54,4 +57,5 @@ public interface StorageClient {
     boolean putSO(String storeID, Index idx);
 
     boolean putPO(String storeID, Index idx);
+
 }

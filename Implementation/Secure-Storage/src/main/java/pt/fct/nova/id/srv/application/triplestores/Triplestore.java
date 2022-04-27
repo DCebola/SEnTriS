@@ -1,19 +1,35 @@
 package pt.fct.nova.id.srv.application.triplestores;
 
-import org.apache.jena.graph.Graph;
+import com.google.gson.Gson;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import pt.fct.nova.id.srv.application.storage.QueryEngine;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.clients.StorageClient;
+import pt.fct.nova.id.srv.application.storage.clients.redis.RedisClient;
 
-public class Triplestore {
+import java.util.Iterator;
+import java.util.Set;
 
-    private static final String BLANK_URI = "_";
+public class Triplestore implements StorageEngine, QueryEngine {
 
-    public void upload(Graph graph) {
-        for (Triple t : graph.stream().toList())
-            uploadTriple(t.getSubject(), t.getPredicate(), t.getObject());
+    private final Gson gson = new Gson();
+    private final StorageClient db = new RedisClient();
+
+    @Override
+    public void createDataset(String storeID, Iterator<Triple> triples) {
+        while (triples.hasNext()) {
+            Triple t = triples.next();
+            saveTriple(t.getSubject(), t.getPredicate(), t.getObject());
+        }
     }
 
-    private void uploadTriple(Node subject, Node predicate, Node object) {
+    @Override
+    public Iterator<Triple> getDataset(String storeID) {
+        return db.getTriples(storeID);
+    }
+
+    private void saveTriple(Node subject, Node predicate, Node object) {
         //TODO: Upload Node + URI
         //TODO: Upload Indexes
     }

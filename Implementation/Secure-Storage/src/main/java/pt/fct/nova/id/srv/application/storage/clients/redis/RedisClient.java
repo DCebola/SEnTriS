@@ -1,15 +1,17 @@
-package pt.fct.nova.id.srv.application.storage_clients.redis;
+package pt.fct.nova.id.srv.application.storage.clients.redis;
 
 import com.google.gson.Gson;
 import org.apache.jena.graph.Node;
-import pt.fct.nova.id.srv.application.indexes.Index;
-import pt.fct.nova.id.srv.application.storage_clients.StorageClient;
+import org.apache.jena.graph.Triple;
+import pt.fct.nova.id.srv.application.storage.indexes.Index;
+import pt.fct.nova.id.srv.application.storage.clients.StorageClient;
 
+import java.util.Iterator;
 import java.util.Set;
 
 public class RedisClient implements StorageClient {
 
-    private static final Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     /*
     public static void put(String key, String value) {
@@ -37,6 +39,11 @@ public class RedisClient implements StorageClient {
 
     @Override
     public Set<Node> getNodes(String storeID, Set<Index> idxs) {
+        return null;
+    }
+
+    @Override
+    public Iterator<Triple> getTriples(String storeID) {
         return null;
     }
 

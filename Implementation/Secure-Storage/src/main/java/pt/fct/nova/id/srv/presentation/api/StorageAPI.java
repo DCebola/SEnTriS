@@ -9,18 +9,22 @@ import java.io.InputStream;
 public interface StorageAPI {
 
     @POST
-    @Path("upload/{id}")
+    @Path("upload/{storeID}")
     @Consumes(MediaType.MEDIA_TYPE_WILDCARD)
     @Produces(MediaType.APPLICATION_JSON)
     Response upload(
-            @PathParam("id") String id,
+            @PathParam("storeID") String storeID,
             @DefaultValue("TTL") @QueryParam("syntax") String syntax,
             InputStream contents);
 
+    @GET
+    @Path("/download/{storeID}")
+    @Produces(MediaType.APPLICATION_JSON)
+    Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
 
     @GET
-    @Path("/{id}/query/")
+    @Path("/{storeID}/query/")
     @Produces(MediaType.APPLICATION_JSON)
-    Response query(@PathParam("id") String id);
+    Response query(@PathParam("storeID") String storeID);
 
 }

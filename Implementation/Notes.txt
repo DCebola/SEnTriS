@@ -10,7 +10,7 @@ S1 -> [OBX(PO1) | ENC(PO1) | ENC(P) | ENC(O)] , [OBX(PO2) | ENC(PO2) ... ]
 Data Structures:
 	
 	STORE_ID:INFO -> [(NODE_COUNT, long), (S_COUNT, long), (P_COUNT, long), (O_COUNT, long)]
-	STORE_ID:NODE -> [(id, NODE) ... ]
+	STORE_ID:NODES -> [(id, NODE) ... ]
 	STORE_ID:REV_NODES -> [(URI, [id ... ]) ... ]
 	STORE_ID:S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
 	STORE_ID:P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
