@@ -7,7 +7,9 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
+import pt.fct.nova.id.srv.application.storage.clients.redis.RedisClient;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
+import pt.fct.nova.id.srv.application.triplestores.TriplestoreFactory;
 import pt.fct.nova.id.srv.presentation.api.StorageAPI;
 
 import java.io.ByteArrayOutputStream;
@@ -20,7 +22,7 @@ public class StorageController implements StorageAPI {
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
     private static final String WRITING_ERROR_MSG = "Error while downloading the dataset.";
 
-    private final Triplestore triplestore = new Triplestore();
+    private final Triplestore triplestore = TriplestoreFactory.createSimpleTriplestore(new RedisClient());
 
     @Override
     public Response upload(String storeID, String syntax, InputStream contents) {
