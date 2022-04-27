@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.storage.indexes;
+package pt.fct.nova.id.srv.application.indexes;
 
 import jakarta.validation.constraints.NotNull;
 

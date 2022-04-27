@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.storage.indexes;
+package pt.fct.nova.id.srv.application.indexes;
 
 public class InvalidCompoundIndexException extends Exception {
 }

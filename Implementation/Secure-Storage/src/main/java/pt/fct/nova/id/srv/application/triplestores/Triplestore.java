@@ -1,7 +1,13 @@
 package pt.fct.nova.id.srv.application.triplestores;
 
-import pt.fct.nova.id.srv.application.storage.QueryEngine;
-import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import org.apache.jena.graph.Triple;
 
-public interface Triplestore extends QueryEngine, StorageEngine {
+import java.util.Iterator;
+
+public interface Triplestore {
+    static final String BLANK_URI = "_";
+
+    void createDataset(String storeID, Iterator<Triple> triples);
+
+    Iterator<Triple> getDataset(String storeID);
 }

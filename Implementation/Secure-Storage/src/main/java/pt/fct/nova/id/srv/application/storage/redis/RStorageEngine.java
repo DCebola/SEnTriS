@@ -1,15 +1,15 @@
-package pt.fct.nova.id.srv.application.storage.clients.redis;
+package pt.fct.nova.id.srv.application.storage.redis;
 
 import com.google.gson.Gson;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.storage.indexes.Index;
-import pt.fct.nova.id.srv.application.storage.clients.StorageClient;
+import pt.fct.nova.id.srv.application.indexes.Index;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
 import java.util.Set;
 
-public class RedisClient implements StorageClient {
+public class RStorageEngine implements StorageEngine {
 
     private final Gson gson = new Gson();
 
