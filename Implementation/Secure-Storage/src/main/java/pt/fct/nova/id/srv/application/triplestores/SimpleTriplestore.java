@@ -31,7 +31,7 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     private void saveTriple(Node subject, Node predicate, Node object) {
-        //TODO: Upload Node + URI
+        //TODO: Upload Node + IRI
         //TODO: Upload Indexes
     }
 }

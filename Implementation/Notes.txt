@@ -17,7 +17,8 @@ Data Structures:
 	STORE_ID:O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 
 	STORE_ID:PO  -> [((p_id,o_id), [s_id ... ]) ... ] 
 	STORE_ID:SO  -> [((s_id,o_id), [p_id ... ]) ... ] 
-	STORE_ID:SP  -> [((s_id,p_id), [o_id ... ]) ... ] 
+	STORE_ID:SP  -> [((s_id,p_id), [o_id ... ]) ... ]
+
 	
 -----------------------------------------------------------------------------------	
 Operations:

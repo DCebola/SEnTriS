@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface StorageEngine {
 
-    Set<Index> findNode(String storeID, String uri);
+    Set<Index> findNode(String storeID, String nodeIRI);
 
     Set<Node> getNodes(String storeID, Set<Index> idxs);
     Iterator<Triple> getTriples(String storeID);

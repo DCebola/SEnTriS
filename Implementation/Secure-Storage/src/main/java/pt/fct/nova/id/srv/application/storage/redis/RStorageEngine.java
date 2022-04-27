@@ -33,7 +33,7 @@ public class RStorageEngine implements StorageEngine {
     */
 
     @Override
-    public Set<Index> findNode(String storeID, String uri) {
+    public Set<Index> findNode(String storeID, String nodeIRI) {
         return null;
     }
 
