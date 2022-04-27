@@ -1,16 +1,17 @@
 package pt.fct.nova.id.srv.application.storage_clients.redis;
 
 import com.google.gson.Gson;
-import redis.clients.jedis.Jedis;
+import org.apache.jena.graph.Node;
+import pt.fct.nova.id.srv.application.indexes.Index;
+import pt.fct.nova.id.srv.application.storage_clients.StorageClient;
 
-import java.util.Map;
+import java.util.Set;
 
-public class RedisClient {
+public class RedisClient implements StorageClient {
 
     private static final Gson gson = new Gson();
 
-
-
+    /*
     public static void put(String key, String value) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
 
@@ -26,5 +27,111 @@ public class RedisClient {
             e.printStackTrace();
         }
         return null;
+    }
+    */
+
+    @Override
+    public Set<Index> findNode(String storeID, String uri) {
+        return null;
+    }
+
+    @Override
+    public Set<Node> getNodes(String storeID, Set<Index> idxs) {
+        return null;
+    }
+
+    @Override
+    public Node getNode(String storeID, Index idx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findP(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findS(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findO(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findSP(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findSO(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> findPO(String storeID, Index cpIdx) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getS(String storeID) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getP(String storeID) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getO(String storeID) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getSP(String storeID) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getSO(String storeID) {
+        return null;
+    }
+
+    @Override
+    public Set<Index> getPO(String storeID) {
+        return null;
+    }
+
+    @Override
+    public boolean putS(String storeID, Index idx) {
+        return false;
+    }
+
+    @Override
+    public boolean putP(String storeID, Index idx) {
+        return false;
+    }
+
+    @Override
+    public boolean putO(String storeID, Index idx) {
+        return false;
+    }
+
+    @Override
+    public boolean putSP(String storeID, Index idx) {
+        return false;
+    }
+
+    @Override
+    public boolean putSO(String storeID, Index idx) {
+        return false;
+    }
+
+    @Override
+    public boolean putPO(String storeID, Index idx) {
+        return false;
     }
 }

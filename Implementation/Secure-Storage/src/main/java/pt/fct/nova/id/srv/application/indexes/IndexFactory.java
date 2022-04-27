@@ -2,8 +2,13 @@ package pt.fct.nova.id.srv.application.indexes;
 
 import jakarta.validation.constraints.NotNull;
 
-public class CompoundIndexFactory {
-    public static Index generateCompoundIndexType(@NotNull Index idx1, @NotNull Index idx2) throws InvalidCompoundIndexException {
+public class IndexFactory {
+
+    public static Index createIndex(IndexType type, long value) {
+        return new Index(type, value, 0L);
+    }
+
+    public static Index createCompoundIndex(@NotNull Index idx1, @NotNull Index idx2) throws InvalidCompoundIndexException {
         if (idx1.isCompound() || idx2.isCompound())
             throw new InvalidCompoundIndexException();
 
