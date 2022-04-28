@@ -31,19 +31,41 @@ public class RStorageEngine implements StorageEngine {
     private final static String BLANK_IRI = "_";
 
     @Override
-    public synchronized boolean setupStore(String storeID) {
-        return false;
+    public boolean setupStore(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.hset(String.format(INFO, storeID), TRIPLE_COUNT, String.valueOf(0));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 
     @Override
-    public synchronized boolean deleteStore(String storeID) {
-        return false;
+    public boolean deleteStore(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.del(
+                    String.format(INFO, storeID),
+                    String.format(NODES, storeID),
+                    String.format(IRIS, storeID),
+                    String.format(IDX_TABLE_S, storeID),
+                    String.format(IDX_TABLE_P, storeID),
+                    String.format(IDX_TABLE_O, storeID),
+                    String.format(IDX_TABLE_SP, storeID),
+                    String.format(IDX_TABLE_SO, storeID),
+                    String.format(IDX_TABLE_PO, storeID)
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 
     @Override
-    public synchronized boolean saveTriple(String storeID, Triple triple) {
+    public boolean saveTriple(String storeID, Triple triple) {
         String storeInfo = String.format(INFO, storeID);
         Node subject = triple.getSubject();
         Node predicate = triple.getObject();
@@ -54,48 +76,51 @@ public class RStorageEngine implements StorageEngine {
             String p_iri = parseNodeIRI(predicate);
             String o_iri = parseNodeIRI(object);
 
-            int tCount = Integer.parseInt(jedis.hget(storeInfo, TRIPLE_COUNT));
+            String tCountRes = jedis.hget(storeInfo, TRIPLE_COUNT);
+            if (tCountRes != null) {
+                int tCount = Integer.parseInt(tCountRes);
 
-            Transaction t = jedis.multi();
-            t.watch(storeInfo);
+                Transaction t = jedis.multi();
+                t.watch(storeInfo);
 
-            Index s_idx = IndexFactory.createIndex(IndexType.S, tCount);
-            Index p_idx = IndexFactory.createIndex(IndexType.S, tCount);
-            Index o_idx = IndexFactory.createIndex(IndexType.S, tCount);
-            Index sp_idx = IndexFactory.createCompoundIndex(s_idx, p_idx);
-            Index so_idx = IndexFactory.createCompoundIndex(s_idx, o_idx);
-            Index po_idx = IndexFactory.createCompoundIndex(p_idx, o_idx);
+                Index s_idx = IndexFactory.createIndex(IndexType.S, tCount);
+                Index p_idx = IndexFactory.createIndex(IndexType.S, tCount);
+                Index o_idx = IndexFactory.createIndex(IndexType.S, tCount);
+                Index sp_idx = IndexFactory.createCompoundIndex(s_idx, p_idx);
+                Index so_idx = IndexFactory.createCompoundIndex(s_idx, o_idx);
+                Index po_idx = IndexFactory.createCompoundIndex(p_idx, o_idx);
 
-            String s_idx_parsed = gson.toJson(s_idx);
-            String p_idx_parsed = gson.toJson(p_idx);
-            String o_idx_parsed = gson.toJson(o_idx);
-            String sp_idx_parsed = gson.toJson(sp_idx);
-            String so_idx_parsed = gson.toJson(so_idx);
-            String po_idx_parsed = gson.toJson(po_idx);
+                String s_idx_parsed = gson.toJson(s_idx);
+                String p_idx_parsed = gson.toJson(p_idx);
+                String o_idx_parsed = gson.toJson(o_idx);
+                String sp_idx_parsed = gson.toJson(sp_idx);
+                String so_idx_parsed = gson.toJson(so_idx);
+                String po_idx_parsed = gson.toJson(po_idx);
 
-            putNode(t, storeID, s_idx_parsed, gson.toJson(subject));
-            putNode(t, storeID, p_idx_parsed, gson.toJson(predicate));
-            putNode(t, storeID, o_idx_parsed, gson.toJson(object));
+                putNode(t, storeID, s_idx_parsed, gson.toJson(subject));
+                putNode(t, storeID, p_idx_parsed, gson.toJson(predicate));
+                putNode(t, storeID, o_idx_parsed, gson.toJson(object));
 
-            putIRI(t, storeID, s_iri, s_idx_parsed);
-            putIRI(t, storeID, p_iri, p_idx_parsed);
-            putIRI(t, storeID, o_iri, o_idx_parsed);
+                putIRI(t, storeID, s_iri, s_idx_parsed);
+                putIRI(t, storeID, p_iri, p_idx_parsed);
+                putIRI(t, storeID, o_iri, o_idx_parsed);
 
-            putIndex(t, storeID, IDX_TABLE_S, s_idx_parsed, po_idx_parsed);
-            putIndex(t, storeID, IDX_TABLE_P, p_idx_parsed, so_idx_parsed);
-            putIndex(t, storeID, IDX_TABLE_O, o_idx_parsed, sp_idx_parsed);
-            putIndex(t, storeID, IDX_TABLE_SP, sp_idx_parsed, o_idx_parsed);
-            putIndex(t, storeID, IDX_TABLE_SO, so_idx_parsed, p_idx_parsed);
-            putIndex(t, storeID, IDX_TABLE_PO, po_idx_parsed, s_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_S, s_idx_parsed, po_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_P, p_idx_parsed, so_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_O, o_idx_parsed, sp_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_SP, sp_idx_parsed, o_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_SO, so_idx_parsed, p_idx_parsed);
+                putIndex(t, storeID, IDX_TABLE_PO, po_idx_parsed, s_idx_parsed);
 
-            t.hset(storeInfo, TRIPLE_COUNT, String.valueOf(tCount + 1));
+                t.hset(storeInfo, TRIPLE_COUNT, String.valueOf(tCount + 1));
 
-            t.exec();
-            return true;
+                t.exec();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+        return true;
     }
 
     private String parseNodeIRI(Node node) throws InvalidNodeException {

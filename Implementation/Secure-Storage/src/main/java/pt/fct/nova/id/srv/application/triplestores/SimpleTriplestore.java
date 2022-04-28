@@ -18,7 +18,9 @@ public class SimpleTriplestore implements Triplestore {
 
     @Override
     public boolean createDataset(String storeID, Iterator<Triple> triples) {
-        boolean success;
+        boolean success = storageEngine.setupStore(storeID);
+        if (!success)
+            return false;
         while (triples.hasNext()) {
             success = storageEngine.saveTriple(storeID, triples.next());
             if (!success) {
