@@ -3,6 +3,8 @@ package pt.fct.nova.id.srv.application.storage.redis;
 import com.google.gson.Gson;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.indexes.Index;
 import pt.fct.nova.id.srv.application.indexes.IndexFactory;
 import pt.fct.nova.id.srv.application.indexes.IndexType;
@@ -17,6 +19,7 @@ import java.util.Set;
 public class RStorageEngine implements StorageEngine {
 
     private final Gson gson = new Gson();
+    final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
     private final static String INFO = "%S:INFO";
     private final static String TRIPLE_COUNT = "T_COUNT";
     private final static String NODES = "%S:NODES";
@@ -66,44 +69,57 @@ public class RStorageEngine implements StorageEngine {
 
     @Override
     public boolean saveTriple(String storeID, Triple triple) {
+
         String storeInfo = String.format(INFO, storeID);
         Node subject = triple.getSubject();
-        Node predicate = triple.getObject();
+        Node predicate = triple.getPredicate();
         Node object = triple.getObject();
+        logger.info("#{}: Triple:{}", storeID, triple);
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String s_iri = parseNodeIRI(subject);
             String p_iri = parseNodeIRI(predicate);
             String o_iri = parseNodeIRI(object);
 
+            logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+
             String tCountRes = jedis.hget(storeInfo, TRIPLE_COUNT);
+
             if (tCountRes != null) {
                 int tCount = Integer.parseInt(tCountRes);
+                logger.info("#{}: triples={}", storeID, tCount);
 
                 Transaction t = jedis.multi();
                 t.watch(storeInfo);
 
                 Index s_idx = IndexFactory.createIndex(IndexType.S, tCount);
-                Index p_idx = IndexFactory.createIndex(IndexType.S, tCount);
-                Index o_idx = IndexFactory.createIndex(IndexType.S, tCount);
+                Index p_idx = IndexFactory.createIndex(IndexType.P, tCount);
+                Index o_idx = IndexFactory.createIndex(IndexType.O, tCount);
                 Index sp_idx = IndexFactory.createCompoundIndex(s_idx, p_idx);
                 Index so_idx = IndexFactory.createCompoundIndex(s_idx, o_idx);
                 Index po_idx = IndexFactory.createCompoundIndex(p_idx, o_idx);
 
-                String s_idx_parsed = gson.toJson(s_idx);
-                String p_idx_parsed = gson.toJson(p_idx);
-                String o_idx_parsed = gson.toJson(o_idx);
-                String sp_idx_parsed = gson.toJson(sp_idx);
-                String so_idx_parsed = gson.toJson(so_idx);
-                String po_idx_parsed = gson.toJson(po_idx);
+                String s_idx_parsed = serializeIndex(s_idx);
+                String p_idx_parsed = serializeIndex(p_idx);
+                String o_idx_parsed = serializeIndex(o_idx);
+                String sp_idx_parsed = serializeIndex(sp_idx);
+                String so_idx_parsed = serializeIndex(so_idx);
+                String po_idx_parsed = serializeIndex(po_idx);
 
-                putNode(t, storeID, s_idx_parsed, gson.toJson(subject));
-                putNode(t, storeID, p_idx_parsed, gson.toJson(predicate));
-                putNode(t, storeID, o_idx_parsed, gson.toJson(object));
+                logger.info("#{}: Indexes=[s_{}, p_{}, o_{}, sp_{}, so_{}, po_{}]", storeID,
+                        s_idx_parsed, p_idx_parsed, o_idx_parsed, sp_idx_parsed, so_idx_parsed, po_idx_parsed);
+
+                putNode(t, storeID, s_idx_parsed, serializeNode(subject));
+                putNode(t, storeID, p_idx_parsed, serializeNode(predicate));
+                putNode(t, storeID, o_idx_parsed, serializeNode(object));
+
+                logger.info("#{}: Pipelined node uploads.", storeID);
 
                 putIRI(t, storeID, s_iri, s_idx_parsed);
                 putIRI(t, storeID, p_iri, p_idx_parsed);
                 putIRI(t, storeID, o_iri, o_idx_parsed);
+
+                logger.info("#{}: Pipelined IRI uploads.", storeID);
 
                 putIndex(t, storeID, IDX_TABLE_S, s_idx_parsed, po_idx_parsed);
                 putIndex(t, storeID, IDX_TABLE_P, p_idx_parsed, so_idx_parsed);
@@ -112,7 +128,11 @@ public class RStorageEngine implements StorageEngine {
                 putIndex(t, storeID, IDX_TABLE_SO, so_idx_parsed, p_idx_parsed);
                 putIndex(t, storeID, IDX_TABLE_PO, po_idx_parsed, s_idx_parsed);
 
+                logger.info("#{}: Pipelined INDEX uploads.", storeID);
+
                 t.hset(storeInfo, TRIPLE_COUNT, String.valueOf(tCount + 1));
+
+                logger.info("#{}: Pipelined TRIPLE_COUNT increment.", storeID);
 
                 t.exec();
             }
@@ -121,6 +141,20 @@ public class RStorageEngine implements StorageEngine {
             return false;
         }
         return true;
+    }
+
+    private String serializeIndex(Index idx) {
+        return gson.toJson(idx);
+    }
+
+    private String serializeNode(Node node) throws InvalidNodeException {
+        if (!node.isConcrete())
+            throw new InvalidNodeException();
+        if (node.isLiteral()){
+            logger.info("Literal: {} {} {}", node.getLiteral().getLexicalForm(), node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+            return node.getLiteralLexicalForm();
+        }
+        return gson.toJson(node);
     }
 
     private String parseNodeIRI(Node node) throws InvalidNodeException {

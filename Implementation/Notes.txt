@@ -3,12 +3,19 @@ Data Structures:
 	STORE_ID:INFO -> [(TRIPLE_COUNT, long), (S_COUNT, long), (P_COUNT, long), (O_COUNT, long)]
 	STORE_ID:NODES -> [(id, NODE) ... ]
 	STORE_ID:IRIS -> [(IRI, [id ... ]) ... ]
-	STORE_ID:S   -> [(s_id, [(p_id,o_id) ... ]) ... ]
-	STORE_ID:P   -> [(p_id, [(s_id,o_id) ... ]) ... ] 
-	STORE_ID:O   -> [(o_id, [(s_id,p_id) ... ]) ... ] 
-	STORE_ID:PO  -> [((p_id,o_id), [s_id ... ]) ... ] 
-	STORE_ID:SO  -> [((s_id,o_id), [p_id ... ]) ... ] 
-	STORE_ID:SP  -> [((s_id,p_id), [o_id ... ]) ... ]
+	STORE_ID:S   -> [s_id ... ]
+	STORE_ID:P   -> [p_id ... ] 
+	STORE_ID:O   -> [o_id ... ] 
+	STORE_ID:PO  -> [(p_id,o_id) ... ] 
+	STORE_ID:SO  -> [(s_id,o_id) ... ] 
+	STORE_ID:SP  -> [(s_id,p_id) ... ]
+	
+	STORE_ID:s_id*   -> [(p_id,o_id) ... ]
+	STORE_ID:p_id*   -> [(s_id,o_id) ... ] 
+	STORE_ID:o_id*   -> [(s_id,p_id) ... ] 
+	STORE_ID:po_id*  -> [s_id ... ] 
+	STORE_ID:so_id*  -> [p_id ... ] 
+	STORE_ID:sp_id*  -> [o_id ... ]
 
 	
 -----------------------------------------------------------------------------------	

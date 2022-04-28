@@ -5,6 +5,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public record Index(IndexType type, @Positive long upper, @PositiveOrZero long lower) {
     public boolean isCompound(){
-        return lower != 0;
+        return lower > 0L;
     }
 }
