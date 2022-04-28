@@ -20,16 +20,16 @@ public class RStorageEngine implements StorageEngine {
 
     private final Gson gson = new Gson();
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
-    private final static String INFO = "%S:INFO";
+    private final static String INFO = "%s:INFO";
     private final static String TRIPLE_COUNT = "T_COUNT";
-    private final static String NODES = "%S:NODES";
-    private final static String IRIS = "%S:IRIS";
-    private final static String IDX_TABLE_S = "%S:S";
-    private final static String IDX_TABLE_P = "%S:P";
-    private final static String IDX_TABLE_O = "%S:O";
-    private final static String IDX_TABLE_SP = "%S:SP";
-    private final static String IDX_TABLE_SO = "%S:SO";
-    private final static String IDX_TABLE_PO = "%S:PO";
+    private final static String NODES = "%s:NODES";
+    private final static String IRIS = "%s:IRIS";
+    private final static String IDX_TABLE_S = "%s:S";
+    private final static String IDX_TABLE_P = "%s:P";
+    private final static String IDX_TABLE_O = "%s:O";
+    private final static String IDX_TABLE_SP = "%s:SP";
+    private final static String IDX_TABLE_SO = "%s:SO";
+    private final static String IDX_TABLE_PO = "%s:PO";
 
     private final static String BLANK_IRI = "_";
 
