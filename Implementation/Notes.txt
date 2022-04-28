@@ -1,4 +1,3 @@
-
 Data Structures:
 	
 	STORE_ID:INFO -> [(TRIPLE_COUNT, long), (S_COUNT, long), (P_COUNT, long), (O_COUNT, long)]

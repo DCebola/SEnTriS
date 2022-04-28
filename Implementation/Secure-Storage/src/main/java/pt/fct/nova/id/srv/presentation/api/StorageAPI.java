@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.presentation.api;
 
-import jakarta.activation.MimeType;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
