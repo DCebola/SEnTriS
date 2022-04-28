@@ -9,28 +9,26 @@ import java.util.Set;
 
 public interface StorageEngine {
 
-    Set<Index> findNode(String storeID, String nodeIRI);
 
     Set<Node> getNodes(String storeID, Set<Index> idxs);
+
     Iterator<Triple> getTriples(String storeID);
 
     Node getNode(String storeID, Index idx);
 
-    /* Find index from complementary index */
+    Set<Index> findByIRI(String storeID, String nodeIRI);
 
-    Set<Index> findP(String storeID, Index cpIdx);
+    Set<Index> findByP(String storeID, Index cpIdx);
 
-    Set<Index> findS(String storeID, Index cpIdx);
+    Set<Index> findByS(String storeID, Index cpIdx);
 
-    Set<Index> findO(String storeID, Index cpIdx);
+    Set<Index> findByO(String storeID, Index cpIdx);
 
-    Set<Index> findSP(String storeID, Index cpIdx);
+    Set<Index> findBySP(String storeID, Index cpIdx);
 
-    Set<Index> findSO(String storeID, Index cpIdx);
+    Set<Index> findBySO(String storeID, Index cpIdx);
 
-    Set<Index> findPO(String storeID, Index cpIdx);
-
-    /* Get index table */
+    Set<Index> findByPO(String storeID, Index cpIdx);
 
     Set<Index> getS(String storeID);
 
@@ -44,7 +42,9 @@ public interface StorageEngine {
 
     Set<Index> getPO(String storeID);
 
-    /* Insert new indexes */
+    Index putNode(String storeID, Node node);
+
+    boolean putIRI(String storeID, String nodeIRI, Index idx);
 
     boolean putS(String storeID, Index idx);
 
@@ -58,4 +58,5 @@ public interface StorageEngine {
 
     boolean putPO(String storeID, Index idx);
 
+    void deleteStore(String storeID);
 }

@@ -30,17 +30,18 @@ public class StorageController implements StorageAPI {
         Lang l = RDFLanguages.nameToLang(syntax);
         if (l == null)
             return Response.ok(String.format(INVALID_SYNTAX_MSG, syntax)).status(Status.BAD_REQUEST).build();
-        try {
-            triplestore.createDataset(storeID, AsyncParser.asyncParseTriples(contents, l, null));
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            RDFDataMgr.writeTriples(out, triplestore.getDataset(storeID));
-            out.toByteArray();
+        else {
+            boolean success = triplestore.createDataset(storeID, AsyncParser.asyncParseTriples(contents, l, null));
+            if (!success)
+                return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+            else {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                RDFDataMgr.writeTriples(out, triplestore.getDataset(storeID));
+                out.toByteArray();
 
-            return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
-        } catch (Exception e) {
-            return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
+            }
         }
-
     }
 
     @Override

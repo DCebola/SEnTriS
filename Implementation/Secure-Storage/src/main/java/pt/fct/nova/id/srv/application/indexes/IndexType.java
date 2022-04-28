@@ -1,3 +1,3 @@
 package pt.fct.nova.id.srv.application.indexes;
 
-public enum IndexType {NODE, S, P, O, SP, SO, PO}
+public enum IndexType {T, S, P, O, SP, SO, PO}

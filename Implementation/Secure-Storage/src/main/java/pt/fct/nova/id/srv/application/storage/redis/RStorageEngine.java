@@ -33,7 +33,7 @@ public class RStorageEngine implements StorageEngine {
     */
 
     @Override
-    public Set<Index> findNode(String storeID, String nodeIRI) {
+    public Set<Index> findByIRI(String storeID, String nodeIRI) {
         return null;
     }
 
@@ -53,32 +53,32 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Set<Index> findP(String storeID, Index cpIdx) {
+    public Set<Index> findByP(String storeID, Index cpIdx) {
         return null;
     }
 
     @Override
-    public Set<Index> findS(String storeID, Index cpIdx) {
+    public Set<Index> findByS(String storeID, Index cpIdx) {
         return null;
     }
 
     @Override
-    public Set<Index> findO(String storeID, Index cpIdx) {
+    public Set<Index> findByO(String storeID, Index cpIdx) {
         return null;
     }
 
     @Override
-    public Set<Index> findSP(String storeID, Index cpIdx) {
+    public Set<Index> findBySP(String storeID, Index cpIdx) {
         return null;
     }
 
     @Override
-    public Set<Index> findSO(String storeID, Index cpIdx) {
+    public Set<Index> findBySO(String storeID, Index cpIdx) {
         return null;
     }
 
     @Override
-    public Set<Index> findPO(String storeID, Index cpIdx) {
+    public Set<Index> findByPO(String storeID, Index cpIdx) {
         return null;
     }
 
@@ -113,6 +113,16 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
+    public Index putNode(String storeID, Node node) {
+        return null;
+    }
+
+    @Override
+    public boolean putIRI(String storeID, String nodeIRI, Index idx) {
+        return false;
+    }
+
+    @Override
     public boolean putS(String storeID, Index idx) {
         return false;
     }
@@ -140,5 +150,10 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public boolean putPO(String storeID, Index idx) {
         return false;
+    }
+
+    @Override
+    public void deleteStore(String storeID) {
+
     }
 }
