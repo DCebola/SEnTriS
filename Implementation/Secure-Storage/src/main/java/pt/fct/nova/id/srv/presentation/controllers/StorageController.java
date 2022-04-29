@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
@@ -23,6 +24,8 @@ public class StorageController implements StorageAPI {
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
     private static final String WRITING_ERROR_MSG = "Error while downloading the dataset.";
 
+    private static final String SUCCESS_UPLOAD = "Successful upload.";
+
     private final Triplestore triplestore = TriplestoreFactory.createSimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
@@ -35,11 +38,7 @@ public class StorageController implements StorageAPI {
             if (!success)
                 return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
             else {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                RDFDataMgr.writeTriples(out, triplestore.getDataset(storeID));
-                out.toByteArray();
-
-                return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
+                return Response.ok(SUCCESS_UPLOAD).build();
             }
         }
     }
@@ -50,11 +49,15 @@ public class StorageController implements StorageAPI {
         if (l == null)
             return Response.ok(String.format(INVALID_SYNTAX_MSG, syntax)).status(Status.BAD_REQUEST).build();
         try {
+            Model m = triplestore.getDataset(storeID);
+            if (m == null)
+                return Response.ok(WRITING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            RDFDataMgr.writeTriples(out, triplestore.getDataset(storeID));
-            //return Response.ok(out.toByteArray()).build();
-            return Response.ok(out.toByteArray()).status(Status.NOT_IMPLEMENTED).build();
+            RDFDataMgr.write(out, m, l);
+            return Response.ok(out.toByteArray()).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(WRITING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }

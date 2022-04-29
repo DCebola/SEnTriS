@@ -1,25 +1,32 @@
 Data Structures:
-	
-	STORE_ID:INFO -> [(TRIPLE_COUNT, long), (S_COUNT, long), (P_COUNT, long), (O_COUNT, long)]
-	STORE_ID:NODES -> [(id, NODE) ... ]
-	STORE_ID:IRIS -> [(IRI, [id ... ]) ... ]
-	
-	
-	
-	STORE_ID:S   -> [s_id ... ]
-	STORE_ID:P   -> [p_id ... ] 
-	STORE_ID:O   -> [o_id ... ] 
-	STORE_ID:PO  -> [(p_id,o_id) ... ] 
-	STORE_ID:SO  -> [(s_id,o_id) ... ] 
-	STORE_ID:SP  -> [(s_id,p_id) ... ]
-	
-	STORE_ID:s_id*   -> [(p_id,o_id) ... ]
-	STORE_ID:p_id*   -> [(s_id,o_id) ... ] 
-	STORE_ID:o_id*   -> [(s_id,p_id) ... ] 
-	STORE_ID:po_id*  -> [s_id ... ] 
-	STORE_ID:so_id*  -> [p_id ... ] 
-	STORE_ID:sp_id*  -> [o_id ... ]
 
+	STORES_TO_BE_DELETED -> [storeID]
+
+	STORE_ID:INFO -> storeINFO
+	
+	STORE_ID:S:IRIS -> [(IRI, ptrIRI) ... ]
+	STORE_ID:S:REV_IRIS -> [(ptrIRI, IRI) ... ]
+	
+	STORE_ID:P:IRIS -> [(IRI, ptrIRI) ... ]
+	STORE_ID:P:REV_IRIS -> [(ptrIRI, IRI) ... ]
+	
+	STORE_ID:O:IRIS -> [(IRI, ptrIRI) ... ]
+	STORE_ID:O:REV_IRIS -> [(ptrIRI, IRI) ... ]
+	
+	STORE_ID:S   -> [s_ptrIRI ... ] 
+	STORE_ID:P   -> [p_ptrIRI ... ] 
+	STORE_ID:O   -> [o_ptrIRI ... ] 
+	STORE_ID:PO  -> [p_ptrIRI|o_ptrIRI ... ] 
+	STORE_ID:SO  -> [s_ptrIRI|o_ptrIRI ... ] 
+	STORE_ID:SP  -> [s_ptrIRI|p_ptrIRI ... ] 
+	 
+	STORE_ID:S:s_ptrIRI*   -> [p_ptrIRI|o_ptrIRI ... ] 
+	STORE_ID:P:p_ptrIRI*   -> [s_ptrIRI|o_ptrIRI ... ] 
+	STORE_ID:O:o_ptrIRI*   -> [s_ptrIRI|p_ptrIRI ... ]  
+	STORE_ID:PO:p_ptrIRI*|o_ptrIRI*  -> [s_ptrIRI ... ] 
+	STORE_ID:SO:s_ptrIRI*|o_ptrIRI*  -> [p_ptrIRI ... ] 
+	STORE_ID:SP:s_ptrIRI*|p_ptrIRI*  -> [o_ptrIRI ... ]
+	
 	
 -----------------------------------------------------------------------------------	
 Operations:

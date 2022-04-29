@@ -1,42 +1,68 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
 import com.google.gson.Gson;
+import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.fct.nova.id.srv.application.indexes.Index;
-import pt.fct.nova.id.srv.application.indexes.IndexFactory;
-import pt.fct.nova.id.srv.application.indexes.IndexType;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class RStorageEngine implements StorageEngine {
 
     private final Gson gson = new Gson();
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
     private final static String INFO = "%s:INFO";
-    private final static String TRIPLE_COUNT = "T_COUNT";
-    private final static String NODES = "%s:NODES";
-    private final static String IRIS = "%s:IRIS";
-    private final static String IDX_TABLE_S = "%s:S";
-    private final static String IDX_TABLE_P = "%s:P";
-    private final static String IDX_TABLE_O = "%s:O";
-    private final static String IDX_TABLE_SP = "%s:SP";
-    private final static String IDX_TABLE_SO = "%s:SO";
-    private final static String IDX_TABLE_PO = "%s:PO";
+    private final static int TO_BE_DELETED = 0;
 
-    private final static String BLANK_IRI = "_";
+    private final static String S_IRIS = "%s:S:IRIS";
+    private final static String P_IRIS = "%s:P:IRIS";
+    private final static String O_IRIS = "%s:O:IRIS";
+
+    private final static String REV_S_IRIS = "%s:S:REV_IRIS";
+    private final static String REV_P_IRIS = "%s:P:REV_IRIS";
+    private final static String REV_O_IRIS = "%s:O:REV_IRIS";
+
+    private final static String ALL_S = "%s:S";
+    private final static String ALL_P = "%s:P";
+    private final static String ALL_O = "%s:O";
+    private final static String ALL_SP = "%s:SP";
+    private final static String ALL_SO = "%s:SO";
+    private final static String ALL_PO = "%s:PO";
+
+    private final static String SINGLE_S = "%s:S:%s";
+    private final static String SINGLE_P = "%s:P:%s";
+    private final static String SINGLE_O = "%s:O:%s";
+    private final static String SINGLE_SP = "%s:SP:%s";
+    private final static String SINGLE_SO = "%s:SO:%s";
+    private final static String SINGLE_PO = "%s:PO:%s";
+    private static final String COMPLEMENT_INDEX_SEPARATOR = ":";
+
+
+    private final static String BLANK_IRI = "B::%s";
+    private static final String BLANK_IRI_PREFIX = "B";
+    private static final String SIMPLE_IRI = "S::%s";
+    private static final String SIMPLE_IRI_PREFIX = "S";
+    private static final String LITERAL_IRI = "L::%s::%s";
+    private static final int IRI_PREFIX_POS = 0;
+    private static final int IRI_VALUE_POS = 1;
+    private static final int LITERAL_IRI_DATATYPE_POS = 2;
+    private static final String IRI_SEPARATOR = "::";
+
 
     @Override
     public boolean setupStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.hset(String.format(INFO, storeID), TRIPLE_COUNT, String.valueOf(0));
+            jedis.lpush(String.format(INFO, storeID), String.valueOf(false));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -48,17 +74,7 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public boolean deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.del(
-                    String.format(INFO, storeID),
-                    String.format(NODES, storeID),
-                    String.format(IRIS, storeID),
-                    String.format(IDX_TABLE_S, storeID),
-                    String.format(IDX_TABLE_P, storeID),
-                    String.format(IDX_TABLE_O, storeID),
-                    String.format(IDX_TABLE_SP, storeID),
-                    String.format(IDX_TABLE_SO, storeID),
-                    String.format(IDX_TABLE_PO, storeID)
-            );
+            jedis.lset(String.format(INFO, storeID), TO_BE_DELETED, String.valueOf(true));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -83,56 +99,52 @@ public class RStorageEngine implements StorageEngine {
 
             logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
-            String tCountRes = jedis.hget(storeInfo, TRIPLE_COUNT);
+            boolean isDeleted = Boolean.parseBoolean(jedis.lindex(storeInfo, TO_BE_DELETED));
 
-            if (tCountRes != null) {
-                int tCount = Integer.parseInt(tCountRes);
-                logger.info("#{}: triples={}", storeID, tCount);
+            if (!isDeleted) {
+
+                Pipeline p = jedis.pipelined();
+                Response<String> resp_s = getIndexFromIRI(p, S_IRIS, storeID, s_iri);
+                Response<String> resp_p = getIndexFromIRI(p, P_IRIS, storeID, p_iri);
+                Response<String> resp_o = getIndexFromIRI(p, O_IRIS, storeID, o_iri);
+                p.sync();
+
+                String s_idx = resp_s.get();
+                String p_idx = resp_p.get();
+                String o_idx = resp_o.get();
 
                 Transaction t = jedis.multi();
                 t.watch(storeInfo);
 
-                Index s_idx = IndexFactory.createIndex(IndexType.S, tCount);
-                Index p_idx = IndexFactory.createIndex(IndexType.P, tCount);
-                Index o_idx = IndexFactory.createIndex(IndexType.O, tCount);
-                Index sp_idx = IndexFactory.createCompoundIndex(s_idx, p_idx);
-                Index so_idx = IndexFactory.createCompoundIndex(s_idx, o_idx);
-                Index po_idx = IndexFactory.createCompoundIndex(p_idx, o_idx);
 
-                String s_idx_parsed = serializeIndex(s_idx);
-                String p_idx_parsed = serializeIndex(p_idx);
-                String o_idx_parsed = serializeIndex(o_idx);
-                String sp_idx_parsed = serializeIndex(sp_idx);
-                String so_idx_parsed = serializeIndex(so_idx);
-                String po_idx_parsed = serializeIndex(po_idx);
+                if (s_idx == null) {
+                    s_idx = generateID();
+                    putIRI(t, S_IRIS, REV_S_IRIS, storeID, s_iri, s_idx);
+                }
+                if (p_idx == null) {
+                    p_idx = generateID();
+                    putIRI(t, P_IRIS, REV_P_IRIS, storeID, p_iri, p_idx);
+                }
+                if (o_idx == null) {
+                    o_idx = generateID();
+                    putIRI(t, O_IRIS, REV_O_IRIS, storeID, o_iri, o_idx);
+                }
 
-                logger.info("#{}: Indexes=[s_{}, p_{}, o_{}, sp_{}, so_{}, po_{}]", storeID,
-                        s_idx_parsed, p_idx_parsed, o_idx_parsed, sp_idx_parsed, so_idx_parsed, po_idx_parsed);
+                logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
-                putNode(t, storeID, s_idx_parsed, serializeNode(subject));
-                putNode(t, storeID, p_idx_parsed, serializeNode(predicate));
-                putNode(t, storeID, o_idx_parsed, serializeNode(object));
+                String sp_idx = generateComplementIndex(p_idx, s_idx);
+                String so_idx = generateComplementIndex(s_idx, o_idx);
+                String po_idx = generateComplementIndex(p_idx, o_idx);
 
-                logger.info("#{}: Pipelined node uploads.", storeID);
+                putIndex(t, ALL_S, SINGLE_S, storeID, s_idx, po_idx);
+                putIndex(t, ALL_P, SINGLE_P, storeID, p_idx, so_idx);
+                putIndex(t, ALL_O, SINGLE_O, storeID, o_idx, sp_idx);
 
-                putIRI(t, storeID, s_iri, s_idx_parsed);
-                putIRI(t, storeID, p_iri, p_idx_parsed);
-                putIRI(t, storeID, o_iri, o_idx_parsed);
-
-                logger.info("#{}: Pipelined IRI uploads.", storeID);
-
-                putIndex(t, storeID, IDX_TABLE_S, s_idx_parsed, po_idx_parsed);
-                putIndex(t, storeID, IDX_TABLE_P, p_idx_parsed, so_idx_parsed);
-                putIndex(t, storeID, IDX_TABLE_O, o_idx_parsed, sp_idx_parsed);
-                putIndex(t, storeID, IDX_TABLE_SP, sp_idx_parsed, o_idx_parsed);
-                putIndex(t, storeID, IDX_TABLE_SO, so_idx_parsed, p_idx_parsed);
-                putIndex(t, storeID, IDX_TABLE_PO, po_idx_parsed, s_idx_parsed);
+                putIndex(t, ALL_SP, SINGLE_SP, storeID, sp_idx, o_idx);
+                putIndex(t, ALL_SO, SINGLE_SO, storeID, so_idx, p_idx);
+                putIndex(t, ALL_PO, SINGLE_PO, storeID, po_idx, s_idx);
 
                 logger.info("#{}: Pipelined INDEX uploads.", storeID);
-
-                t.hset(storeInfo, TRIPLE_COUNT, String.valueOf(tCount + 1));
-
-                logger.info("#{}: Pipelined TRIPLE_COUNT increment.", storeID);
 
                 t.exec();
             }
@@ -143,46 +155,89 @@ public class RStorageEngine implements StorageEngine {
         return true;
     }
 
-    private String serializeIndex(Index idx) {
-        return gson.toJson(idx);
+    private String generateID() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
-    private String serializeNode(Node node) throws InvalidNodeException {
-        if (!node.isConcrete())
-            throw new InvalidNodeException();
-        if (node.isLiteral()){
-            logger.info("Literal: {} {} {}", node.getLiteral().getLexicalForm(), node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
-            return node.getLiteralLexicalForm();
-        }
-        return gson.toJson(node);
+    private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
+        return p.hget(String.format(keyFormatter, storeID), iri);
     }
 
     private String parseNodeIRI(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
-            return node.getURI();
+            return String.format(SIMPLE_IRI, node.getURI());
         else if (node.isLiteral())
-            return node.getLiteral().getLexicalForm();
+            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return BLANK_IRI;
+            return String.format(BLANK_IRI, node.getBlankNodeId());
     }
 
-    private void putNode(Transaction transaction, String storeID, String idx, String node) {
-        transaction.hset(String.format(NODES, storeID), idx, node);
+    private Node generateNode(String iri) {
+        String[] split_iri = iri.split(IRI_SEPARATOR);
+        logger.info("#Split {}", Arrays.toString(split_iri));
+        if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
+            return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
+        else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
+            return NodeFactory.createURI(split_iri[IRI_VALUE_POS]);
+        else
+            return NodeFactory.createLiteral(
+                    split_iri[IRI_VALUE_POS],
+                    TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
 
-    private void putIRI(Transaction transaction, String storeID, String nodeIRI, String idx) {
-        transaction.hset(String.format(IRIS, storeID), nodeIRI, idx);
+    private void putIRI(Transaction transaction, String keyFormatter, String reverseKeyFormatter, String storeID, String nodeIRI, String idx) {
+        transaction.hset(String.format(keyFormatter, storeID), nodeIRI, idx);
+        transaction.hset(String.format(reverseKeyFormatter, storeID), idx, nodeIRI);
     }
 
-    private void putIndex(Transaction transaction, String storeID, String indexID, String idx, String complementaryIdx) {
-        transaction.hset(String.format(indexID, storeID), idx, complementaryIdx);
+    private void putIndex(Transaction transaction, String allKeyFormatter, String singleKeyFormatter, String storeID, String idx, String complementIdx) {
+        transaction.sadd(String.format(allKeyFormatter, storeID), idx);
+        transaction.sadd(String.format(singleKeyFormatter, storeID, idx), complementIdx);
+    }
+
+    private String generateComplementIndex(String idx1, String idx2) {
+        return idx1.concat(COMPLEMENT_INDEX_SEPARATOR).concat(idx2);
     }
 
     @Override
-    public Iterator<Triple> getTriples(String storeID) {
-        return null;
+    public List<Triple> getTriples(String storeID) {
+        List<Triple> triples = new LinkedList<>();
+
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
+            Set<String> po_idxs;
+            String s_iri, p_iri, o_iri;
+            String p_idx, o_idx;
+            String[] po_split;
+            for (String s_idx : s_idxs) {
+                po_idxs = jedis.smembers(String.format(SINGLE_S, storeID, s_idx));
+                if (po_idxs != null) {
+                    for (String po_idx : po_idxs) {
+                        po_split = po_idx.split(COMPLEMENT_INDEX_SEPARATOR);
+                        p_idx = po_split[0];
+                        o_idx = po_split[1];
+                        s_iri = jedis.hget(String.format(REV_S_IRIS, storeID), s_idx);
+                        p_iri = jedis.hget(String.format(REV_P_IRIS, storeID), p_idx);
+                        o_iri = jedis.hget(String.format(REV_O_IRIS, storeID), o_idx);
+
+                        logger.info("#{}: po->{}", storeID, po_idx);
+                        logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+                        logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
+
+                        triples.add(new Triple(
+                                generateNode(s_iri),
+                                generateNode(p_iri),
+                                generateNode(o_iri)));
+                    }
+                }
+            }
+            return triples;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private Set<Node> getNodes(String storeID, Set<String> idxs) {
@@ -193,55 +248,55 @@ public class RStorageEngine implements StorageEngine {
         return null;
     }
 
-    private Set<Index> getS(String storeID) {
+    private Set<UUID> getS(String storeID) {
         return null;
     }
 
-    private Set<Index> getP(String storeID) {
+    private Set<UUID> getP(String storeID) {
         return null;
     }
 
-    private Set<Index> getO(String storeID) {
+    private Set<UUID> getO(String storeID) {
         return null;
     }
 
-    private Set<Index> getSP(String storeID) {
+    private Set<UUID> getSP(String storeID) {
         return null;
     }
 
-    private Set<Index> getSO(String storeID) {
+    private Set<UUID> getSO(String storeID) {
         return null;
     }
 
-    private Set<Index> getPO(String storeID) {
+    private Set<UUID> getPO(String storeID) {
         return null;
     }
 
-    private Set<Index> findByIRI(String storeID, String nodeIRI) {
+    private Set<UUID> findByIRI(String storeID, String nodeIRI) {
         return null;
     }
 
-    private Set<Index> findByP(String storeID, String cpIdx) {
+    private Set<UUID> findByP(String storeID, String cpIdx) {
         return null;
     }
 
-    private Set<Index> findByS(String storeID, String cpIdx) {
+    private Set<UUID> findByS(String storeID, String cpIdx) {
         return null;
     }
 
-    private Set<Index> findByO(String storeID, String cpIdx) {
+    private Set<UUID> findByO(String storeID, String cpIdx) {
         return null;
     }
 
-    private Set<Index> findBySP(String storeID, String cpIdx) {
+    private Set<UUID> findBySP(String storeID, String cpIdx) {
         return null;
     }
 
-    private Set<Index> findBySO(String storeID, String cpIdx) {
+    private Set<UUID> findBySO(String storeID, String cpIdx) {
         return null;
     }
 
-    private Set<Index> findByPO(String storeID, String cpIdx) {
+    private Set<UUID> findByPO(String storeID, String cpIdx) {
         return null;
     }
 
