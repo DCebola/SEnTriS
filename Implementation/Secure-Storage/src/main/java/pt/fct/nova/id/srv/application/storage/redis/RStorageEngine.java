@@ -5,7 +5,6 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
@@ -15,7 +14,11 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
+import java.nio.ByteBuffer;
 import java.util.*;
+
+import static org.apache.commons.codec.binary.Base64.decodeBase64;
+import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 
 public class RStorageEngine implements StorageEngine {
 
@@ -156,7 +159,21 @@ public class RStorageEngine implements StorageEngine {
     }
 
     private String generateID() {
-        return UUID.randomUUID().toString().replace("-", "");
+        return uuidToBase64(UUID.randomUUID().toString());
+    }
+
+    private static String uuidToBase64(String str) {
+        UUID uuid = UUID.fromString(str);
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return encodeBase64URLSafeString(bb.array());
+    }
+    private static String uuidFromBase64(String str) {
+        byte[] bytes = decodeBase64(str);
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        UUID uuid = new UUID(bb.getLong(), bb.getLong());
+        return uuid.toString();
     }
 
     private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
