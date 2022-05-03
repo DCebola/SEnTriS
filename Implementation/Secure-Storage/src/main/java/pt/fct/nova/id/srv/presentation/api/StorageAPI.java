@@ -3,8 +3,7 @@ package pt.fct.nova.id.srv.presentation.api;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.io.InputStream;
+import pt.fct.nova.id.srv.presentation.dtos.UploadReqBody;
 
 public interface StorageAPI {
     String TEXT_TURTLE = "text/turtle ";
@@ -18,12 +17,11 @@ public interface StorageAPI {
 
     @POST
     @Path("upload/{storeID}")
-    @Consumes({TEXT_TURTLE, RDF_XML, N_TRIPLES, TRIG, N_QUADS, TRIX_XML, RDF_THRIFT, RDF_PROTOBUF})
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     Response upload(
             @PathParam("storeID") String storeID,
-            @DefaultValue("TTL") @QueryParam("syntax") String syntax,
-            InputStream contents);
+            UploadReqBody body);
 
     @GET
     @Path("/download/{storeID}")

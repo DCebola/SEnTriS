@@ -22,10 +22,9 @@ import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 
 public class RStorageEngine implements StorageEngine {
 
-    private final Gson gson = new Gson();
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
     private final static String INFO = "%s:INFO";
-    private final static int TO_BE_DELETED = 0;
+    private final static String NAMESPACES = "%s:NS";
 
     private final static String S_IRIS = "%s:S:IRIS";
     private final static String P_IRIS = "%s:P:IRIS";
@@ -63,9 +62,12 @@ public class RStorageEngine implements StorageEngine {
 
 
     @Override
-    public boolean setupStore(String storeID) {
+    public boolean setupStore(String storeID, Map<String, String> namespaces) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.lpush(String.format(INFO, storeID), String.valueOf(false));
+            Transaction t = jedis.multi();
+            t.set(String.format(INFO, storeID), String.valueOf(false));
+            namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
+            t.exec();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -73,11 +75,15 @@ public class RStorageEngine implements StorageEngine {
         return true;
     }
 
+    private void putNamespace(Transaction t, String storeID, String namespaceKey, String namespaceValue) {
+        t.hset(String.format(NAMESPACES, storeID), namespaceKey, namespaceValue);
+    }
+
 
     @Override
     public boolean deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.lset(String.format(INFO, storeID), TO_BE_DELETED, String.valueOf(true));
+            jedis.set(String.format(INFO, storeID), String.valueOf(true));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -102,7 +108,7 @@ public class RStorageEngine implements StorageEngine {
 
             logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
-            boolean isDeleted = Boolean.parseBoolean(jedis.lindex(storeInfo, TO_BE_DELETED));
+            boolean isDeleted = Boolean.parseBoolean(jedis.get(storeInfo));
 
             if (!isDeleted) {
 
@@ -169,6 +175,7 @@ public class RStorageEngine implements StorageEngine {
         bb.putLong(uuid.getLeastSignificantBits());
         return encodeBase64URLSafeString(bb.array());
     }
+
     private static String uuidFromBase64(String str) {
         byte[] bytes = decodeBase64(str);
         ByteBuffer bb = ByteBuffer.wrap(bytes);
@@ -184,7 +191,7 @@ public class RStorageEngine implements StorageEngine {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
-            return String.format(SIMPLE_IRI, node.getURI());
+            return String.format(SIMPLE_IRI, node.getLocalName());
         else if (node.isLiteral())
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
@@ -254,6 +261,16 @@ public class RStorageEngine implements StorageEngine {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    @Override
+    public Map<String, String> getNamespaces(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.hgetAll(storeID);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap<>();
         }
     }
 

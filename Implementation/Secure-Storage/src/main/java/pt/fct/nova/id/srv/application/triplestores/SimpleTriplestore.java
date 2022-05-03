@@ -6,13 +6,13 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
+import java.util.Map;
 
 public class SimpleTriplestore implements Triplestore {
 
@@ -25,8 +25,8 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public boolean createDataset(String storeID, Iterator<Triple> triples) {
-        boolean success = storageEngine.setupStore(storeID);
+    public boolean createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) {
+        boolean success = storageEngine.setupStore(storeID, namespaces);
         if (!success)
             return false;
         while (triples.hasNext()) {
@@ -44,6 +44,7 @@ public class SimpleTriplestore implements Triplestore {
         Graph g = GraphFactory.createDefaultGraph();
         storageEngine.getTriples(storeID).forEach(g::add);
         Model m = ModelFactory.createModelForGraph(g);
+        storageEngine.getNamespaces(storeID).forEach(m::setNsPrefix);
         m.setNsPrefix("rdf", RDF.uri);
         m.setNsPrefix("rdfs", RDFS.uri);
         m.setNsPrefix("owl", OWL.NS);
