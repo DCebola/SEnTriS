@@ -7,7 +7,7 @@ import org.apache.http.client.HttpResponseException;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
-public interface StorageAPI {
+public interface TriplestoreAPI {
 
 
     @POST

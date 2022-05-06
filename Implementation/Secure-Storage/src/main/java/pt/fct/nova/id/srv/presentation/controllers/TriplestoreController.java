@@ -8,24 +8,26 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
-import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
-import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
+import pt.fct.nova.id.srv.application.query.QueryEngineFactory;
+import pt.fct.nova.id.srv.application.storage.StorageEngineFactory;
+import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
-import pt.fct.nova.id.srv.application.triplestores.TriplestoreFactory;
-import pt.fct.nova.id.srv.presentation.api.StorageAPI;
+import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import java.io.ByteArrayOutputStream;
 
 
-@Path("storage")
-public class StorageController implements StorageAPI {
+@Path("triplestore")
+public class TriplestoreController implements TriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
     private static final String WRITING_ERROR_MSG = "Error while downloading the dataset.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
 
-    private final Triplestore triplestore = TriplestoreFactory.createSimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
+    private final Triplestore triplestore = new SimpleTriplestore(
+            StorageEngineFactory.createNewStorageEngine(System.getenv("STORAGE_ENGINE_TYPE")),
+            QueryEngineFactory.createNewQueryEngine(System.getenv("QUERY_ENGINE_TYPE")));
 
     @Override
     public Response upload(String storeID, UploadForm form) {
@@ -45,7 +47,6 @@ public class StorageController implements StorageAPI {
             }
         }
     }
-
 
     @Override
     public Response download(String storeID, String syntax) {

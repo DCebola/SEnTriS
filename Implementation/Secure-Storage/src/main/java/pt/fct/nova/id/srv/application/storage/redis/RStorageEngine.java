@@ -99,14 +99,14 @@ public class RStorageEngine implements StorageEngine {
         Node subject = triple.getSubject();
         Node predicate = triple.getPredicate();
         Node object = triple.getObject();
-        logger.info("#{}: Triple:{}", storeID, triple);
+        logger.debug("#{}: Triple:{}", storeID, triple);
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String s_iri = parseNodeIRI(subject);
             String p_iri = parseNodeIRI(predicate);
             String o_iri = parseNodeIRI(object);
 
-            logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+            logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
             boolean isDeleted = Boolean.parseBoolean(jedis.get(storeInfo));
 
@@ -139,7 +139,7 @@ public class RStorageEngine implements StorageEngine {
                     putIRI(t, O_IRIS, REV_O_IRIS, storeID, o_iri, o_idx);
                 }
 
-                logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
+                logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
                 String sp_idx = generateComplementIndex(p_idx, s_idx);
                 String so_idx = generateComplementIndex(s_idx, o_idx);
@@ -153,7 +153,7 @@ public class RStorageEngine implements StorageEngine {
                 putIndex(t, ALL_SO, SINGLE_SO, storeID, so_idx, p_idx);
                 putIndex(t, ALL_PO, SINGLE_PO, storeID, po_idx, s_idx);
 
-                logger.info("#{}: Pipelined INDEX uploads.", storeID);
+                logger.debug("#{}: Pipelined INDEX uploads.", storeID);
 
                 t.exec();
             }
@@ -200,7 +200,7 @@ public class RStorageEngine implements StorageEngine {
 
     private Node generateNode(String iri) {
         String[] split_iri = iri.split(IRI_SEPARATOR);
-        logger.info("#Split {}", Arrays.toString(split_iri));
+        logger.debug("#Split {}", Arrays.toString(split_iri));
         if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
             return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
         else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
@@ -246,9 +246,9 @@ public class RStorageEngine implements StorageEngine {
                         p_iri = jedis.hget(String.format(REV_P_IRIS, storeID), p_idx);
                         o_iri = jedis.hget(String.format(REV_O_IRIS, storeID), o_idx);
 
-                        logger.info("#{}: po->{}", storeID, po_idx);
-                        logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
-                        logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
+                        logger.debug("#{}: po->{}", storeID, po_idx);
+                        logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+                        logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
                         triples.add(new Triple(
                                 generateNode(s_iri),
