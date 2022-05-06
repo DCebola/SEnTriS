@@ -10,5 +10,5 @@ public interface Triplestore {
 
     boolean createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces);
 
-    Model getDataset(String storeID);
+    Model getDatasetModel(String storeID);
 }

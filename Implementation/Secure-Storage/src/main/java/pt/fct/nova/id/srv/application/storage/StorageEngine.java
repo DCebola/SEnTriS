@@ -15,4 +15,5 @@ public interface StorageEngine {
     List<Triple> getTriples(String storeID);
 
     Map<String, String> getNamespaces(String storeID);
+
 }

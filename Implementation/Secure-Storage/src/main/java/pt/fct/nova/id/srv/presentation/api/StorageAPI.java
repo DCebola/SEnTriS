@@ -3,29 +3,31 @@ package pt.fct.nova.id.srv.presentation.api;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import pt.fct.nova.id.srv.presentation.dtos.UploadReqBody;
+import org.apache.http.client.HttpResponseException;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 public interface StorageAPI {
-    String TEXT_TURTLE = "text/turtle ";
-    String RDF_XML = "application/rdf+xml";
-    String N_TRIPLES = "application/n-triples";
-    String TRIG = "text/trig";
-    String N_QUADS = "application/n-quads";
-    String TRIX_XML = "application/trix+xml";
-    String RDF_THRIFT = "application/rdf+thrift";
-    String RDF_PROTOBUF = "application/rdf+protobuf";
+
 
     @POST
     @Path("upload/{storeID}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     Response upload(
             @PathParam("storeID") String storeID,
-            UploadReqBody body);
+            @MultipartForm UploadForm form) throws HttpResponseException;
 
     @GET
     @Path("/download/{storeID}")
-    @Produces({TEXT_TURTLE, RDF_XML, N_TRIPLES, TRIG, N_QUADS, TRIX_XML, RDF_THRIFT, RDF_PROTOBUF})
+    @Produces({RDFMediaType.TEXT_TURTLE,
+            RDFMediaType.RDF_XML,
+            RDFMediaType.N_TRIPLES,
+            RDFMediaType.TRIG,
+            RDFMediaType.N_QUADS,
+            RDFMediaType.TRIX_XML,
+            RDFMediaType.RDF_THRIFT,
+            RDFMediaType.RDF_PROTOBUF})
     Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
 
     @GET

@@ -13,30 +13,30 @@ import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
 import pt.fct.nova.id.srv.application.triplestores.TriplestoreFactory;
 import pt.fct.nova.id.srv.presentation.api.StorageAPI;
-import pt.fct.nova.id.srv.presentation.dtos.UploadReqBody;
+import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import java.io.ByteArrayOutputStream;
 
 
 @Path("storage")
 public class StorageController implements StorageAPI {
-    private static final String INVALID_SYNTAX_MSG = "Language field is null.";
+    private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
     private static final String WRITING_ERROR_MSG = "Error while downloading the dataset.";
-
     private static final String SUCCESS_UPLOAD = "Successful upload.";
 
     private final Triplestore triplestore = TriplestoreFactory.createSimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
-    public Response upload(String storeID, UploadReqBody reqBody) {
-        if (reqBody.lang() == null)
-            return Response.ok(INVALID_SYNTAX_MSG).status(Status.BAD_REQUEST).build();
+    public Response upload(String storeID, UploadForm form) {
+        Lang l = RDFLanguages.nameToLang(form.getSyntax());
+        if (l == null)
+            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
         else {
             boolean success = triplestore.createDataset(
                     storeID,
-                    AsyncParser.asyncParseTriples(reqBody.contents(), reqBody.lang(), null),
-                    reqBody.namespaces()
+                    AsyncParser.asyncParseTriples(form.getContents(), l, null),
+                    form.getNamespaces()
             );
             if (!success)
                 return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
@@ -46,18 +46,20 @@ public class StorageController implements StorageAPI {
         }
     }
 
+
     @Override
     public Response download(String storeID, String syntax) {
         Lang l = RDFLanguages.nameToLang(syntax);
         if (l == null)
             return Response.ok(String.format(INVALID_SYNTAX_MSG, syntax)).status(Status.BAD_REQUEST).build();
         try {
-            Model m = triplestore.getDataset(storeID);
+            Model m = triplestore.getDatasetModel(storeID);
             if (m == null)
                 return Response.ok(WRITING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             RDFDataMgr.write(out, m, l);
+
             return Response.ok(out.toByteArray()).build();
         } catch (Exception e) {
             e.printStackTrace();

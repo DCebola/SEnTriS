@@ -5,9 +5,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
@@ -40,15 +37,11 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public Model getDataset(String storeID) {
+    public Model getDatasetModel(String storeID) {
         Graph g = GraphFactory.createDefaultGraph();
         storageEngine.getTriples(storeID).forEach(g::add);
         Model m = ModelFactory.createModelForGraph(g);
         storageEngine.getNamespaces(storeID).forEach(m::setNsPrefix);
-        m.setNsPrefix("rdf", RDF.uri);
-        m.setNsPrefix("rdfs", RDFS.uri);
-        m.setNsPrefix("owl", OWL.NS);
-        m.setNsPrefix("base", "http://swat.cse.lehigh.edu/onto/univ-bench.owl");
         return m;
     }
 

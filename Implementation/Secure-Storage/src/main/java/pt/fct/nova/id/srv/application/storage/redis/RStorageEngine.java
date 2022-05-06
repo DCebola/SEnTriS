@@ -191,7 +191,7 @@ public class RStorageEngine implements StorageEngine {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
-            return String.format(SIMPLE_IRI, node.getLocalName());
+            return String.format(SIMPLE_IRI, node.getURI());
         else if (node.isLiteral())
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
@@ -267,7 +267,7 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public Map<String, String> getNamespaces(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.hgetAll(storeID);
+            return jedis.hgetAll(String.format(NAMESPACES, storeID));
         } catch (Exception e) {
             e.printStackTrace();
             return new HashMap<>();
