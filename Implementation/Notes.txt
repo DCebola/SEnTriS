@@ -29,6 +29,16 @@ Data Structures:
 	
 	
 -----------------------------------------------------------------------------------	
+SPARQL Result:
+
+
+Head: { Links: [Strings...], Vars: [Strings...] }
+Bindings: [ Binding: {Var_i: Node, ...Var_t: Node} ]
+
+SPARQLResult -> head = Head(Set<String> links, Set<String> vars)
+                bindings = new List<VarNodePair<String,Node>>)[]
+
+-----------------------------------------------------------------------------------
 Operations:
 
 GET(a, b, c) -> 1) FILTER(S[a], (b,c))
