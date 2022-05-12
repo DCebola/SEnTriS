@@ -23,6 +23,9 @@ import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 public class RStorageEngine implements StorageEngine {
 
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
+
+    public final static String TYPE = "REDIS";
+
     private final static String INFO = "%s:INFO";
     private final static String NAMESPACES = "%s:NS";
 

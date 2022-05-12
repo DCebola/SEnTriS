@@ -13,6 +13,7 @@ public class MainApplication extends Application {
 
     public MainApplication() {
         resources.add(ControlController.class);
+
         resources.add(TriplestoreController.class);
     }
 

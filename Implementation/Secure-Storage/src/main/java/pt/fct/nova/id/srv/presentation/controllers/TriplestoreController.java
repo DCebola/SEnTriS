@@ -8,8 +8,10 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
-import pt.fct.nova.id.srv.application.query.QueryEngineFactory;
-import pt.fct.nova.id.srv.application.storage.StorageEngineFactory;
+import pt.fct.nova.id.srv.application.query.QueryEngine;
+import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
@@ -25,9 +27,18 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String WRITING_ERROR_MSG = "Error while downloading the dataset.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
 
-    private final Triplestore triplestore = new SimpleTriplestore(
-            StorageEngineFactory.createNewStorageEngine(System.getenv("STORAGE_ENGINE_TYPE")),
-            QueryEngineFactory.createNewQueryEngine(System.getenv("QUERY_ENGINE_TYPE")));
+    private final Triplestore triplestore = generateTriplestore(System.getenv("STORAGE_ENGINE"), System.getenv("QUERY_ENGINE"));
+
+    private Triplestore generateTriplestore(String storage_engine_type, String query_engine_type) {
+        try {
+            return new SimpleTriplestore(
+                    (StorageEngine) Class.forName(storage_engine_type).getConstructor().newInstance(),
+                    (QueryEngine) Class.forName(query_engine_type).getConstructor().newInstance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
+    }
 
     @Override
     public Response upload(String storeID, UploadForm form) {
