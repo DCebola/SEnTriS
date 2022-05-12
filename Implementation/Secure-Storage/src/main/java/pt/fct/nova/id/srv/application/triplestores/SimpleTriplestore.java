@@ -6,6 +6,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
+import pt.fct.nova.id.srv.application.query.QueryResult;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
@@ -43,6 +44,11 @@ public class SimpleTriplestore implements Triplestore {
         Model m = ModelFactory.createModelForGraph(g);
         storageEngine.getNamespaces(storeID).forEach(m::setNsPrefix);
         return m;
+    }
+
+    @Override
+    public QueryResult executeQuery(String query) {
+        return null;
     }
 
 

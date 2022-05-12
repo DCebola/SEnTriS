@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.triplestores;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import pt.fct.nova.id.srv.application.query.QueryResult;
 
 import java.util.Iterator;
 import java.util.Map;

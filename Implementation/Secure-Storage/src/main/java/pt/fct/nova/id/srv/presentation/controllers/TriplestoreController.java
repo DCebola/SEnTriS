@@ -37,7 +37,7 @@ public class TriplestoreController implements TriplestoreAPI {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
+        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine(algebraGenerator));
     }
 
     @Override
@@ -79,10 +79,8 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    @Override
-    public Response query(String storeID) {
-        //TODO: Check protocol type (e.g SPARQL, ...)
-        //TODO: Parse query body
+    public Response answerSPARQLQuery(String storeID, String query) {
+        //TODO: Parse query
         //TODO: Collect results to send into correct type (boolean, graph or binding tables)
         return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
     }

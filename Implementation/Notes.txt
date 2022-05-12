@@ -35,8 +35,9 @@ SPARQL Result:
 Head: { Links: [Strings...], Vars: [Strings...] }
 Bindings: [ Binding: {Var_i: Node, ...Var_t: Node} ]
 
-SPARQLResult -> head = Head(Set<String> links, Set<String> vars)
-                bindings = new List<VarNodePair<String,Node>>)[]
+SPARQLResult -> Set<String> links
+                Set<String> vars
+                List<List<VarNodePair<String,Node>>>[] bindings
 
 -----------------------------------------------------------------------------------
 Operations:
