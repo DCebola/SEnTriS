@@ -29,11 +29,11 @@ public class TriplestoreController implements TriplestoreAPI {
 
     private final Triplestore triplestore = generateTriplestore(System.getenv("STORAGE_ENGINE"), System.getenv("QUERY_ENGINE"));
 
-    private Triplestore generateTriplestore(String storage_engine_type, String query_engine_type) {
+    private Triplestore generateTriplestore(String storageEngineType, String queryEngineType) {
         try {
             return new SimpleTriplestore(
-                    (StorageEngine) Class.forName(storage_engine_type).getConstructor().newInstance(),
-                    (QueryEngine) Class.forName(query_engine_type).getConstructor().newInstance());
+                    (StorageEngine) Class.forName(storageEngineType).getConstructor().newInstance(),
+                    (QueryEngine) Class.forName(queryEngineType).getConstructor().newInstance());
         } catch (Exception e) {
             e.printStackTrace();
         }
