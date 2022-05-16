@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.triplestores;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -48,7 +49,7 @@ public class SimpleTriplestore implements Triplestore {
 
     @Override
     public QueryResult executeQuery(String query) {
-        return null;
+        return queryEngine.execQuery(query);
     }
 
 

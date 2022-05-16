@@ -37,7 +37,7 @@ public class TriplestoreController implements TriplestoreAPI {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine(algebraGenerator));
+        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
     }
 
     @Override
