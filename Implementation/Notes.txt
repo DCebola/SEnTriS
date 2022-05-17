@@ -27,21 +27,17 @@ Data Structures:
 	STORE_ID:SO:s_ptrIRI*|o_ptrIRI*  -> [p_ptrIRI ... ] 
 	STORE_ID:SP:s_ptrIRI*|p_ptrIRI*  -> [o_ptrIRI ... ]
 	
---------- OWL/RDFS EXTENSION
+--------- OWL/RDFS Inferencing Capabilities
 
-		
-	
+	[Data Owner Client] - Set of rules to extend the ontology/data with statements that preserve property & class axioms.
+				
 -----------------------------------------------------------------------------------	
-https://stackoverflow.com/questions/15203838/how-to-get-all-of-the-subjects-of-a-jena-query
-SPARQL Result:
+Jena Query Operations:
 
-
-Head: { Links: [Strings...], Vars: [Strings...] }
-Bindings: [ Binding: {Var_i: Node, ...Var_t: Node} ]
-
-SPARQLResult -> Set<String> links
-                Set<String> vars
-                List<List<VarNodePair<String,Node>>>[] bindings
+	OP0 -> OpBGP, OpDatasetNames, OpNull, OpPath, OpQuad, OpQuadBlock, OpQuadPattern, OpTable, OpTriple
+	OP1 -> OpExtendAssign, OpFilter, OpGraph, OpGroup, OpLabel, OpModifier, OpProcedure, OpPropFunc, OpService
+	OP2 -> OpConditional, OpDiff, OpJoin, OpLeftJoin, OpMinus, OpUnion
+	OPN -> OpDisjunction, OpSequence
 
 -----------------------------------------------------------------------------------
 Operations:

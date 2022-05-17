@@ -1,14 +1,12 @@
 package pt.fct.nova.id.srv.application.query;
 
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.Syntax;
+import org.apache.jena.query.*;
 import org.apache.jena.sparql.algebra.*;
-import org.apache.jena.sparql.algebra.walker.WalkerVisitor;
+import org.apache.jena.sparql.engine.iterator.QueryIter;
+import org.apache.jena.sparql.engine.iterator.QueryIterPlainWrapper;
 
 public class SPARQLQueryEngine implements QueryEngine {
     public final static String TYPE = "SPARQL";
-
     private final AlgebraGenerator algebraGenerator;
 
     public SPARQLQueryEngine() {
@@ -16,11 +14,11 @@ public class SPARQLQueryEngine implements QueryEngine {
     }
 
     @Override
-    public QueryResult execQuery(String queryString) {
+    public ResultSet execQuery(String queryString) {
         Query query = QueryFactory.create(queryString, Syntax.syntaxSPARQL_11);
+        SPARQLVisitor visitor = new SPARQLVisitor();
+        algebraGenerator.compile(query).visit(visitor);
 
-        Op opActual = algebraGenerator.compile(query);
-        opActual.visit(new WalkerVisitor());
         return null;
     }
 }
