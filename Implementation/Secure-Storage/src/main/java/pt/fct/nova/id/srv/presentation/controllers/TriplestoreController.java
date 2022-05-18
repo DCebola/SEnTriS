@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -51,6 +52,7 @@ public class TriplestoreController implements TriplestoreAPI {
                     AsyncParser.asyncParseTriples(form.getContents(), l, null),
                     form.getNamespaces()
             );
+            form.getContents().toString();
             if (!success)
                 return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
             else {
@@ -80,9 +82,14 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     public Response answerSPARQLQuery(String storeID, String query) {
-        //TODO: Parse query
-        //TODO: Collect results to send into correct type (boolean, graph or binding tables)
-        return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
+        try {
+            System.out.println(query);
+            ResultSet res = triplestore.executeQuery(query);
+            return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(WRITING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }

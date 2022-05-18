@@ -33,7 +33,6 @@ public interface TriplestoreAPI {
     @GET
     @Path("/{storeID}/query/")
     @Produces(MediaType.TEXT_PLAIN)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID,
-                   String query);
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
 
 }
