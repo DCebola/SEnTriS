@@ -14,11 +14,6 @@ import redis.clients.jedis.Jedis;
 public class ControlController implements ControlAPI {
 
     public Response version() {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            System.out.println(jedis.ping());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return Response.ok(System.getenv("VERSION")).build();
     }
 }
