@@ -28,10 +28,14 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         List<Triple> triples;
         if (op instanceof OpBGP) {
             triples = ((OpBGP) op).getPattern().getList();
+            generateGetJobs(op, triples);
         } else if (op instanceof OpTriple) {
             triples = ((OpTriple) op).asBGP().getPattern().getList();
-        } else
-            throw new NotImplemented();
+            generateGetJobs(op, triples);
+        }
+    }
+
+    private void generateGetJobs(Op op, List<Triple> triples) {
         triples.forEach(
                 t -> {
                     Node s = t.getSubject();
@@ -39,9 +43,7 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
                     Node o = t.getObject();
                     GetJob j = new GetJob(extractVariablesPattern(s, p, o), s, p, o);
                     System.out.println(j.getVariablesPattern().toString());
-                    Set<Job> op_jobs = jobs.get(op);
-                    if (op_jobs == null)
-                        op_jobs = new HashSet<>();
+                    Set<Job> op_jobs = jobs.computeIfAbsent(op, k -> new HashSet<>());
                     op_jobs.add(j);
                 }
         );
@@ -67,7 +69,6 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
 
     @Override
     public void visit1(Op1 op) {
-
         if (op instanceof OpExtendAssign) {
             System.out.println("OP1 OpExtendAssign: " + op);
         } else if (op instanceof OpFilter) {
