@@ -9,17 +9,28 @@ import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import pt.fct.nova.id.srv.application.query.jobs.GetJob;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.Utils.extractVariablesPattern;
+import static pt.fct.nova.id.srv.application.Utils.generateID;
+
 public class SPARQLPlanner extends OpVisitorByTypeBase {
 
-    private final Map<Op, Set<Job>> jobs = new HashMap<>();
+    private final Map<Op, Set<String>> parsedOps = new HashMap<>();
     private final Set<String> bindings = new HashSet<>();
+    private final Queue<Job> plan = new LinkedList<>();
 
     void opVisitorWalker(Op op) {
         OpWalker.walk(op, this);
+    }
+
+    public Set<String> getBindings() {
+        return bindings;
+    }
+
+    public Queue<Job> getPlan() {
+        return plan;
     }
 
     @Override
@@ -32,7 +43,9 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         } else if (op instanceof OpTriple) {
             triples = ((OpTriple) op).asBGP().getPattern().getList();
             generateGetJobs(op, triples);
-        }
+        } /* else
+            throw new NotImplemented();
+          */
     }
 
     private void generateGetJobs(Op op, List<Triple> triples) {
@@ -41,54 +54,19 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
                     Node s = t.getSubject();
                     Node p = t.getPredicate();
                     Node o = t.getObject();
-                    GetJob j = new GetJob(extractVariablesPattern(s, p, o), s, p, o);
-                    System.out.println(j.getVariablesPattern().toString());
-                    Set<Job> op_jobs = jobs.computeIfAbsent(op, k -> new HashSet<>());
-                    op_jobs.add(j);
+                    String jobID = generateID();
+                    Set<String> op_jobs = parsedOps.computeIfAbsent(op, k -> new HashSet<>());
+                    op_jobs.add(jobID);
+                    plan.add(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
     }
 
-    private VariablesPattern extractVariablesPattern(Node subject, Node predicate, Node object) {
-        if (!subject.isConcrete() && predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.S;
-        else if (subject.isConcrete() && !predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.P;
-        else if (subject.isConcrete() && predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.O;
-        else if (!subject.isConcrete() && !predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.SP;
-        else if (!subject.isConcrete() && predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.SO;
-        else if (subject.isConcrete() && !predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.PO;
-        else
-            return VariablesPattern.SPO;
-    }
-
-
     @Override
     public void visit1(Op1 op) {
-        if (op instanceof OpExtendAssign) {
-            System.out.println("OP1 OpExtendAssign: " + op);
-        } else if (op instanceof OpFilter) {
-            System.out.println("OP1 OpFilter: " + op);
-        } else if (op instanceof OpGraph) {
-            System.out.println("OP1 OpGraph: " + op);
-        } else if (op instanceof OpGroup) {
-            System.out.println("OP1 OpGroup: " + op);
-        } else if (op instanceof OpLabel) {
-            System.out.println("OP1 OpLabel: " + op);
-        } else if (op instanceof OpModifier) {
+        if (op instanceof OpModifier) {
             System.out.println("OP1 OpModifier: " + op);
-        } else if (op instanceof OpProcedure) {
-            System.out.println("OP1 OpProcedure: " + op);
-        } else if (op instanceof OpPropFunc) {
-            System.out.println("OP1 OpPropFunc: " + op);
-        } else if (op instanceof OpService) {
-            System.out.println("OP1 OpService: " + op);
         }
-
     }
 
     @Override
@@ -106,7 +84,9 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
             System.out.println("OP2: " + op);
         } else if (op instanceof OpUnion) {
             System.out.println("OP2: " + op);
-        }
+        } /* else
+            throw new NotImplemented();
+          */
     }
 
     @Override
@@ -115,7 +95,9 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
             System.out.println("OPn: " + op);
         } else if (op instanceof OpSequence) {
             System.out.println("OPn: " + op);
-        }
+        } /* else
+            throw new NotImplemented();
+          */
     }
 
 }

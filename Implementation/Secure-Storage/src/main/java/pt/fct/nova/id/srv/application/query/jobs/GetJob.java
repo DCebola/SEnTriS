@@ -8,8 +8,8 @@ public class GetJob extends Job {
     private final Node predicate;
     private final Node object;
 
-    public GetJob(VariablesPattern vars, Node subject, Node predicate, Node object) {
-        super(vars);
+    public GetJob(String jobID, VariablesPattern vars, Node subject, Node predicate, Node object) {
+        super(vars, jobID);
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
