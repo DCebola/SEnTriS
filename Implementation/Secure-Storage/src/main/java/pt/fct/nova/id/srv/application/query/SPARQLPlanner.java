@@ -64,19 +64,32 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
 
     @Override
     public void visit1(Op1 op) {
-        if (op instanceof OpModifier) {
+        if (op instanceof OpExtendAssign) {
+            System.out.println("OP1 OpExtendAssign: " + op); // for projection renaming
+        } else if (op instanceof OpModifier) {
             System.out.println("OP1 OpModifier: " + op);
-        }
+        } else if (op instanceof OpFilter) {
+            System.out.println("OP1 OpFilter: " + op);
+        } else if (op instanceof OpGroup) {
+            System.out.println("OP1 OpGroup: " + op);
+        } /* else if (op instanceof OpGraph) {
+            System.out.println("OP1 OpGraph: " + op);
+        } else if (op instanceof OpLabel) {
+            System.out.println("OP1 Label: " + op);
+        } else if (op instanceof OpProcedure) {
+            System.out.println("OP1 OpProcedure: " + op);
+        } else if (op instanceof OpPropFunc) {
+            System.out.println("OP1 OpPropFunc: " + op);
+        } else if (op instanceof OpService) {
+            System.out.println("OP1 OpService: " + op);
+        } else
+            throw new NotImplemented();
+        */
     }
 
     @Override
     public void visit2(Op2 op) {
-
-        if (op instanceof OpConditional) {
-            System.out.println("OP2: " + op);
-        } else if (op instanceof OpDiff) {
-            System.out.println("OP2: " + op);
-        } else if (op instanceof OpJoin) {
+        if (op instanceof OpJoin) {
             System.out.println("OP2: " + op);
         } else if (op instanceof OpLeftJoin) {
             System.out.println("OP2: " + op);
@@ -84,20 +97,25 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
             System.out.println("OP2: " + op);
         } else if (op instanceof OpUnion) {
             System.out.println("OP2: " + op);
-        } /* else
+        } /* else if (op instanceof OpConditional) {
+            System.out.println("OP2: " + op);
+        } else if (op instanceof OpDiff) {
+            System.out.println("OP2: " + op);
+        } else
             throw new NotImplemented();
           */
     }
 
     @Override
     public void visitN(OpN op) {
+        /*
         if (op instanceof OpDisjunction) {
-            System.out.println("OPn: " + op);
+            System.out.println("OPN OpDisjunction: " + op);
         } else if (op instanceof OpSequence) {
-            System.out.println("OPn: " + op);
-        } /* else
-            throw new NotImplemented();
-          */
+            System.out.println("OPN OpSequence: " + op);
+        } else
+           throw new NotImplemented();
+         */
     }
 
 }

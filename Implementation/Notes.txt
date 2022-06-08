@@ -32,12 +32,12 @@ Data Structures:
 	[Data Owner Client] - Set of rules to extend the ontology/data with statements that preserve property & class axioms.
 				
 -----------------------------------------------------------------------------------	
-Jena Query Operations:
+Jena Query Operations: (opType: supported | not supported)
 
-	OP0 -> OpBGP, OpDatasetNames, OpNull, OpPath, OpQuad, OpQuadBlock, OpQuadPattern, OpTable, OpTriple
-	OP1 -> OpExtendAssign, OpFilter, OpGraph, OpGroup, OpLabel, OpModifier, OpProcedure, OpPropFunc, OpService
-	OP2 -> OpConditional, OpDiff, OpJoin, OpLeftJoin, OpMinus, OpUnion
-	OPN -> OpDisjunction, OpSequence
+	OP0 -> OpBGP, OpTriple | OpDatasetNames, OpNull, OpPath, OpQuad, OpQuadBlock, OpQuadPattern, OpTable
+	OP1 -> OpExtendAssign, OpModifier, OpFilter, OpGroup | OpGraph, OpLabel,  OpProcedure, OpPropFunc, OpService
+	OP2 -> OpJoin, OpLeftJoin, OpMinus, OpUnion | OpConditional, OpDiff
+	OPN -> | OpDisjunction, OpSequence
 
 -----------------------------------------------------------------------------------
 Operations:
