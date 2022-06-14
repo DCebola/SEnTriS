@@ -7,15 +7,16 @@ public class SPARQLQueryEngine implements QueryEngine {
     private final AlgebraGenerator algebraGenerator;
 
     public SPARQLQueryEngine() {
-        this.algebraGenerator = new AlgebraGenerator();
+        this.algebraGenerator = new AlgebraGenerator(ARQ.getContext());
     }
 
     @Override
     public ResultSet execQuery(String queryString) {
         Query query = QueryFactory.create(queryString);
-
         SPARQLPlanner visitor = new SPARQLPlanner();
-        visitor.opVisitorWalker(algebraGenerator.compile(query));
+        Op base = algebraGenerator.compile(query);
+
+        visitor.opVisitorWalker(base);
         return null;
     }
 }

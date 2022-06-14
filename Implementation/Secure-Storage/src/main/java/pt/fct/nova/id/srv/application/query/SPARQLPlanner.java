@@ -7,6 +7,8 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.VarExprList;
+import pt.fct.nova.id.srv.application.query.jobs.BindJob;
 import pt.fct.nova.id.srv.application.query.jobs.GetJob;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 
@@ -17,9 +19,8 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class SPARQLPlanner extends OpVisitorByTypeBase {
 
-    private final Map<Op, Set<String>> parsedOps = new HashMap<>();
     private final Set<String> bindings = new HashSet<>();
-    private final Queue<Job> plan = new LinkedList<>();
+    private final Deque<Job> plan = new LinkedList<>();
 
     void opVisitorWalker(Op op) {
         OpWalker.walk(op, this);
@@ -35,29 +36,26 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
 
     @Override
     public void visit0(Op0 op) throws NotImplemented {
-        System.out.println(op);
+        System.out.println("OP0: " + op);
         List<Triple> triples;
         if (op instanceof OpBGP) {
             triples = ((OpBGP) op).getPattern().getList();
-            generateGetJobs(op, triples);
+            generateGetJobs(triples);
         } else if (op instanceof OpTriple) {
             triples = ((OpTriple) op).asBGP().getPattern().getList();
-            generateGetJobs(op, triples);
+            generateGetJobs(triples);
         } /* else
             throw new NotImplemented();
           */
     }
 
-    private void generateGetJobs(Op op, List<Triple> triples) {
+    private void generateGetJobs(List<Triple> triples) {
         triples.forEach(
                 t -> {
                     Node s = t.getSubject();
                     Node p = t.getPredicate();
                     Node o = t.getObject();
-                    String jobID = generateID();
-                    Set<String> op_jobs = parsedOps.computeIfAbsent(op, k -> new HashSet<>());
-                    op_jobs.add(jobID);
-                    plan.add(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
+                    plan.addFirst(new GetJob(generateID(), extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
     }
@@ -65,14 +63,19 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
     @Override
     public void visit1(Op1 op) {
         if (op instanceof OpExtendAssign) {
-            System.out.println("OP1 OpExtendAssign: " + op); // for projection renaming
+            System.out.println("OP1 OpExtendAssign: " + op);
+            System.out.println(((OpExtendAssign) op).getVarExprList().getExprs());
+
         } else if (op instanceof OpModifier) {
-            System.out.println("OP1 OpModifier: " + op);
+            visitOpModifier((OpModifier) op);
         } else if (op instanceof OpFilter) {
+            System.out.println(((OpFilter) op).getExprs());
             System.out.println("OP1 OpFilter: " + op);
         } else if (op instanceof OpGroup) {
             System.out.println("OP1 OpGroup: " + op);
-        } /* else if (op instanceof OpGraph) {
+            System.out.println(((OpGroup) op).getGroupVars().getExprs());
+            System.out.println(((OpGroup) op).getAggregators());
+        }/* else if (op instanceof OpGraph) {
             System.out.println("OP1 OpGraph: " + op);
         } else if (op instanceof OpLabel) {
             System.out.println("OP1 Label: " + op);
@@ -85,6 +88,30 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         } else
             throw new NotImplemented();
         */
+    }
+
+    private void visitOpModifier(OpModifier op) {
+        if (op instanceof OpDistinct) {
+
+        } else if (op instanceof OpReduced) {
+
+        } else if (op instanceof OpOrder) {
+
+        } else if (op instanceof OpProject) {
+
+        } else if (op instanceof OpSlice) {
+
+        } /* else if (op instanceof OpTopN) {
+
+        }  else if (op instanceof OpList) {
+
+        } */
+    }
+
+    private void generateBindJobs(VarExprList exprList) {
+        exprList.getExprs().forEach(
+                (var, expr) -> plan.addFirst(new BindJob(generateID(), var, expr))
+        );
     }
 
     @Override
