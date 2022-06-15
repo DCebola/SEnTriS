@@ -14,9 +14,7 @@ public class SPARQLQueryEngine implements QueryEngine {
     public ResultSet execQuery(String queryString) {
         Query query = QueryFactory.create(queryString);
         SPARQLPlanner visitor = new SPARQLPlanner();
-        Op base = algebraGenerator.compile(query);
-
-        visitor.opVisitorWalker(base);
+        visitor.opVisitorWalker(algebraGenerator.compile(query));
         return null;
     }
 }

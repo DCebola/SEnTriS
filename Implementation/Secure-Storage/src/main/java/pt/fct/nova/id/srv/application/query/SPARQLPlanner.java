@@ -8,6 +8,7 @@ import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.VarExprList;
+import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.BindJob;
 import pt.fct.nova.id.srv.application.query.jobs.GetJob;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
@@ -19,15 +20,10 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class SPARQLPlanner extends OpVisitorByTypeBase {
 
-    private final Set<String> bindings = new HashSet<>();
     private final Deque<Job> plan = new LinkedList<>();
 
     void opVisitorWalker(Op op) {
         OpWalker.walk(op, this);
-    }
-
-    public Set<String> getBindings() {
-        return bindings;
     }
 
     public Queue<Job> getPlan() {
@@ -44,9 +40,15 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         } else if (op instanceof OpTriple) {
             triples = ((OpTriple) op).asBGP().getPattern().getList();
             generateGetJobs(triples);
+        } else if (op instanceof OpTable) {
+            generateValuesJob(((OpTable) op).getTable().rows());
         } /* else
             throw new NotImplemented();
           */
+    }
+
+    private void generateValuesJob(Iterator<Binding> bindings) {
+
     }
 
     private void generateGetJobs(List<Triple> triples) {
@@ -65,9 +67,9 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         if (op instanceof OpExtendAssign) {
             System.out.println("OP1 OpExtendAssign: " + op);
             System.out.println(((OpExtendAssign) op).getVarExprList().getExprs());
-
         } else if (op instanceof OpModifier) {
             visitOpModifier((OpModifier) op);
+            System.out.println("OP1 Modifier: " + op);
         } else if (op instanceof OpFilter) {
             System.out.println(((OpFilter) op).getExprs());
             System.out.println("OP1 OpFilter: " + op);
@@ -108,7 +110,7 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
         } */
     }
 
-    private void generateBindJobs(VarExprList exprList) {
+    private void generateBindJob(VarExprList exprList) {
         exprList.getExprs().forEach(
                 (var, expr) -> plan.addFirst(new BindJob(generateID(), var, expr))
         );
