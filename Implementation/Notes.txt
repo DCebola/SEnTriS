@@ -34,7 +34,7 @@ Data Structures:
 -----------------------------------------------------------------------------------	
 Jena Query Operations: (opType: supported | not supported)
 
-	OP0 -> OpBGP, OpTriple | OpDatasetNames, OpNull, OpPath, OpQuad, OpQuadBlock, OpQuadPattern, OpTable
+	OP0 -> OpBGP, OpTriple, OpPath, OpTable | OpDatasetNames, OpNull,  OpQuad, OpQuadBlock, OpQuadPattern
 	OP1 -> OpExtendAssign, OpModifier, OpFilter, OpGroup | OpGraph, OpLabel,  OpProcedure, OpPropFunc, OpService
 		OpModifier -> OpDistinctReduced, OpList, OpOrder, OpProject, OpSlice, OpTopN
 	OP2 -> OpJoin, OpLeftJoin, OpMinus, OpUnion | OpConditional, OpDiff
