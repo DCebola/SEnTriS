@@ -8,6 +8,7 @@ import java.util.Map;
 public class BindJob extends Job {
 
     private final Var variable;
+
     private final Expr expression;
 
     public BindJob(String jobID, Var variable, Expr expression) {

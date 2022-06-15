@@ -2,23 +2,20 @@ package pt.fct.nova.id.srv.application.query;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.algebra.JoinType;
+import org.apache.jena.query.QueryBuildException;
+import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryParseException;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
-import org.apache.jena.sparql.core.VarExprList;
 import org.apache.jena.sparql.engine.binding.Binding;
-import pt.fct.nova.id.srv.application.query.jobs.BindJob;
-import pt.fct.nova.id.srv.application.query.jobs.GetJob;
-import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.ValuesJob;
+import pt.fct.nova.id.srv.application.query.jobs.*;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.Utils.extractVariablesPattern;
-import static pt.fct.nova.id.srv.application.Utils.generateID;
+import static pt.fct.nova.id.srv.application.Utils.*;
 
 public class SPARQLPlanner extends OpVisitorByTypeBase {
 
@@ -40,7 +37,7 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
     }
 
     @Override
-    public void visit0(Op0 op) throws NotImplemented {
+    public void visit0(Op0 op) {
         System.out.println("OP0: " + op);
         if (op instanceof OpBGP) {
             generateGetJobs((OpBGP) op);
@@ -76,7 +73,7 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
     }
 
     private void generateValuesJob(OpTable op) {
-        Set<Binding> values = new LinkedHashSet<>();
+        List<Binding> values = new LinkedList<>();
         op.getTable().rows().forEachRemaining(values::add);
         String jobID = parsed_op.get(op);
         if (jobID == null) {
@@ -141,15 +138,29 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
     }
 
     private void generateProjectJob(OpProject op) {
-        //TODO: Generate ProjectJobs
+        String prevJobID = parsed_op.get(op.getSubOp());
+        if (prevJobID == null)
+            throw new QueryBuildException();
+        plan.addFirst(new ProjectJob(generateID(), prevJobID, op.getVars()));
     }
 
     private void generateDistinctJob(OpDistinctReduced op) {
-        //TODO: Generate DistinctJobs
+        String prevJobID = parsed_op.get(op.getSubOp());
+        if (prevJobID == null)
+            throw new QueryBuildException();
+        plan.addFirst(new DistinctJob(generateID(), prevJobID));
     }
 
-    private void generateOrderByJob(OpOrder op) {
-        //TODO: Generate OrderByJobs
+    private void generateOrderByJob(OpOrder op){
+        String prevJobID = parsed_op.get(op.getSubOp());
+        if (prevJobID == null)
+            throw new QueryBuildException();
+        for (SortCondition condition : op.getConditions()) {
+            OrderByDirection dir = extractOrderDirection(condition.getDirection());
+            if (dir == null)
+                throw new QueryBuildException();
+        }
+        plan.addFirst(new OrderByJob(generateID(), prevJobID,  op.getConditions()));
     }
 
     private void generateSliceJob(OpSlice op) {
