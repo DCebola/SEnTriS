@@ -11,8 +11,11 @@ public class BindJob extends Job {
 
     private final Expr expression;
 
-    public BindJob(String jobID, Var variable, Expr expression) {
+    private final String prevJobID;
+
+    public BindJob(String jobID, String prevJobID, Var variable, Expr expression) {
         super(jobID);
+        this.prevJobID = prevJobID;
         this.variable = variable;
         this.expression = expression;
     }
@@ -24,5 +27,9 @@ public class BindJob extends Job {
 
     public Expr getExpression() {
         return expression;
+    }
+
+    public String getPrevJobID() {
+        return prevJobID;
     }
 }

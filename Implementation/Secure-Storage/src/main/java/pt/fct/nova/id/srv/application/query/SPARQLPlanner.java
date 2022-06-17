@@ -1,10 +1,7 @@
 package pt.fct.nova.id.srv.application.query;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.QueryBuildException;
-import org.apache.jena.query.QueryException;
-import org.apache.jena.query.QueryParseException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
@@ -106,18 +103,26 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
 
 
     private void generateBindJob(OpExtendAssign op) {
+        String prevJobID = getPrevJobID(op.getSubOp());
         op.getVarExprList().getExprs().forEach(
-                (var, expr) -> plan.addFirst(new BindJob(generateID(), var, expr))
+                (var, expr) -> plan.addFirst(new BindJob(generateID(), prevJobID, var, expr))
         );
     }
 
+    private String getPrevJobID(Op subOp) {
+        String prevJobID = parsed_op.get(subOp);
+        if (prevJobID == null)
+            throw new QueryBuildException();
+        return prevJobID;
+    }
+
     private void generateFilterJob(OpFilter op) {
-        //TODO: Generate FilterJobs
+        plan.addFirst(new FilterJob(generateID(), getPrevJobID(op.getSubOp()), op.getExprs().getList()));
     }
 
 
     private void generateGroupJob(OpGroup op) {
-        //TODO: Generate GroupJobs
+        plan.addFirst(new GroupJob(generateID(), getPrevJobID(op.getSubOp()), op.getAggregators()));
     }
 
 
@@ -138,33 +143,24 @@ public class SPARQLPlanner extends OpVisitorByTypeBase {
     }
 
     private void generateProjectJob(OpProject op) {
-        String prevJobID = parsed_op.get(op.getSubOp());
-        if (prevJobID == null)
-            throw new QueryBuildException();
-        plan.addFirst(new ProjectJob(generateID(), prevJobID, op.getVars()));
+        plan.addFirst(new ProjectJob(generateID(), getPrevJobID(op.getSubOp()), op.getVars()));
     }
 
     private void generateDistinctJob(OpDistinctReduced op) {
-        String prevJobID = parsed_op.get(op.getSubOp());
-        if (prevJobID == null)
-            throw new QueryBuildException();
-        plan.addFirst(new DistinctJob(generateID(), prevJobID));
+        plan.addFirst(new DistinctJob(generateID(), getPrevJobID(op.getSubOp())));
     }
 
-    private void generateOrderByJob(OpOrder op){
-        String prevJobID = parsed_op.get(op.getSubOp());
-        if (prevJobID == null)
-            throw new QueryBuildException();
+    private void generateOrderByJob(OpOrder op) {
         for (SortCondition condition : op.getConditions()) {
             OrderByDirection dir = extractOrderDirection(condition.getDirection());
             if (dir == null)
                 throw new QueryBuildException();
         }
-        plan.addFirst(new OrderByJob(generateID(), prevJobID,  op.getConditions()));
+        plan.addFirst(new OrderByJob(generateID(), getPrevJobID(op.getSubOp()), op.getConditions()));
     }
 
     private void generateSliceJob(OpSlice op) {
-        //TODO: Generate SliceJobs
+        plan.addFirst(new SliceJob(generateID(), op.getStart(), op.getLength()));
     }
 
 
