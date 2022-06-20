@@ -11,6 +11,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
+import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;

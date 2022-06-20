@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application;
 
 import org.apache.jena.graph.Node;
-import pt.fct.nova.id.srv.application.query.jobs.OrderByDirection;
+import pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByDirection;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 
 import java.nio.ByteBuffer;

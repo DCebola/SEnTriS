@@ -1,0 +1,16 @@
+package pt.fct.nova.id.srv.application.query.plans;
+
+import pt.fct.nova.id.srv.application.query.jobs.Job;
+
+import java.util.Map;
+import java.util.Queue;
+
+public interface ExecutionPlan {
+
+    Map<Job, String> getJobs();
+
+    Queue<String> getExecutionOrder();
+
+    void pushJob(Job job);
+
+}
