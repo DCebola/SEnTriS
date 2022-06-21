@@ -11,7 +11,7 @@ public interface SPARQLExecution {
 
     Iterator<String> getFinishedJobs();
 
-    Iterator<String> getCurrentJobs();
+    String getCurrentJobs();
 
     boolean isFinished();
 

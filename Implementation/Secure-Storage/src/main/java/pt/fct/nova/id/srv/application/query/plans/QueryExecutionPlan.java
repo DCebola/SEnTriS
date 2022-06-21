@@ -9,7 +9,7 @@ import java.util.Queue;
 
 public interface QueryExecutionPlan {
 
-    Map<Job, String> getJobs();
+    Map<String, Job> getJobs();
 
     Queue<String> getExecutionOrder();
 

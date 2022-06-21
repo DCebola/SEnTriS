@@ -53,7 +53,6 @@ public class TriplestoreController implements TriplestoreAPI {
                     AsyncParser.asyncParseTriples(form.getContents(), l, null),
                     form.getNamespaces()
             );
-            form.getContents().toString();
             if (!success)
                 return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
             else {

@@ -5,6 +5,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
+import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
@@ -12,8 +14,8 @@ import java.util.*;
 
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
-    private final Map<Job, String> jobs;
-    private final List<String> current;
+    private final Map<String, Job> jobs;
+    private String current;
     private final Queue<String> pending;
     private final List<String> finished;
     private final Map<String, Binding> jobBindings;
@@ -25,7 +27,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
-        this.current = new LinkedList<>();
+        this.current = null;
         jobBindings = new HashMap<>();
     }
 
@@ -40,8 +42,8 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public Iterator<String> getCurrentJobs() {
-        return current.iterator();
+    public String getCurrentJobs() {
+        return current;
     }
 
     @Override
@@ -68,9 +70,28 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
 
     @Override
     public ResultSet exec(StorageEngine engine) {
-        while (!pending.isEmpty()){
-            pending.peek();
+        SPARQLWorker worker = new SimpleSPARQLWorker(engine);
+        while (!pending.isEmpty()) {
+            current = pending.peek();
+            jobBindings.put(current, delegateJob(worker, current));
+            finished.add(pending.poll());
         }
         return getResults();
+    }
+
+    private Binding delegateJob(SPARQLWorker worker, String current) {
+        Job job = jobs.get(current);
+        if (job instanceof Job1) {
+            return worker.exec((Job1) job,
+                    jobBindings.get(((Job1) job).getPrevJobID())
+            );
+        } else if (job instanceof Job2) {
+            return worker.exec((Job2) job,
+                    jobBindings.get(((Job2) job).getLeftJobID()),
+                    jobBindings.get(((Job2) job).getRightJobID())
+            );
+        } else {
+            return worker.exec(job);
+        }
     }
 }

@@ -7,7 +7,7 @@ import java.util.*;
 
 public class SimpleQueryExecutionPlan implements QueryExecutionPlan {
 
-    private final Map<Job, String> jobs;
+    private final Map<String, Job> jobs;
     private final Deque<String> executionOrder;
     private final List<Var> vars;
 
@@ -19,7 +19,7 @@ public class SimpleQueryExecutionPlan implements QueryExecutionPlan {
 
 
     @Override
-    public Map<Job, String> getJobs() {
+    public Map<String, Job> getJobs() {
         return jobs;
     }
 
@@ -31,7 +31,7 @@ public class SimpleQueryExecutionPlan implements QueryExecutionPlan {
     @Override
     public void pushJob(Job job) {
         String jobID = job.getID();
-        jobs.put(job, jobID);
+        jobs.put(jobID, job);
         executionOrder.addLast(jobID);
     }
 
