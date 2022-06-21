@@ -5,5 +5,5 @@ import org.apache.jena.sparql.algebra.Op;
 import java.util.List;
 
 public interface SPARQLPlanner {
-    ExecutionPlan generatePlan(Op op, List<String> resultVarNames);
+    QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames);
 }

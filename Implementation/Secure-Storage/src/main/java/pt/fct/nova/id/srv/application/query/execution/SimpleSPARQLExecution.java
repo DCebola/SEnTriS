@@ -5,7 +5,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.plans.ExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.*;
 
@@ -19,7 +20,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     private final List<Var> vars;
 
 
-    public SimpleSPARQLExecution(ExecutionPlan plan) {
+    public SimpleSPARQLExecution(QueryExecutionPlan plan) {
         this.vars = plan.getVars();
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
@@ -60,14 +61,16 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
 
     @Override
     public ResultSet getResults(String jobID) {
-        List<Binding> binding = new ArrayList<>(1);
+        List<Binding> binding = new LinkedList<>();
         binding.add(jobBindings.get(jobID));
         return ResultSetStream.create(vars, binding.iterator());
     }
 
     @Override
-    public ResultSet exec() {
-        //TODO: exec
-        return null;
+    public ResultSet exec(StorageEngine engine) {
+        while (!pending.isEmpty()){
+            pending.peek();
+        }
+        return getResults();
     }
 }

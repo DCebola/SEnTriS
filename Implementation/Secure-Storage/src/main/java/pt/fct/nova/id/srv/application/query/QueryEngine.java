@@ -1,8 +1,9 @@
 package pt.fct.nova.id.srv.application.query;
 
-import org.apache.jena.query.ResultSet;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 public interface QueryEngine {
 
-    ResultSet execQuery(String query);
+    QueryExecutionPlan getQueryPlan(String query);
 }

@@ -21,14 +21,14 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     private final Map<Op, String> parsed_op;
 
-    private final SimpleExecutionPlan plan;
+    private final SimpleQueryExecutionPlan plan;
 
     public SimpleSPARQLPlanner() {
         this.parsed_op = new HashMap<>();
-        this.plan = new SimpleExecutionPlan();
+        this.plan = new SimpleQueryExecutionPlan();
     }
 
-    public ExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
+    public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
         OpWalker.walk(op, this);
         plan.setVars(generateVars(resultVarNames));
         return plan;

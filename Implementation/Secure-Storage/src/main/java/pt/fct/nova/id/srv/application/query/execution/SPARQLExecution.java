@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.ResultSet;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
 
@@ -20,5 +21,5 @@ public interface SPARQLExecution {
 
     ResultSet getResults(String jobID);
 
-    ResultSet exec();
+    ResultSet exec(StorageEngine storageEngine);
 }

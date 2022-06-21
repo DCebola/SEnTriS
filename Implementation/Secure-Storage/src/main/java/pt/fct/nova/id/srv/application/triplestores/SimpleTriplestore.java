@@ -7,6 +7,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
+import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
@@ -48,7 +50,10 @@ public class SimpleTriplestore implements Triplestore {
 
     @Override
     public ResultSet executeQuery(String query) {
-        return queryEngine.execQuery(query);
+        QueryExecutionPlan plan = queryEngine.getQueryPlan(query);
+        plan.getExecutionOrder().forEach(System.out::println);
+        plan.getJobs().forEach((j, k) -> System.out.println("[" + j + " " + k + "]"));
+        return new SimpleSPARQLExecution(plan).exec(storageEngine);
     }
 
 

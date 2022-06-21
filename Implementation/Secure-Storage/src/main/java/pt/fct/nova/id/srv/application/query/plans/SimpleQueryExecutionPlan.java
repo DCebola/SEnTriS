@@ -5,13 +5,13 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 
 import java.util.*;
 
-public class SimpleExecutionPlan implements ExecutionPlan {
+public class SimpleQueryExecutionPlan implements QueryExecutionPlan {
 
     private final Map<Job, String> jobs;
     private final Deque<String> executionOrder;
     private final List<Var> vars;
 
-    public SimpleExecutionPlan() {
+    public SimpleQueryExecutionPlan() {
         this.jobs = new HashMap<>();
         this.executionOrder = new LinkedList<>();
         this.vars = new LinkedList<>();
