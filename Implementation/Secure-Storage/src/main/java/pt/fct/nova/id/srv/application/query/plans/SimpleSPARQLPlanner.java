@@ -7,6 +7,7 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -27,9 +28,16 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
         this.plan = new SimpleExecutionPlan();
     }
 
-    public ExecutionPlan generatePlan(Op op) {
+    public ExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
         OpWalker.walk(op, this);
+        plan.setVars(generateVars(resultVarNames));
         return plan;
+    }
+
+    private List<Var> generateVars(List<String> resultVarNames) {
+        List<Var> vars = new LinkedList<>();
+        resultVarNames.forEach(v -> vars.add(Var.alloc(v)));
+        return vars;
     }
 
     @Override

@@ -1,6 +1,9 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
+import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.plans.ExecutionPlan;
 
@@ -12,15 +15,17 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     private final List<String> current;
     private final Queue<String> pending;
     private final List<String> finished;
-    private final ResultSet result;
+    private final Map<String, Binding> jobBindings;
+    private final List<Var> vars;
 
 
     public SimpleSPARQLExecution(ExecutionPlan plan) {
+        this.vars = plan.getVars();
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
         this.current = new LinkedList<>();
-        result = null; //TODO create ResultSet
+        jobBindings = new HashMap<>();
     }
 
     @Override
@@ -45,20 +50,19 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
 
     @Override
     public boolean isFinished(String jobID) {
-        //TODO: is Finished (specific job)
-        return false;
+        return finished.contains(jobID);
     }
 
     @Override
     public ResultSet getResults() {
-        //TODO: get Results (all)
-        return null;
+        return ResultSetStream.create(vars, jobBindings.values().iterator());
     }
 
     @Override
     public ResultSet getResults(String jobID) {
-        //TODO: get Results (specific job)
-        return null;
+        List<Binding> binding = new ArrayList<>(1);
+        binding.add(jobBindings.get(jobID));
+        return ResultSetStream.create(vars, binding.iterator());
     }
 
     @Override
