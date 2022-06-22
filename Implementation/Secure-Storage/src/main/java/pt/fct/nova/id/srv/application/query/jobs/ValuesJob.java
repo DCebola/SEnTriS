@@ -4,7 +4,7 @@ package pt.fct.nova.id.srv.application.query.jobs;
 import org.apache.jena.sparql.engine.binding.Binding;
 import java.util.List;
 
-public class ValuesJob extends Job {
+public class ValuesJob extends BaseJob {
 
     private final List<Binding> values;
 

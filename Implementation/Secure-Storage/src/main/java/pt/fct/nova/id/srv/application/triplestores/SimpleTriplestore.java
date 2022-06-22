@@ -6,15 +6,20 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 
 import java.util.Iterator;
 import java.util.Map;
 
 public class SimpleTriplestore implements Triplestore {
+
+    final static Logger logger = LoggerFactory.getLogger(SimpleTriplestore.class);
 
     private final StorageEngine storageEngine;
     private final QueryEngine queryEngine;
@@ -49,11 +54,12 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public ResultSet executeQuery(String query) {
+    public ResultSet executeQuery(String storeID, String query) {
+        //TODO: verify store exists
         QueryExecutionPlan plan = queryEngine.getQueryPlan(query);
-        plan.getExecutionOrder().forEach(System.out::println);
-        plan.getJobs().forEach((j, k) -> System.out.println("[" + j + " " + k + "]"));
-        return new SimpleSPARQLExecution(plan).exec(storageEngine);
+        plan.getExecutionOrder().forEach(jobID -> logger.debug("#{}: {}", storeID, jobID));
+        plan.getJobs().forEach((jobID, job) -> logger.debug("#{}: [{}, {}]", storeID, jobID, job));
+        return new SimpleSPARQLExecution(plan).exec(storeID, storageEngine);
     }
 
 

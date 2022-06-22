@@ -21,5 +21,5 @@ public interface SPARQLExecution {
 
     ResultSet getResults(String jobID);
 
-    ResultSet exec(StorageEngine storageEngine);
+    ResultSet exec(String storeID, StorageEngine storageEngine);
 }

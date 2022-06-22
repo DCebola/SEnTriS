@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
-import com.google.gson.Gson;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -9,12 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
+
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class RStorageEngine implements StorageEngine {
@@ -165,7 +166,6 @@ public class RStorageEngine implements StorageEngine {
     }
 
 
-
     private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
         return p.hget(String.format(keyFormatter, storeID), iri);
     }
@@ -209,7 +209,7 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public List<Triple> getTriples(String storeID) {
+    public Iterable<Triple> getTriples(String storeID) {
         List<Triple> triples = new LinkedList<>();
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -257,64 +257,71 @@ public class RStorageEngine implements StorageEngine {
         }
     }
 
-    private Set<Node> getNodes(String storeID, Set<String> idxs) {
-        return null;
+    @Override
+    public Iterable<Node> findSubjects(Node predicate, Node object) {
+        //TODO: findSubjects(Node predicate, Node object)
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private Node getNode(String storeID, String idx) {
-        return null;
+    @Override
+    public Iterable<Node> findPredicates(Node subject, Node object) {
+        //TODO: findPredicates(Node subject, Node object)
+
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private Set<UUID> getS(String storeID) {
-        return null;
+    @Override
+    public Iterable<Node> findObjects(Node subject, Node predicate) {
+        //TODO: findObjects(Node subject, Node predicate)
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private Set<UUID> getP(String storeID) {
-        return null;
+    @Override
+    public Iterable<TypedNode> findSP(Node object) {
+        //TODO: findSP(Node object)
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private Set<UUID> getO(String storeID) {
-        return null;
+    @Override
+    public Iterable<TypedNode> findSO(Node predicate) {
+        //TODO: findSO(Node predicate)
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private Set<UUID> getSP(String storeID) {
-        return null;
-    }
-
-    private Set<UUID> getSO(String storeID) {
-        return null;
-    }
-
-    private Set<UUID> getPO(String storeID) {
-        return null;
-    }
-
-    private Set<UUID> findByIRI(String storeID, String nodeIRI) {
-        return null;
-    }
-
-    private Set<UUID> findByP(String storeID, String cpIdx) {
-        return null;
-    }
-
-    private Set<UUID> findByS(String storeID, String cpIdx) {
-        return null;
-    }
-
-    private Set<UUID> findByO(String storeID, String cpIdx) {
-        return null;
-    }
-
-    private Set<UUID> findBySP(String storeID, String cpIdx) {
-        return null;
-    }
-
-    private Set<UUID> findBySO(String storeID, String cpIdx) {
-        return null;
-    }
-
-    private Set<UUID> findByPO(String storeID, String cpIdx) {
-        return null;
+    @Override
+    public Iterable<TypedNode> findPO(Node subject) {
+        //TODO: findPO(Node subject)
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

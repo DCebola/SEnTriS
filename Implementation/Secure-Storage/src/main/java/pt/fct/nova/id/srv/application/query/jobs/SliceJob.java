@@ -1,6 +1,6 @@
 package pt.fct.nova.id.srv.application.query.jobs;
 
-public class SliceJob extends Job {
+public class SliceJob extends BaseJob {
 
     private final long length;
     private final long offset;

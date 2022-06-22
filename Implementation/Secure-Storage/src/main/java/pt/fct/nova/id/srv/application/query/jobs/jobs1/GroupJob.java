@@ -4,7 +4,7 @@ import org.apache.jena.sparql.expr.ExprAggregator;
 
 import java.util.List;
 
-public class GroupJob extends Job1 {
+public class GroupJob extends BaseJob1 {
 
     private final List<ExprAggregator> aggregators;
 

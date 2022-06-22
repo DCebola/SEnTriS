@@ -4,7 +4,7 @@ import org.apache.jena.sparql.expr.Expr;
 
 import java.util.List;
 
-public class FilterJob extends Job1 {
+public class FilterJob extends BaseJob1 {
 
     private final List<Expr> expressions;
 

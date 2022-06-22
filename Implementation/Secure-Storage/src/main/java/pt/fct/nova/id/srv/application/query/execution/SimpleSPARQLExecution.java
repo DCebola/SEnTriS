@@ -5,8 +5,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
+import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
@@ -69,8 +69,8 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public ResultSet exec(StorageEngine engine) {
-        SPARQLWorker worker = new SimpleSPARQLWorker(engine);
+    public ResultSet exec(String storeID, StorageEngine engine) {
+        SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobBindings.put(current, delegateJob(worker, current));

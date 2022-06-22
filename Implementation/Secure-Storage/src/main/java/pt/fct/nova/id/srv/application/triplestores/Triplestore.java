@@ -13,5 +13,5 @@ public interface Triplestore {
 
     Model getDatasetModel(String storeID);
 
-    ResultSet executeQuery(String query);
+    ResultSet executeQuery(String storeID, String query);
 }

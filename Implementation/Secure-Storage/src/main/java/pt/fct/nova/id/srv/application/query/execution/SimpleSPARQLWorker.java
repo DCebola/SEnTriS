@@ -1,19 +1,28 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import pt.fct.nova.id.srv.application.query.jobs.GetJob;
-import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.SliceJob;
-import pt.fct.nova.id.srv.application.query.jobs.ValuesJob;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
+
+import java.util.Iterator;
+import java.util.Objects;
+
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+
 
 public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
+    private final String storeID;
 
-    public SimpleSPARQLWorker(StorageEngine storageEngine) {
+    public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
+        this.storeID = storeID;
         this.storageEngine = storageEngine;
     }
 
@@ -30,8 +39,55 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private Binding execGet(GetJob job) {
-        //TODO Execute GetJob
-        return null;
+        BindingBuilder builder = Binding.builder();
+        switch (job.getVariablesPattern()) {
+            case S -> updateGetBinding(builder, S, job.getPredicate(), job.getObject());
+            case P -> updateGetBinding(builder, P, job.getSubject(), job.getObject());
+            case O -> updateGetBinding(builder, O, job.getSubject(), job.getPredicate());
+            case SP -> updateGetBinding(builder, SP, job.getObject());
+            case SO -> updateGetBinding(builder, SO, job.getPredicate());
+            case PO -> updateGetBinding(builder, PO, job.getSubject());
+            case SPO -> storageEngine.getTriples(storeID).forEach(
+                    t -> {
+                        builder.add(Var.alloc(S.name()), t.getSubject());
+                        builder.add(Var.alloc(P.name()), t.getPredicate());
+                        builder.add(Var.alloc(O.name()), t.getObject());
+                    }
+            );
+        }
+        return builder.build();
+    }
+
+    private void updateGetBinding(BindingBuilder builder, VariablesPattern varPattern, Node node) {
+        Iterable<TypedNode> nodes = null;
+
+        if (varPattern == VariablesPattern.SP)
+            nodes = storageEngine.findSP(node);
+        else if (varPattern == VariablesPattern.SO)
+            nodes = storageEngine.findSO(node);
+        else if (varPattern == VariablesPattern.PO)
+            nodes = storageEngine.findPO(node);
+
+        if (nodes != null)
+            nodes.forEach(
+                    n -> builder.add(Var.alloc(n.getType().name()), n.getNode())
+            );
+    }
+
+    private void updateGetBinding(BindingBuilder builder, VariablesPattern varPattern, Node node1, Node node2) {
+        Iterable<Node> nodes = null;
+
+        if (varPattern == VariablesPattern.S)
+            nodes = storageEngine.findSubjects(node1, node2);
+        else if (varPattern == VariablesPattern.P)
+            nodes = storageEngine.findPredicates(node1, node2);
+        else if (varPattern == VariablesPattern.O)
+            nodes = storageEngine.findObjects(node1, node2);
+
+        if (nodes != null)
+            nodes.forEach(
+                    n -> builder.add(Var.alloc(O.name()), n)
+            );
     }
 
     private Binding execValues(ValuesJob job) {

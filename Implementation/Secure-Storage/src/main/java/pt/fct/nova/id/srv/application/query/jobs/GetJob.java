@@ -2,14 +2,12 @@ package pt.fct.nova.id.srv.application.query.jobs;
 
 import org.apache.jena.graph.Node;
 
-public class GetJob extends Job {
+public class GetJob extends BaseJob {
 
     private final VariablesPattern varsPattern;
-
     private final Node subject;
     private final Node predicate;
     private final Node object;
-
 
     public GetJob(String jobID, VariablesPattern vars, Node subject, Node predicate, Node object) {
         super(jobID);

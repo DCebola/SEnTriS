@@ -84,7 +84,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response answerSPARQLQuery(String storeID, String query) {
         try {
             System.out.println(query);
-            ResultSet res = triplestore.executeQuery(query);
+            ResultSet res = triplestore.executeQuery(storeID, query);
             return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
         } catch (Exception e) {
             e.printStackTrace();
