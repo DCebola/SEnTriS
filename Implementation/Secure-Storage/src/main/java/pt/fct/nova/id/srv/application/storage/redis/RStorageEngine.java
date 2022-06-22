@@ -22,44 +22,41 @@ public class RStorageEngine implements StorageEngine {
 
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
 
-    public final static String TYPE = "REDIS";
+    private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
+    private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
+    private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
 
-    private final static String INFO = "%s:INFO";
-    private final static String NAMESPACES = "%s:NS";
+    private final static String INFO = "%s".concat(BASIC_SEPARATOR).concat("INFO");
+    private final static String NAMESPACES = "%s".concat(BASIC_SEPARATOR).concat("NS");
 
-    private final static String S_IRIS = "%s:S:IRIS";
-    private final static String P_IRIS = "%s:P:IRIS";
-    private final static String O_IRIS = "%s:O:IRIS";
+    private final static String S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("IRIS");
+    private final static String P_IRIS = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat(":IRIS");
+    private final static String O_IRIS = "%s".concat(BASIC_SEPARATOR).concat("O").concat(BASIC_SEPARATOR).concat("IRIS");
 
-    private final static String REV_S_IRIS = "%s:S:REV_IRIS";
-    private final static String REV_P_IRIS = "%s:P:REV_IRIS";
-    private final static String REV_O_IRIS = "%s:O:REV_IRIS";
+    private final static String REV_S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("REV_IRIS");
+    private final static String REV_P_IRIS = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat("REV_IRIS");
+    private final static String REV_O_IRIS = "%s".concat(BASIC_SEPARATOR).concat("O").concat(BASIC_SEPARATOR).concat("REV_IRIS");
 
-    private final static String ALL_S = "%s:S";
-    private final static String ALL_P = "%s:P";
-    private final static String ALL_O = "%s:O";
-    private final static String ALL_SP = "%s:SP";
-    private final static String ALL_SO = "%s:SO";
-    private final static String ALL_PO = "%s:PO";
+    private final static String ALL_S = "%s".concat(BASIC_SEPARATOR).concat("S");
+    private final static String ALL_P = "%s".concat(BASIC_SEPARATOR).concat("P");
+    private final static String ALL_O = "%s".concat(BASIC_SEPARATOR).concat("O");
 
-    private final static String SINGLE_S = "%s:S:%s";
-    private final static String SINGLE_P = "%s:P:%s";
-    private final static String SINGLE_O = "%s:O:%s";
-    private final static String SINGLE_SP = "%s:SP:%s";
-    private final static String SINGLE_SO = "%s:SO:%s";
-    private final static String SINGLE_PO = "%s:PO:%s";
-    private static final String COMPLEMENT_INDEX_SEPARATOR = ":";
+    private final static String SINGLE_S = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("%s");
+    private final static String SINGLE_P = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat("%s");
+    private final static String SINGLE_O = "%s".concat(BASIC_SEPARATOR).concat("O").concat(BASIC_SEPARATOR).concat("%s");
+    private final static String SINGLE_SP = "%s".concat(BASIC_SEPARATOR).concat("SP").concat(BASIC_SEPARATOR).concat("%s");
+    private final static String SINGLE_SO = "%s".concat(BASIC_SEPARATOR).concat("SO").concat(BASIC_SEPARATOR).concat("%s");
+    private final static String SINGLE_PO = "%s".concat(BASIC_SEPARATOR).concat("PO").concat(BASIC_SEPARATOR).concat("%s");
 
 
-    private final static String BLANK_IRI = "B::%s";
+    private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
     private static final String BLANK_IRI_PREFIX = "B";
-    private static final String SIMPLE_IRI = "S::%s";
+    private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
     private static final String SIMPLE_IRI_PREFIX = "S";
-    private static final String LITERAL_IRI = "L::%s::%s";
+    private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
-    private static final String IRI_SEPARATOR = "::";
 
 
     @Override
@@ -146,13 +143,13 @@ public class RStorageEngine implements StorageEngine {
                 String so_idx = generateComplementIndex(s_idx, o_idx);
                 String po_idx = generateComplementIndex(p_idx, o_idx);
 
-                putIndex(t, ALL_S, SINGLE_S, storeID, s_idx, po_idx);
-                putIndex(t, ALL_P, SINGLE_P, storeID, p_idx, so_idx);
-                putIndex(t, ALL_O, SINGLE_O, storeID, o_idx, sp_idx);
+                putSimpleIndex(t, ALL_S, SINGLE_S, storeID, s_idx, po_idx);
+                putSimpleIndex(t, ALL_P, SINGLE_P, storeID, p_idx, so_idx);
+                putSimpleIndex(t, ALL_O, SINGLE_O, storeID, o_idx, sp_idx);
 
-                putIndex(t, ALL_SP, SINGLE_SP, storeID, sp_idx, o_idx);
-                putIndex(t, ALL_SO, SINGLE_SO, storeID, so_idx, p_idx);
-                putIndex(t, ALL_PO, SINGLE_PO, storeID, po_idx, s_idx);
+                putCompoundIndex(t, SINGLE_SP, storeID, sp_idx, o_idx);
+                putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
+                putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
 
                 logger.debug("#{}: Pipelined INDEX uploads.", storeID);
 
@@ -199,13 +196,17 @@ public class RStorageEngine implements StorageEngine {
         transaction.hset(String.format(reverseKeyFormatter, storeID), idx, nodeIRI);
     }
 
-    private void putIndex(Transaction transaction, String allKeyFormatter, String singleKeyFormatter, String storeID, String idx, String complementIdx) {
+    private void putCompoundIndex(Transaction transaction, String keyFormatter, String storeID, String idx, String complementIdx) {
+        transaction.sadd(String.format(keyFormatter, storeID, idx), complementIdx);
+    }
+
+    private void putSimpleIndex(Transaction transaction, String allKeyFormatter, String singleKeyFormatter, String storeID, String idx, String complementIdx) {
         transaction.sadd(String.format(allKeyFormatter, storeID), idx);
         transaction.sadd(String.format(singleKeyFormatter, storeID, idx), complementIdx);
     }
 
     private String generateComplementIndex(String idx1, String idx2) {
-        return idx1.concat(COMPLEMENT_INDEX_SEPARATOR).concat(idx2);
+        return idx1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx2);
     }
 
     @Override
@@ -222,7 +223,7 @@ public class RStorageEngine implements StorageEngine {
                 po_idxs = jedis.smembers(String.format(SINGLE_S, storeID, s_idx));
                 if (po_idxs != null) {
                     for (String po_idx : po_idxs) {
-                        po_split = po_idx.split(COMPLEMENT_INDEX_SEPARATOR);
+                        po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
                         p_idx = po_split[0];
                         o_idx = po_split[1];
                         s_iri = jedis.hget(String.format(REV_S_IRIS, storeID), s_idx);
