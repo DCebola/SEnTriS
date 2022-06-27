@@ -4,6 +4,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -84,8 +85,11 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response answerSPARQLQuery(String storeID, String query) {
         try {
             System.out.println(query);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             ResultSet res = triplestore.executeQuery(storeID, query);
-            return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
+            ResultSetFormatter.outputAsJSON(out, res);
+            return Response.ok(out.toByteArray()).build();
+            //return Response.ok("NOT IMPLEMENTED").status(Status.NOT_IMPLEMENTED).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(WRITING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();

@@ -71,9 +71,12 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     @Override
     public ResultSet exec(String storeID, StorageEngine engine) {
         SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
+        Binding res;
         while (!pending.isEmpty()) {
             current = pending.peek();
-            jobBindings.put(current, delegateJob(worker, current));
+            res = delegateJob(worker, current);
+            if (res != null)
+                jobBindings.put(current, res);
             finished.add(pending.poll());
         }
         return getResults();
