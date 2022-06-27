@@ -6,6 +6,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
@@ -15,8 +16,10 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class RStorageEngine implements StorageEngine {
 
@@ -167,6 +170,10 @@ public class RStorageEngine implements StorageEngine {
         return p.hget(String.format(keyFormatter, storeID), iri);
     }
 
+    private String getIndexFromIRI(Jedis jedis, String keyFormatter, String storeID, String iri) {
+        return jedis.hget(String.format(keyFormatter, storeID), iri);
+    }
+
     private String parseNodeIRI(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
             throw new InvalidNodeException();
@@ -214,11 +221,13 @@ public class RStorageEngine implements StorageEngine {
         List<Triple> triples = new LinkedList<>();
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+
             Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
             Set<String> po_idxs;
             String s_iri, p_iri, o_iri;
             String p_idx, o_idx;
             String[] po_split;
+            Pipeline p = jedis.pipelined();
             for (String s_idx : s_idxs) {
                 po_idxs = jedis.smembers(String.format(SINGLE_S, storeID, s_idx));
                 if (po_idxs != null) {
@@ -226,9 +235,14 @@ public class RStorageEngine implements StorageEngine {
                         po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
                         p_idx = po_split[0];
                         o_idx = po_split[1];
-                        s_iri = jedis.hget(String.format(REV_S_IRIS, storeID), s_idx);
-                        p_iri = jedis.hget(String.format(REV_P_IRIS, storeID), p_idx);
-                        o_iri = jedis.hget(String.format(REV_O_IRIS, storeID), o_idx);
+                        Response<String> resp_s_iri = p.hget(String.format(REV_S_IRIS, storeID), s_idx);
+                        Response<String> resp_p_iri = p.hget(String.format(REV_P_IRIS, storeID), p_idx);
+                        Response<String> resp_o_iri = p.hget(String.format(REV_O_IRIS, storeID), o_idx);
+                        p.sync();
+
+                        s_iri = resp_s_iri.get();
+                        p_iri = resp_p_iri.get();
+                        o_iri = resp_o_iri.get();
 
                         logger.debug("#{}: po->{}", storeID, po_idx);
                         logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
@@ -259,10 +273,37 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Iterable<Node> findSubjects(Node predicate, Node object) {
-        //TODO: findSubjects(Node predicate, Node object)
+    public Iterable<Node> findSubjects(String storeID, Node predicate, Node object) {
+        return find(storeID, predicate, object, P_IRIS, O_IRIS, S_IRIS);
+    }
+
+    @Override
+    public Iterable<Node> findPredicates(String storeID, Node subject, Node object) {
+        return find(storeID, subject, object, S_IRIS, O_IRIS, P_IRIS);
+    }
+
+    @Override
+    public Iterable<Node> findObjects(String storeID, Node subject, Node predicate) {
+        return find(storeID, subject, predicate, S_IRIS, P_IRIS, O_IRIS);
+    }
+
+    private Iterable<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String reverseIRIKeyFormatter) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
+            List<Node> nodes = new LinkedList<>();
+            Pipeline p = jedis.pipelined();
+            Response<String> resp_idx_1 = getIndexFromIRI(p, IRIKeyFormatter1, storeID, parseNodeIRI(node1));
+            Response<String> resp_idx_2 = getIndexFromIRI(p, IRIKeyFormatter2, storeID, parseNodeIRI(node2));
+            p.sync();
+            String idx_1 = resp_idx_1.get();
+            String idx_2 = resp_idx_2.get();
+            List<Response<String>> responses = new LinkedList<>();
+            jedis.smembers(idx_1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx_2)).forEach(
+                    simple_idx -> responses.add(p.hget(String.format(reverseIRIKeyFormatter, storeID), simple_idx))
+            );
+            p.sync();
+            responses.forEach(resp -> nodes.add(generateNode(resp.get())));
+            nodes.forEach(System.out::println);
+            return nodes;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -270,60 +311,67 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Iterable<Node> findPredicates(Node subject, Node object) {
-        //TODO: findPredicates(Node subject, Node object)
-
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Iterable<TypedNode> findSP(String storeID, Node object) {
+        return find(storeID, object, SP);
     }
 
     @Override
-    public Iterable<Node> findObjects(Node subject, Node predicate) {
-        //TODO: findObjects(Node subject, Node predicate)
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Iterable<TypedNode> findSO(String storeID, Node predicate) {
+        return find(storeID, predicate, SO);
     }
 
     @Override
-    public Iterable<TypedNode> findSP(Node object) {
-        //TODO: findSP(Node object)
+    public Iterable<TypedNode> findPO(String storeID, Node subject) {
+        return find(storeID, subject, PO);
+    }
+
+    private Iterable<TypedNode> find(String storeID, Node node, VariablesPattern pattern) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
+            Pipeline p = jedis.pipelined();
+            String IRIKeyFormatter, reverseIRIKeyFormatter1, reverseIRIKeyFormatter2;
+            VariablesPattern type1, type2;
+            List<TypedNode> nodes = new LinkedList<>();
+
+            if (pattern.equals(SO)) {
+                IRIKeyFormatter = P_IRIS;
+                reverseIRIKeyFormatter1 = REV_S_IRIS;
+                reverseIRIKeyFormatter2 = REV_O_IRIS;
+                type1 = S;
+                type2 = O;
+            } else if (pattern.equals(SP)) {
+                IRIKeyFormatter = O_IRIS;
+                reverseIRIKeyFormatter1 = REV_S_IRIS;
+                reverseIRIKeyFormatter2 = REV_P_IRIS;
+                type1 = S;
+                type2 = P;
+            } else if (pattern.equals(PO)) {
+                IRIKeyFormatter = S_IRIS;
+                reverseIRIKeyFormatter1 = REV_P_IRIS;
+                reverseIRIKeyFormatter2 = REV_O_IRIS;
+                type1 = P;
+                type2 = O;
+            } else {
+                return null;
+            }
+            String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
+
+            List<Response<String>> responses1 = new LinkedList<>();
+            List<Response<String>> responses2 = new LinkedList<>();
+            jedis.smembers(idx).forEach(
+                    compound_idx -> {
+                        String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
+                        responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
+                        responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));
+                    }
+            );
+            p.sync();
+            responses1.forEach(resp -> nodes.add(new TypedNode(type1, generateNode(resp.get()))));
+            responses2.forEach(resp -> nodes.add(new TypedNode(type2, generateNode(resp.get()))));
+            nodes.forEach(System.out::println);
+            return nodes;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
-
-    @Override
-    public Iterable<TypedNode> findSO(Node predicate) {
-        //TODO: findSO(Node predicate)
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @Override
-    public Iterable<TypedNode> findPO(Node subject) {
-        //TODO: findPO(Node subject)
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
 }

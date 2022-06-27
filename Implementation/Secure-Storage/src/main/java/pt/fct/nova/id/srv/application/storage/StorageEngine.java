@@ -19,15 +19,15 @@ public interface StorageEngine {
 
     Map<String, String> getNamespaces(String storeID);
 
-    Iterable<Node> findSubjects(Node predicate, Node object);
+    Iterable<Node> findSubjects(String storeID, Node predicate, Node object);
 
-    Iterable<Node> findPredicates(Node subject, Node object);
+    Iterable<Node> findPredicates(String storeID, Node subject, Node object);
 
-    Iterable<Node> findObjects(Node subject, Node predicate);
+    Iterable<Node> findObjects(String storeID, Node subject, Node predicate);
 
-    Iterable<TypedNode> findSP(Node object);
+    Iterable<TypedNode> findSP(String storeID, Node object);
 
-    Iterable<TypedNode> findSO(Node predicate);
+    Iterable<TypedNode> findSO(String storeID, Node predicate);
 
-    Iterable<TypedNode> findPO(Node subject);
+    Iterable<TypedNode> findPO(String storeID, Node subject);
 }

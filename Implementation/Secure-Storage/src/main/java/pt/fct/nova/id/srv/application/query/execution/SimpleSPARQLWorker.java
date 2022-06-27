@@ -62,11 +62,11 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         Iterable<TypedNode> nodes = null;
 
         if (varPattern == VariablesPattern.SP)
-            nodes = storageEngine.findSP(node);
+            nodes = storageEngine.findSP(storeID, node);
         else if (varPattern == VariablesPattern.SO)
-            nodes = storageEngine.findSO(node);
+            nodes = storageEngine.findSO(storeID, node);
         else if (varPattern == VariablesPattern.PO)
-            nodes = storageEngine.findPO(node);
+            nodes = storageEngine.findPO(storeID, node);
 
         if (nodes != null)
             nodes.forEach(
@@ -78,11 +78,11 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         Iterable<Node> nodes = null;
 
         if (varPattern == VariablesPattern.S)
-            nodes = storageEngine.findSubjects(node1, node2);
+            nodes = storageEngine.findSubjects(storeID, node1, node2);
         else if (varPattern == VariablesPattern.P)
-            nodes = storageEngine.findPredicates(node1, node2);
+            nodes = storageEngine.findPredicates(storeID, node1, node2);
         else if (varPattern == VariablesPattern.O)
-            nodes = storageEngine.findObjects(node1, node2);
+            nodes = storageEngine.findObjects(storeID, node1, node2);
 
         if (nodes != null)
             nodes.forEach(
