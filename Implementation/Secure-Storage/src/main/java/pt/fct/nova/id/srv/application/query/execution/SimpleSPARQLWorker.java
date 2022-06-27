@@ -76,7 +76,6 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private void updateGetBinding(BindingBuilder builder, VariablesPattern varPattern, Node node1, Node node2) {
         Iterable<Node> nodes = null;
-
         if (varPattern == VariablesPattern.S)
             nodes = storageEngine.findSubjects(storeID, node1, node2);
         else if (varPattern == VariablesPattern.P)

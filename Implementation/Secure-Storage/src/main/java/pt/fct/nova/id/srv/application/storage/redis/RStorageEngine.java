@@ -33,7 +33,7 @@ public class RStorageEngine implements StorageEngine {
     private final static String NAMESPACES = "%s".concat(BASIC_SEPARATOR).concat("NS");
 
     private final static String S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("IRIS");
-    private final static String P_IRIS = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat(":IRIS");
+    private final static String P_IRIS = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat("IRIS");
     private final static String O_IRIS = "%s".concat(BASIC_SEPARATOR).concat("O").concat(BASIC_SEPARATOR).concat("IRIS");
 
     private final static String REV_S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("REV_IRIS");
@@ -100,14 +100,14 @@ public class RStorageEngine implements StorageEngine {
         Node subject = triple.getSubject();
         Node predicate = triple.getPredicate();
         Node object = triple.getObject();
-        logger.debug("#{}: Triple:{}", storeID, triple);
+        logger.info("#{}: Triple:{}", storeID, triple);
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String s_iri = parseNodeIRI(subject);
             String p_iri = parseNodeIRI(predicate);
             String o_iri = parseNodeIRI(object);
 
-            logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+            logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
             boolean isDeleted = Boolean.parseBoolean(jedis.get(storeInfo));
 
@@ -140,7 +140,7 @@ public class RStorageEngine implements StorageEngine {
                     putIRI(t, O_IRIS, REV_O_IRIS, storeID, o_iri, o_idx);
                 }
 
-                logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
+                logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
                 String sp_idx = generateComplementIndex(p_idx, s_idx);
                 String so_idx = generateComplementIndex(s_idx, o_idx);
@@ -154,7 +154,7 @@ public class RStorageEngine implements StorageEngine {
                 putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
                 putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
 
-                logger.debug("#{}: Pipelined INDEX uploads.", storeID);
+                logger.info("#{}: Pipelined INDEX uploads.", storeID);
 
                 t.exec();
             }
@@ -167,10 +167,12 @@ public class RStorageEngine implements StorageEngine {
 
 
     private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
+        logger.info("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return p.hget(String.format(keyFormatter, storeID), iri);
     }
 
     private String getIndexFromIRI(Jedis jedis, String keyFormatter, String storeID, String iri) {
+        logger.info("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return jedis.hget(String.format(keyFormatter, storeID), iri);
     }
 
@@ -187,7 +189,7 @@ public class RStorageEngine implements StorageEngine {
 
     private Node generateNode(String iri) {
         String[] split_iri = iri.split(IRI_SEPARATOR);
-        logger.debug("#Split {}", Arrays.toString(split_iri));
+        logger.info("#Split {}", Arrays.toString(split_iri));
         if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
             return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
         else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
@@ -244,9 +246,9 @@ public class RStorageEngine implements StorageEngine {
                         p_iri = resp_p_iri.get();
                         o_iri = resp_o_iri.get();
 
-                        logger.debug("#{}: po->{}", storeID, po_idx);
-                        logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
-                        logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
+                        logger.info("#{}: po->{}", storeID, po_idx);
+                        logger.info("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
+                        logger.info("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
                         triples.add(new Triple(
                                 generateNode(s_iri),
@@ -257,7 +259,6 @@ public class RStorageEngine implements StorageEngine {
             }
             return triples;
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }
@@ -267,38 +268,43 @@ public class RStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.hgetAll(String.format(NAMESPACES, storeID));
         } catch (Exception e) {
-            e.printStackTrace();
             return new HashMap<>();
         }
     }
 
     @Override
     public Iterable<Node> findSubjects(String storeID, Node predicate, Node object) {
-        return find(storeID, predicate, object, P_IRIS, O_IRIS, S_IRIS);
+        return find(storeID, predicate, object, P_IRIS, O_IRIS, SINGLE_PO, REV_S_IRIS);
     }
 
     @Override
     public Iterable<Node> findPredicates(String storeID, Node subject, Node object) {
-        return find(storeID, subject, object, S_IRIS, O_IRIS, P_IRIS);
+        return find(storeID, subject, object, S_IRIS, O_IRIS, SINGLE_SO, REV_P_IRIS);
     }
 
     @Override
     public Iterable<Node> findObjects(String storeID, Node subject, Node predicate) {
-        return find(storeID, subject, predicate, S_IRIS, P_IRIS, O_IRIS);
+
+        return find(storeID, subject, predicate, S_IRIS, P_IRIS, SINGLE_SP, REV_O_IRIS);
     }
 
-    private Iterable<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String reverseIRIKeyFormatter) {
+    private Iterable<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter, String reverseIRIKeyFormatter) {
+        List<Node> nodes = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<Node> nodes = new LinkedList<>();
             Pipeline p = jedis.pipelined();
             Response<String> resp_idx_1 = getIndexFromIRI(p, IRIKeyFormatter1, storeID, parseNodeIRI(node1));
             Response<String> resp_idx_2 = getIndexFromIRI(p, IRIKeyFormatter2, storeID, parseNodeIRI(node2));
             p.sync();
             String idx_1 = resp_idx_1.get();
             String idx_2 = resp_idx_2.get();
+            logger.info("{}, {}", idx_1, idx_2);
+            if (idx_1 == null || idx_2 == null)
+                return nodes;
             List<Response<String>> responses = new LinkedList<>();
-            jedis.smembers(idx_1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx_2)).forEach(
-                    simple_idx -> responses.add(p.hget(String.format(reverseIRIKeyFormatter, storeID), simple_idx))
+            jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2)).forEach(
+                    simple_idx -> {
+                        responses.add(p.hget(String.format(reverseIRIKeyFormatter, storeID), simple_idx));
+                    }
             );
             p.sync();
             responses.forEach(resp -> nodes.add(generateNode(resp.get())));
@@ -306,7 +312,7 @@ public class RStorageEngine implements StorageEngine {
             return nodes;
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return nodes;
         }
     }
 
@@ -326,11 +332,11 @@ public class RStorageEngine implements StorageEngine {
     }
 
     private Iterable<TypedNode> find(String storeID, Node node, VariablesPattern pattern) {
+        List<TypedNode> nodes = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             String IRIKeyFormatter, reverseIRIKeyFormatter1, reverseIRIKeyFormatter2;
             VariablesPattern type1, type2;
-            List<TypedNode> nodes = new LinkedList<>();
 
             if (pattern.equals(SO)) {
                 IRIKeyFormatter = P_IRIS;
@@ -354,11 +360,13 @@ public class RStorageEngine implements StorageEngine {
                 return null;
             }
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
-
+            if (idx == null)
+                return nodes;
             List<Response<String>> responses1 = new LinkedList<>();
             List<Response<String>> responses2 = new LinkedList<>();
             jedis.smembers(idx).forEach(
                     compound_idx -> {
+                        logger.info("{}", compound_idx);
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
                         responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
                         responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));
@@ -371,7 +379,7 @@ public class RStorageEngine implements StorageEngine {
             return nodes;
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return nodes;
         }
     }
 }
