@@ -9,19 +9,38 @@ import java.util.UUID;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByDirection.*;
 
 public class Utils {
 
-    public static OrderByDirection extractOrderDirection(int dir){
+    public static OrderByDirection extractOrderDirection(int dir) {
         if (dir == 1)
-            return OrderByDirection.ASCENDING;
+            return ASCENDING;
         else if (dir == -1)
-            return OrderByDirection.DESCENDING;
+            return DESCENDING;
         else
             return null;
     }
 
     public static VariablesPattern extractVariablesPattern(Node subject, Node predicate, Node object) {
+/*
+
+        if (subject.isVariable() && !predicate.isVariable() && !object.isVariable())
+            return S;
+        else if (!subject.isVariable() && predicate.isVariable() && !object.isVariable())
+            return P;
+        else if (!subject.isVariable() && !predicate.isVariable() && object.isVariable())
+            return O;
+        else if (subject.isVariable() && predicate.isVariable() && !object.isVariable())
+            return SP;
+        else if (subject.isVariable() && !predicate.isVariable() && object.isVariable())
+            return SO;
+        else if (!subject.isVariable() && predicate.isVariable() && object.isVariable())
+            return PO;
+        else
+            return SPO;
+            */
         if (!subject.isConcrete() && predicate.isConcrete() && object.isConcrete())
             return VariablesPattern.S;
         else if (subject.isConcrete() && !predicate.isConcrete() && object.isConcrete())
@@ -35,7 +54,7 @@ public class Utils {
         else if (subject.isConcrete() && !predicate.isConcrete() && !object.isConcrete())
             return VariablesPattern.PO;
         else
-            return VariablesPattern.SPO;
+            return SPO;
     }
 
     public static String generateID() {

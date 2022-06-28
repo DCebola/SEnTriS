@@ -18,7 +18,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
-    private final Map<String, Binding> jobBindings;
+    private final Map<String, List<Binding>> jobBindings;
     private final List<Var> vars;
 
 
@@ -58,31 +58,33 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
 
     @Override
     public ResultSet getResults() {
-        return ResultSetStream.create(vars, jobBindings.values().iterator());
+        List<Binding> bindings_collector = new LinkedList<>();
+        jobBindings.values().forEach(bindings_collector::addAll);
+        return ResultSetStream.create(vars, bindings_collector.iterator());
     }
 
     @Override
     public ResultSet getResults(String jobID) {
-        List<Binding> binding = new LinkedList<>();
-        binding.add(jobBindings.get(jobID));
-        return ResultSetStream.create(vars, binding.iterator());
+        return ResultSetStream.create(vars, jobBindings.get(jobID).iterator());
     }
 
     @Override
     public ResultSet exec(String storeID, StorageEngine engine) {
         SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
-        Binding res;
+        List<Binding> res;
         while (!pending.isEmpty()) {
             current = pending.peek();
             res = delegateJob(worker, current);
-            if (res != null)
+            if (res != null) {
+                res.forEach(System.out::println);
                 jobBindings.put(current, res);
+            }
             finished.add(pending.poll());
         }
         return getResults();
     }
 
-    private Binding delegateJob(SPARQLWorker worker, String current) {
+    private List<Binding> delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1) {
             return worker.exec((Job1) job,

@@ -9,6 +9,7 @@ public class GetJob extends BaseJob {
     private final Node predicate;
     private final Node object;
 
+
     public GetJob(String jobID, VariablesPattern vars, Node subject, Node predicate, Node object) {
         super(jobID);
         this.varsPattern = vars;

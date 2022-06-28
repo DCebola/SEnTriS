@@ -47,7 +47,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     @Override
     public void visit0(Op0 op) {
-        logger.debug("OP0: {}", op);
+        logger.info("OP0: {}", op);
         if (op instanceof OpBGP) {
             generateGetJobs((OpBGP) op);
         } else if (op instanceof OpTriple) {
@@ -88,7 +88,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     @Override
     public void visit1(Op1 op) {
-        logger.debug("OP1: {}", op);
+        logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
             generateBindJob((OpExtendAssign) op);
         } else if (op instanceof OpFilter) {
@@ -187,7 +187,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     @Override
     public void visit2(Op2 op) {
-        logger.debug("OP2: {}", op);
+        logger.info("OP2: {}", op);
         if (op instanceof OpJoin) {
             generateJoinJob((OpJoin) op);
         } else if (op instanceof OpLeftJoin) {
