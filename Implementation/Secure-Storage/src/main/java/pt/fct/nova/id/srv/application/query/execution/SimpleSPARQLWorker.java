@@ -3,7 +3,6 @@ package pt.fct.nova.id.srv.application.query.execution;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;

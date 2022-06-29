@@ -24,8 +24,6 @@ public class Utils {
     }
 
     public static VariablesPattern extractVariablesPattern(Node subject, Node predicate, Node object) {
-/*
-
         if (subject.isVariable() && !predicate.isVariable() && !object.isVariable())
             return S;
         else if (!subject.isVariable() && predicate.isVariable() && !object.isVariable())
@@ -38,21 +36,6 @@ public class Utils {
             return SO;
         else if (!subject.isVariable() && predicate.isVariable() && object.isVariable())
             return PO;
-        else
-            return SPO;
-            */
-        if (!subject.isConcrete() && predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.S;
-        else if (subject.isConcrete() && !predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.P;
-        else if (subject.isConcrete() && predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.O;
-        else if (!subject.isConcrete() && !predicate.isConcrete() && object.isConcrete())
-            return VariablesPattern.SP;
-        else if (!subject.isConcrete() && predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.SO;
-        else if (subject.isConcrete() && !predicate.isConcrete() && !object.isConcrete())
-            return VariablesPattern.PO;
         else
             return SPO;
     }
