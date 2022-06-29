@@ -366,6 +366,7 @@ public class RStorageEngine implements StorageEngine {
                     compound_idx -> {
                         logger.info("{}", compound_idx);
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
+                        //TODO: need to keep nodes in same triple together
                         responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
                         responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));
                     }

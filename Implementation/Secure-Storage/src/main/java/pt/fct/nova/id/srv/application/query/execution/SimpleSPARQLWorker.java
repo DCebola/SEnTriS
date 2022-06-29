@@ -5,6 +5,8 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
+import pt.fct.nova.id.srv.application.query.jobs.jobN.BGPJob;
+import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
@@ -188,6 +190,19 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return execMinus((MinusJob) job, left, right);
         } else
             return null;
+    }
+
+    @Override
+    public Map<Var, List<Node>> exec(JobN job, List<Map<Var, List<Node>>> prevJobsBindings) {
+        if (job instanceof BGPJob)
+            return execBGP((BGPJob) job, prevJobsBindings);
+        else
+            return null;
+    }
+
+    private Map<Var, List<Node>> execBGP(BGPJob job, List<Map<Var, List<Node>>> prevJobsBindings) {
+        //TODO: Execute BGP
+        return null;
     }
 
     private Map<Var, List<Node>> execJoin(JoinJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
