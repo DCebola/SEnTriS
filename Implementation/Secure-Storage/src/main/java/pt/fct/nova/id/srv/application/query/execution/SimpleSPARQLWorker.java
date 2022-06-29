@@ -10,8 +10,10 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
@@ -27,7 +29,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public List<Binding> exec(Job job) {
+    public Map<Var, List<Node>> exec(Job job) {
         if (job instanceof GetJob)
             return execGet((GetJob) job);
         else if (job instanceof ValuesJob)
@@ -38,7 +40,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private List<Binding> execGet(GetJob job) {
+    private Map<Var, List<Node>> execGet(GetJob job) {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
@@ -53,74 +55,81 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         };
     }
 
-    private List<Binding> fetchGetBindings(String storeID) {
-        List<Binding> res = new LinkedList<>();
-        Var s = Var.alloc(S.name()), p = Var.alloc(P.name()), o = Var.alloc(O.name());
-        storageEngine.getTriples(storeID).forEach(
-                t -> {
-                    res.add(BindingFactory.binding(s, t.getSubject()));
-                    res.add(BindingFactory.binding(p, t.getPredicate()));
-                    res.add(BindingFactory.binding(o, t.getObject()));
+    private Map<Var, List<Node>> fetchGetBindings(VariablesPattern varPattern, Var var, Node node1, Node node2) {
+        Map<Var, List<Node>> res = new HashMap<>();
+        if (varPattern == VariablesPattern.S)
+            res.put(var, storageEngine.findSubjects(storeID, node1, node2));
+        else if (varPattern == VariablesPattern.P)
+            res.put(var, storageEngine.findPredicates(storeID, node1, node2));
+        else if (varPattern == VariablesPattern.O)
+            res.put(var, storageEngine.findObjects(storeID, node1, node2));
+        else
+            return null;
+        return res;
+    }
+
+    private Map<Var, List<Node>> fetchGetBindings(VariablesPattern varPattern, Var var1, Var var2, Node node) {
+        if (varPattern == VariablesPattern.SP) {
+            return parseTypedNodes(S, var1, var2, storageEngine.findSP(storeID, node));
+        } else if (varPattern == VariablesPattern.SO) {
+            return parseTypedNodes(S, var1, var2, storageEngine.findSO(storeID, node));
+        } else if (varPattern == VariablesPattern.PO) {
+            return parseTypedNodes(P, var1, var2, storageEngine.findPO(storeID, node));
+        } else
+            return null;
+    }
+
+    private Map<Var, List<Node>> parseTypedNodes(VariablesPattern var1Type, Var var1, Var var2, List<TypedNode> nodes) {
+        Map<Var, List<Node>> res = new HashMap<>();
+        List<Node> nodes1 = new LinkedList<>();
+        List<Node> nodes2 = new LinkedList<>();
+        nodes.forEach(
+                n -> {
+                    if (n.getType().equals(var1Type))
+                        nodes1.add(n.getNode());
+                    else
+                        nodes2.add(n.getNode());
                 }
         );
+        res.put(var1, nodes1);
+        res.put(var2, nodes2);
         return res;
     }
 
-    private List<Binding> fetchGetBindings(VariablesPattern varPattern, Var var1, Var var2, Node node) {
-        List<Binding> res = new LinkedList<>();
-        Iterable<TypedNode> nodes = null;
-        VariablesPattern t1 = null;
-
-        if (varPattern == VariablesPattern.SP) {
-            nodes = storageEngine.findSP(storeID, node);
-            t1 = S;
-        } else if (varPattern == VariablesPattern.SO) {
-            nodes = storageEngine.findSO(storeID, node);
-            t1 = S;
-        } else if (varPattern == VariablesPattern.PO) {
-            nodes = storageEngine.findPO(storeID, node);
-            t1 = P;
-        }
-        if (nodes != null) {
-            for (TypedNode n : nodes) {
-                if (n.getType().equals(t1))
-                    res.add(BindingFactory.binding(var1, n.getNode()));
-                else
-                    res.add(BindingFactory.binding(var2, n.getNode()));
-            }
-        }
+    private Map<Var, List<Node>> fetchGetBindings(String storeID) {
+        Map<Var, List<Node>> res = new HashMap<>();
+        Var s = Var.alloc(S.name());
+        Var p = Var.alloc(P.name());
+        Var o = Var.alloc(O.name());
+        List<Node> s_nodes = new LinkedList<>();
+        List<Node> p_nodes = new LinkedList<>();
+        List<Node> o_nodes = new LinkedList<>();
+        storageEngine.getTriples(storeID).forEach(
+                t -> {
+                    s_nodes.add(t.getSubject());
+                    p_nodes.add(t.getPredicate());
+                    o_nodes.add(t.getPredicate());
+                }
+        );
+        res.put(s, s_nodes);
+        res.put(p, p_nodes);
+        res.put(o, o_nodes);
         return res;
     }
 
-    private List<Binding> fetchGetBindings(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        List<Binding> res = new LinkedList<>();
-        Iterable<Node> nodes = null;
-
-        if (varPattern == VariablesPattern.S)
-            nodes = storageEngine.findSubjects(storeID, node1, node2);
-        else if (varPattern == VariablesPattern.P)
-            nodes = storageEngine.findPredicates(storeID, node1, node2);
-        else if (varPattern == VariablesPattern.O)
-            nodes = storageEngine.findObjects(storeID, node1, node2);
-
-        if (nodes != null)
-            nodes.forEach(n -> res.add(BindingFactory.binding(var, n)));
-        return res;
-    }
-
-    private List<Binding> execValues(ValuesJob job) {
+    private Map<Var, List<Node>> execValues(ValuesJob job) {
         //TODO Execute ValuesJob
         return null;
     }
 
-    private List<Binding> execSlice(SliceJob job) {
+    private Map<Var, List<Node>> execSlice(SliceJob job) {
         //TODO Execute SliceJob
         return null;
     }
 
 
     @Override
-    public List<Binding> exec(Job1 job, List<Binding> prevJobBindings) {
+    public Map<Var, List<Node>> exec(Job1 job, Map<Var, List<Node>> prevJobBindings) {
         if (job instanceof ProjectJob) {
             return execProject((ProjectJob) job, prevJobBindings);
         } else if (job instanceof BindJob) {
@@ -137,38 +146,38 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private List<Binding> execProject(ProjectJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execProject(ProjectJob job, Map<Var, List<Node>> prevJobBindings) {
 
         return null;
     }
 
-    private List<Binding> execBind(BindJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execBind(BindJob job, Map<Var, List<Node>> prevJobBindings) {
         //TODO Execute BindJob
         return null;
     }
 
-    private List<Binding> execFilter(FilterJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execFilter(FilterJob job, Map<Var, List<Node>> prevJobBindings) {
         //TODO Execute FilterJob
         return null;
     }
 
-    private List<Binding> execOrderBy(OrderByJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execOrderBy(OrderByJob job, Map<Var, List<Node>> prevJobBindings) {
         //TODO Execute OrderByJob
         return null;
     }
 
-    private List<Binding> execGroup(GroupJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execGroup(GroupJob job, Map<Var, List<Node>> prevJobBindings) {
         //TODO Execute GroupJob
         return null;
     }
 
-    private List<Binding> execDistinct(DistinctJob job, List<Binding> prevJobBindings) {
+    private Map<Var, List<Node>> execDistinct(DistinctJob job, Map<Var, List<Node>> prevJobBindings) {
         //TODO Execute DistinctJob
         return null;
     }
 
     @Override
-    public List<Binding> exec(Job2 job, List<Binding> left, List<Binding> right) {
+    public Map<Var, List<Node>> exec(Job2 job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
         if (job instanceof JoinJob) {
             return execJoin((JoinJob) job, left, right);
         } else if (job instanceof UnionJob) {
@@ -181,22 +190,22 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private List<Binding> execJoin(JoinJob job, List<Binding> left, List<Binding> right) {
+    private Map<Var, List<Node>> execJoin(JoinJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
         //TODO Execute JoinJob
         return null;
     }
 
-    private List<Binding> execUnion(UnionJob job, List<Binding> left, List<Binding> right) {
+    private Map<Var, List<Node>> execUnion(UnionJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
         //TODO Execute UnionJob
         return null;
     }
 
-    private List<Binding> execOptional(OptionalJob job, List<Binding> left, List<Binding> right) {
+    private Map<Var, List<Node>> execOptional(OptionalJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
         //TODO Execute OptionalJob
         return null;
     }
 
-    private List<Binding> execMinus(MinusJob job, List<Binding> left, List<Binding> right) {
+    private Map<Var, List<Node>> execMinus(MinusJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
         //TODO Execute MinusJob
         return null;
     }

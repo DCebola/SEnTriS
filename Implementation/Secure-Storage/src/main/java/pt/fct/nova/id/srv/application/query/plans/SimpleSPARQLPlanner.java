@@ -12,9 +12,9 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
+import pt.fct.nova.id.srv.application.query.jobs.jobN.BGPJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
-import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 
 import java.util.*;
 
@@ -66,16 +66,20 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     }
 
     private void generateGetJobs(OpBGP op) {
+        List<String> getJobIDs = new LinkedList<>();
         op.getPattern().getList().forEach(
                 t -> {
                     Node s = t.getSubject();
                     Node p = t.getPredicate();
                     Node o = t.getObject();
                     String jobID = generateID();
-                    parsed_op.put(op, jobID);
+                    getJobIDs.add(jobID);
                     plan.pushJob(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
+        String jobID = generateID();
+        plan.pushJob(new BGPJob(jobID, getJobIDs));
+        parsed_op.put(op, jobID);
     }
 
     private void generateValuesJob(OpTable op) {

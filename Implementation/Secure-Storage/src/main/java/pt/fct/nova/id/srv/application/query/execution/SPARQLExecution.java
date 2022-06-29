@@ -11,7 +11,7 @@ public interface SPARQLExecution {
 
     Iterator<String> getFinishedJobs();
 
-    String getCurrentJobs();
+    String getCurrentJob();
 
     boolean isFinished();
 
@@ -19,7 +19,6 @@ public interface SPARQLExecution {
 
     ResultSet getResults();
 
-    ResultSet getResults(String jobID);
 
     ResultSet exec(String storeID, StorageEngine storageEngine);
 }

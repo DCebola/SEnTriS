@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.query.jobs.BaseJob;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 
 import java.util.*;

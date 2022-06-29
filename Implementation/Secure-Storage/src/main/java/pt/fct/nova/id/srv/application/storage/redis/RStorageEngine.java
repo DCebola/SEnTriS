@@ -219,7 +219,7 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Iterable<Triple> getTriples(String storeID) {
+    public List<Triple> getTriples(String storeID) {
         List<Triple> triples = new LinkedList<>();
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -273,22 +273,22 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Iterable<Node> findSubjects(String storeID, Node predicate, Node object) {
+    public List<Node> findSubjects(String storeID, Node predicate, Node object) {
         return find(storeID, predicate, object, P_IRIS, O_IRIS, SINGLE_PO, REV_S_IRIS);
     }
 
     @Override
-    public Iterable<Node> findPredicates(String storeID, Node subject, Node object) {
+    public List<Node> findPredicates(String storeID, Node subject, Node object) {
         return find(storeID, subject, object, S_IRIS, O_IRIS, SINGLE_SO, REV_P_IRIS);
     }
 
     @Override
-    public Iterable<Node> findObjects(String storeID, Node subject, Node predicate) {
+    public List<Node> findObjects(String storeID, Node subject, Node predicate) {
 
         return find(storeID, subject, predicate, S_IRIS, P_IRIS, SINGLE_SP, REV_O_IRIS);
     }
 
-    private Iterable<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter, String reverseIRIKeyFormatter) {
+    private List<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter, String reverseIRIKeyFormatter) {
         List<Node> nodes = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
@@ -315,21 +315,21 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Iterable<TypedNode> findSP(String storeID, Node object) {
+    public List<TypedNode> findSP(String storeID, Node object) {
         return find(storeID, object, SP);
     }
 
     @Override
-    public Iterable<TypedNode> findSO(String storeID, Node predicate) {
+    public List<TypedNode> findSO(String storeID, Node predicate) {
         return find(storeID, predicate, SO);
     }
 
     @Override
-    public Iterable<TypedNode> findPO(String storeID, Node subject) {
+    public List<TypedNode> findPO(String storeID, Node subject) {
         return find(storeID, subject, PO);
     }
 
-    private Iterable<TypedNode> find(String storeID, Node node, VariablesPattern pattern) {
+    private List<TypedNode> find(String storeID, Node node, VariablesPattern pattern) {
         List<TypedNode> nodes = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();

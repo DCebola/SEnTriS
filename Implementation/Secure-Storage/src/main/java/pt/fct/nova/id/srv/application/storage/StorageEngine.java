@@ -5,6 +5,7 @@ import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 
+import java.util.List;
 import java.util.Map;
 
 public interface StorageEngine {
@@ -15,19 +16,19 @@ public interface StorageEngine {
 
     boolean saveTriple(String storeID, Triple triple);
 
-    Iterable<Triple> getTriples(String storeID);
+    List<Triple> getTriples(String storeID);
 
     Map<String, String> getNamespaces(String storeID);
 
-    Iterable<Node> findSubjects(String storeID, Node predicate, Node object);
+    List<Node> findSubjects(String storeID, Node predicate, Node object);
 
-    Iterable<Node> findPredicates(String storeID, Node subject, Node object);
+    List<Node> findPredicates(String storeID, Node subject, Node object);
 
-    Iterable<Node> findObjects(String storeID, Node subject, Node predicate);
+    List<Node> findObjects(String storeID, Node subject, Node predicate);
 
-    Iterable<TypedNode> findSP(String storeID, Node object);
+    List<TypedNode> findSP(String storeID, Node object);
 
-    Iterable<TypedNode> findSO(String storeID, Node predicate);
+    List<TypedNode> findSO(String storeID, Node predicate);
 
-    Iterable<TypedNode> findPO(String storeID, Node subject);
+    List<TypedNode> findPO(String storeID, Node subject);
 }
