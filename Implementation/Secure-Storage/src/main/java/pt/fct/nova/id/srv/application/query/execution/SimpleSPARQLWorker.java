@@ -53,70 +53,31 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             case SP -> fetchGetBindings(SP, Var.alloc(s), Var.alloc(p), o);
             case SO -> fetchGetBindings(SO, Var.alloc(s), Var.alloc(o), p);
             case PO -> fetchGetBindings(PO, Var.alloc(p), Var.alloc(o), s);
-            case SPO -> fetchGetBindings(storeID);
+            case SPO -> storageEngine.findAll(storeID, Var.alloc(S.name()), Var.alloc(P.name()), Var.alloc(O.name()));
+
         };
     }
 
     private Map<Var, List<Node>> fetchGetBindings(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        Map<Var, List<Node>> res = new HashMap<>();
         if (varPattern == VariablesPattern.S)
-            res.put(var, storageEngine.findSubjects(storeID, node1, node2));
+            return storageEngine.findSubjects(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.P)
-            res.put(var, storageEngine.findPredicates(storeID, node1, node2));
+            return storageEngine.findPredicates(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.O)
-            res.put(var, storageEngine.findObjects(storeID, node1, node2));
+            return storageEngine.findObjects(storeID, node1, node2, var);
         else
             return null;
-        return res;
     }
 
     private Map<Var, List<Node>> fetchGetBindings(VariablesPattern varPattern, Var var1, Var var2, Node node) {
         if (varPattern == VariablesPattern.SP) {
-            return parseTypedNodes(S, var1, var2, storageEngine.findSP(storeID, node));
+            return storageEngine.findSP(storeID, node, var1, var2);
         } else if (varPattern == VariablesPattern.SO) {
-            return parseTypedNodes(S, var1, var2, storageEngine.findSO(storeID, node));
+            return storageEngine.findSO(storeID, node, var1, var2);
         } else if (varPattern == VariablesPattern.PO) {
-            return parseTypedNodes(P, var1, var2, storageEngine.findPO(storeID, node));
+            return storageEngine.findPO(storeID, node, var1, var2);
         } else
             return null;
-    }
-
-    private Map<Var, List<Node>> parseTypedNodes(VariablesPattern var1Type, Var var1, Var var2, List<TypedNode> nodes) {
-        Map<Var, List<Node>> res = new HashMap<>();
-        List<Node> nodes1 = new LinkedList<>();
-        List<Node> nodes2 = new LinkedList<>();
-        nodes.forEach(
-                n -> {
-                    if (n.getType().equals(var1Type))
-                        nodes1.add(n.getNode());
-                    else
-                        nodes2.add(n.getNode());
-                }
-        );
-        res.put(var1, nodes1);
-        res.put(var2, nodes2);
-        return res;
-    }
-
-    private Map<Var, List<Node>> fetchGetBindings(String storeID) {
-        Map<Var, List<Node>> res = new HashMap<>();
-        Var s = Var.alloc(S.name());
-        Var p = Var.alloc(P.name());
-        Var o = Var.alloc(O.name());
-        List<Node> s_nodes = new LinkedList<>();
-        List<Node> p_nodes = new LinkedList<>();
-        List<Node> o_nodes = new LinkedList<>();
-        storageEngine.getTriples(storeID).forEach(
-                t -> {
-                    s_nodes.add(t.getSubject());
-                    p_nodes.add(t.getPredicate());
-                    o_nodes.add(t.getPredicate());
-                }
-        );
-        res.put(s, s_nodes);
-        res.put(p, p_nodes);
-        res.put(o, o_nodes);
-        return res;
     }
 
     private Map<Var, List<Node>> execValues(ValuesJob job) {

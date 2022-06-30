@@ -4,22 +4,19 @@ import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
-import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class RStorageEngine implements StorageEngine {
 
@@ -231,6 +228,7 @@ public class RStorageEngine implements StorageEngine {
             String[] po_split;
             Pipeline p = jedis.pipelined();
             for (String s_idx : s_idxs) {
+                //TODO: need to send in batch
                 po_idxs = jedis.smembers(String.format(SINGLE_S, storeID, s_idx));
                 if (po_idxs != null) {
                     for (String po_idx : po_idxs) {
@@ -259,7 +257,7 @@ public class RStorageEngine implements StorageEngine {
             }
             return triples;
         } catch (Exception e) {
-            return null;
+            return triples;
         }
     }
 
@@ -273,23 +271,22 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public List<Node> findSubjects(String storeID, Node predicate, Node object) {
-        return find(storeID, predicate, object, P_IRIS, O_IRIS, SINGLE_PO, REV_S_IRIS);
+    public Map<Var, List<Node>> findSubjects(String storeID, Node predicate, Node object, Var var) {
+        return find(storeID, predicate, object, P_IRIS, O_IRIS, SINGLE_PO, REV_S_IRIS, var);
     }
 
     @Override
-    public List<Node> findPredicates(String storeID, Node subject, Node object) {
-        return find(storeID, subject, object, S_IRIS, O_IRIS, SINGLE_SO, REV_P_IRIS);
+    public Map<Var, List<Node>> findPredicates(String storeID, Node subject, Node object, Var var) {
+        return find(storeID, subject, object, S_IRIS, O_IRIS, SINGLE_SO, REV_P_IRIS, var);
     }
 
     @Override
-    public List<Node> findObjects(String storeID, Node subject, Node predicate) {
-
-        return find(storeID, subject, predicate, S_IRIS, P_IRIS, SINGLE_SP, REV_O_IRIS);
+    public Map<Var, List<Node>> findObjects(String storeID, Node subject, Node predicate, Var var) {
+        return find(storeID, subject, predicate, S_IRIS, P_IRIS, SINGLE_SP, REV_O_IRIS, var);
     }
 
-    private List<Node> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter, String reverseIRIKeyFormatter) {
-        List<Node> nodes = new LinkedList<>();
+    private Map<Var, List<Node>> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter, String reverseIRIKeyFormatter, Var var) {
+        Map<Var, List<Node>> res = new HashMap<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             Response<String> resp_idx_1 = getIndexFromIRI(p, IRIKeyFormatter1, storeID, parseNodeIRI(node1));
@@ -299,86 +296,107 @@ public class RStorageEngine implements StorageEngine {
             String idx_2 = resp_idx_2.get();
             logger.info("{}, {}", idx_1, idx_2);
             if (idx_1 == null || idx_2 == null)
-                return nodes;
+                return res;
             List<Response<String>> responses = new LinkedList<>();
             jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2)).forEach(
                     simple_idx -> responses.add(p.hget(String.format(reverseIRIKeyFormatter, storeID), simple_idx))
 
             );
             p.sync();
+            List<Node> nodes = new ArrayList<>(responses.size());
             responses.forEach(resp -> nodes.add(generateNode(resp.get())));
-            return nodes;
+            res.put(var, nodes);
+            return res;
         } catch (Exception e) {
             e.printStackTrace();
-            return nodes;
+            return res;
         }
     }
 
     @Override
-    public List<TypedNode> findSP(String storeID, Node object) {
-        return find(storeID, object, SP);
+    public Map<Var, List<Node>> findAll(String storeID, Var var1, Var var2, Var var3) {
+       Map<Var, List<Node>> res = new HashMap<>();
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+
+            Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
+            Set<String> po_idxs;
+            String s_iri, p_iri, o_iri;
+            String p_idx, o_idx;
+            String[] po_split;
+            Pipeline p = jedis.pipelined();
+            //TODO: need to send in batch
+            for (String s_idx : s_idxs) {
+                po_idxs = jedis.smembers(String.format(SINGLE_S, storeID, s_idx));
+                if (po_idxs != null) {
+                    for (String po_idx : po_idxs) {
+                        po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
+                        p_idx = po_split[0];
+                        o_idx = po_split[1];
+                        Response<String> resp_s_iri = p.hget(String.format(REV_S_IRIS, storeID), s_idx);
+                        Response<String> resp_p_iri = p.hget(String.format(REV_P_IRIS, storeID), p_idx);
+                        Response<String> resp_o_iri = p.hget(String.format(REV_O_IRIS, storeID), o_idx);
+                        p.sync();
+
+                        s_iri = resp_s_iri.get();
+                        p_iri = resp_p_iri.get();
+                        o_iri = resp_o_iri.get();
+
+                        triples.add(new Triple(
+                                generateNode(s_iri),
+                                generateNode(p_iri),
+                                generateNode(o_iri)));
+                    }
+                }
+            }
+            return res;
+        } catch (Exception e) {
+            return res;
+        }
     }
 
     @Override
-    public List<TypedNode> findSO(String storeID, Node predicate) {
-        return find(storeID, predicate, SO);
+    public Map<Var, List<Node>> findSP(String storeID, Node object, Var var1, Var var2) {
+        return find(storeID, object, O_IRIS, REV_S_IRIS, REV_P_IRIS, var1, var2);
     }
 
     @Override
-    public List<TypedNode> findPO(String storeID, Node subject) {
-        return find(storeID, subject, PO);
+    public Map<Var, List<Node>> findSO(String storeID, Node predicate, Var var1, Var var2) {
+        return find(storeID, predicate, P_IRIS, REV_S_IRIS, REV_O_IRIS, var1, var2);
     }
 
-    private List<TypedNode> find(String storeID, Node node, VariablesPattern pattern) {
-        List<TypedNode> nodes = new LinkedList<>();
+    @Override
+    public Map<Var, List<Node>> findPO(String storeID, Node subject, Var var1, Var var2) {
+        return find(storeID, subject, S_IRIS, REV_P_IRIS, REV_O_IRIS, var1, var2);
+    }
+
+    private Map<Var, List<Node>> find(String storeID, Node node, String IRIKeyFormatter, String reverseIRIKeyFormatter1, String reverseIRIKeyFormatter2, Var var1, Var var2) {
+        Map<Var, List<Node>> res = new HashMap<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            String IRIKeyFormatter, reverseIRIKeyFormatter1, reverseIRIKeyFormatter2;
-            VariablesPattern type1, type2;
-
-            if (pattern.equals(SO)) {
-                IRIKeyFormatter = P_IRIS;
-                reverseIRIKeyFormatter1 = REV_S_IRIS;
-                reverseIRIKeyFormatter2 = REV_O_IRIS;
-                type1 = S;
-                type2 = O;
-            } else if (pattern.equals(SP)) {
-                IRIKeyFormatter = O_IRIS;
-                reverseIRIKeyFormatter1 = REV_S_IRIS;
-                reverseIRIKeyFormatter2 = REV_P_IRIS;
-                type1 = S;
-                type2 = P;
-            } else if (pattern.equals(PO)) {
-                IRIKeyFormatter = S_IRIS;
-                reverseIRIKeyFormatter1 = REV_P_IRIS;
-                reverseIRIKeyFormatter2 = REV_O_IRIS;
-                type1 = P;
-                type2 = O;
-            } else {
-                return null;
-            }
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
             if (idx == null)
-                return nodes;
+                return res;
             List<Response<String>> responses1 = new LinkedList<>();
             List<Response<String>> responses2 = new LinkedList<>();
             jedis.smembers(idx).forEach(
                     compound_idx -> {
                         logger.info("{}", compound_idx);
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
-                        //TODO: need to keep nodes in same triple together
                         responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
                         responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));
                     }
             );
             p.sync();
-            responses1.forEach(resp -> nodes.add(new TypedNode(type1, generateNode(resp.get()))));
-            responses2.forEach(resp -> nodes.add(new TypedNode(type2, generateNode(resp.get()))));
-            nodes.forEach(System.out::println);
-            return nodes;
+            List<Node> nodes1 = new ArrayList<>(responses1.size());
+            List<Node> nodes2 = new ArrayList<>(responses2.size());
+            responses1.forEach(resp -> nodes1.add(generateNode(resp.get())));
+            responses2.forEach(resp -> nodes2.add(generateNode(resp.get())));
+            res.put(var1, nodes1);
+            res.put(var2, nodes2);
+            return res;
         } catch (Exception e) {
             e.printStackTrace();
-            return nodes;
+            return res;
         }
     }
 }

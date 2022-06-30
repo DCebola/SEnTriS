@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.storage;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 
@@ -20,15 +21,17 @@ public interface StorageEngine {
 
     Map<String, String> getNamespaces(String storeID);
 
-    List<Node> findSubjects(String storeID, Node predicate, Node object);
+    Map<Var, List<Node>> findSubjects(String storeID, Node predicate, Node object, Var var);
 
-    List<Node> findPredicates(String storeID, Node subject, Node object);
+    Map<Var, List<Node>> findPredicates(String storeID, Node subject, Node object, Var var);
 
-    List<Node> findObjects(String storeID, Node subject, Node predicate);
+    Map<Var, List<Node>> findObjects(String storeID, Node subject, Node predicate, Var var);
 
-    List<TypedNode> findSP(String storeID, Node object);
+    Map<Var, List<Node>> findSP(String storeID, Node object, Var var1, Var var2);
 
-    List<TypedNode> findSO(String storeID, Node predicate);
+    Map<Var, List<Node>> findSO(String storeID, Node predicate, Var var1, Var var2);
 
-    List<TypedNode> findPO(String storeID, Node subject);
+    Map<Var, List<Node>> findPO(String storeID, Node subject, Var var1, Var var2);
+
+    Map<Var, List<Node>> findAll(String storeID, Var var1, Var var2, Var var3);
 }
