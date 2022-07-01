@@ -3,11 +3,13 @@ package pt.fct.nova.id.srv.application.storage;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface StorageEngine {
 
@@ -21,17 +23,19 @@ public interface StorageEngine {
 
     Map<String, String> getNamespaces(String storeID);
 
-    Map<Var, List<Node>> findSubjects(String storeID, Node predicate, Node object, Var var);
+    Set<String> findSubjects(String storeID, Node predicate, Node object);
 
-    Map<Var, List<Node>> findPredicates(String storeID, Node subject, Node object, Var var);
+    Set<String> findPredicates(String storeID, Node subject, Node object);
 
-    Map<Var, List<Node>> findObjects(String storeID, Node subject, Node predicate, Var var);
+    Set<String> findObjects(String storeID, Node subject, Node predicate);
 
-    Map<Var, List<Node>> findSP(String storeID, Node object, Var var1, Var var2);
+    Map<Var, Set<String>> findSP(String storeID, Node object, Var var1, Var var2);
 
-    Map<Var, List<Node>> findSO(String storeID, Node predicate, Var var1, Var var2);
+    Map<Var, Set<String>> findSO(String storeID, Node predicate, Var var1, Var var2);
 
-    Map<Var, List<Node>> findPO(String storeID, Node subject, Var var1, Var var2);
+    Map<Var, Set<String>> findPO(String storeID, Node subject, Var var1, Var var2);
 
-    Map<Var, List<Node>> findAll(String storeID, Var var1, Var var2, Var var3);
+    Map<Var, Set<String>> findAll(String storeID, Var var1, Var var2, Var var3);
+
+    List<Binding> getNodesAsBindings(String storeID, Map<Var, Set<String>> varIdxs);
 }

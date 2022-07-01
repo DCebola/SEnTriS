@@ -18,7 +18,7 @@ import java.util.*;
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, Map<Var, List<Node>>> jobBindings;
+    private final Map<String, Map<Var, Set<String>>> jobBindings;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
@@ -68,22 +68,17 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     @Override
     public ResultSet exec(String storeID, StorageEngine engine) {
         SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
-        Map<Var, List<Node>> res;
         while (!pending.isEmpty()) {
             current = pending.peek();
             System.out.println("Current:" + current);
-            res = delegateJob(worker, current);
-            if (res != null) {
-                //res.forEach((k, bindings) -> bindings.forEach(b -> System.out.println("Var: " + k + ", Node: " + b)));
-                jobBindings.put(current, res);
-                result = generateResultSet(res);
-            }
+            jobBindings.put(current, delegateJob(worker, current));
             finished.add(pending.poll());
         }
-        return getResults();
+        result = ResultSetStream.create(vars, worker.generateBindings(jobBindings.get(current)).iterator());
+        return result;
     }
 
-    private Map<Var, List<Node>> delegateJob(SPARQLWorker worker, String current) {
+    private Map<Var, Set<String>> delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1) {
             System.out.println("Previous Job:" + ((Job1) job).getPrevJobID());
@@ -99,19 +94,11 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
             );
         } else if (job instanceof JobN) {
             System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
-            List<Map<Var, List<Node>>> prevBindings = new LinkedList<>();
+            List<Map<Var, Set<String>>> prevBindings = new LinkedList<>();
             ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevBindings.add(jobBindings.get(jobID)));
             return worker.exec(((JobN) job), prevBindings);
         } else {
             return worker.exec(job);
         }
-    }
-
-    private ResultSet generateResultSet(Map<Var, List<Node>> finalBindings) {
-        List<Binding> bindings_collector = new LinkedList<>();
-        finalBindings.forEach(
-                (var, nodes) -> nodes.forEach(n -> bindings_collector.add(BindingFactory.binding(var, n)))
-        );
-        return ResultSetStream.create(vars, bindings_collector.iterator());
     }
 }
