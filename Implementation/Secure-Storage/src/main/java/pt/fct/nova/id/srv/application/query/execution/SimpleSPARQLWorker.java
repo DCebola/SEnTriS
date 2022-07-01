@@ -53,7 +53,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             case SP -> fetchGetBindings(SP, Var.alloc(s), Var.alloc(p), o);
             case SO -> fetchGetBindings(SO, Var.alloc(s), Var.alloc(o), p);
             case PO -> fetchGetBindings(PO, Var.alloc(p), Var.alloc(o), s);
-            case SPO -> storageEngine.findAll(storeID, Var.alloc(S.name()), Var.alloc(P.name()), Var.alloc(O.name()));
+            case SPO -> storageEngine.findAll(storeID, Var.alloc(s), Var.alloc(p), Var.alloc(o));
 
         };
     }

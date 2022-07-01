@@ -367,32 +367,33 @@ public class RStorageEngine implements StorageEngine {
 
     @Override
     public Map<Var, List<Node>> findSP(String storeID, Node object, Var var1, Var var2) {
-        return find(storeID, object, O_IRIS, REV_S_IRIS, REV_P_IRIS, var1, var2);
+        return find(storeID, object, O_IRIS, SINGLE_O, REV_S_IRIS, REV_P_IRIS, var1, var2);
     }
 
     @Override
     public Map<Var, List<Node>> findSO(String storeID, Node predicate, Var var1, Var var2) {
-        return find(storeID, predicate, P_IRIS, REV_S_IRIS, REV_O_IRIS, var1, var2);
+        return find(storeID, predicate, P_IRIS, SINGLE_P, REV_S_IRIS, REV_O_IRIS, var1, var2);
     }
 
     @Override
     public Map<Var, List<Node>> findPO(String storeID, Node subject, Var var1, Var var2) {
-        return find(storeID, subject, S_IRIS, REV_P_IRIS, REV_O_IRIS, var1, var2);
+        return find(storeID, subject, S_IRIS, SINGLE_S, REV_P_IRIS, REV_O_IRIS, var1, var2);
     }
 
     private Map<Var, List<Node>> find(String storeID, Node node,
-                                      String IRIKeyFormatter, String reverseIRIKeyFormatter1, String reverseIRIKeyFormatter2, Var var1, Var var2) {
+                                      String IRIKeyFormatter, String idxKeyFormatter, String reverseIRIKeyFormatter1, String reverseIRIKeyFormatter2, Var var1, Var var2) {
         Map<Var, List<Node>> res = new HashMap<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
+            logger.info("SIMPLE IDX: {}", idx);
             if (idx == null)
                 return res;
             List<Response<String>> responses1 = new LinkedList<>();
             List<Response<String>> responses2 = new LinkedList<>();
-            jedis.smembers(idx).forEach(
+            jedis.smembers(String.format(idxKeyFormatter, storeID, idx)).forEach(
                     compound_idx -> {
-                        logger.info("{}", compound_idx);
+                        logger.info("COMPOUND IDX: {}", compound_idx);
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
                         responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
                         responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));
