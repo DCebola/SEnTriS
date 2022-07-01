@@ -7,6 +7,7 @@ import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
+import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
@@ -70,9 +71,10 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         Map<Var, List<Node>> res;
         while (!pending.isEmpty()) {
             current = pending.peek();
+            System.out.println("Current:" + current);
             res = delegateJob(worker, current);
             if (res != null) {
-                res.forEach((k, bindings) -> bindings.forEach(b -> System.out.println("Var: " + k + ", Node: " + b)));
+                //res.forEach((k, bindings) -> bindings.forEach(b -> System.out.println("Var: " + k + ", Node: " + b)));
                 jobBindings.put(current, res);
                 result = generateResultSet(res);
             }
@@ -84,14 +86,22 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     private Map<Var, List<Node>> delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1) {
+            System.out.println("Previous Job:" + ((Job1) job).getPrevJobID());
             return worker.exec((Job1) job,
                     jobBindings.get(((Job1) job).getPrevJobID())
             );
         } else if (job instanceof Job2) {
+            System.out.println("Left:" + ((Job2) job).getLeftJobID());
+            System.out.println("Right:" + ((Job2) job).getRightJobID());
             return worker.exec((Job2) job,
                     jobBindings.get(((Job2) job).getLeftJobID()),
                     jobBindings.get(((Job2) job).getRightJobID())
             );
+        } else if (job instanceof JobN) {
+            System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
+            List<Map<Var, List<Node>>> prevBindings = new LinkedList<>();
+            ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevBindings.add(jobBindings.get(jobID)));
+            return worker.exec(((JobN) job), prevBindings);
         } else {
             return worker.exec(job);
         }

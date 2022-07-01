@@ -186,7 +186,6 @@ public class RStorageEngine implements StorageEngine {
 
     private Node generateNode(String iri) {
         String[] split_iri = iri.split(IRI_SEPARATOR);
-        logger.debug("#Split {}", Arrays.toString(split_iri));
         if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
             return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
         else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
@@ -386,14 +385,12 @@ public class RStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
-            logger.info("SIMPLE IDX: {}", idx);
             if (idx == null)
                 return res;
             List<Response<String>> responses1 = new LinkedList<>();
             List<Response<String>> responses2 = new LinkedList<>();
             jedis.smembers(String.format(idxKeyFormatter, storeID, idx)).forEach(
                     compound_idx -> {
-                        logger.info("COMPOUND IDX: {}", compound_idx);
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
                         responses1.add(p.hget(String.format(reverseIRIKeyFormatter1, storeID), simple_idxs[0]));
                         responses2.add(p.hget(String.format(reverseIRIKeyFormatter2, storeID), simple_idxs[1]));

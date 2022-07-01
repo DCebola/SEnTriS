@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
@@ -67,19 +68,26 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     private void generateGetJobs(OpBGP op) {
         List<String> getJobIDs = new LinkedList<>();
-        op.getPattern().getList().forEach(
+        List<Triple> patterns = op.getPattern().getList();
+        int total_patterns = patterns.size();
+        patterns.forEach(
                 t -> {
                     Node s = t.getSubject();
                     Node p = t.getPredicate();
                     Node o = t.getObject();
                     String jobID = generateID();
-                    getJobIDs.add(jobID);
+                    if (total_patterns == 1)
+                        parsed_op.put(op, jobID);
+                    else
+                        getJobIDs.add(jobID);
                     plan.pushJob(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
-        String jobID = generateID();
-        plan.pushJob(new BGPJob(jobID, getJobIDs));
-        parsed_op.put(op, jobID);
+        if (total_patterns >= 2) {
+            String jobID = generateID();
+            plan.pushJob(new BGPJob(jobID, getJobIDs));
+            parsed_op.put(op, jobID);
+        }
     }
 
     private void generateValuesJob(OpTable op) {

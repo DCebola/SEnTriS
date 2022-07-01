@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
+import com.github.jsonldjava.core.RDFDataset;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -110,8 +111,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private Map<Var, List<Node>> execProject(ProjectJob job, Map<Var, List<Node>> prevJobBindings) {
-
-        return null;
+        prevJobBindings.keySet().retainAll(job.getVariables());
+        return prevJobBindings;
     }
 
     private Map<Var, List<Node>> execBind(BindJob job, Map<Var, List<Node>> prevJobBindings) {
