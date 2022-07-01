@@ -139,7 +139,7 @@ public class RStorageEngine implements StorageEngine {
 
                 logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
 
-                String sp_idx = generateComplementIndex(p_idx, s_idx);
+                String sp_idx = generateComplementIndex(s_idx, p_idx);
                 String so_idx = generateComplementIndex(s_idx, o_idx);
                 String po_idx = generateComplementIndex(p_idx, o_idx);
 
