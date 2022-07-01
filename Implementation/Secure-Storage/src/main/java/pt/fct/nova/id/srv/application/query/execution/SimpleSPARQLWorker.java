@@ -13,10 +13,9 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.dao.TypedNode;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
@@ -168,11 +167,21 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private Map<Var, List<Node>> execJoin(JoinJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
-        //TODO Execute JoinJob
-        return null;
+        Map<Var, List<Node>> join = new HashMap<>(left);
+        right.forEach((k, v) -> join.merge(k, v, (l,r)->{
+            if (l.size() > r.size()){
+                l.retainAll(r);
+                return l;
+            } else{
+                r.retainAll(l);
+                return r;
+            }
+        }));
+        return join;
     }
 
     private Map<Var, List<Node>> execUnion(UnionJob job, Map<Var, List<Node>> left, Map<Var, List<Node>> right) {
+        
         //TODO Execute UnionJob
         return null;
     }
