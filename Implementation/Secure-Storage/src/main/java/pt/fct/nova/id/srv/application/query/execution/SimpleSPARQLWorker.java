@@ -177,7 +177,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private Map<Var, Set<String>> execUnion(UnionJob job, Map<Var, Set<String>> left, Map<Var, Set<String>> right) {
 
-        //TODO Execute UnionJob
+        //TODO Execute UnionJob, need a set with O(1) for get at position i -> Use of an ArrayList or Array with the HashSet
         return null;
     }
 
