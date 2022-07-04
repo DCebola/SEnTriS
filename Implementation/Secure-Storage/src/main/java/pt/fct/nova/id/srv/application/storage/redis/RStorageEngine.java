@@ -269,21 +269,21 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Set<String> findSubjects(String storeID, Node predicate, Node object) {
+    public List<String> findSubjects(String storeID, Node predicate, Node object) {
         return find(storeID, predicate, object, P_IRIS, O_IRIS, SINGLE_PO);
     }
 
     @Override
-    public Set<String> findPredicates(String storeID, Node subject, Node object) {
+    public List<String> findPredicates(String storeID, Node subject, Node object) {
         return find(storeID, subject, object, S_IRIS, O_IRIS, SINGLE_SO);
     }
 
     @Override
-    public Set<String> findObjects(String storeID, Node subject, Node predicate) {
+    public List<String> findObjects(String storeID, Node subject, Node predicate) {
         return find(storeID, subject, predicate, S_IRIS, P_IRIS, SINGLE_SP);
     }
 
-    private Set<String> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter) {
+    private List<String> find(String storeID, Node node1, Node node2, String IRIKeyFormatter1, String IRIKeyFormatter2, String compoundIdxKeyFormatter) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             Response<String> resp_idx_1 = getIndexFromIRI(p, IRIKeyFormatter1, storeID, parseNodeIRI(node1));
@@ -293,17 +293,17 @@ public class RStorageEngine implements StorageEngine {
             String idx_2 = resp_idx_2.get();
             logger.info("{}, {}", idx_1, idx_2);
             if (idx_1 == null || idx_2 == null)
-                return new HashSet<>();
-            return jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2));
+                return new ArrayList<>();
+            return new ArrayList<>(jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2)));
         } catch (Exception e) {
             e.printStackTrace();
-            return new HashSet<>();
+            return new ArrayList<>();
         }
     }
 
     @Override
-    public Map<Var, Set<String>> findAll(String storeID, Var var1, Var var2, Var var3) {
-        Map<Var, Set<String>> res = new HashMap<>();
+    public Map<Var, List<String>> findAll(String storeID, Var var1, Var var2, Var var3) {
+        Map<Var, List<String>> res = new HashMap<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
 
             Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
@@ -311,9 +311,9 @@ public class RStorageEngine implements StorageEngine {
 
             List<Response<Set<String>>> responses = new ArrayList<>(total_triples);
 
-            Set<String> subjects = new LinkedHashSet<>(total_triples);
-            Set<String> predicates = new LinkedHashSet<>(total_triples);
-            Set<String> objects = new LinkedHashSet<>(total_triples);
+            List<String> subjects = new ArrayList<>(total_triples);
+            List<String> predicates = new ArrayList<>(total_triples);
+            List<String> objects = new ArrayList<>(total_triples);
 
             Pipeline p = jedis.pipelined();
 
@@ -343,7 +343,7 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public List<Binding> getNodesAsBindings(String storeID, Map<Var, Set<String>> varIdxs) {
+    public List<Binding> getNodesAsBindings(String storeID, Map<Var, List<String>> varIdxs) {
         List<Binding> res = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
@@ -373,29 +373,31 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public Map<Var, Set<String>> findSP(String storeID, Node object, Var var1, Var var2) {
+    public Map<Var, List<String>> findSP(String storeID, Node object, Var var1, Var var2) {
         return find(storeID, object, O_IRIS, SINGLE_O, var1, var2);
     }
 
     @Override
-    public Map<Var, Set<String>> findSO(String storeID, Node predicate, Var var1, Var var2) {
+    public Map<Var, List<String>> findSO(String storeID, Node predicate, Var var1, Var var2) {
         return find(storeID, predicate, P_IRIS, SINGLE_P, var1, var2);
     }
 
     @Override
-    public Map<Var, Set<String>> findPO(String storeID, Node subject, Var var1, Var var2) {
+    public Map<Var, List<String>> findPO(String storeID, Node subject, Var var1, Var var2) {
         return find(storeID, subject, S_IRIS, SINGLE_S, var1, var2);
     }
 
-    private Map<Var, Set<String>> find(String storeID, Node node, String IRIKeyFormatter, String idxKeyFormatter, Var var1, Var var2) {
-        Map<Var, Set<String>> res = new HashMap<>();
+    private Map<Var, List<String>> find(String storeID, Node node, String IRIKeyFormatter, String idxKeyFormatter, Var var1, Var var2) {
+        Map<Var, List<String>> res = new HashMap<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
             if (idx == null)
                 return res;
-            Set<String> node_idxs1 = new LinkedHashSet<>();
-            Set<String> nodes_idxs2 = new LinkedHashSet<>();
-            jedis.smembers(String.format(idxKeyFormatter, storeID, idx)).forEach(
+            Set<String> idxs = jedis.smembers(String.format(idxKeyFormatter, storeID, idx));
+            int total_idxs = idxs.size();
+            List<String> node_idxs1 = new ArrayList<>(total_idxs);
+            List<String> nodes_idxs2 = new ArrayList<>(total_idxs);
+            idxs.forEach(
                     compound_idx -> {
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
                         node_idxs1.add(simple_idxs[0]);

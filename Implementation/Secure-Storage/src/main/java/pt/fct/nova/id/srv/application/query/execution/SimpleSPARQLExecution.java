@@ -18,7 +18,7 @@ import java.util.*;
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, Map<Var, Set<String>>> jobBindings;
+    private final Map<String, Map<Var, List<String>>> jobBindings;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
@@ -78,7 +78,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         return result;
     }
 
-    private Map<Var, Set<String>> delegateJob(SPARQLWorker worker, String current) {
+    private Map<Var, List<String>> delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1) {
             System.out.println("Previous Job:" + ((Job1) job).getPrevJobID());
@@ -94,7 +94,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
             );
         } else if (job instanceof JobN) {
             System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
-            List<Map<Var, Set<String>>> prevBindings = new LinkedList<>();
+            List<Map<Var, List<String>>> prevBindings = new LinkedList<>();
             ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevBindings.add(jobBindings.get(jobID)));
             return worker.exec(((JobN) job), prevBindings);
         } else {
