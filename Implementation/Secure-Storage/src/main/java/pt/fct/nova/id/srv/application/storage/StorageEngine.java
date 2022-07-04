@@ -4,9 +4,11 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface StorageEngine {
 
@@ -20,19 +22,19 @@ public interface StorageEngine {
 
     Map<String, String> getNamespaces(String storeID);
 
-    List<String> findSubjects(String storeID, Node predicate, Node object);
+    IdxTable findSubjects(String storeID, Node predicate, Node object, Var var);
 
-    List<String> findPredicates(String storeID, Node subject, Node object);
+    IdxTable findPredicates(String storeID, Node subject, Node object, Var var);
 
-    List<String> findObjects(String storeID, Node subject, Node predicate);
+    IdxTable findObjects(String storeID, Node subject, Node predicate, Var var);
 
-    Map<Var, List<String>> findSP(String storeID, Node object, Var var1, Var var2);
+    IdxTable2 findSP(String storeID, Node object, Var var1, Var var2);
 
-    Map<Var, List<String>> findSO(String storeID, Node predicate, Var var1, Var var2);
+    IdxTable2 findSO(String storeID, Node predicate, Var var1, Var var2);
 
-    Map<Var, List<String>> findPO(String storeID, Node subject, Var var1, Var var2);
+    IdxTable2 findPO(String storeID, Node subject, Var var1, Var var2);
 
-    Map<Var, List<String>> findAll(String storeID, Var var1, Var var2, Var var3);
+    IdxTable3 findAll(String storeID, Var var1, Var var2, Var var3);
 
-    List<Binding> getNodesAsBindings(String storeID, Map<Var, List<String>> varIdxs);
+    List<Binding> getNodesAsBindings(String storeID, Map<Var, Set<String>> varIdxs);
 }

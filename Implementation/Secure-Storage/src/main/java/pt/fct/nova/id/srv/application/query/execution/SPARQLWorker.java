@@ -7,19 +7,19 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
+import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
 
 import java.util.List;
-import java.util.Map;
 
 public interface SPARQLWorker {
 
-    Map<Var, List<String>> exec(Job job);
+    IdxTable exec(Job job);
 
-    Map<Var, List<String>> exec(Job1 job, Map<Var, List<String>> prevJobBindings);
+    IdxTable exec(Job1 job, IdxTable prevJobResults);
 
-    Map<Var, List<String>> exec(Job2 job, Map<Var, List<String>> left, Map<Var, List<String>> right);
+    IdxTable exec(Job2 job, IdxTable left, IdxTable right);
 
-    Map<Var, List<String>> exec(JobN job, List<Map<Var, List<String>>> prevJobsBindings);
+    IdxTable exec(JobN job, List<IdxTable> prevJobsResults);
 
-    List<Binding> generateBindings(Map<Var, List<String>> jobBindings);
+    List<Binding> generateBindings(IdxTable jobResults);
 }

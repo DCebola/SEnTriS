@@ -2,16 +2,16 @@ package pt.fct.nova.id.srv.application.storage.idx_tables;
 
 import org.apache.jena.sparql.core.Var;
 
-import java.util.List;
+import java.util.Set;
 import java.util.Map;
 
 public interface IdxTable {
 
-    void insertIdx1(String tableIdx, String idx);
+    void addIdxs(Map<Var, String> newIdxs);
 
-    Map<String, String> getIdxs1();
+    void addIdx(Var var, String idx);
 
-    Map<String, String> getRevIdxs1();
+    Map<String, String> getIdxs(Var var);
 
-    Var getVar1();
+    Map<String, String> getRevIdxs(Var var);
 }

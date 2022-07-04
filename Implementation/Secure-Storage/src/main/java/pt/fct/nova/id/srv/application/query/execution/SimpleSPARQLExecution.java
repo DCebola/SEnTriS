@@ -1,24 +1,22 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.graph.Node;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingFactory;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
 
 import java.util.*;
 
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, Map<Var, List<String>>> jobBindings;
+    private final Map<String, IdxTable> jobResults;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
@@ -32,7 +30,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
         this.current = null;
-        jobBindings = new HashMap<>();
+        jobResults = new HashMap<>();
     }
 
     @Override
@@ -71,32 +69,32 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         while (!pending.isEmpty()) {
             current = pending.peek();
             System.out.println("Current:" + current);
-            jobBindings.put(current, delegateJob(worker, current));
+            jobResults.put(current, delegateJob(worker, current));
             finished.add(pending.poll());
         }
-        result = ResultSetStream.create(vars, worker.generateBindings(jobBindings.get(current)).iterator());
+        result = ResultSetStream.create(vars, worker.generateBindings(jobResults.get(current)).iterator());
         return result;
     }
 
-    private Map<Var, List<String>> delegateJob(SPARQLWorker worker, String current) {
+    private IdxTable delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1) {
             System.out.println("Previous Job:" + ((Job1) job).getPrevJobID());
             return worker.exec((Job1) job,
-                    jobBindings.get(((Job1) job).getPrevJobID())
+                    jobResults.get(((Job1) job).getPrevJobID())
             );
         } else if (job instanceof Job2) {
             System.out.println("Left:" + ((Job2) job).getLeftJobID());
             System.out.println("Right:" + ((Job2) job).getRightJobID());
             return worker.exec((Job2) job,
-                    jobBindings.get(((Job2) job).getLeftJobID()),
-                    jobBindings.get(((Job2) job).getRightJobID())
+                    jobResults.get(((Job2) job).getLeftJobID()),
+                    jobResults.get(((Job2) job).getRightJobID())
             );
         } else if (job instanceof JobN) {
             System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
-            List<Map<Var, List<String>>> prevBindings = new LinkedList<>();
-            ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevBindings.add(jobBindings.get(jobID)));
-            return worker.exec(((JobN) job), prevBindings);
+            List<IdxTable> prevResults = new LinkedList<>();
+            ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevResults.add(jobResults.get(jobID)));
+            return worker.exec(((JobN) job), prevResults);
         } else {
             return worker.exec(job);
         }

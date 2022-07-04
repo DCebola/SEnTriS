@@ -1,16 +1,15 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.BGPJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
 
 import java.util.*;
 
@@ -28,7 +27,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public Map<Var, List<String>> exec(Job job) {
+    public IdxTable exec(Job job) {
         if (job instanceof GetJob)
             return execGet((GetJob) job);
         else if (job instanceof ValuesJob)
@@ -39,24 +38,24 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private Map<Var, List<String>> execGet(GetJob job) {
+    private IdxTable execGet(GetJob job) {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
         return switch (job.getVariablesPattern()) {
-            case S -> fetchGetBindings(S, Var.alloc(s), p, o);
-            case P -> fetchGetBindings(P, Var.alloc(p), s, o);
-            case O -> fetchGetBindings(O, Var.alloc(o), s, p);
-            case SP -> fetchGetBindings(SP, Var.alloc(s), Var.alloc(p), o);
-            case SO -> fetchGetBindings(SO, Var.alloc(s), Var.alloc(o), p);
-            case PO -> fetchGetBindings(PO, Var.alloc(p), Var.alloc(o), s);
+            case S -> retrieveGetResults(S, Var.alloc(s), p, o);
+            case P -> retrieveGetResults(P, Var.alloc(p), s, o);
+            case O -> retrieveGetResults(O, Var.alloc(o), s, p);
+            case SP -> retrieveGetResults(SP, Var.alloc(s), Var.alloc(p), o);
+            case SO -> retrieveGetResults(SO, Var.alloc(s), Var.alloc(o), p);
+            case PO -> retrieveGetResults(PO, Var.alloc(p), Var.alloc(o), s);
             case SPO -> storageEngine.findAll(storeID, Var.alloc(s), Var.alloc(p), Var.alloc(o));
 
         };
     }
 
-    private Map<Var, List<String>> fetchGetBindings(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        Map<Var, List<String>> bindings = new HashMap<>();
+    private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
+        IdxTable bindings = new HashMap<>();
         if (varPattern == VariablesPattern.S)
             bindings.put(var, storageEngine.findSubjects(storeID, node1, node2));
         else if (varPattern == VariablesPattern.P)
@@ -66,7 +65,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         return bindings;
     }
 
-    private Map<Var, List<String>> fetchGetBindings(VariablesPattern varPattern, Var var1, Var var2, Node node) {
+    private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
         if (varPattern == VariablesPattern.SP) {
             return storageEngine.findSP(storeID, node, var1, var2);
         } else if (varPattern == VariablesPattern.SO) {
@@ -77,67 +76,76 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return new HashMap<>();
     }
 
-    private Map<Var, List<String>> execValues(ValuesJob job) {
+    private IdxTable execValues(ValuesJob job) {
         //TODO Execute ValuesJob
         return null;
     }
 
-    private Map<Var, List<String>> execSlice(SliceJob job) {
+    private IdxTable execSlice(SliceJob job) {
         //TODO Execute SliceJob
         return null;
     }
 
 
     @Override
-    public Map<Var, List<String>> exec(Job1 job, Map<Var, List<String>> prevJobBindings) {
+    public IdxTable exec(Job1 job, IdxTable prevJobResults) {
         if (job instanceof ProjectJob) {
-            return execProject((ProjectJob) job, prevJobBindings);
+            return execProject((ProjectJob) job, prevJobResults);
         } else if (job instanceof BindJob) {
-            return execBind((BindJob) job, prevJobBindings);
+            return execBind((BindJob) job, prevJobResults);
         } else if (job instanceof FilterJob) {
-            return execFilter((FilterJob) job, prevJobBindings);
+            return execFilter((FilterJob) job, prevJobResults);
         } else if (job instanceof OrderByJob) {
-            return execOrderBy((OrderByJob) job, prevJobBindings);
+            return execOrderBy((OrderByJob) job, prevJobResults);
         } else if (job instanceof GroupJob) {
-            return execGroup((GroupJob) job, prevJobBindings);
+            return execGroup((GroupJob) job, prevJobResults);
         } else if (job instanceof DistinctJob) {
-            return execDistinct((DistinctJob) job, prevJobBindings);
+            return execDistinct((DistinctJob) job, prevJobResults);
         } else
             return null;
     }
 
-    private Map<Var, List<String>> execProject(ProjectJob job, Map<Var, List<String>> prevJobBindings) {
-        prevJobBindings.keySet().retainAll(job.getVariables());
-        return prevJobBindings;
+    private IdxTable execProject(ProjectJob job, IdxTable prevJobResults) {
+        List<Var> vars = job.getVariables();
+        int num_vars = vars.size();
+
+        if (num_vars == 1) {
+            return project1(vars, prevJobResults);
+        }else if(num_vars == 2) {
+            return project2(vars, prevJobResults);
+        }else if(num_vars ==3) {
+            return project3(vars, prevJobResults);
+        }else
+            return projectN(vars, prevJobResults);
     }
 
-    private Map<Var, List<String>> execBind(BindJob job, Map<Var, List<String>> prevJobBindings) {
+    private IdxTable execBind(BindJob job, IdxTable prevJobResults) {
         //TODO Execute BindJob
         return null;
     }
 
-    private Map<Var, List<String>> execFilter(FilterJob job, Map<Var, List<String>> prevJobBindings) {
+    private IdxTable execFilter(FilterJob job, IdxTable prevJobResults) {
         //TODO Execute FilterJob
         return null;
     }
 
-    private Map<Var, List<String>> execOrderBy(OrderByJob job, Map<Var, List<String>> prevJobBindings) {
+    private IdxTable execOrderBy(OrderByJob job, IdxTable prevJobResults) {
         //TODO Execute OrderByJob
         return null;
     }
 
-    private Map<Var, List<String>> execGroup(GroupJob job, Map<Var, List<String>> prevJobBindings) {
+    private IdxTable execGroup(GroupJob job, IdxTable prevJobResults) {
         //TODO Execute GroupJob
         return null;
     }
 
-    private Map<Var, List<String>> execDistinct(DistinctJob job, Map<Var, List<String>> prevJobBindings) {
+    private IdxTable execDistinct(DistinctJob job, IdxTable prevJobResults) {
         //TODO Execute DistinctJob
         return null;
     }
 
     @Override
-    public Map<Var, List<String>> exec(Job2 job, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    public IdxTable exec(Job2 job, IdxTable left, IdxTable right) {
         if (job instanceof JoinJob) {
             return execJoin((JoinJob) job, left, right);
         } else if (job instanceof UnionJob) {
@@ -151,19 +159,19 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public Map<Var, List<String>> exec(JobN job, List<Map<Var, List<String>>> prevJobsBindings) {
+    public IdxTable exec(JobN job, List<IdxTable> prevJobsBindings) {
         if (job instanceof BGPJob)
             return execBGP((BGPJob) job, prevJobsBindings);
         else
             return null;
     }
 
-    private Map<Var, List<String>> execBGP(BGPJob job, List<Map<Var, List<String>>> prevJobsBindings) {
+    private IdxTable execBGP(BGPJob job, List<IdxTable> prevJobsResults) {
         //TODO: Execute BGP
         return null;
     }
 
-    private Map<Var, List<String>> execJoin(JoinJob job, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
         Var[] vars = filterNonMutualVars(left.keySet(), right.keySet());
         if (vars.length == 1)
             return join(vars[0], left, right);
@@ -195,41 +203,38 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         return vars;
     }
 
-    private Map<Var, List<String>> join(Var var, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable join(Var var, IdxTable left, IdxTable right) {
         left.get(var).retainAll(right.get(var));
         return left;
     }
 
-    private Map<Var, List<String>> join(Var var1, Var var2, Map<Var, List<String>> left, Map<Var, List<String>> right) {
-        HashMap<Var, List<String>> res = new HashMap<>();
-
-
-
+    private IdxTable join(Var var1, Var var2, IdxTable left, IdxTable right) {
+        HashIdxTable res = new HashMap<>();
 
 
     }
 
-    private Map<Var, List<String>> join(Var var1, Var var2, Var var3, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable join(Var var1, Var var2, Var var3, IdxTable left, IdxTable right) {
     }
 
 
-    private Map<Var, List<String>> execUnion(UnionJob job, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable execUnion(UnionJob job, IdxTable left, IdxTable right) {
         //TODO Execute UnionJob, need a set with O(1) for get at position i -> Use of an ArrayList or Array with the HashSet
         return null;
     }
 
-    private Map<Var, List<String>> execOptional(OptionalJob job, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable execOptional(OptionalJob job, IdxTable left, IdxTable right) {
         //TODO Execute OptionalJob
         return null;
     }
 
-    private Map<Var, List<String>> execMinus(MinusJob job, Map<Var, List<String>> left, Map<Var, List<String>> right) {
+    private IdxTable execMinus(MinusJob job, IdxTable left, IdxTable right) {
         //TODO Execute MinusJob
         return null;
     }
 
     @Override
-    public List<Binding> generateBindings(Map<Var, List<String>> jobBindings) {
-        return storageEngine.getNodesAsBindings(storeID, jobBindings);
+    public List<Binding> generateBindings(IdxTable jobResults) {
+        return storageEngine.getNodesAsBindings(storeID, jobResults.toMap());
     }
 }
