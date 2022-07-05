@@ -10,6 +10,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
+import pt.fct.nova.id.srv.application.storage.idx_tables.MemIdxTable;
 
 import java.util.*;
 
@@ -55,14 +56,13 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        IdxTable bindings = new HashMap<>();
         if (varPattern == VariablesPattern.S)
-            bindings.put(var, storageEngine.findSubjects(storeID, node1, node2));
+            return storageEngine.findSubjects(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.P)
-            bindings.put(var, storageEngine.findPredicates(storeID, node1, node2));
+            return storageEngine.findPredicates(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.O)
-            bindings.put(var, storageEngine.findObjects(storeID, node1, node2));
-        return bindings;
+            return storageEngine.findObjects(storeID, node1, node2, var);
+        return new MemIdxTable();
     }
 
     private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
@@ -73,7 +73,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         } else if (varPattern == VariablesPattern.PO) {
             return storageEngine.findPO(storeID, node, var1, var2);
         } else
-            return new HashMap<>();
+            return new MemIdxTable();
     }
 
     private IdxTable execValues(ValuesJob job) {
@@ -108,7 +108,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     private IdxTable execProject(ProjectJob job, IdxTable prevJobResults) {
         List<Var> vars = job.getVariables();
         int num_vars = vars.size();
-
+        /*
         if (num_vars == 1) {
             return project1(vars, prevJobResults);
         }else if(num_vars == 2) {
@@ -117,6 +117,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return project3(vars, prevJobResults);
         }else
             return projectN(vars, prevJobResults);
+         */
+        return null;
     }
 
     private IdxTable execBind(BindJob job, IdxTable prevJobResults) {
@@ -172,6 +174,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
+        /*
         Var[] vars = filterNonMutualVars(left.keySet(), right.keySet());
         if (vars.length == 1)
             return join(vars[0], left, right);
@@ -181,6 +184,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return join(vars[0], vars[1], vars[0], left, right);
         else
             return new HashMap<>();
+         */
+        return null;
     }
 
     private Var[] filterNonMutualVars(Set<Var> left, Set<Var> right) {
@@ -204,17 +209,16 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable join(Var var, IdxTable left, IdxTable right) {
-        left.get(var).retainAll(right.get(var));
+        //left.get(var).retainAll(right.get(var));
         return left;
     }
 
     private IdxTable join(Var var1, Var var2, IdxTable left, IdxTable right) {
-        HashIdxTable res = new HashMap<>();
-
-
+        return null;
     }
 
     private IdxTable join(Var var1, Var var2, Var var3, IdxTable left, IdxTable right) {
+        return null;
     }
 
 
@@ -235,6 +239,6 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public List<Binding> generateBindings(IdxTable jobResults) {
-        return storageEngine.getNodesAsBindings(storeID, jobResults.toMap());
+        return storageEngine.fetchNodes(storeID, jobResults);
     }
 }

@@ -8,7 +8,6 @@ import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface StorageEngine {
 
@@ -28,13 +27,13 @@ public interface StorageEngine {
 
     IdxTable findObjects(String storeID, Node subject, Node predicate, Var var);
 
-    IdxTable2 findSP(String storeID, Node object, Var var1, Var var2);
+    IdxTable findSP(String storeID, Node object, Var var1, Var var2);
 
-    IdxTable2 findSO(String storeID, Node predicate, Var var1, Var var2);
+    IdxTable findSO(String storeID, Node predicate, Var var1, Var var2);
 
-    IdxTable2 findPO(String storeID, Node subject, Var var1, Var var2);
+    IdxTable findPO(String storeID, Node subject, Var var1, Var var2);
 
-    IdxTable3 findAll(String storeID, Var var1, Var var2, Var var3);
+    IdxTable findAll(String storeID, Var var1, Var var2, Var var3);
 
-    List<Binding> getNodesAsBindings(String storeID, Map<Var, Set<String>> varIdxs);
+    List<Binding> fetchNodes(String storeID, IdxTable idxTable);
 }

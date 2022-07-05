@@ -4,8 +4,6 @@ import org.apache.jena.sparql.core.Var;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.Utils.generateID;
-
 public class MemIdxTable implements IdxTable {
 
     private final Map<Var, Map<String, String>> idxs;
@@ -16,16 +14,15 @@ public class MemIdxTable implements IdxTable {
         rev_idxs = new HashMap<>();
     }
 
+
     @Override
-    public void addIdxs(Map<Var, String> newIdxs) {
-        String t_idx = generateID();
-        newIdxs.forEach((v, i) -> saveIdx(i, v, t_idx));
+    public void addIdxs(String tableIdx, Map<Var, String> newIdxs) {
+        newIdxs.forEach((v, i) -> saveIdx(i, v, tableIdx));
     }
 
     @Override
-    public void addIdx(Var var, String idx) {
-        String t_idx = generateID();
-        saveIdx(idx, var, t_idx);
+    public void addIdx(String tableIdx, Var var, String idx) {
+        saveIdx(idx, var, tableIdx);
     }
 
     private void saveIdx(String idx, Var var, String tableIdx) {
@@ -34,9 +31,15 @@ public class MemIdxTable implements IdxTable {
         if (v_idxs == null) {
             v_idxs = new HashMap<>();
             rev_v_idxs = new HashMap<>();
+            v_idxs.put(idx, tableIdx);
+            rev_v_idxs.put(tableIdx, idx);
+            idxs.put(var, v_idxs);
+            rev_idxs.put(var, rev_v_idxs);
+        } else {
+            v_idxs.put(idx, tableIdx);
+            rev_v_idxs.put(tableIdx, idx);
         }
-        v_idxs.put(idx, tableIdx);
-        rev_v_idxs.put(tableIdx, idx);
+
     }
 
     @Override
@@ -47,5 +50,10 @@ public class MemIdxTable implements IdxTable {
     @Override
     public Map<String, String> getRevIdxs(Var var) {
         return rev_idxs.get(var);
+    }
+
+    @Override
+    public Map<Var, Map<String, String>> getAll() {
+        return idxs;
     }
 }

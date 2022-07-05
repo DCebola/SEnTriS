@@ -297,7 +297,7 @@ public class RStorageEngine implements StorageEngine {
             if (idx_1 == null || idx_2 == null)
                 return res;
             jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2)).forEach(
-                    idx -> res.addIdx(var, idx)
+                    idx -> res.addIdx(generateID(), var, idx)
             );
             return res;
         } catch (Exception e) {
@@ -307,7 +307,7 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public IdxTable findAll(String storeID, Set<Var> vars) {
+    public IdxTable findAll(String storeID, Var var1, Var var2, Var var3) {
         IdxTable res = new MemIdxTable();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
 
@@ -322,13 +322,15 @@ public class RStorageEngine implements StorageEngine {
                 responses.add(p.smembers(String.format(SINGLE_S, storeID, s_idx)));
 
             p.sync();
-            //TODO: Generate var list and idxs list method signature for the add operation.
             int i = 0;
             for (String s_idx : s_idxs) {
                 responses.get(i).get().forEach(
                         po_idx -> {
                             String[] po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
-                            res.addIdxs(generateID(), s_idx, po_split[0], po_split[1]);
+                            String t_idx = generateID();
+                            res.addIdx(t_idx, var1, s_idx);
+                            res.addIdx(t_idx, var2, po_split[0]);
+                            res.addIdx(t_idx, var3, po_split[1]);
                         }
                 );
                 i++;
@@ -340,18 +342,20 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public List<Binding> getNodesAsBindings(String storeID, Map<Var, Set<String>> varIdxs) {
+    public List<Binding> fetchNodes(String storeID, IdxTable idxTable) {
         List<Binding> res = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             Map<Var, List<Response<String>>> responses = new HashMap<>();
 
-            varIdxs.forEach(
-                    (var, idxs) -> {
-                        List<Response<String>> l = new LinkedList<>();
-                        idxs.forEach(idx -> l.add(p.hget(String.format(REV_IRIS, storeID), idx)));
-                        responses.put(var, l);
-                    }
+            idxTable.getAll().forEach(
+                    (var, idxs) -> idxs.forEach(
+                            (idx, t_idx) -> {
+                                List<Response<String>> l = new LinkedList<>();
+                                l.add(p.hget(String.format(REV_IRIS, storeID), idx));
+                                responses.put(var, l);
+                            }
+                    )
             );
 
             p.sync();
@@ -370,21 +374,21 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public IdxTable findSP(String storeID, Node object, Set<Var> vars) {
-        return find(storeID, object, O_IRIS, SINGLE_O, vars);
+    public IdxTable findSP(String storeID, Node object, Var var1, Var var2) {
+        return find(storeID, object, O_IRIS, SINGLE_O, var1, var2);
     }
 
     @Override
-    public IdxTable findSO(String storeID, Node predicate, Set<Var> vars) {
-        return find(storeID, predicate, P_IRIS, SINGLE_P, vars);
+    public IdxTable findSO(String storeID, Node predicate, Var var1, Var var2) {
+        return find(storeID, predicate, P_IRIS, SINGLE_P, var1, var2);
     }
 
     @Override
-    public IdxTable findPO(String storeID, Node subject, Set<Var> vars) {
-        return find(storeID, subject, S_IRIS, SINGLE_S, vars);
+    public IdxTable findPO(String storeID, Node subject, Var var1, Var var2) {
+        return find(storeID, subject, S_IRIS, SINGLE_S, var1, var2);
     }
 
-    private IdxTable find(String storeID, Node node, String IRIKeyFormatter, String idxKeyFormatter, Set<Var> vars) {
+    private IdxTable find(String storeID, Node node, String IRIKeyFormatter, String idxKeyFormatter, Var var1, Var var2) {
         IdxTable res = new MemIdxTable();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
@@ -393,7 +397,9 @@ public class RStorageEngine implements StorageEngine {
             jedis.smembers(String.format(idxKeyFormatter, storeID, idx)).forEach(
                     compound_idx -> {
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
-                        res.insertIdx2(generateID(), simple_idxs[0], simple_idxs[1]);
+                        String t_idx = generateID();
+                        res.addIdx(t_idx, var1, simple_idxs[0]);
+                        res.addIdx(t_idx, var2, simple_idxs[1]);
                     }
             );
             return res;
