@@ -106,19 +106,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable execProject(ProjectJob job, IdxTable prevJobResults) {
-        List<Var> vars = job.getVariables();
-        int num_vars = vars.size();
-        /*
-        if (num_vars == 1) {
-            return project1(vars, prevJobResults);
-        }else if(num_vars == 2) {
-            return project2(vars, prevJobResults);
-        }else if(num_vars ==3) {
-            return project3(vars, prevJobResults);
-        }else
-            return projectN(vars, prevJobResults);
-         */
-        return null;
+        prevJobResults.project(job.getVariables());
+        return prevJobResults;
     }
 
     private IdxTable execBind(BindJob job, IdxTable prevJobResults) {

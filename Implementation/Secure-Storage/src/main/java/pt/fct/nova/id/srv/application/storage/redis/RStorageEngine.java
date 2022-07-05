@@ -349,13 +349,13 @@ public class RStorageEngine implements StorageEngine {
             Map<Var, List<Response<String>>> responses = new HashMap<>();
 
             idxTable.getAll().forEach(
-                    (var, idxs) -> idxs.forEach(
-                            (idx, t_idx) -> {
-                                List<Response<String>> l = new LinkedList<>();
-                                l.add(p.hget(String.format(REV_IRIS, storeID), idx));
-                                responses.put(var, l);
-                            }
-                    )
+                    (var, idxs) -> {
+                        List<Response<String>> l = new LinkedList<>();
+                        idxs.forEach(
+                                (idx, t_idx) -> l.add(p.hget(String.format(REV_IRIS, storeID), idx))
+                        );
+                        responses.put(var, l);
+                    }
             );
 
             p.sync();
