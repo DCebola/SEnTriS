@@ -9,7 +9,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
+import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
 
 import java.util.*;
 

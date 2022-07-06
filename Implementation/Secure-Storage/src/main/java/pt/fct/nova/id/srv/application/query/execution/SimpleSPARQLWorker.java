@@ -9,8 +9,8 @@ import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
-import pt.fct.nova.id.srv.application.storage.idx_tables.MemIdxTable;
+import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
+import pt.fct.nova.id.srv.application.storage.idx_data_structs.MemIdxTable;
 
 import java.util.*;
 

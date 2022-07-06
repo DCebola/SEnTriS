@@ -4,7 +4,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import pt.fct.nova.id.srv.application.storage.idx_tables.IdxTable;
+import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
 
 import java.util.List;
 import java.util.Map;
