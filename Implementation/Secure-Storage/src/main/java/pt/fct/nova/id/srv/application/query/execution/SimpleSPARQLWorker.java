@@ -158,72 +158,31 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable execBGP(BGPJob job, List<IdxTable> prevJobsResults) {
-        //TODO: Execute BGP
-        return null;
+        int num_jobs = prevJobsResults.size() - 2;
+        IdxTable res = prevJobsResults.get(0);
+        res = res.join(prevJobsResults.get(1));
+        for (int i = 1; i < num_jobs; i++)
+            res = res.join(prevJobsResults.get(i));
+        return res;
     }
 
     private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
-        /*
-        Var[] vars = filterNonMutualVars(left.keySet(), right.keySet());
-        if (vars.length == 1)
-            return join(vars[0], left, right);
-        else if (vars.length == 2)
-            return join(vars[0], vars[1], left, right);
-        else if (vars.length == 3)
-            return join(vars[0], vars[1], vars[0], left, right);
-        else
-            return new HashMap<>();
-         */
-        return null;
+        return left.join(right);
     }
-
-    private Var[] filterNonMutualVars(Set<Var> left, Set<Var> right) {
-        int l_size = left.size();
-        int r_size = right.size();
-
-        if (left.isEmpty() || right.isEmpty())
-            return new Var[0];
-
-        if (l_size >= r_size) {
-            left.retainAll(right);
-            l_size = r_size;
-        } else
-            right.retainAll(left);
-
-        Var[] vars = new Var[l_size];
-        int i = 0;
-        for (Var v : left)
-            vars[i++] = v;
-        return vars;
-    }
-
-    private IdxTable join(Var var, IdxTable left, IdxTable right) {
-        //left.get(var).retainAll(right.get(var));
-        return left;
-    }
-
-    private IdxTable join(Var var1, Var var2, IdxTable left, IdxTable right) {
-        return null;
-    }
-
-    private IdxTable join(Var var1, Var var2, Var var3, IdxTable left, IdxTable right) {
-        return null;
-    }
-
 
     private IdxTable execUnion(UnionJob job, IdxTable left, IdxTable right) {
         //TODO Execute UnionJob, need a set with O(1) for get at position i -> Use of an ArrayList or Array with the HashSet
-        return null;
+        return left.union(right);
     }
 
     private IdxTable execOptional(OptionalJob job, IdxTable left, IdxTable right) {
         //TODO Execute OptionalJob
-        return null;
+        return left.leftOuterJoin(right);
     }
 
     private IdxTable execMinus(MinusJob job, IdxTable left, IdxTable right) {
         //TODO Execute MinusJob
-        return null;
+        return left.minus(right);
     }
 
     @Override

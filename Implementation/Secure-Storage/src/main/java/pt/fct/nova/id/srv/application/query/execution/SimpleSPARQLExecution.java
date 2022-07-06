@@ -92,8 +92,9 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
             );
         } else if (job instanceof JobN) {
             System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
-            List<IdxTable> prevResults = new LinkedList<>();
-            ((JobN) job).getPreviousJobIDs().forEach(jobID -> prevResults.add(jobResults.get(jobID)));
+            List<String> prev_ids = ((JobN) job).getPreviousJobIDs();
+            List<IdxTable> prevResults = new ArrayList<>(prev_ids.size());
+            prev_ids.forEach(jobID -> prevResults.add(jobResults.get(jobID)));
             return worker.exec(((JobN) job), prevResults);
         } else {
             return worker.exec(job);

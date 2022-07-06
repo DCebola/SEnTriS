@@ -11,6 +11,8 @@ public interface IdxTable {
 
     void addIdx(String tripleIdx, Var var, String idx);
 
+    Set<Var> getVars();
+
     Map<String, Set<String>> getIdxs(Var var);
 
     Map<String, String> getRevIdxs(Var var);
@@ -18,4 +20,13 @@ public interface IdxTable {
     List<IdxPattern> getPatterns();
 
     void project(Collection<Var> vars);
+
+    IdxTable join(IdxTable other);
+
+    IdxTable union(IdxTable right);
+
+    IdxTable leftOuterJoin(IdxTable right);
+
+    IdxTable minus(IdxTable right);
+
 }
