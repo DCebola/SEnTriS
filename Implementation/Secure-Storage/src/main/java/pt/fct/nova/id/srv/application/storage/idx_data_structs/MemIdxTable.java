@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.storage.idx_data_structs;
 
 import org.apache.jena.sparql.core.Var;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class MemIdxTable implements IdxTable {
@@ -25,25 +24,38 @@ public class MemIdxTable implements IdxTable {
     @Override
     public void addIdx(String patternIdx, Var var, String idx) {
         saveIdx(idx, var, patternIdx);
+        saveRevIdx(idx, var, patternIdx);
+    }
+
+    private void saveRevIdx(String idx, Var var, String patternIdx) {
+        Map<String, String> r_v_idxs = rev_idxs.get(var);
+        if (r_v_idxs == null) {
+            r_v_idxs = new HashMap<>();
+            r_v_idxs.put(patternIdx, idx);
+            rev_idxs.put(var, r_v_idxs);
+        } else
+            r_v_idxs.put(patternIdx, idx);
     }
 
     private void saveIdx(String idx, Var var, String patternIdx) {
         Map<String, Set<String>> v_idxs = idxs.get(var);
-        Map<String, String> r_v_idxs = rev_idxs.get(var);
-
         if (v_idxs == null) {
             v_idxs = new HashMap<>();
-            r_v_idxs = new HashMap<>();
-            Set<String> p_idxs = new HashSet<>();
-            p_idxs.add(patternIdx);
-            v_idxs.put(idx, p_idxs);
-            r_v_idxs.put(patternIdx, idx);
+            savePatternIdxs(v_idxs, idx, patternIdx);
             idxs.put(var, v_idxs);
-            rev_idxs.put(var, r_v_idxs);
         } else {
-            v_idxs.get(idx).add(patternIdx);
-            r_v_idxs.put(patternIdx, idx);
+            Set<String> p_idxs = v_idxs.get(idx);
+            if (p_idxs == null)
+                savePatternIdxs(v_idxs, idx, patternIdx);
+            else
+                p_idxs.add(patternIdx);
         }
+    }
+
+    private void savePatternIdxs(Map<String, Set<String>> vIdxs, String idx, String patternIdx) {
+        Set<String> p_idxs = new HashSet<>();
+        p_idxs.add(patternIdx);
+        vIdxs.put(idx, p_idxs);
     }
 
     @Override
@@ -57,7 +69,7 @@ public class MemIdxTable implements IdxTable {
     }
 
     @Override
-    public List<IdxPattern> getAll() {
+    public List<IdxPattern> getPatterns() {
         List<IdxPattern> res = new LinkedList<>();
         IdxPattern pattern;
         Set<Var> vars = rev_idxs.keySet();
@@ -66,7 +78,7 @@ public class MemIdxTable implements IdxTable {
         Var v = vars.iterator().next();
         Set<String> p_idxs = rev_idxs.get(v).keySet();
         for (String p_idx : p_idxs) {
-            pattern = new MemIdxPattern();
+            pattern = new MemIdxPattern(vars.size());
             for (Var v2 : rev_idxs.keySet()) {
                 pattern.addVar(v2);
                 pattern.addIdx(rev_idxs.get(v2).get(p_idx));

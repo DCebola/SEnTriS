@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.storage.idx_data_structs;
 import org.apache.jena.sparql.core.Var;
 
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,8 +17,8 @@ public class MemIdxPattern implements IdxPattern {
         this.idxs = idxs;
     }
 
-    public MemIdxPattern() {
-        this.vars = new LinkedList<>();
+    public MemIdxPattern(int numVars) {
+        this.vars = new ArrayList<>(numVars);
         this.idxs = new LinkedList<>();
     }
 

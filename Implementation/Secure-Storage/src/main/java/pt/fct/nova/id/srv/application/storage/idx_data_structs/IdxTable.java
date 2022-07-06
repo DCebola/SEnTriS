@@ -15,7 +15,7 @@ public interface IdxTable {
 
     Map<String, String> getRevIdxs(Var var);
 
-    List<IdxPattern> getAll();
+    List<IdxPattern> getPatterns();
 
     void project(Collection<Var> vars);
 }

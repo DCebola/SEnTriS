@@ -6,6 +6,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -346,26 +347,36 @@ public class RStorageEngine implements StorageEngine {
         List<Binding> res = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            Map<Var, List<Response<String>>> responses = new HashMap<>();
 
-            idxTable.getAll().forEach(
-                    (var, idxs) -> {
-                        List<Response<String>> l = new LinkedList<>();
-                        idxs.forEach(
-                                (idx, t_idx) -> l.add(p.hget(String.format(REV_IRIS, storeID), idx))
-                        );
-                        responses.put(var, l);
-                    }
-            );
+            List<IdxPattern> patterns = idxTable.getPatterns();
+            int num_patterns = patterns.size();
+            List<List<Response<String>>> responses = new ArrayList<>(num_patterns);
+
+            List<Response<String>> l;
+            for (IdxPattern pattern : patterns) {
+                l = new LinkedList<>();
+                for (String idx : pattern.getIdxs())
+                    l.add(p.hget(String.format(REV_IRIS, storeID), idx));
+                responses.add(l);
+            }
 
             p.sync();
 
-            responses.forEach(
-                    (var, resp_list) -> {
-                        resp_list.forEach(r -> res.add(BindingFactory.binding(var, generateNode(r.get()))));
-                    }
-            );
-
+            int i = 0;
+            int j = 0;
+            List<Var> vars;
+            BindingBuilder builder = Binding.builder();
+            for (IdxPattern pattern : patterns) {
+                vars = pattern.getVars();
+                for (Response<String> r : responses.get(i)) {
+                    builder.add(vars.get(j), generateNode(r.get()));
+                    j++;
+                }
+                res.add(builder.build());
+                j = 0;
+                builder.reset();
+                i++;
+            }
             return res;
         } catch (Exception e) {
             e.printStackTrace();
