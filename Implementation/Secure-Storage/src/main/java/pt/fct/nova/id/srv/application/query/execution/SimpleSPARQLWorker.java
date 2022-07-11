@@ -196,8 +196,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                             else
                                 t2 = joinResults.get(i - num_jobs);
                             res = t.join(t2);
-                            joinResults.add(last, res);
-                            result_vars.add(last, res.getVars());
+                            joinResults.add(last - num_jobs, res);
+                            result_vars.add(last- num_jobs, res.getVars());
                             to_be_processed.remove(current);
                             to_be_processed.remove(i);
                             to_be_processed.add(last);

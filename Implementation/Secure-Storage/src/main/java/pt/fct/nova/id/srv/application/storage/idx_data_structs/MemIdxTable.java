@@ -115,7 +115,7 @@ public class MemIdxTable implements IdxTable {
         vars.removeAll(mutual_vars);
         vars2.removeAll(mutual_vars);
 
-        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes);
+        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes); //TODO: start with empty maps
         Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>(rev_indexes);
 
         for (Var v : vars2) {
@@ -158,6 +158,7 @@ public class MemIdxTable implements IdxTable {
                         }
                     }
                 } else {
+                    //TODO: Only add, need to drop remove approach;
                     //Remove "this" values from mutual vars
                     idxs_to_remove.add(idx);
                     for (String p_idx : p_idxs)
