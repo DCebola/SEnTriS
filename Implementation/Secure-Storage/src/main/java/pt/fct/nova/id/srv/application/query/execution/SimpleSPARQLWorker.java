@@ -158,12 +158,60 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IdxTable execBGP(BGPJob job, List<IdxTable> prevJobsResults) {
-        int num_jobs = prevJobsResults.size() - 2;
-        IdxTable res = prevJobsResults.get(0);
-        res = res.join(prevJobsResults.get(1));
-        for (int i = 2; i < num_jobs; i++)
-            res = res.join(prevJobsResults.get(i));
-        return res;
+        int num_jobs = prevJobsResults.size();
+        Set<Var> all_vars = new HashSet<>();
+        List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
+        List<IdxTable> joinResults = new ArrayList<>(num_jobs);
+        Set<Integer> to_be_processed = new HashSet<>();
+
+        int last = 0;
+        Set<Var> v;
+        for (int i = 0; i < num_jobs; i++) {
+            v = prevJobsResults.get(i).getVars();
+            all_vars.addAll(v);
+            result_vars.add(v);
+            to_be_processed.add(i);
+            last++;
+        }
+
+        int current;
+        int flag;
+        IdxTable t, t2, res;
+        Set<Var> v2;
+        while (!to_be_processed.isEmpty()) {
+            current = to_be_processed.iterator().next();
+            flag = 0;
+            for (Integer i : to_be_processed) {
+                if (current != i) {
+                    v = result_vars.get(current);
+                    v2 = result_vars.get(i);
+                    for (Var var : v) {
+                        if (v2.contains(var)) {
+                            if (current < num_jobs)
+                                t = prevJobsResults.get(current);
+                            else
+                                t = joinResults.get(current - num_jobs);
+                            if (i < num_jobs)
+                                t2 = prevJobsResults.get(i);
+                            else
+                                t2 = joinResults.get(i - num_jobs);
+                            res = t.join(t2);
+                            joinResults.add(last, res);
+                            result_vars.add(last, res.getVars());
+                            to_be_processed.remove(current);
+                            to_be_processed.remove(i);
+                            to_be_processed.add(last);
+                            last++;
+                            break;
+                        }
+                    }
+                }
+                flag++;
+            }
+            if (flag == to_be_processed.size())
+                return new MemIdxTable(all_vars);
+        }
+        return joinResults.get(last - num_jobs);
     }
 
     private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
