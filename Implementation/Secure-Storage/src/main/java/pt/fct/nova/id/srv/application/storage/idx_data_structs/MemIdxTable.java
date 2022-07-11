@@ -114,8 +114,8 @@ public class MemIdxTable implements IdxTable {
         mutual_vars.retainAll(other.getVars());
         mutual_vars.forEach(System.out::println);
 
-        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes);
-        Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>(rev_indexes);
+        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes); //TODO: start empty and add only
+        Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>(rev_indexes); //TODO: start empty and add only
 
         Map<String, Set<String>> idx_map1, idx_map2;
         Map<String, String> rev_idx_map;
@@ -124,7 +124,7 @@ public class MemIdxTable implements IdxTable {
         Set<String> idx_to_remove;
 
         for (Var var : mutual_vars) {
-            idx_map1 = join_idxs.get(var);
+            idx_map1 = join_idxs.get(var); //
             rev_idx_map = join_rev_idxs.get(var);
             idx_map2 = other.getIdxs(var);
             idx_to_remove = new HashSet<>();
@@ -138,7 +138,9 @@ public class MemIdxTable implements IdxTable {
                         p_idxs_1.add(p_idx);
                         rev_idx_map.put(p_idx, idx);
                     }
+                    //TODO: Add "other" value from non-mutual vars
                 } else {
+                    //TODO: delete this branch
                     //Remove "this" values from join result
                     idx_to_remove.add(idx);
                     for (String p_idx : p_idxs_1)
