@@ -18,6 +18,7 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
@@ -348,26 +349,26 @@ public class RStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
 
-            List<IdxPattern> patterns = idxTable.getPatterns();
+            Set<List<String>> patterns = idxTable.getPatterns();
             int num_patterns = patterns.size();
             List<List<Response<String>>> responses = new ArrayList<>(num_patterns);
 
             List<Response<String>> l;
-            for (IdxPattern pattern : patterns) {
+            for (List<String> pattern : patterns) {
                 l = new LinkedList<>();
-                for (String idx : pattern.getIdxs())
+                for (String idx : pattern)
                     l.add(p.hget(String.format(REV_IRIS, storeID), idx));
                 responses.add(l);
             }
 
             p.sync();
 
-            int i = 0;
             int j = 0;
-            List<Var> vars;
+            List<Var> vars = new ArrayList<>(idxTable.getVars());
+            System.out.println("RStorage");
+            vars.forEach(System.out::println);
             BindingBuilder builder = Binding.builder();
-            for (IdxPattern pattern : patterns) {
-                vars = pattern.getVars();
+            for (int i = 0; i < num_patterns; i++) {
                 for (Response<String> r : responses.get(i)) {
                     builder.add(vars.get(j), generateNode(r.get()));
                     j++;
@@ -375,7 +376,6 @@ public class RStorageEngine implements StorageEngine {
                 res.add(builder.build());
                 j = 0;
                 builder.reset();
-                i++;
             }
             return res;
         } catch (Exception e) {

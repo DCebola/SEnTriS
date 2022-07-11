@@ -79,20 +79,20 @@ public class MemIdxTable implements IdxTable {
     }
 
     @Override
-    public List<IdxPattern> getPatterns() {
-        List<IdxPattern> res = new LinkedList<>();
-        IdxPattern pattern;
+    public Set<List<String>> getPatterns() {
+        Set<List<String>> res = new HashSet<>();
+        List<String> pattern;
         Set<Var> vars = rev_indexes.keySet();
+        System.out.println("IDXTable");
+        vars.forEach(System.out::println);
         if (vars.isEmpty())
             return res;
         Var v = vars.iterator().next();
         Set<String> p_idxs = rev_indexes.get(v).keySet();
         for (String p_idx : p_idxs) {
-            pattern = new MemIdxPattern(vars.size());
-            for (Var v2 : rev_indexes.keySet()) {
-                pattern.addVar(v2);
-                pattern.addIdx(rev_indexes.get(v2).get(p_idx));
-            }
+            pattern = new ArrayList<>(vars.size());
+            for (Var v2 : rev_indexes.keySet())
+                pattern.add(rev_indexes.get(v2).get(p_idx));
             res.add(pattern);
         }
         return res;
@@ -106,8 +106,13 @@ public class MemIdxTable implements IdxTable {
 
     @Override
     public IdxTable join(IdxTable other) {
+
         Set<Var> mutual_vars = new HashSet<>(getVars());
+        System.out.println("JOIN");
+        mutual_vars.forEach(System.out::println);
+        System.out.println("-----");
         mutual_vars.retainAll(other.getVars());
+        mutual_vars.forEach(System.out::println);
 
         Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes);
         Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>(rev_indexes);
@@ -116,13 +121,13 @@ public class MemIdxTable implements IdxTable {
         Map<String, String> rev_idx_map;
         String idx;
         Set<String> p_idxs_1, p_idxs_2;
-        List<String> idx_to_remove;
+        Set<String> idx_to_remove;
 
         for (Var var : mutual_vars) {
             idx_map1 = join_idxs.get(var);
             rev_idx_map = join_rev_idxs.get(var);
             idx_map2 = other.getIdxs(var);
-            idx_to_remove = new LinkedList<>();
+            idx_to_remove = new HashSet<>();
             for (Map.Entry<String, Set<String>> entry : idx_map1.entrySet()) {
                 idx = entry.getKey();
                 p_idxs_1 = entry.getValue();

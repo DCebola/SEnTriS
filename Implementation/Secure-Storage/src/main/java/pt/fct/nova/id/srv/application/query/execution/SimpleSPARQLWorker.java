@@ -161,7 +161,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         int num_jobs = prevJobsResults.size() - 2;
         IdxTable res = prevJobsResults.get(0);
         res = res.join(prevJobsResults.get(1));
-        for (int i = 1; i < num_jobs; i++)
+        for (int i = 2; i < num_jobs; i++)
             res = res.join(prevJobsResults.get(i));
         return res;
     }
