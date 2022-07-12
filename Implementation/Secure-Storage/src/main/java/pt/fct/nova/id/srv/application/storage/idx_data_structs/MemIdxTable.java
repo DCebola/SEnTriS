@@ -81,6 +81,16 @@ public class MemIdxTable implements IdxTable {
     }
 
     @Override
+    public Map<Var, Map<String, Set<String>>> getIdxs() {
+        return indexes;
+    }
+
+    @Override
+    public Map<Var, Map<String, String>> getRevIdxs() {
+        return rev_indexes;
+    }
+
+    @Override
     public Set<List<String>> getPatterns() {
         Set<List<String>> res = new HashSet<>();
         List<String> pattern;
@@ -162,35 +172,10 @@ public class MemIdxTable implements IdxTable {
                 idx = entry.getKey();
                 p_idxs = entry.getValue();
                 p_idxs2 = idx_map2.get(idx);
-
                 if (p_idxs2 != null) {
                     join_idxs.get(v).put(idx, new HashSet<>());
-                    for (String p_idx : p_idxs)
-                        join_rev_idxs.get(v).put(p_idx, idx);
-                    for (String p_idx : p_idxs2)
-                        join_rev_idxs.get(v).put(p_idx, idx);
-
-                    for (Var v2 : vars) {
-                        if (v2 != v) {
-                            for (String p_idx : p_idxs) {
-                                idx = rev_indexes.get(v2).get(p_idx);
-                                join_idxs.get(v2).put(idx, new HashSet<>());
-                                for (String p_idx2 : indexes.get(v2).get(idx))
-                                    join_rev_idxs.get(v2).put(p_idx2, idx);
-                            }
-                        }
-                    }
-
-                    for (Var v2 : vars2) {
-                        if (v2 != v) {
-                            for (String p_idx : p_idxs2) {
-                                idx = other.getRevIdxs(v2).get(p_idx);
-                                join_idxs.get(v2).put(idx, new HashSet<>());
-                                for (String p_idx2 : other.getIdxs(v2).get(idx))
-                                    join_rev_idxs.get(v2).put(p_idx2, idx);
-                            }
-                        }
-                    }
+                    saveMatchingIdx(v, idx, join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
+                    saveMatchingIdx(v, idx, join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
                 } else
                     patterns_to_remove.addAll(p_idxs);
             }
@@ -202,6 +187,24 @@ public class MemIdxTable implements IdxTable {
             }
         }
         return patterns_to_remove;
+    }
+
+    private void saveMatchingIdx(Var v, String idx, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
+        for (String p_idx : p_idxs)
+            join_rev_idxs.get(v).put(p_idx, idx);
+        for (Var v2 : vars) {
+            if (v2 != v) {
+                for (String p_idx : p_idxs) {
+                    idx = rev_idxs.get(v2).get(p_idx);
+                    join_idxs.get(v2).put(idx, new HashSet<>());
+                    for (String p_idx2 : idxs.get(v2).get(idx))
+                        join_rev_idxs.get(v2).put(p_idx2, idx);
+                }
+            }
+        }
+    }
+
+    private void saveMatchingIdx() {
     }
 
 

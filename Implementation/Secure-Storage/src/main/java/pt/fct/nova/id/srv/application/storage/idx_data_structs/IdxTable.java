@@ -17,6 +17,10 @@ public interface IdxTable {
 
     Map<String, String> getRevIdxs(Var var);
 
+    Map<Var, Map<String, Set<String>>> getIdxs();
+
+    Map<Var, Map<String, String>> getRevIdxs();
+
     Set<List<String>> getPatterns();
 
     void project(Collection<Var> vars);
