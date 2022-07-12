@@ -136,7 +136,6 @@ public class MemIdxTable implements IdxTable {
     private void linkPatternsToIdxs(Set<Var> all_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Set<String> patterns_to_remove) {
         Map<String, String> p_map;
         Map<String, Set<String>> idx_map;
-        Set<String> p_idxs;
         String idx;
         for (Var v : all_vars) {
             p_map = join_rev_idxs.get(v);
@@ -145,15 +144,8 @@ public class MemIdxTable implements IdxTable {
                 idx = p_map.get(p_idx);
                 if (patterns_to_remove.contains(p_idx))
                     idx_map.remove(idx);
-                else {
-                    p_idxs = idx_map.get(idx);
-                    if (p_idxs == null) {
-                        p_idxs = new HashSet<>();
-                        p_idxs.add(p_idx);
-                        idx_map.put(idx, p_idxs);
-                    }
-                    p_idxs.add(p_idx);
-                }
+                else
+                    idx_map.get(idx).add(p_idx);
             }
         }
     }
