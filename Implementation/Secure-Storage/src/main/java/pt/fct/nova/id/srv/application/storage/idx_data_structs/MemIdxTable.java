@@ -117,8 +117,8 @@ public class MemIdxTable implements IdxTable {
     @Override
     public IdxTable join(IdxTable other) {
 
-        Set<Var> vars = this.getVars();
-        Set<Var> vars2 = other.getVars();
+        Set<Var> vars = new HashSet<>(this.getVars());
+        Set<Var> vars2 = new HashSet<>(other.getVars());
 
         Set<Var> mutual_vars = new HashSet<>(vars);
         mutual_vars.retainAll(vars2);
@@ -126,8 +126,21 @@ public class MemIdxTable implements IdxTable {
         Set<Var> all_vars = new HashSet<>(vars);
         all_vars.addAll(vars2);
 
-        vars.removeAll(this.getVars());
-        vars2.removeAll(other.getVars());
+
+        System.out.println("Mutual");
+        mutual_vars.forEach(System.out::println);
+        System.out.println("Var1");
+        vars.forEach(System.out::println);
+        System.out.println("Var2");
+        vars2.forEach(System.out::println);
+
+        vars.removeAll(other.getVars());
+        vars2.removeAll(this.getVars());
+
+        System.out.println("Var1 - Var2");
+        vars.forEach(System.out::println);
+        System.out.println("Var2 - Var1");
+        vars2.forEach(System.out::println);
 
         Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>();
         Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>();
@@ -190,15 +203,16 @@ public class MemIdxTable implements IdxTable {
     }
 
     private void saveMatchingIdx(Var v, String idx, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
+        String idx2;
         for (String p_idx : p_idxs)
             join_rev_idxs.get(v).put(p_idx, idx);
         for (Var v2 : vars) {
             if (v2 != v) {
                 for (String p_idx : p_idxs) {
-                    idx = rev_idxs.get(v2).get(p_idx);
-                    join_idxs.get(v2).put(idx, new HashSet<>());
-                    for (String p_idx2 : idxs.get(v2).get(idx))
-                        join_rev_idxs.get(v2).put(p_idx2, idx);
+                    idx2 = rev_idxs.get(v2).get(p_idx);
+                    join_idxs.get(v2).put(idx2, new HashSet<>());
+                    for (String p_idx2 : idxs.get(v2).get(idx2))
+                        join_rev_idxs.get(v2).put(p_idx2, idx2);
                 }
             }
         }
