@@ -107,77 +107,109 @@ public class MemIdxTable implements IdxTable {
     @Override
     public IdxTable join(IdxTable other) {
 
-        Set<Var> mutual_vars = new HashSet<>(getVars());
-        mutual_vars.retainAll(other.getVars());
+        Set<Var> vars = this.getVars();
+        Set<Var> vars2 = other.getVars();
 
-        Set<Var> vars = new HashSet<>(getVars());
-        Set<Var> vars2 = new HashSet<>(other.getVars());
-        vars.removeAll(mutual_vars);
-        vars2.removeAll(mutual_vars);
+        Set<Var> mutual_vars = new HashSet<>(vars);
+        mutual_vars.retainAll(vars2);
 
-        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>(indexes); //TODO: start with empty maps
-        Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>(rev_indexes);
+        Set<Var> all_vars = new HashSet<>(vars);
+        all_vars.addAll(vars2);
 
-        for (Var v : vars2) {
+        vars.removeAll(this.getVars());
+        vars2.removeAll(other.getVars());
+
+        Map<Var, Map<String, Set<String>>> join_idxs = new HashMap<>();
+        Map<Var, Map<String, String>> join_rev_idxs = new HashMap<>();
+
+        for (Var v : all_vars) {
             join_idxs.put(v, new HashMap<>());
             join_rev_idxs.put(v, new HashMap<>());
         }
 
-        Map<String, Set<String>> idx_map, idx_map2;
-        Map<String, String> rev_idx_map;
-        String idx;
-        Set<String> p_idxs, p_idxs2;
-        Set<String> idxs_to_remove;
+        Set<String> patterns_to_remove = execIdxsJoin(other, vars, vars2, mutual_vars, join_idxs, join_rev_idxs);
+        linkPatternsToIdxs(all_vars, join_idxs, join_rev_idxs, patterns_to_remove);
 
+        return new MemIdxTable(join_idxs, join_rev_idxs);
+    }
+
+    private void linkPatternsToIdxs(Set<Var> all_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Set<String> patterns_to_remove) {
+        Map<String, String> p_map;
+        Map<String, Set<String>> idx_map;
+        Set<String> p_idxs;
+        String idx;
+        for (Var v : all_vars) {
+            p_map = join_rev_idxs.get(v);
+            for (String p_idx : p_map.keySet()) {
+                idx_map = join_idxs.get(v);
+                idx = p_map.get(p_idx);
+                if (patterns_to_remove.contains(p_idx))
+                    idx_map.remove(idx);
+                else {
+                    p_idxs = idx_map.get(idx);
+                    if (p_idxs == null) {
+                        p_idxs = new HashSet<>();
+                        p_idxs.add(p_idx);
+                        idx_map.put(idx, p_idxs);
+                    }
+                    p_idxs.add(p_idx);
+                }
+            }
+        }
+    }
+
+    private Set<String> execIdxsJoin(IdxTable other, Set<Var> vars, Set<Var> vars2, Set<Var> mutual_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs) {
+        Set<String> p_idxs2, p_idxs;
+        Map<String, Set<String>> idx_map, idx_map2;
+        String idx;
+        Set<String> patterns_to_remove = new HashSet<>();
         for (Var v : mutual_vars) {
-            idx_map = join_idxs.get(v); //
-            rev_idx_map = join_rev_idxs.get(v);
+            idx_map = indexes.get(v);
             idx_map2 = other.getIdxs(v);
-            idxs_to_remove = new HashSet<>();
             for (Map.Entry<String, Set<String>> entry : idx_map.entrySet()) {
                 idx = entry.getKey();
                 p_idxs = entry.getValue();
                 p_idxs2 = idx_map2.get(idx);
-                if (p_idxs2 != null) {
-                    //Add "other" values to mutual vars
-                    for (String p_idx : p_idxs2) {
-                        p_idxs.add(p_idx);
-                        rev_idx_map.put(p_idx, idx);
-                    }
-                    //Add "other" value from non-mutual vars
-                    for (Var v2 : vars2) {
-                        for (String p_idx : p_idxs2) {
-                            idx = other.getRevIdxs(v2).get(p_idx);
-                            idx_map2 = join_idxs.get(v2);
-                            p_idxs = join_idxs.get(v2).get(idx);
-                            if (p_idxs == null)
-                                savePatternIdxs(idx_map2, idx, p_idx);
-                            else
-                                p_idxs.add(p_idx);
-                            join_rev_idxs.get(v2).put(p_idx, idx);
-                        }
-                    }
-                } else {
-                    //TODO: Only add, need to drop remove approach;
-                    //Remove "this" values from mutual vars
-                    idxs_to_remove.add(idx);
-                    for (String p_idx : p_idxs)
-                        rev_idx_map.remove(p_idx);
 
-                    //Remove "this" values from non-mutual vars
+                if (p_idxs2 != null) {
+                    join_idxs.get(v).put(idx, new HashSet<>());
+                    for (String p_idx : p_idxs)
+                        join_rev_idxs.get(v).put(p_idx, idx);
+                    for (String p_idx : p_idxs2)
+                        join_rev_idxs.get(v).put(p_idx, idx);
+
                     for (Var v2 : vars) {
-                        for (String p_idx : p_idxs) {
-                            idx = join_rev_idxs.get(v2).remove(p_idx);
-                            if (idx != null)
-                                idxs_to_remove.add(idx);
+                        if (v2 != v) {
+                            for (String p_idx : p_idxs) {
+                                idx = rev_indexes.get(v2).get(p_idx);
+                                join_idxs.get(v2).put(idx, new HashSet<>());
+                                for (String p_idx2 : indexes.get(v2).get(idx))
+                                    join_rev_idxs.get(v2).put(p_idx2, idx);
+                            }
                         }
                     }
-                }
+
+                    for (Var v2 : vars2) {
+                        if (v2 != v) {
+                            for (String p_idx : p_idxs2) {
+                                idx = other.getRevIdxs(v2).get(p_idx);
+                                join_idxs.get(v2).put(idx, new HashSet<>());
+                                for (String p_idx2 : other.getIdxs(v2).get(idx))
+                                    join_rev_idxs.get(v2).put(p_idx2, idx);
+                            }
+                        }
+                    }
+                } else
+                    patterns_to_remove.addAll(p_idxs);
             }
-            for (String s : idxs_to_remove)
-                idx_map.remove(s);
+            for (Map.Entry<String, Set<String>> entry : idx_map2.entrySet()) {
+                p_idxs2 = entry.getValue();
+                p_idxs = idx_map.get(entry.getKey());
+                if (p_idxs == null)
+                    patterns_to_remove.addAll(p_idxs2);
+            }
         }
-        return new MemIdxTable(join_idxs, join_rev_idxs);
+        return patterns_to_remove;
     }
 
 
