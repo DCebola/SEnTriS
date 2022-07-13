@@ -159,23 +159,36 @@ public class MemIdxTable implements IdxTable {
     private void linkPatternsToIdxs(Set<Var> all_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Set<String> patterns_to_remove) {
         Map<String, String> p_map;
         Map<String, Set<String>> idx_map;
+        Set<String> p_idxs;
         String idx;
         for (Var v : all_vars) {
             p_map = join_rev_idxs.get(v);
             for (String p_idx : p_map.keySet()) {
-                idx_map = join_idxs.get(v);
-                idx = p_map.get(p_idx);
-                if (patterns_to_remove.contains(p_idx))
-                    idx_map.remove(idx);
-                else
-                    idx_map.get(idx).add(p_idx);
+                if (patterns_to_remove.contains(p_idx)) {
+                    idx_map = join_idxs.get(v);
+                    idx = p_map.get(p_idx);
+                    p_idxs = idx_map.get(idx);
+                    if (p_idxs != null) {
+                        p_idxs.remove(p_idx);
+                        System.out.println("IDX to remove: i->" + idx + ", p->" + p_idx);
+                        if (p_idxs.isEmpty())
+                            idx_map.remove(idx);
+                    }
+                }
             }
         }
+        for (Var v : all_vars) {
+            p_map = join_rev_idxs.get(v);
+            for (String p_idx : patterns_to_remove)
+                p_map.remove(p_idx);
+        }
+
     }
 
     private Set<String> execIdxsJoin(IdxTable other, Set<Var> vars, Set<Var> vars2, Set<Var> mutual_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs) {
-        Set<String> p_idxs2, p_idxs;
+        Set<String> p_idxs2, p_idxs, join_p_idxs;
         Map<String, Set<String>> idx_map, idx_map2;
+        Map<String, String> v_rev_idx;
         String idx;
         Set<String> patterns_to_remove = new HashSet<>();
         for (Var v : mutual_vars) {
@@ -186,9 +199,14 @@ public class MemIdxTable implements IdxTable {
                 p_idxs = entry.getValue();
                 p_idxs2 = idx_map2.get(idx);
                 if (p_idxs2 != null) {
-                    join_idxs.get(v).put(idx, new HashSet<>());
-                    saveMatchingIdx(v, idx, join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
-                    saveMatchingIdx(v, idx, join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
+                    join_p_idxs = new HashSet<>(p_idxs);
+                    join_p_idxs.addAll(p_idxs2);
+                    join_idxs.get(v).put(idx, join_p_idxs);
+                    v_rev_idx = join_rev_idxs.get(v);
+                    for (String p_idx : p_idxs)
+                        v_rev_idx.put(p_idx, idx);
+                    saveIdxsFromOtherVars(v, join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
+                    saveIdxsFromOtherVars(v, join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
                 } else
                     patterns_to_remove.addAll(p_idxs);
             }
@@ -202,10 +220,8 @@ public class MemIdxTable implements IdxTable {
         return patterns_to_remove;
     }
 
-    private void saveMatchingIdx(Var v, String idx, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
+    private void saveIdxsFromOtherVars(Var v, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
         String idx2;
-        for (String p_idx : p_idxs)
-            join_rev_idxs.get(v).put(p_idx, idx);
         for (Var v2 : vars) {
             if (v2 != v) {
                 for (String p_idx : p_idxs) {
@@ -216,9 +232,6 @@ public class MemIdxTable implements IdxTable {
                 }
             }
         }
-    }
-
-    private void saveMatchingIdx() {
     }
 
 
