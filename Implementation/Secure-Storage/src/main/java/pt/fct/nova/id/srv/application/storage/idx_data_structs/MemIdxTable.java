@@ -153,7 +153,11 @@ public class MemIdxTable implements IdxTable {
         Set<String> patterns_to_remove = execIdxsJoin(other, vars, vars2, mutual_vars, join_idxs, join_rev_idxs);
         linkPatternsToIdxs(all_vars, join_idxs, join_rev_idxs, patterns_to_remove);
 
-        return new MemIdxTable(join_idxs, join_rev_idxs);
+        IdxTable join = new MemIdxTable(join_idxs, join_rev_idxs);
+
+        join.getPatterns().forEach(l -> System.out.println(Arrays.toString(l.toArray())));
+
+        return join;
     }
 
     private void linkPatternsToIdxs(Set<Var> all_vars, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Set<String> patterns_to_remove) {
@@ -202,34 +206,41 @@ public class MemIdxTable implements IdxTable {
                     join_p_idxs = new HashSet<>(p_idxs);
                     join_p_idxs.addAll(p_idxs2);
                     join_idxs.get(v).put(idx, join_p_idxs);
+                    System.out.println("[" + v + "] - MATCH for [" + idx + "]: adding p_idxs -> " + Arrays.toString(join_p_idxs.toArray()));
                     v_rev_idx = join_rev_idxs.get(v);
-                    for (String p_idx : p_idxs)
+                    for (String p_idx : join_p_idxs)
                         v_rev_idx.put(p_idx, idx);
-                    saveIdxsFromOtherVars(v, join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
-                    saveIdxsFromOtherVars(v, join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
-                } else
+                    saveIdxsFromOtherVars(join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
+                    saveIdxsFromOtherVars(join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
+                } else {
+                    System.out.println("[" + v + "] - NO MATCH for [" + idx + "]: adding to remove set -> " + Arrays.toString(p_idxs.toArray()));
                     patterns_to_remove.addAll(p_idxs);
+
+                }
             }
             for (Map.Entry<String, Set<String>> entry : idx_map2.entrySet()) {
+                idx = entry.getKey();
                 p_idxs2 = entry.getValue();
-                p_idxs = idx_map.get(entry.getKey());
-                if (p_idxs == null)
+                p_idxs = idx_map.get(idx);
+                if (p_idxs == null) {
+                    System.out.println("[" + v + "] - NO MATCH for [" + idx + "]: adding to remove set -> " + Arrays.toString(p_idxs2.toArray()));
                     patterns_to_remove.addAll(p_idxs2);
+                }
             }
         }
         return patterns_to_remove;
     }
 
-    private void saveIdxsFromOtherVars(Var v, Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
+    private void saveIdxsFromOtherVars(Map<Var, Map<String, Set<String>>> join_idxs, Map<Var, Map<String, String>> join_rev_idxs, Map<Var, Map<String, Set<String>>> idxs, Map<Var, Map<String, String>> rev_idxs, Set<Var> vars, Set<String> p_idxs) {
         String idx2;
-        for (Var v2 : vars) {
-            if (v2 != v) {
-                for (String p_idx : p_idxs) {
-                    idx2 = rev_idxs.get(v2).get(p_idx);
-                    join_idxs.get(v2).put(idx2, new HashSet<>());
-                    for (String p_idx2 : idxs.get(v2).get(idx2))
-                        join_rev_idxs.get(v2).put(p_idx2, idx2);
-                }
+        Set<String> p_idxs2;
+        for (Var v : vars) {
+            for (String p_idx : p_idxs) {
+                idx2 = rev_idxs.get(v).get(p_idx);
+                p_idxs2 = new HashSet<>(idxs.get(v).get(idx2));
+                join_idxs.get(v).put(idx2, p_idxs2);
+                for (String p_idx2 : p_idxs2)
+                    join_rev_idxs.get(v).put(p_idx2, idx2);
             }
         }
     }
