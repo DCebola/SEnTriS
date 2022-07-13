@@ -164,27 +164,27 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         List<IdxTable> joinResults = new ArrayList<>(num_jobs);
         Set<Integer> to_be_processed = new HashSet<>();
 
-        int last = 0;
-        Set<Var> v;
+        Set<Var> vars;
         for (int i = 0; i < num_jobs; i++) {
-            v = prevJobsResults.get(i).getVars();
-            all_vars.addAll(v);
-            result_vars.add(v);
+            vars = prevJobsResults.get(i).getVars();
+            all_vars.addAll(vars);
+            result_vars.add(vars);
             to_be_processed.add(i);
-            last++;
         }
 
-        int current, compatible = -1;
+        int current, last = num_jobs, compatible = -1;
+        boolean stop;
         IdxTable t, t2, res = null;
         Set<Var> v2;
         while (!to_be_processed.isEmpty()) {
+            stop = false;
             current = to_be_processed.iterator().next();
             for (Integer i : to_be_processed) {
                 if (current != i) {
-                    v = result_vars.get(current);
+                    vars = result_vars.get(current);
                     v2 = result_vars.get(i);
-                    for (Var var : v) {
-                        if (v2.contains(var)) {
+                    for (Var v : vars) {
+                        if (!v2.isEmpty() && v2.contains(v)) {
                             compatible = i;
                             if (current < num_jobs)
                                 t = prevJobsResults.get(current);
@@ -196,13 +196,14 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                                 t2 = joinResults.get(i - num_jobs);
                             res = t.join(t2);
                             joinResults.add(last - num_jobs, res);
-                            result_vars.add(last - num_jobs, res.getVars());
-                            last++;
+                            result_vars.add(last, res.getVars());
+                            v2.remove(v);
+                            stop = true;
                             break;
                         }
                     }
                 }
-
+                if (stop) break;
             }
             if (res == null)
                 return new MemIdxTable(all_vars);
@@ -210,6 +211,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             to_be_processed.remove(compatible);
             if (!to_be_processed.isEmpty())
                 to_be_processed.add(last);
+            last++;
         }
         return res;
     }

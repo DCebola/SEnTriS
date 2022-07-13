@@ -7,7 +7,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.apache.jena.sparql.engine.binding.BindingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
@@ -18,7 +17,6 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
@@ -167,12 +165,12 @@ public class RStorageEngine implements StorageEngine {
 
 
     private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
-        logger.info("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
+        logger.debug("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return p.hget(String.format(keyFormatter, storeID), iri);
     }
 
     private String getIndexFromIRI(Jedis jedis, String keyFormatter, String storeID, String iri) {
-        logger.info("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
+        logger.debug("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return jedis.hget(String.format(keyFormatter, storeID), iri);
     }
 
@@ -365,8 +363,6 @@ public class RStorageEngine implements StorageEngine {
 
             int j = 0;
             List<Var> vars = new ArrayList<>(idxTable.getVars());
-            System.out.println("RStorage");
-            vars.forEach(System.out::println);
             BindingBuilder builder = Binding.builder();
             for (int i = 0; i < num_patterns; i++) {
                 for (Response<String> r : responses.get(i)) {

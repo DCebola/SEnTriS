@@ -68,7 +68,6 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
         while (!pending.isEmpty()) {
             current = pending.peek();
-            System.out.println("Current:" + current);
             jobResults.put(current, delegateJob(worker, current));
             finished.add(pending.poll());
         }
@@ -78,26 +77,21 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
 
     private IdxTable delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
-        if (job instanceof Job1) {
-            System.out.println("Previous Job:" + ((Job1) job).getPrevJobID());
+        if (job instanceof Job1)
             return worker.exec((Job1) job,
                     jobResults.get(((Job1) job).getPrevJobID())
             );
-        } else if (job instanceof Job2) {
-            System.out.println("Left:" + ((Job2) job).getLeftJobID());
-            System.out.println("Right:" + ((Job2) job).getRightJobID());
+        else if (job instanceof Job2)
             return worker.exec((Job2) job,
                     jobResults.get(((Job2) job).getLeftJobID()),
                     jobResults.get(((Job2) job).getRightJobID())
             );
-        } else if (job instanceof JobN) {
-            System.out.println("Previous Jobs:" + ((JobN) job).getPreviousJobIDs());
+        else if (job instanceof JobN) {
             List<String> prev_ids = ((JobN) job).getPreviousJobIDs();
             List<IdxTable> prevResults = new ArrayList<>(prev_ids.size());
             prev_ids.forEach(jobID -> prevResults.add(jobResults.get(jobID)));
             return worker.exec(((JobN) job), prevResults);
-        } else {
+        } else
             return worker.exec(job);
-        }
     }
 }
