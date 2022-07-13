@@ -157,6 +157,7 @@ public class MemIdxTable implements IdxTable {
                     p_idxs = idx_map.get(idx);
                     if (p_idxs != null) {
                         p_idxs.remove(p_idx);
+                        System.out.println("IDX to remove: i->" + idx + ", p->" + p_idx);
                         if (p_idxs.isEmpty())
                             idx_map.remove(idx);
                     }
@@ -188,20 +189,26 @@ public class MemIdxTable implements IdxTable {
                     join_p_idxs = new HashSet<>(p_idxs);
                     join_p_idxs.addAll(p_idxs2);
                     join_idxs.get(v).put(idx, join_p_idxs);
+                    System.out.println("[" + v + "] - MATCH for [" + idx + "]: adding p_idxs -> " + Arrays.toString(join_p_idxs.toArray()));
                     v_rev_idx = join_rev_idxs.get(v);
                     for (String p_idx : join_p_idxs)
                         v_rev_idx.put(p_idx, idx);
                     saveIdxsFromOtherVars(join_idxs, join_rev_idxs, indexes, rev_indexes, vars, p_idxs);
                     saveIdxsFromOtherVars(join_idxs, join_rev_idxs, other.getIdxs(), other.getRevIdxs(), vars2, p_idxs2);
-                } else
+                } else {
+                    System.out.println("[" + v + "] - 2: NO MATCH for [" + idx + "]: adding to remove set -> " + Arrays.toString(p_idxs.toArray()));
                     patterns_to_remove.addAll(p_idxs);
+
+                }
             }
             for (Map.Entry<String, Set<String>> entry : idx_map2.entrySet()) {
                 idx = entry.getKey();
                 p_idxs2 = entry.getValue();
                 p_idxs = idx_map.get(idx);
-                if (p_idxs == null)
+                if (p_idxs == null) {
+                    System.out.println("[" + v + "] - 1: NO MATCH for [" + idx + "]: adding to remove set -> " + Arrays.toString(p_idxs2.toArray()));
                     patterns_to_remove.addAll(p_idxs2);
+                }
             }
         }
         return patterns_to_remove;
