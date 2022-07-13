@@ -175,12 +175,10 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         }
 
         int current, compatible = -1;
-        int flag;
-        IdxTable t, t2, res;
+        IdxTable t, t2, res = null;
         Set<Var> v2;
         while (!to_be_processed.isEmpty()) {
             current = to_be_processed.iterator().next();
-            flag = 0;
             for (Integer i : to_be_processed) {
                 if (current != i) {
                     v = result_vars.get(current);
@@ -204,16 +202,16 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                         }
                     }
                 }
-                flag++;
+
             }
-            if (flag == to_be_processed.size())
+            if (res == null)
                 return new MemIdxTable(all_vars);
             to_be_processed.remove(current);
-            if (compatible >= 0)
-                to_be_processed.remove(compatible);
-            to_be_processed.add(last);
+            to_be_processed.remove(compatible);
+            if (!to_be_processed.isEmpty())
+                to_be_processed.add(last);
         }
-        return joinResults.get(last - num_jobs);
+        return res;
     }
 
     private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
