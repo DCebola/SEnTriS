@@ -101,8 +101,11 @@ public class MemIRITable implements IRITable {
         Set<String> p_idxs = patterns.get(v).keySet();
         for (String p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
-            for (Var v2 : patterns.keySet())
-                pattern.add(patterns.get(v2).get(p_idx));
+            for (Var v2 : vars) {
+                String iri = patterns.get(v2).get(p_idx);
+                System.out.println("[" + p_idx + "] - (" + v2 + ", " + iri + ")");
+                pattern.add(iri);
+            }
             res.add(pattern);
         }
         return res;
@@ -186,7 +189,15 @@ public class MemIRITable implements IRITable {
                 p_idxs = entry.getValue();
                 p_idxs2 = iris_map2.get(iri);
                 if (p_idxs2 != null) {
-                    join_p_idxs = new HashSet<>(p_idxs);
+                    //TODO: Find remove set, then for each match do cartesian product on the p_idxs, if p_idxs not in remove set
+                    join_p_idxs = new HashSet<>();
+                    for (String p1 : p_idxs) {
+                        //Get iri per var for p1
+                        for (String p2 : p_idxs2) {
+                            //Get iri per var for p2
+                            //Generate p3 add all iris
+                        }
+                    }
                     join_p_idxs.addAll(p_idxs2);
                     joinIRIs.get(v).put(iri, join_p_idxs);
                     System.out.println("[" + v + "] - MATCH for [" + iri + "]: adding p_idxs -> " + Arrays.toString(join_p_idxs.toArray()));

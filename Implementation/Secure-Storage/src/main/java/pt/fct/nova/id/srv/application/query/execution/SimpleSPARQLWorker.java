@@ -31,14 +31,10 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public IRITable exec(Job job) {
-        if (job instanceof GetJob)
-            return execGet((GetJob) job);
-        else if (job instanceof ValuesJob)
-            return execValues((ValuesJob) job);
-        else if (job instanceof SliceJob)
-            return execSlice((SliceJob) job);
-        else
-            return null;
+        if (job instanceof GetJob) return execGet((GetJob) job);
+        else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
+        else if (job instanceof SliceJob) return execSlice((SliceJob) job);
+        else return null;
     }
 
     private IRITable execGet(GetJob job) {
@@ -58,12 +54,9 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        if (varPattern == VariablesPattern.S)
-            return storageEngine.findSubjects(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.P)
-            return storageEngine.findPredicates(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.O)
-            return storageEngine.findObjects(storeID, node1, node2, var);
+        if (varPattern == VariablesPattern.S) return storageEngine.findSubjects(storeID, node1, node2, var);
+        else if (varPattern == VariablesPattern.P) return storageEngine.findPredicates(storeID, node1, node2, var);
+        else if (varPattern == VariablesPattern.O) return storageEngine.findObjects(storeID, node1, node2, var);
         return new MemIRITable();
     }
 
@@ -74,8 +67,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return storageEngine.findSO(storeID, node, var1, var2);
         } else if (varPattern == VariablesPattern.PO) {
             return storageEngine.findPO(storeID, node, var1, var2);
-        } else
-            return new MemIRITable();
+        } else return new MemIRITable();
     }
 
     private IRITable execValues(ValuesJob job) {
@@ -103,8 +95,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return execGroup((GroupJob) job, prevJobResults);
         } else if (job instanceof DistinctJob) {
             return execDistinct((DistinctJob) job, prevJobResults);
-        } else
-            return null;
+        } else return null;
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
@@ -147,19 +138,17 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return execOptional((OptionalJob) job, left, right);
         } else if (job instanceof MinusJob) {
             return execMinus((MinusJob) job, left, right);
-        } else
-            return null;
+        } else return null;
     }
 
     @Override
     public IRITable exec(JobN job, List<IRITable> prevJobsBindings) {
-        if (job instanceof BGPJob)
-            return execBGP((BGPJob) job, prevJobsBindings);
-        else
-            return null;
+        if (job instanceof BGPJob) return execBGP((BGPJob) job, prevJobsBindings);
+        else return null;
     }
 
     private IRITable execBGP(BGPJob job, List<IRITable> prevJobsResults) {
+        //TODO: Delete bgp job, use ordering algorithm to generate get and join jobs -> lower memory consumption, avoids performing gets if joins are incompatible
         int num_jobs = prevJobsResults.size();
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
@@ -188,14 +177,10 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                     for (Var v : vars) {
                         if (!v2.isEmpty() && v2.contains(v)) {
                             compatible = i;
-                            if (current < num_jobs)
-                                t = prevJobsResults.get(current);
-                            else
-                                t = joinResults.get(current - num_jobs);
-                            if (i < num_jobs)
-                                t2 = prevJobsResults.get(i);
-                            else
-                                t2 = joinResults.get(i - num_jobs);
+                            if (current < num_jobs) t = prevJobsResults.get(current);
+                            else t = joinResults.get(current - num_jobs);
+                            if (i < num_jobs) t2 = prevJobsResults.get(i);
+                            else t2 = joinResults.get(i - num_jobs);
                             res = t.join(t2);
                             joinResults.add(last - num_jobs, res);
                             result_vars.add(last, res.getVars());
@@ -207,12 +192,10 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                 }
                 if (stop) break;
             }
-            if (res == null)
-                return new MemIRITable(all_vars);
+            if (res == null) return new MemIRITable(all_vars);
             to_be_processed.remove(current);
             to_be_processed.remove(compatible);
-            if (!to_be_processed.isEmpty())
-                to_be_processed.add(last);
+            if (!to_be_processed.isEmpty()) to_be_processed.add(last);
             last++;
         }
         return res;
@@ -241,12 +224,15 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     public List<Binding> generateBindings(IRITable jobResults) {
         List<Binding> res = new LinkedList<>();
         Set<List<String>> patterns = jobResults.getPatterns();
-        Set<Var> vars = jobResults.getVars();
+        List<Var> vars = new ArrayList<>(jobResults.getVars());
         BindingBuilder builder = Binding.builder();
+        int i;
         for (List<String> p_iris : patterns) {
-            for (String iri : p_iris)
-                for (Var v : vars)
-                    builder.add(v, storageEngine.generateNode(iri));
+            i = 0;
+            for (String iri : p_iris) {
+                builder.add(vars.get(i), storageEngine.generateNode(iri));
+                i++;
+            }
             res.add(builder.build());
             builder.reset();
         }

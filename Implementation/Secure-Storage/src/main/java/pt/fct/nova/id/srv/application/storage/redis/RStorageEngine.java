@@ -309,7 +309,12 @@ public class RStorageEngine implements StorageEngine {
                 i++;
             }
             p.sync();
-            responses.forEach(r -> res.addIRI(generateID(), var, r.get()));
+            responses.forEach(r -> {
+                String p_idx = generateID();
+                String iri = r.get();
+                System.out.println("[" + p_idx + "] - (" + var + "->" + iri + ")");
+                res.addIRI(p_idx, var, iri);
+            });
 
             return res;
         } catch (Exception e) {
@@ -357,9 +362,13 @@ public class RStorageEngine implements StorageEngine {
             iri_responses.forEach(
                     resp_list -> {
                         String p_idx = generateID();
-                        res.addIRI(p_idx, var1, resp_list.get(0).get());
-                        res.addIRI(p_idx, var2, resp_list.get(1).get());
-                        res.addIRI(p_idx, var3, resp_list.get(2).get());
+                        String iri1 = resp_list.get(0).get();
+                        String iri2 = resp_list.get(1).get();
+                        String iri3 = resp_list.get(2).get();
+                        System.out.println("[" + p_idx + "] - (" + var1 + "->" + iri1 + ", " + var2 + "->" + iri2 + ", " + var3 + "->" + iri3 + ")");
+                        res.addIRI(p_idx, var1, iri1);
+                        res.addIRI(p_idx, var2, iri2);
+                        res.addIRI(p_idx, var3, iri3);
                     }
             );
 
@@ -410,8 +419,11 @@ public class RStorageEngine implements StorageEngine {
             iri_responses.forEach(
                     resp_list -> {
                         String p_idx = generateID();
-                        res.addIRI(p_idx, var1, resp_list.get(0).get());
-                        res.addIRI(p_idx, var2, resp_list.get(1).get());
+                        String iri1 = resp_list.get(0).get();
+                        String iri2 = resp_list.get(1).get();
+                        System.out.println("[" + p_idx + "] - (" + var1 + "->" + iri1 + ", " + var2 + "->" + iri2 + ")");
+                        res.addIRI(p_idx, var1, iri1);
+                        res.addIRI(p_idx, var2, iri2);
                     }
             );
             return res;
