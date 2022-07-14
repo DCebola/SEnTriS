@@ -35,5 +35,9 @@ public interface StorageEngine {
 
     IRITable findAll(String storeID, Var var1, Var var2, Var var3);
 
-    List<Binding> fetchNodes(String storeID, IRITable IRITable);
+    String parseNodeIRI(Node node) throws InvalidNodeException;
+
+    Node generateNode(String iri);
+
+
 }

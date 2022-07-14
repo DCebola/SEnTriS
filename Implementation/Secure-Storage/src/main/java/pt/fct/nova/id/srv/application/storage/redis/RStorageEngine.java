@@ -174,7 +174,9 @@ public class RStorageEngine implements StorageEngine {
         return jedis.hget(String.format(keyFormatter, storeID), iri);
     }
 
-    private String parseNodeIRI(Node node) throws InvalidNodeException {
+
+    @Override
+    public String parseNodeIRI(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
@@ -185,7 +187,8 @@ public class RStorageEngine implements StorageEngine {
             return String.format(BLANK_IRI, node.getBlankNodeId());
     }
 
-    private Node generateNode(String iri) {
+    @Override
+    public Node generateNode(String iri) {
         String[] split_iri = iri.split(IRI_SEPARATOR);
         if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
             return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
@@ -293,12 +296,21 @@ public class RStorageEngine implements StorageEngine {
             p.sync();
             String idx_1 = resp_idx_1.get();
             String idx_2 = resp_idx_2.get();
-            logger.info("{}, {}", idx_1, idx_2);
+            logger.debug("{}, {}", idx_1, idx_2);
             if (idx_1 == null || idx_2 == null)
                 return res;
-            jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2)).forEach(
-                    idx -> res.addIRI(generateID(), var, idx)
-            );
+
+            Set<String> idxs = jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2));
+            List<Response<String>> responses = new ArrayList<>(idxs.size());
+
+            int i = 0;
+            for (String idx : idxs) {
+                responses.add(i, p.hget(String.format(REV_IRIS, storeID), idx));
+                i++;
+            }
+            p.sync();
+            responses.forEach(r -> res.addIRI(generateID(), var, r.get()));
+
             return res;
         } catch (Exception e) {
             e.printStackTrace();
@@ -314,68 +326,45 @@ public class RStorageEngine implements StorageEngine {
             Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
             int total_triples = s_idxs.size();
 
-            List<Response<Set<String>>> responses = new ArrayList<>(total_triples);
+            List<Response<Set<String>>> s_idxs_responses = new ArrayList<>(total_triples);
 
             Pipeline p = jedis.pipelined();
 
             for (String s_idx : s_idxs)
-                responses.add(p.smembers(String.format(SINGLE_S, storeID, s_idx)));
+                s_idxs_responses.add(p.smembers(String.format(SINGLE_S, storeID, s_idx)));
 
             p.sync();
+
+            List<List<Response<String>>> iri_responses = new LinkedList<>();
+
             int i = 0;
             for (String s_idx : s_idxs) {
-                responses.get(i).get().forEach(
+                s_idxs_responses.get(i).get().forEach(
                         po_idx -> {
                             String[] po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
-                            String p_idx = generateID();
-                            res.addIRI(p_idx, var1, s_idx);
-                            res.addIRI(p_idx, var2, po_split[0]);
-                            res.addIRI(p_idx, var3, po_split[1]);
+                            List<Response<String>> iris = new ArrayList<>(3);
+                            iris.add(p.hget(String.format(REV_IRIS, storeID), s_idx));
+                            iris.add(p.hget(String.format(REV_IRIS, storeID), po_split[0]));
+                            iris.add(p.hget(String.format(REV_IRIS, storeID), po_split[1]));
+                            iri_responses.add(iris);
                         }
                 );
                 i++;
             }
-            return res;
-        } catch (Exception e) {
-            return res;
-        }
-    }
-
-    @Override
-    public List<Binding> fetchNodes(String storeID, IRITable IRITable) {
-        List<Binding> res = new LinkedList<>();
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-
-            Set<List<String>> patterns = IRITable.getPatterns();
-            int num_patterns = patterns.size();
-            List<List<Response<String>>> responses = new ArrayList<>(num_patterns);
-
-            List<Response<String>> l;
-            for (List<String> pattern : patterns) {
-                l = new LinkedList<>();
-                for (String idx : pattern)
-                    l.add(p.hget(String.format(REV_IRIS, storeID), idx));
-                responses.add(l);
-            }
 
             p.sync();
 
-            int j = 0;
-            List<Var> vars = new ArrayList<>(IRITable.getVars());
-            BindingBuilder builder = Binding.builder();
-            for (int i = 0; i < num_patterns; i++) {
-                for (Response<String> r : responses.get(i)) {
-                    builder.add(vars.get(j), generateNode(r.get()));
-                    j++;
-                }
-                res.add(builder.build());
-                j = 0;
-                builder.reset();
-            }
+            iri_responses.forEach(
+                    resp_list -> {
+                        String p_idx = generateID();
+                        res.addIRI(p_idx, var1, resp_list.get(0).get());
+                        res.addIRI(p_idx, var2, resp_list.get(1).get());
+                        res.addIRI(p_idx, var3, resp_list.get(2).get());
+                    }
+            );
+
             return res;
         } catch (Exception e) {
-            e.printStackTrace();
             return res;
         }
     }
@@ -401,12 +390,28 @@ public class RStorageEngine implements StorageEngine {
             String idx = getIndexFromIRI(jedis, IRIKeyFormatter, storeID, parseNodeIRI(node));
             if (idx == null)
                 return res;
+
+            Pipeline p = jedis.pipelined();
+
+            List<List<Response<String>>> iri_responses = new LinkedList<>();
+
             jedis.smembers(String.format(idxKeyFormatter, storeID, idx)).forEach(
                     compound_idx -> {
                         String[] simple_idxs = compound_idx.split(COMPOUND_INDEX_SEPARATOR);
+                        List<Response<String>> iris = new ArrayList<>(2);
+                        iris.add(p.hget(String.format(REV_IRIS, storeID), simple_idxs[0]));
+                        iris.add(p.hget(String.format(REV_IRIS, storeID), simple_idxs[1]));
+                        iri_responses.add(iris);
+                    }
+            );
+
+            p.sync();
+
+            iri_responses.forEach(
+                    resp_list -> {
                         String p_idx = generateID();
-                        res.addIRI(p_idx, var1, simple_idxs[0]);
-                        res.addIRI(p_idx, var2, simple_idxs[1]);
+                        res.addIRI(p_idx, var1, resp_list.get(0).get());
+                        res.addIRI(p_idx, var2, resp_list.get(1).get());
                     }
             );
             return res;

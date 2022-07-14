@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.query.execution;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.BGPJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
@@ -11,6 +12,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
+import redis.clients.jedis.Response;
 
 import java.util.*;
 
@@ -237,6 +239,17 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public List<Binding> generateBindings(IRITable jobResults) {
-        return storageEngine.fetchNodes(storeID, jobResults);
+        List<Binding> res = new LinkedList<>();
+        Set<List<String>> patterns = jobResults.getPatterns();
+        Set<Var> vars = jobResults.getVars();
+        BindingBuilder builder = Binding.builder();
+        for (List<String> p_iris : patterns) {
+            for (String iri : p_iris)
+                for (Var v : vars)
+                    builder.add(v, storageEngine.generateNode(iri));
+            res.add(builder.build());
+            builder.reset();
+        }
+        return res;
     }
 }
