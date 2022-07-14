@@ -13,7 +13,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
-import pt.fct.nova.id.srv.application.query.jobs.jobN.BGPJob;
+
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
@@ -67,27 +67,126 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     }
 
     private void generateGetJobs(OpBGP op) {
-        List<String> getJobIDs = new LinkedList<>();
         List<Triple> patterns = op.getPattern().getList();
         int total_patterns = patterns.size();
+        List<GetJob> getJobs = new ArrayList<>(total_patterns);
+
         patterns.forEach(
                 t -> {
                     Node s = t.getSubject();
                     Node p = t.getPredicate();
                     Node o = t.getObject();
                     String jobID = generateID();
-                    if (total_patterns == 1)
+                    if (total_patterns == 1) {
                         parsed_op.put(op, jobID);
-                    else
-                        getJobIDs.add(jobID);
-                    plan.pushJob(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
+                        plan.pushJob(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
+                    } else
+                        getJobs.add(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
-        if (total_patterns >= 2) {
-            String jobID = generateID();
-            plan.pushJob(new BGPJob(jobID, getJobIDs));
-            parsed_op.put(op, jobID);
+        if (total_patterns >= 2)
+            generateJoinPipeline(op, getJobs);
+    }
+
+    private void generateJoinPipeline(OpBGP op, List<GetJob> getJobs) {
+        int num_jobs = getJobs.size();
+        System.out.println(num_jobs);
+        Set<Var> all_vars = new HashSet<>();
+        List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
+        List<JoinJob> joins = new ArrayList<>(num_jobs);
+        Set<Integer> to_be_processed = new HashSet<>();
+
+        Set<Var> vars;
+        for (int i = 0; i < num_jobs; i++) {
+            vars = extractVars(getJobs.get(i));
+            all_vars.addAll(vars);
+            result_vars.add(vars);
+            to_be_processed.add(i);
         }
+
+        int current, last = num_jobs, compatible = -1;
+        boolean stop;
+        Job l, r;
+        JoinJob res = null;
+        Set<Var> vars2, resVars;
+        while (!to_be_processed.isEmpty()) {
+            stop = false;
+            current = to_be_processed.iterator().next();
+            for (Integer i : to_be_processed) {
+                if (current != i) {
+                    System.out.println("------");
+                    System.out.println(current);
+                    System.out.println(i);
+                    System.out.println(result_vars.size());
+                    vars = result_vars.get(current);
+                    vars2 = result_vars.get(i);
+                    resVars = new HashSet<>(vars2);
+                    for (Var v : vars) {
+                        if (!vars2.isEmpty() && vars2.contains(v)) {
+                            compatible = i;
+                            if (current < num_jobs) l = getJobs.get(current);
+                            else l = joins.get(current - num_jobs);
+                            if (i < num_jobs) r = getJobs.get(i);
+                            else r = joins.get(i - num_jobs);
+                            plan.pushJob(l);
+                            plan.pushJob(r);
+                            res = new JoinJob(generateID(), l.getID(), r.getID());
+                            plan.pushJob(res);
+                            resVars.addAll(vars);
+                            joins.add(last - num_jobs, res);
+                            result_vars.add(last, resVars);
+                            vars2.remove(v);
+                            stop = true;
+                            break;
+                        }
+                    }
+                }
+                if (stop) break;
+            }
+            if (res == null) {
+                String jobID = generateID();
+                plan.pushJob(new EmptyResJob(jobID, all_vars));
+                parsed_op.put(op, jobID);
+                return;
+            }
+            to_be_processed.remove(current);
+            to_be_processed.remove(compatible);
+            if (!to_be_processed.isEmpty())
+                to_be_processed.add(last);
+            last++;
+        }
+        if (res != null)
+            parsed_op.put(op, res.getID());
+    }
+
+    private Set<Var> extractVars(GetJob job) {
+        Node s = job.getSubject();
+        Node p = job.getPredicate();
+        Node o = job.getObject();
+        Set<Var> res = new HashSet<>();
+        switch (job.getVariablesPattern()) {
+            case S -> res.add(Var.alloc(s));
+            case P -> res.add(Var.alloc(p));
+            case O -> res.add(Var.alloc(o));
+            case SP -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+            }
+            case SO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(o));
+            }
+            case PO -> {
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+            case SPO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+        }
+        return res;
     }
 
     private void generateValuesJob(OpTable op) {
