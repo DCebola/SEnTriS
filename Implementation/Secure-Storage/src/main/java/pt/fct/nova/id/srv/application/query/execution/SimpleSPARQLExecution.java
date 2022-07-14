@@ -9,14 +9,14 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 import java.util.*;
 
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, IdxTable> jobResults;
+    private final Map<String, IRITable> jobResults;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
@@ -75,7 +75,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         return result;
     }
 
-    private IdxTable delegateJob(SPARQLWorker worker, String current) {
+    private IRITable delegateJob(SPARQLWorker worker, String current) {
         Job job = jobs.get(current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,
@@ -88,7 +88,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
             );
         else if (job instanceof JobN) {
             List<String> prev_ids = ((JobN) job).getPreviousJobIDs();
-            List<IdxTable> prevResults = new ArrayList<>(prev_ids.size());
+            List<IRITable> prevResults = new ArrayList<>(prev_ids.size());
             prev_ids.forEach(jobID -> prevResults.add(jobResults.get(jobID)));
             return worker.exec(((JobN) job), prevResults);
         } else

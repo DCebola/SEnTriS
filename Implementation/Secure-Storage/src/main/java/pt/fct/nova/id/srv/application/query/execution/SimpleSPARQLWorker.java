@@ -9,8 +9,8 @@ import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
-import pt.fct.nova.id.srv.application.storage.idx_data_structs.MemIdxTable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 
 import java.util.*;
 
@@ -28,7 +28,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public IdxTable exec(Job job) {
+    public IRITable exec(Job job) {
         if (job instanceof GetJob)
             return execGet((GetJob) job);
         else if (job instanceof ValuesJob)
@@ -39,7 +39,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private IdxTable execGet(GetJob job) {
+    private IRITable execGet(GetJob job) {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
@@ -55,17 +55,17 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         };
     }
 
-    private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
+    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
         if (varPattern == VariablesPattern.S)
             return storageEngine.findSubjects(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.P)
             return storageEngine.findPredicates(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.O)
             return storageEngine.findObjects(storeID, node1, node2, var);
-        return new MemIdxTable();
+        return new MemIRITable();
     }
 
-    private IdxTable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
+    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
         if (varPattern == VariablesPattern.SP) {
             return storageEngine.findSP(storeID, node, var1, var2);
         } else if (varPattern == VariablesPattern.SO) {
@@ -73,22 +73,22 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         } else if (varPattern == VariablesPattern.PO) {
             return storageEngine.findPO(storeID, node, var1, var2);
         } else
-            return new MemIdxTable();
+            return new MemIRITable();
     }
 
-    private IdxTable execValues(ValuesJob job) {
+    private IRITable execValues(ValuesJob job) {
         //TODO Execute ValuesJob
         return null;
     }
 
-    private IdxTable execSlice(SliceJob job) {
+    private IRITable execSlice(SliceJob job) {
         //TODO Execute SliceJob
         return null;
     }
 
 
     @Override
-    public IdxTable exec(Job1 job, IdxTable prevJobResults) {
+    public IRITable exec(Job1 job, IRITable prevJobResults) {
         if (job instanceof ProjectJob) {
             return execProject((ProjectJob) job, prevJobResults);
         } else if (job instanceof BindJob) {
@@ -105,38 +105,38 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             return null;
     }
 
-    private IdxTable execProject(ProjectJob job, IdxTable prevJobResults) {
+    private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
         prevJobResults.project(job.getVariables());
         return prevJobResults;
     }
 
-    private IdxTable execBind(BindJob job, IdxTable prevJobResults) {
+    private IRITable execBind(BindJob job, IRITable prevJobResults) {
         //TODO Execute BindJob
         return null;
     }
 
-    private IdxTable execFilter(FilterJob job, IdxTable prevJobResults) {
+    private IRITable execFilter(FilterJob job, IRITable prevJobResults) {
         //TODO Execute FilterJob
         return null;
     }
 
-    private IdxTable execOrderBy(OrderByJob job, IdxTable prevJobResults) {
+    private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         //TODO Execute OrderByJob
         return null;
     }
 
-    private IdxTable execGroup(GroupJob job, IdxTable prevJobResults) {
+    private IRITable execGroup(GroupJob job, IRITable prevJobResults) {
         //TODO Execute GroupJob
         return null;
     }
 
-    private IdxTable execDistinct(DistinctJob job, IdxTable prevJobResults) {
+    private IRITable execDistinct(DistinctJob job, IRITable prevJobResults) {
         //TODO Execute DistinctJob
         return null;
     }
 
     @Override
-    public IdxTable exec(Job2 job, IdxTable left, IdxTable right) {
+    public IRITable exec(Job2 job, IRITable left, IRITable right) {
         if (job instanceof JoinJob) {
             return execJoin((JoinJob) job, left, right);
         } else if (job instanceof UnionJob) {
@@ -150,18 +150,18 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public IdxTable exec(JobN job, List<IdxTable> prevJobsBindings) {
+    public IRITable exec(JobN job, List<IRITable> prevJobsBindings) {
         if (job instanceof BGPJob)
             return execBGP((BGPJob) job, prevJobsBindings);
         else
             return null;
     }
 
-    private IdxTable execBGP(BGPJob job, List<IdxTable> prevJobsResults) {
+    private IRITable execBGP(BGPJob job, List<IRITable> prevJobsResults) {
         int num_jobs = prevJobsResults.size();
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
-        List<IdxTable> joinResults = new ArrayList<>(num_jobs);
+        List<IRITable> joinResults = new ArrayList<>(num_jobs);
         Set<Integer> to_be_processed = new HashSet<>();
 
         Set<Var> vars;
@@ -174,7 +174,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
         int current, last = num_jobs, compatible = -1;
         boolean stop;
-        IdxTable t, t2, res = null;
+        IRITable t, t2, res = null;
         Set<Var> v2;
         while (!to_be_processed.isEmpty()) {
             stop = false;
@@ -206,7 +206,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                 if (stop) break;
             }
             if (res == null)
-                return new MemIdxTable(all_vars);
+                return new MemIRITable(all_vars);
             to_be_processed.remove(current);
             to_be_processed.remove(compatible);
             if (!to_be_processed.isEmpty())
@@ -216,27 +216,27 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         return res;
     }
 
-    private IdxTable execJoin(JoinJob job, IdxTable left, IdxTable right) {
+    private IRITable execJoin(JoinJob job, IRITable left, IRITable right) {
         return left.join(right);
     }
 
-    private IdxTable execUnion(UnionJob job, IdxTable left, IdxTable right) {
+    private IRITable execUnion(UnionJob job, IRITable left, IRITable right) {
         //TODO Execute UnionJob, need a set with O(1) for get at position i -> Use of an ArrayList or Array with the HashSet
         return left.union(right);
     }
 
-    private IdxTable execOptional(OptionalJob job, IdxTable left, IdxTable right) {
+    private IRITable execOptional(OptionalJob job, IRITable left, IRITable right) {
         //TODO Execute OptionalJob
         return left.leftOuterJoin(right);
     }
 
-    private IdxTable execMinus(MinusJob job, IdxTable left, IdxTable right) {
+    private IRITable execMinus(MinusJob job, IRITable left, IRITable right) {
         //TODO Execute MinusJob
         return left.minus(right);
     }
 
     @Override
-    public List<Binding> generateBindings(IdxTable jobResults) {
+    public List<Binding> generateBindings(IRITable jobResults) {
         return storageEngine.fetchNodes(storeID, jobResults);
     }
 }

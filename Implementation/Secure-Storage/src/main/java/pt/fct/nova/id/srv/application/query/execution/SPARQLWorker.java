@@ -6,19 +6,19 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
-import pt.fct.nova.id.srv.application.storage.idx_data_structs.IdxTable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 import java.util.List;
 
 public interface SPARQLWorker {
 
-    IdxTable exec(Job job);
+    IRITable exec(Job job);
 
-    IdxTable exec(Job1 job, IdxTable prevJobResults);
+    IRITable exec(Job1 job, IRITable prevJobResults);
 
-    IdxTable exec(Job2 job, IdxTable left, IdxTable right);
+    IRITable exec(Job2 job, IRITable left, IRITable right);
 
-    IdxTable exec(JobN job, List<IdxTable> prevJobsResults);
+    IRITable exec(JobN job, List<IRITable> prevJobsResults);
 
-    List<Binding> generateBindings(IdxTable jobResults);
+    List<Binding> generateBindings(IRITable jobResults);
 }
