@@ -5,8 +5,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
@@ -309,12 +307,7 @@ public class RStorageEngine implements StorageEngine {
                 i++;
             }
             p.sync();
-            responses.forEach(r -> {
-                String p_idx = generateID();
-                String iri = r.get();
-                System.out.println("[" + p_idx + "] - (" + var + "->" + iri + ")");
-                res.addIRI(p_idx, var, iri);
-            });
+            responses.forEach(r -> res.add(generateID(), var, r.get()));
 
             return res;
         } catch (Exception e) {
@@ -362,13 +355,9 @@ public class RStorageEngine implements StorageEngine {
             iri_responses.forEach(
                     resp_list -> {
                         String p_idx = generateID();
-                        String iri1 = resp_list.get(0).get();
-                        String iri2 = resp_list.get(1).get();
-                        String iri3 = resp_list.get(2).get();
-                        System.out.println("[" + p_idx + "] - (" + var1 + "->" + iri1 + ", " + var2 + "->" + iri2 + ", " + var3 + "->" + iri3 + ")");
-                        res.addIRI(p_idx, var1, iri1);
-                        res.addIRI(p_idx, var2, iri2);
-                        res.addIRI(p_idx, var3, iri3);
+                        res.add(p_idx, var1, resp_list.get(0).get());
+                        res.add(p_idx, var2, resp_list.get(1).get());
+                        res.add(p_idx, var3, resp_list.get(2).get());
                     }
             );
 
@@ -419,11 +408,8 @@ public class RStorageEngine implements StorageEngine {
             iri_responses.forEach(
                     resp_list -> {
                         String p_idx = generateID();
-                        String iri1 = resp_list.get(0).get();
-                        String iri2 = resp_list.get(1).get();
-                        System.out.println("[" + p_idx + "] - (" + var1 + "->" + iri1 + ", " + var2 + "->" + iri2 + ")");
-                        res.addIRI(p_idx, var1, iri1);
-                        res.addIRI(p_idx, var2, iri2);
+                        res.add(p_idx, var1, resp_list.get(0).get());
+                        res.add(p_idx, var2, resp_list.get(1).get());
                     }
             );
             return res;

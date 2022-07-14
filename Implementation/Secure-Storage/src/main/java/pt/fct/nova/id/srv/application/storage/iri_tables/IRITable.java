@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface IRITable {
 
-    void addIRI(String patternIdx, Var var, String iri);
+    void add(String patternIdx, Var var, String iri);
 
     Set<Var> getVars();
 

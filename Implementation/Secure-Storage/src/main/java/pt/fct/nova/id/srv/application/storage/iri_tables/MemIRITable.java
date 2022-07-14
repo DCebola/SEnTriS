@@ -4,6 +4,8 @@ import org.apache.jena.sparql.core.Var;
 
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.Utils.generateID;
+
 public class MemIRITable implements IRITable {
 
     private final Map<Var, Map<String, Set<String>>> iris;
@@ -29,22 +31,22 @@ public class MemIRITable implements IRITable {
     }
 
     @Override
-    public void addIRI(String patternIdx, Var var, String iri) {
-        saveIRI(iri, var, patternIdx);
-        savePattern(iri, var, patternIdx);
+    public void add(String patternIdx, Var var, String iri) {
+        addIRI(iri, var, patternIdx);
+        addPattern(iri, var, patternIdx);
     }
 
-    private void savePattern(String iri, Var var, String patternIdx) {
-        Map<String, String> v_p_idx = patterns.get(var);
-        if (v_p_idx == null) {
-            v_p_idx = new HashMap<>();
-            v_p_idx.put(patternIdx, iri);
-            patterns.put(var, v_p_idx);
+    private void addPattern(String iri, Var var, String patternIdx) {
+        Map<String, String> v_p_idxs = patterns.get(var);
+        if (v_p_idxs == null) {
+            v_p_idxs = new HashMap<>();
+            v_p_idxs.put(patternIdx, iri);
+            patterns.put(var, v_p_idxs);
         } else
-            v_p_idx.put(patternIdx, iri);
+            v_p_idxs.put(patternIdx, iri);
     }
 
-    private void saveIRI(String iri, Var var, String patternIdx) {
+    private void addIRI(String iri, Var var, String patternIdx) {
         Map<String, Set<String>> v_iris = iris.get(var);
         if (v_iris == null) {
             v_iris = new HashMap<>();
@@ -101,11 +103,8 @@ public class MemIRITable implements IRITable {
         Set<String> p_idxs = patterns.get(v).keySet();
         for (String p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
-            for (Var v2 : vars) {
-                String iri = patterns.get(v2).get(p_idx);
-                System.out.println("[" + p_idx + "] - (" + v2 + ", " + iri + ")");
-                pattern.add(iri);
-            }
+            for (Var v2 : vars)
+                pattern.add(patterns.get(v2).get(p_idx));
             res.add(pattern);
         }
         return res;
@@ -119,124 +118,70 @@ public class MemIRITable implements IRITable {
 
     @Override
     public IRITable join(IRITable other) {
-
-        Set<Var> vars = new HashSet<>(this.getVars());
-        Set<Var> vars2 = new HashSet<>(other.getVars());
-
-        Set<Var> mutual_vars = new HashSet<>(vars);
-        mutual_vars.retainAll(vars2);
-
-        Set<Var> all_vars = new HashSet<>(vars);
-        all_vars.addAll(vars2);
-
-        vars.removeAll(other.getVars());
-        vars2.removeAll(this.getVars());
-
-        Map<Var, Map<String, Set<String>>> join_iris = new HashMap<>();
-        Map<Var, Map<String, String>> join_pattern_idxs = new HashMap<>();
-
-        for (Var v : all_vars) {
-            join_iris.put(v, new HashMap<>());
-            join_pattern_idxs.put(v, new HashMap<>());
-        }
-
-        Set<String> p_idxs_to_remove = joinIRIs(other, vars, vars2, mutual_vars, join_iris, join_pattern_idxs);
-        cleanPatternIdxs(all_vars, join_iris, join_pattern_idxs, p_idxs_to_remove);
-
-        return new MemIRITable(join_iris, join_pattern_idxs);
+        Set<Var> mutual_vars = new HashSet<>(this.getVars());
+        mutual_vars.retainAll(other.getVars());
+        Set<String> diff = difference(this, other, mutual_vars);
+        return cartesianProduct(mutual_vars, this, other, diff);
     }
 
-    private void cleanPatternIdxs(Set<Var> allVars, Map<Var, Map<String, Set<String>>> joinIRIs, Map<Var, Map<String, String>> joinPatternIdxs, Set<String> patternIdxsToRemove) {
-        Map<String, String> p_map;
-        Map<String, Set<String>> iris_map;
-        Set<String> p_idxs;
-        String iri;
-        for (Var v : allVars) {
-            p_map = joinPatternIdxs.get(v);
-            for (String p_idx : p_map.keySet()) {
-                if (patternIdxsToRemove.contains(p_idx)) {
-                    iris_map = joinIRIs.get(v);
-                    iri = p_map.get(p_idx);
-                    p_idxs = iris_map.get(iri);
-                    if (p_idxs != null) {
-                        p_idxs.remove(p_idx);
-                        System.out.println("[" + iri + "] - Removed: " + p_idx);
-                        if (p_idxs.isEmpty())
-                            iris_map.remove(iri);
-                    }
-                }
+    private Set<String> difference(IRITable left, IRITable right, Set<Var> vars) {
+        Set<String> diff = new HashSet<>();
+        Map<String, Set<String>> left_iris, right_iris;
+        for (Var v : vars) {
+            left_iris = left.getIRIs(v);
+            right_iris = right.getIRIs(v);
+            for (Map.Entry<String, Set<String>> entry : left_iris.entrySet()) {
+                if (right_iris.get(entry.getKey()) == null)
+                    diff.addAll(entry.getValue());
+            }
+            for (Map.Entry<String, Set<String>> entry : right_iris.entrySet()) {
+                if (left_iris.get(entry.getKey()) == null)
+                    diff.addAll(entry.getValue());
             }
         }
-        for (Var v : allVars) {
-            p_map = joinPatternIdxs.get(v);
-            for (String p_idx : patternIdxsToRemove)
-                p_map.remove(p_idx);
-        }
-
+        return diff;
     }
 
-    private Set<String> joinIRIs(IRITable other, Set<Var> vars, Set<Var> vars2, Set<Var> mutualVars, Map<Var, Map<String, Set<String>>> joinIRIs, Map<Var, Map<String, String>> joinPatternIdxs) {
-        Set<String> p_idxs2, p_idxs, join_p_idxs;
+    private IRITable cartesianProduct(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> diff) {
+        Set<Var> l_vars = new HashSet<>(left.getVars());
+        Set<Var> r_vars = new HashSet<>(right.getVars());
+
+        Set<Var> vars = new HashSet<>(l_vars);
+        vars.addAll(r_vars);
+
+        l_vars.removeAll(right.getVars());
+        r_vars.removeAll(left.getVars());
+
+        IRITable res = new MemIRITable(vars);
+
+        Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
-        Map<String, String> v_p_idx;
-        String iri;
-        Set<String> patterns_to_remove = new HashSet<>();
+        String iri, p_idx;
+
         for (Var v : mutualVars) {
-            iris_map = iris.get(v);
-            iris_map2 = other.getIRIs(v);
+            iris_map = left.getIRIs(v);
+            iris_map2 = right.getIRIs(v);
             for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
                 iri = entry.getKey();
-                p_idxs = entry.getValue();
-                p_idxs2 = iris_map2.get(iri);
-                if (p_idxs2 != null) {
-                    //TODO: Find remove set, then for each match do cartesian product on the p_idxs, if p_idxs not in remove set
-                    join_p_idxs = new HashSet<>();
-                    for (String p1 : p_idxs) {
-                        //Get iri per var for p1
-                        for (String p2 : p_idxs2) {
-                            //Get iri per var for p2
-                            //Generate p3 add all iris
+                l_p_idxs = entry.getValue();
+                r_p_idxs = iris_map2.get(iri);
+                if (r_p_idxs != null) {
+                    l_p_idxs.removeAll(diff);
+                    r_p_idxs.removeAll(diff);
+                    for (String p1 : l_p_idxs) {
+                        for (String p2 : r_p_idxs) {
+                            p_idx = generateID();
+                            res.add(p_idx, v, iri);
+                            for (Var v2 : l_vars)
+                                res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
+                            for (Var v2 : r_vars)
+                                res.add(p_idx, v2, right.getPatternIdxs(v2).get(p2));
                         }
                     }
-                    join_p_idxs.addAll(p_idxs2);
-                    joinIRIs.get(v).put(iri, join_p_idxs);
-                    System.out.println("[" + v + "] - MATCH for [" + iri + "]: adding p_idxs -> " + Arrays.toString(join_p_idxs.toArray()));
-                    v_p_idx = joinPatternIdxs.get(v);
-                    for (String p_idx : join_p_idxs)
-                        v_p_idx.put(p_idx, iri);
-                    saveIRISFromNonMutualVars(joinIRIs, joinPatternIdxs, iris, patterns, vars, p_idxs);
-                    saveIRISFromNonMutualVars(joinIRIs, joinPatternIdxs, other.getIRIs(), other.getPatternIdxs(), vars2, p_idxs2);
-                } else {
-                    System.out.println("[" + v + "] - 2: NO MATCH for [" + iri + "]: adding to remove set -> " + Arrays.toString(p_idxs.toArray()));
-                    patterns_to_remove.addAll(p_idxs);
-
-                }
-            }
-            for (Map.Entry<String, Set<String>> entry : iris_map2.entrySet()) {
-                iri = entry.getKey();
-                p_idxs2 = entry.getValue();
-                p_idxs = iris_map.get(iri);
-                if (p_idxs == null) {
-                    System.out.println("[" + v + "] - 1: NO MATCH for [" + iri + "]: adding to remove set -> " + Arrays.toString(p_idxs2.toArray()));
-                    patterns_to_remove.addAll(p_idxs2);
                 }
             }
         }
-        return patterns_to_remove;
-    }
-
-    private void saveIRISFromNonMutualVars(Map<Var, Map<String, Set<String>>> joinIRIs, Map<Var, Map<String, String>> joinPatternIdxs, Map<Var, Map<String, Set<String>>> iris, Map<Var, Map<String, String>> patterns, Set<Var> vars, Set<String> patternIdxs) {
-        String idx2;
-        Set<String> p_idxs2;
-        for (Var v : vars) {
-            for (String p_idx : patternIdxs) {
-                idx2 = patterns.get(v).get(p_idx);
-                p_idxs2 = new HashSet<>(iris.get(v).get(idx2));
-                joinIRIs.get(v).put(idx2, p_idxs2);
-                for (String p_idx2 : p_idxs2)
-                    joinPatternIdxs.get(v).put(p_idx2, idx2);
-            }
-        }
+        return res;
     }
 
 
