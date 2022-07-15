@@ -16,11 +16,6 @@ public class MemIRITable implements IRITable {
         patterns = new HashMap<>();
     }
 
-    public MemIRITable(Map<Var, Map<String, Set<String>>> iris, Map<Var, Map<String, String>> patterns) {
-        this.iris = iris;
-        this.patterns = patterns;
-    }
-
     public MemIRITable(Set<Var> vars) {
         iris = new HashMap<>();
         patterns = new HashMap<>();

@@ -4,7 +4,6 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.jobN.JobN;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
@@ -86,12 +85,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
                     jobResults.get(((Job2) job).getLeftJobID()),
                     jobResults.get(((Job2) job).getRightJobID())
             );
-        else if (job instanceof JobN) {
-            List<String> prev_ids = ((JobN) job).getPreviousJobIDs();
-            List<IRITable> prevResults = new ArrayList<>(prev_ids.size());
-            prev_ids.forEach(jobID -> prevResults.add(jobResults.get(jobID)));
-            return worker.exec(((JobN) job), prevResults);
-        } else
+        else
             return worker.exec(job);
     }
 }
