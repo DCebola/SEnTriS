@@ -93,7 +93,8 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
         System.out.println(num_jobs);
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
-        List<JoinJob> joins = new ArrayList<>(num_jobs);
+        List<Job> joins = new ArrayList<>(num_jobs);
+        List<Job> pipeline = new ArrayList<>(num_jobs * 2);
         Set<Integer> to_be_processed = new HashSet<>();
 
         Set<Var> vars;
@@ -106,18 +107,13 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
         int current, last = num_jobs, compatible = -1;
         boolean stop;
-        Job l, r;
-        JoinJob res = null;
+        Job l, r, join;
         Set<Var> vars2, resVars;
         while (!to_be_processed.isEmpty()) {
             stop = false;
             current = to_be_processed.iterator().next();
             for (Integer i : to_be_processed) {
                 if (current != i) {
-                    System.out.println("------");
-                    System.out.println(current);
-                    System.out.println(i);
-                    System.out.println(result_vars.size());
                     vars = result_vars.get(current);
                     vars2 = result_vars.get(i);
                     resVars = new HashSet<>(vars2);
@@ -128,12 +124,12 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
                             else l = joins.get(current - num_jobs);
                             if (i < num_jobs) r = getJobs.get(i);
                             else r = joins.get(i - num_jobs);
-                            plan.pushJob(l);
-                            plan.pushJob(r);
-                            res = new JoinJob(generateID(), l.getID(), r.getID());
-                            plan.pushJob(res);
+                            pipeline.add(l);
+                            pipeline.add(r);
+                            join = new JoinJob(generateID(), l.getID(), r.getID());
+                            pipeline.add(join);
                             resVars.addAll(vars);
-                            joins.add(last - num_jobs, res);
+                            joins.add(last - num_jobs, join);
                             result_vars.add(last, resVars);
                             vars2.remove(v);
                             stop = true;
@@ -143,7 +139,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
                 }
                 if (stop) break;
             }
-            if (res == null) {
+            if (compatible < 0) {
                 String jobID = generateID();
                 plan.pushJob(new EmptyResJob(jobID, all_vars));
                 parsed_op.put(op, jobID);
@@ -154,9 +150,13 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
             if (!to_be_processed.isEmpty())
                 to_be_processed.add(last);
             last++;
+            compatible = -1;
         }
-        if (res != null)
-            parsed_op.put(op, res.getID());
+        if (!pipeline.isEmpty()) {
+            for (Job j : pipeline)
+                plan.pushJob(j);
+            parsed_op.put(op, pipeline.get(pipeline.size() - 1).getID());
+        }
     }
 
     private Set<Var> extractVars(GetJob job) {
