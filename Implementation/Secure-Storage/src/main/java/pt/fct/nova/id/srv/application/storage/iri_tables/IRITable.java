@@ -27,10 +27,10 @@ public interface IRITable {
 
     IRITable join(IRITable other);
 
-    IRITable union(IRITable right);
+    IRITable union(IRITable other);
 
-    IRITable leftOuterJoin(IRITable right);
+    IRITable leftOuterJoin(IRITable other);
 
-    IRITable minus(IRITable right);
+    IRITable minus(IRITable other);
 
 }

@@ -116,7 +116,7 @@ public class MemIRITable implements IRITable {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         Set<String> diff = difference(this, other, mutual_vars);
-        return cartesianProduct(mutual_vars, this, other, diff);
+        return joinMutualVars(mutual_vars, this, other, diff);
     }
 
     private Set<String> difference(IRITable left, IRITable right, Set<Var> vars) {
@@ -137,7 +137,7 @@ public class MemIRITable implements IRITable {
         return diff;
     }
 
-    private IRITable cartesianProduct(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> diff) {
+    private IRITable joinMutualVars(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> diff) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -175,23 +175,56 @@ public class MemIRITable implements IRITable {
                     }
                 }
             }
+            break;
         }
         return res;
     }
 
+    @Override
+    public IRITable union(IRITable other) {
+        Set<Var> mutual_vars = new HashSet<>(this.getVars());
+        mutual_vars.retainAll(other.getVars());
+        IRITable res = new MemIRITable(mutual_vars);
+        Set<String> l_p_idxs, r_p_idxs;
+        Map<String, Set<String>> iris_map, iris_map2;
+        String iri;
+        for (Var v : mutual_vars) {
+            iris_map = this.getIRIs(v);
+            iris_map2 = other.getIRIs(v);
+            for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
+                iri = entry.getKey();
+                l_p_idxs = entry.getValue();
+                r_p_idxs = iris_map2.get(iri);
+                for (String p : l_p_idxs) {
+                    res.add(p, v, iri);
+                    addOtherVars(p, mutual_vars, v, this, res);
+                }
+                if (r_p_idxs != null) {
+                    for (String p : r_p_idxs) {
+                        res.add(p, v, iri);
+                        addOtherVars(p, mutual_vars, v, other, res);
+                    }
+                }
+            }
+            break;
+        }
+        return res;
+    }
+
+    private void addOtherVars(String pattern, Set<Var> mutual_vars, Var v, IRITable source, IRITable target) {
+        for (Var v2 : mutual_vars) {
+            if (v2 != v)
+                target.add(pattern, v2, source.getPatternIdxs(v2).get(pattern));
+        }
+    }
 
     @Override
-    public IRITable union(IRITable right) {
+    public IRITable leftOuterJoin(IRITable other) {
         return null;
     }
 
     @Override
-    public IRITable leftOuterJoin(IRITable right) {
-        return null;
-    }
-
-    @Override
-    public IRITable minus(IRITable right) {
+    public IRITable minus(IRITable other) {
         return null;
     }
 
