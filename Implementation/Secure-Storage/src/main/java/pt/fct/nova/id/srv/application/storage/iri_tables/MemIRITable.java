@@ -225,7 +225,31 @@ public class MemIRITable implements IRITable {
 
     @Override
     public IRITable minus(IRITable other) {
-        return null;
+        Set<Var> mutual_vars = new HashSet<>(this.getVars());
+        mutual_vars.retainAll(other.getVars());
+
+        Set<String> diff = difference(this, other, mutual_vars);
+
+        IRITable res = new MemIRITable(mutual_vars);
+        Set<String> p_idxs;
+        Map<String, Set<String>> iris_map;
+        String iri;
+        for (Var v : mutual_vars) {
+            iris_map = this.getIRIs(v);
+            for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
+                iri = entry.getKey();
+                p_idxs = entry.getValue();
+                for (String p : p_idxs) {
+                    if (!diff.contains(p)) {
+                        res.add(p, v, iri);
+                        addOtherVars(p, mutual_vars, v, this, res);
+                    }
+                }
+            }
+            break;
+        }
+        return res;
     }
+
 
 }
