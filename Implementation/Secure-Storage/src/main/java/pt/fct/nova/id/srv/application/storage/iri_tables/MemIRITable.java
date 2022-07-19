@@ -175,7 +175,6 @@ public class MemIRITable implements IRITable {
                     }
                 }
             }
-            break;
         }
         return res;
     }
@@ -185,6 +184,7 @@ public class MemIRITable implements IRITable {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         IRITable res = new MemIRITable(mutual_vars);
+        mutual_vars.forEach(System.out::println);
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
         String iri;
@@ -195,26 +195,36 @@ public class MemIRITable implements IRITable {
                 iri = entry.getKey();
                 l_p_idxs = entry.getValue();
                 r_p_idxs = iris_map2.get(iri);
+                System.out.println("On: v->" + v + " iri->" + iri);
                 for (String p : l_p_idxs) {
+                    System.out.println("Adding: p->" + p + "v->" + v + " iri->" + iri);
                     res.add(p, v, iri);
                     addOtherVars(p, mutual_vars, v, this, res);
                 }
                 if (r_p_idxs != null) {
                     for (String p : r_p_idxs) {
                         res.add(p, v, iri);
+                        System.out.println("Adding: p->" + p + "v->" + v + " iri->" + iri);
                         addOtherVars(p, mutual_vars, v, other, res);
                     }
                 }
             }
-            break;
         }
+        res.getPatterns().forEach(
+                v -> {
+                    System.out.println("----");
+                    v.forEach(System.out::println);}
+        );
         return res;
     }
 
     private void addOtherVars(String pattern, Set<Var> mutual_vars, Var v, IRITable source, IRITable target) {
         for (Var v2 : mutual_vars) {
-            if (v2 != v)
-                target.add(pattern, v2, source.getPatternIdxs(v2).get(pattern));
+            if (v2 != v) {
+                String iri = source.getPatternIdxs(v2).get(pattern);
+                System.out.println("Adding: p->" + pattern + "v2->" + v2 + " iri->" + iri);
+                target.add(pattern, v2, iri);
+            }
         }
     }
 
@@ -246,7 +256,7 @@ public class MemIRITable implements IRITable {
                     }
                 }
             }
-            break;
+
         }
         return res;
     }

@@ -144,7 +144,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execUnion(UnionJob job, IRITable left, IRITable right) {
-        //TODO Execute UnionJob, need a set with O(1) for get at position i -> Use of an ArrayList or Array with the HashSet
+        System.out.println("Doing union.");
         return left.union(right);
     }
 
