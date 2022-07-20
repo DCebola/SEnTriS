@@ -144,17 +144,14 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execUnion(UnionJob job, IRITable left, IRITable right) {
-        System.out.println("Doing union.");
         return left.union(right);
     }
 
     private IRITable execOptional(OptionalJob job, IRITable left, IRITable right) {
-        //TODO Execute OptionalJob
         return left.leftOuterJoin(right);
     }
 
     private IRITable execMinus(MinusJob job, IRITable left, IRITable right) {
-        //TODO Execute MinusJob
         return left.minus(right);
     }
 
