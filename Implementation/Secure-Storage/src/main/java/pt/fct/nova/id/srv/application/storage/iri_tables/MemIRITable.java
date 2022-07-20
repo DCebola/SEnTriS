@@ -99,7 +99,7 @@ public class MemIRITable implements IRITable {
         for (String p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
             for (Var v2 : vars)
-                pattern.add(patterns.get(v2).get(p_idx));
+                pattern.add(patterns.get(v2).get(p_idx)); //TODO: define unbound iri
             res.add(pattern);
         }
         return res;
@@ -116,7 +116,7 @@ public class MemIRITable implements IRITable {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         Set<String> diff = difference(this, other, mutual_vars);
-        return joinMutualVars(mutual_vars, this, other, diff);
+        return joinOn(mutual_vars, this, other, diff);
     }
 
     private Set<String> difference(IRITable left, IRITable right, Set<Var> vars) {
@@ -137,7 +137,7 @@ public class MemIRITable implements IRITable {
         return diff;
     }
 
-    private IRITable joinMutualVars(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> diff) {
+    private IRITable joinOn(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -161,8 +161,8 @@ public class MemIRITable implements IRITable {
                 l_p_idxs = entry.getValue();
                 r_p_idxs = iris_map2.get(iri);
                 if (r_p_idxs != null) {
-                    l_p_idxs.removeAll(diff);
-                    r_p_idxs.removeAll(diff);
+                    l_p_idxs.removeAll(filter);
+                    r_p_idxs.removeAll(filter);
                     for (String p1 : l_p_idxs) {
                         for (String p2 : r_p_idxs) {
                             p_idx = generateID();
@@ -180,30 +180,87 @@ public class MemIRITable implements IRITable {
         return res;
     }
 
-    @Override
-    public IRITable union(IRITable other) {
-        Set<Var> mutual_vars = new HashSet<>(this.getVars());
-        mutual_vars.retainAll(other.getVars());
-        IRITable res = new MemIRITable(mutual_vars);
+    private IRITable leftOuterJoinOn(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter) {
+        Set<Var> l_vars = new HashSet<>(left.getVars());
+        Set<Var> r_vars = new HashSet<>(right.getVars());
+
+        Set<Var> vars = new HashSet<>(l_vars);
+        vars.addAll(r_vars);
+
+        l_vars.removeAll(right.getVars());
+        r_vars.removeAll(left.getVars());
+
+        IRITable res = new MemIRITable(vars);
+
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
-        String iri;
-        for (Var v : mutual_vars) {
-            iris_map = this.getIRIs(v);
-            iris_map2 = other.getIRIs(v);
+        String iri, p_idx;
+
+        for (Var v : mutualVars) {
+            iris_map = left.getIRIs(v);
+            iris_map2 = right.getIRIs(v);
             for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
                 iri = entry.getKey();
                 l_p_idxs = entry.getValue();
                 r_p_idxs = iris_map2.get(iri);
+                l_p_idxs.removeAll(filter);
+                if (r_p_idxs != null) {
+                    r_p_idxs.removeAll(filter);
+                    for (String p1 : l_p_idxs) {
+                        for (String p2 : r_p_idxs) {
+                            p_idx = generateID();
+                            res.add(p_idx, v, iri);
+                            for (Var v2 : l_vars)
+                                res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
+                            for (Var v2 : r_vars)
+                                res.add(p_idx, v2, right.getPatternIdxs(v2).get(p2));
+                        }
+                    }
+                } else {
+                    for (String p1 : l_p_idxs) {
+                        p_idx = generateID();
+                        res.add(p_idx, v, iri);
+                        for (Var v2 : l_vars)
+                            res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
+                    }
+                }
+            }
+            break;
+        }
+        return res;
+    }
+
+    @Override
+    public IRITable union(IRITable other) {
+
+        Set<Var> l_vars = this.getVars();
+        Set<Var> r_vars = other.getVars();
+
+        Set<Var> mutual_vars = new HashSet<>(l_vars);
+        mutual_vars.retainAll(r_vars);
+
+        Set<Var> vars = new HashSet<>(l_vars);
+        vars.addAll(r_vars);
+
+        IRITable res = new MemIRITable(vars);
+
+        Set<String> l_p_idxs, r_p_idxs;
+        String iri;
+        for (Var v : mutual_vars) {
+            for (Map.Entry<String, Set<String>> entry : this.getIRIs(v).entrySet()) {
+                iri = entry.getKey();
+                l_p_idxs = entry.getValue();
                 for (String p : l_p_idxs) {
                     res.add(p, v, iri);
-                    addOtherVars(p, mutual_vars, v, this, res);
+                    addOtherVars(p, l_vars, v, this, res);
                 }
-                if (r_p_idxs != null) {
-                    for (String p : r_p_idxs) {
-                        res.add(p, v, iri);
-                        addOtherVars(p, mutual_vars, v, other, res);
-                    }
+            }
+            for (Map.Entry<String, Set<String>> entry : other.getIRIs(v).entrySet()) {
+                iri = entry.getKey();
+                r_p_idxs = entry.getValue();
+                for (String p : r_p_idxs) {
+                    res.add(p, v, iri);
+                    addOtherVars(p, r_vars, v, other, res);
                 }
             }
             break;
