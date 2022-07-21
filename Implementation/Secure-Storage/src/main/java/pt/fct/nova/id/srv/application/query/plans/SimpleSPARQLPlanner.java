@@ -49,6 +49,8 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     @Override
     public void visit0(Op0 op) {
         logger.info("OP0: {}", op);
+        logger.info("Parsed ops:");
+        parsed_op.forEach((key, value) -> logger.info("{}{}", key, value));
         if (op instanceof OpBGP) {
             generateGetJobs((OpBGP) op);
         } else if (op instanceof OpTriple) {
@@ -90,7 +92,6 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     private void generateJoinPipeline(OpBGP op, List<GetJob> getJobs) {
         int num_jobs = getJobs.size();
-        System.out.println(num_jobs);
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
         List<Job> joins = new ArrayList<>(num_jobs);

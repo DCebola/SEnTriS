@@ -165,7 +165,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         for (List<String> p_iris : patterns) {
             i = 0;
             for (String iri : p_iris) {
-                builder.add(vars.get(i), storageEngine.generateNode(iri));
+                if (iri != null)
+                    builder.add(vars.get(i), storageEngine.generateNode(iri));
                 i++;
             }
             res.add(builder.build());

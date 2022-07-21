@@ -1,9 +1,12 @@
 package pt.fct.nova.id.srv.application.storage.iri_tables;
 
+import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
 
 import java.util.*;
 
+import static org.apache.jena.sparql.algebra.JoinType.INNER;
+import static org.apache.jena.sparql.algebra.JoinType.LEFT;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class MemIRITable implements IRITable {
@@ -96,11 +99,19 @@ public class MemIRITable implements IRITable {
             return res;
         Var v = vars.iterator().next();
         Set<String> p_idxs = patterns.get(v).keySet();
+        String iri;
+        int i;
         for (String p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
-            for (Var v2 : vars)
-                pattern.add(patterns.get(v2).get(p_idx)); //TODO: define unbound iri
-            res.add(pattern);
+            i = 0;
+            for (Var v2 : vars) {
+                iri = patterns.get(v2).get(p_idx);
+                pattern.add(iri);
+                if (iri == null)
+                    i++;
+            }
+            if (i < vars.size())
+                res.add(pattern);
         }
         return res;
     }
@@ -116,7 +127,7 @@ public class MemIRITable implements IRITable {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         Set<String> diff = difference(this, other, mutual_vars);
-        return joinOn(mutual_vars, this, other, diff);
+        return joinOn(mutual_vars, this, other, diff, INNER);
     }
 
     private Set<String> difference(IRITable left, IRITable right, Set<Var> vars) {
@@ -137,50 +148,7 @@ public class MemIRITable implements IRITable {
         return diff;
     }
 
-    private IRITable joinOn(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter) {
-        Set<Var> l_vars = new HashSet<>(left.getVars());
-        Set<Var> r_vars = new HashSet<>(right.getVars());
-
-        Set<Var> vars = new HashSet<>(l_vars);
-        vars.addAll(r_vars);
-
-        l_vars.removeAll(right.getVars());
-        r_vars.removeAll(left.getVars());
-
-        IRITable res = new MemIRITable(vars);
-
-        Set<String> l_p_idxs, r_p_idxs;
-        Map<String, Set<String>> iris_map, iris_map2;
-        String iri, p_idx;
-
-        for (Var v : mutualVars) {
-            iris_map = left.getIRIs(v);
-            iris_map2 = right.getIRIs(v);
-            for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
-                iri = entry.getKey();
-                l_p_idxs = entry.getValue();
-                r_p_idxs = iris_map2.get(iri);
-                if (r_p_idxs != null) {
-                    l_p_idxs.removeAll(filter);
-                    r_p_idxs.removeAll(filter);
-                    for (String p1 : l_p_idxs) {
-                        for (String p2 : r_p_idxs) {
-                            p_idx = generateID();
-                            res.add(p_idx, v, iri);
-                            for (Var v2 : l_vars)
-                                res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
-                            for (Var v2 : r_vars)
-                                res.add(p_idx, v2, right.getPatternIdxs(v2).get(p2));
-                        }
-                    }
-                }
-            }
-            break;
-        }
-        return res;
-    }
-
-    private IRITable leftOuterJoinOn(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter) {
+    private IRITable joinOn(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter, JoinType type) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -205,18 +173,8 @@ public class MemIRITable implements IRITable {
                 r_p_idxs = iris_map2.get(iri);
                 l_p_idxs.removeAll(filter);
                 if (r_p_idxs != null) {
-                    r_p_idxs.removeAll(filter);
-                    for (String p1 : l_p_idxs) {
-                        for (String p2 : r_p_idxs) {
-                            p_idx = generateID();
-                            res.add(p_idx, v, iri);
-                            for (Var v2 : l_vars)
-                                res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
-                            for (Var v2 : r_vars)
-                                res.add(p_idx, v2, right.getPatternIdxs(v2).get(p2));
-                        }
-                    }
-                } else {
+                    cartesianProduct(v, iri, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, filter);
+                } else if (type.equals(LEFT)) {
                     for (String p1 : l_p_idxs) {
                         p_idx = generateID();
                         res.add(p_idx, v, iri);
@@ -228,6 +186,22 @@ public class MemIRITable implements IRITable {
             break;
         }
         return res;
+    }
+
+    private void cartesianProduct(Var currentVar, String iri, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right,
+                                  Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res, Set<String> filter) {
+        String p_idx;
+        rightPatternIdxs.removeAll(filter);
+        for (String p1 : leftPatternIdxs) {
+            for (String p2 : rightPatternIdxs) {
+                p_idx = generateID();
+                res.add(p_idx, currentVar, iri);
+                for (Var v2 : leftVars)
+                    res.add(p_idx, v2, left.getPatternIdxs(v2).get(p1));
+                for (Var v2 : rightVars)
+                    res.add(p_idx, v2, right.getPatternIdxs(v2).get(p2));
+            }
+        }
     }
 
     @Override
@@ -279,8 +253,10 @@ public class MemIRITable implements IRITable {
 
     @Override
     public IRITable leftOuterJoin(IRITable other) {
-        //TODO: implement left outer join
-        return null;
+        Set<Var> mutual_vars = new HashSet<>(this.getVars());
+        mutual_vars.retainAll(other.getVars());
+        Set<String> diff = difference(this, other, mutual_vars);
+        return joinOn(mutual_vars, this, other, diff, LEFT);
     }
 
     @Override

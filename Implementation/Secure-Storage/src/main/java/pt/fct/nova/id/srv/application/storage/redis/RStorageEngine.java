@@ -46,8 +46,6 @@ public class RStorageEngine implements StorageEngine {
     private final static String SINGLE_SP = "%s".concat(BASIC_SEPARATOR).concat("SP").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_SO = "%s".concat(BASIC_SEPARATOR).concat("SO").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_PO = "%s".concat(BASIC_SEPARATOR).concat("PO").concat(BASIC_SEPARATOR).concat("%s");
-
-
     private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
     private static final String BLANK_IRI_PREFIX = "B";
     private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
