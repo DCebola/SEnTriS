@@ -245,7 +245,7 @@ public class MemIRITable implements IRITable {
                     res.add(p, v, iri);
                     addOtherVars(p, l_vars, v, this, res);
                 }
-            } //TODO: Need to verify that res does not have an equal pattern
+            } //TODO: Need to verify that res does not have an equal pattern, also need to add mutual var iris
             for (Map.Entry<String, Set<String>> entry : other.getIRIs(v).entrySet()) {
                 iri = entry.getKey();
                 r_p_idxs = entry.getValue();
