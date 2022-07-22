@@ -5,6 +5,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
@@ -21,7 +22,7 @@ import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.*;
 
-public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPlanner {
+public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
     final static Logger logger = LoggerFactory.getLogger(SimpleSPARQLPlanner.class);
 
@@ -49,8 +50,6 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     @Override
     public void visit0(Op0 op) {
         logger.info("OP0: {}", op);
-        logger.info("Parsed ops:");
-        parsed_op.forEach((key, value) -> logger.info("{}{}", key, value));
         if (op instanceof OpBGP) {
             generateGetJobs((OpBGP) op);
         } else if (op instanceof OpTriple) {
@@ -71,6 +70,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     private void generateGetJobs(OpBGP op) {
         List<Triple> patterns = op.getPattern().getList();
         int total_patterns = patterns.size();
+        System.out.println(total_patterns);
         List<GetJob> getJobs = new ArrayList<>(total_patterns);
 
         patterns.forEach(
@@ -232,8 +232,8 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
 
     private String getPrevJobID(Op subOp) {
         String prevJobID = parsed_op.get(subOp);
-        if (prevJobID == null)
-            throw new QueryBuildException();
+        //if (prevJobID == null)
+            //throw new QueryBuildException();
         return prevJobID;
     }
 
@@ -340,7 +340,18 @@ public class SimpleSPARQLPlanner extends OpVisitorByTypeBase implements SPARQLPl
     }
 
     @Override
+    protected void visitFilter(OpFilter opFilter) {
+        this.visit1(opFilter);
+    }
+
+    @Override
+    protected void visitLeftJoin(OpLeftJoin opLeftJoin) {
+        this.visit2(opLeftJoin);
+    }
+
+    @Override
     public void visitN(OpN op) {
+        logger.info("OPN: {}", op);
         /*
         if (op instanceof OpDisjunction) {
         } else if (op instanceof OpSequence) {
