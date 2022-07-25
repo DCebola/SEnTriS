@@ -91,10 +91,8 @@ public class MemIRITable implements IRITable {
     }
 
     @Override
-    public Set<List<String>> getPatterns() {
-        //TODO: Need to use list instead of set, results need to have duplicates if they exist
-        //TODO: DISTINCT -> use set
-        Set<List<String>> res = new HashSet<>();
+    public List<List<String>> getPatterns() {
+        List<List<String>> res = new LinkedList<>();
         List<String> pattern;
         Set<Var> vars = patterns.keySet();
         if (vars.isEmpty())

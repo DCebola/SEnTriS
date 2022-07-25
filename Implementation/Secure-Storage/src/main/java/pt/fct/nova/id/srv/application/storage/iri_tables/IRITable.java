@@ -21,7 +21,7 @@ public interface IRITable {
 
     Map<Var, Map<String, String>> getPatternIdxs();
 
-    Set<List<String>> getPatterns();
+    List<List<String>> getPatterns();
 
     void project(Collection<Var> vars);
 

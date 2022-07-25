@@ -158,11 +158,10 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     @Override
     public List<Binding> generateBindings(IRITable jobResults) {
         List<Binding> res = new LinkedList<>();
-        Set<List<String>> patterns = jobResults.getPatterns();
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         BindingBuilder builder = Binding.builder();
         int i;
-        for (List<String> p_iris : patterns) {
+        for (List<String> p_iris : jobResults.getPatterns()) {
             i = 0;
             for (String iri : p_iris) {
                 if (iri != null)
