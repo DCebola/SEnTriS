@@ -113,6 +113,7 @@ public class MemIRITable implements IRITable {
             if (i < vars.size())
                 res.add(pattern);
         }
+        System.out.println("TOTAL: " + res.size());
         return res;
     }
 
@@ -213,19 +214,20 @@ public class MemIRITable implements IRITable {
     }
 
     private boolean equalPatterns(Set<Var> mutualVars, IRITable left, String leftPattern, IRITable right, String rightPattern) {
-        String lp, rp;
+        String p1, p2;
         for (Var v2 : mutualVars) {
-            lp = left.getPatternIdxs(v2).get(leftPattern);
-            rp = right.getPatternIdxs(v2).get(rightPattern);
-            if (lp == null && rp != null)
+            p1 = left.getPatternIdxs(v2).get(leftPattern);
+            p2 = right.getPatternIdxs(v2).get(rightPattern);
+            if (p1 == null && p2 != null)
                 return false;
-            else if (lp != null && rp == null)
+            else if (p1 != null && p2 == null)
                 return false;
-            else if (lp != null && !lp.equals(rp))
+            else if (p1 != null && !p1.equals(p2))
                 return false;
         }
         return true;
     }
+
 
     @Override
     public IRITable union(IRITable other) {
@@ -240,27 +242,21 @@ public class MemIRITable implements IRITable {
 
         IRITable res = new MemIRITable(vars);
 
-        Set<String> l_p_idxs, r_p_idxs;
         for (Var v : mutual_vars) {
-            for (Map.Entry<String, Set<String>> entry : this.getIRIs(v).entrySet()) {
-                l_p_idxs = entry.getValue();
-                for (String p : l_p_idxs) {
-                    copyIRIs(p, p, mutual_vars, this, res);
-                    copyIRIs(p, p, l_vars, this, res);
-                }
-            }
-            for (Map.Entry<String, Set<String>> entry : other.getIRIs(v).entrySet()) {
-                r_p_idxs = entry.getValue();
-                for (String p : r_p_idxs) {
-                    if (!equalPatterns(mutual_vars, other, p, res, p)) {
-                        copyIRIs(p, p, mutual_vars, other, res);
-                        copyIRIs(p, p, r_vars, other, res);
-                    }
-                }
-            }
+            copyAllIRIs(mutual_vars, v, this, l_vars, res);
+            copyAllIRIs(mutual_vars, v, other, r_vars, res);
             break;
         }
         return res;
+    }
+
+    private void copyAllIRIs(Set<Var> mutualVars, Var currentVar, IRITable source, Set<Var> sourceOtherVars, IRITable target) {
+        for (Map.Entry<String, Set<String>> entry : source.getIRIs(currentVar).entrySet()) {
+            for (String p : entry.getValue()) {
+                copyIRIs(p, p, mutualVars, source, target);
+                copyIRIs(p, p, sourceOtherVars, source, target);
+            }
+        }
     }
 
     @Override

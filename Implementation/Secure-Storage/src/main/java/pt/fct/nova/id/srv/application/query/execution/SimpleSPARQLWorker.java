@@ -171,6 +171,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             res.add(builder.build());
             builder.reset();
         }
+
         return res;
     }
 }
