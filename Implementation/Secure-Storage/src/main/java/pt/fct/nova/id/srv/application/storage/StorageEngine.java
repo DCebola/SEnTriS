@@ -3,7 +3,7 @@ package pt.fct.nova.id.srv.application.storage;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
+import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public interface StorageEngine {
 
     boolean deleteStore(String storeID);
 
-    boolean saveTriple(String storeID, Triple triple);
+    boolean saveTriple(String storeID, Triple triple) throws InvalidNodeException;
 
     List<Triple> getTriples(String storeID);
 
@@ -39,5 +39,5 @@ public interface StorageEngine {
 
     Node generateNode(String iri);
 
-
+    void checkID(String id);
 }

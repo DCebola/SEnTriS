@@ -12,6 +12,9 @@ import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -29,22 +32,23 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public boolean createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) {
+    public void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException {
+        verifyStoreDoesNotExist(storeID);
         boolean success = storageEngine.setupStore(storeID, namespaces);
         if (!success)
-            return false;
+            throw new RuntimeException();
         while (triples.hasNext()) {
             success = storageEngine.saveTriple(storeID, triples.next());
             if (!success) {
                 storageEngine.deleteStore(storeID);
-                return false;
+                throw new RuntimeException();
             }
         }
-        return true;
     }
 
     @Override
-    public Model getDatasetModel(String storeID) {
+    public Model getDatasetModel(String storeID) throws StoreNotFoundException {
+        verifyStoreExists(storeID);
         Graph g = GraphFactory.createDefaultGraph();
         storageEngine.getTriples(storeID).forEach(g::add);
         Model m = ModelFactory.createModelForGraph(g);
@@ -52,14 +56,28 @@ public class SimpleTriplestore implements Triplestore {
         return m;
     }
 
+
     @Override
-    public ResultSet executeQuery(String storeID, String query) {
-        //TODO: verify store exists
+    public ResultSet executeQuery(String storeID, String query) throws StoreNotFoundException {
+        verifyStoreExists(storeID);
         QueryExecutionPlan plan = queryEngine.getQueryPlan(query);
-        plan.getExecutionOrder().forEach(jobID -> logger.debug("#{}: {}", storeID, jobID));
-        plan.getJobs().forEach((jobID, job) -> logger.debug("#{}: [{}, {}]", storeID, jobID, job));
         return new SimpleSPARQLExecution(plan).exec(storeID, storageEngine);
     }
 
+
+
+    private void verifyStoreExists(String storeID) throws StoreNotFoundException {
+        try {
+            storageEngine.checkID(storeID);
+        } catch (StoreAlreadyExistsException ignored) {
+        }
+    }
+
+    private void verifyStoreDoesNotExist(String storeID) throws StoreAlreadyExistsException {
+        try {
+            storageEngine.checkID(storeID);
+        } catch (StoreAlreadyExistsException ignored) {
+        }
+    }
 
 }

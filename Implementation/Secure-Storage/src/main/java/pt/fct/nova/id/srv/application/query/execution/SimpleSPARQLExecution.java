@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.query.execution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
+import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
@@ -63,7 +64,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public ResultSet exec(String storeID, StorageEngine engine) {
+    public ResultSet exec(String storeID, StorageEngine engine) throws SPARQLExecutionException{
         SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
         while (!pending.isEmpty()) {
             current = pending.peek();
@@ -74,7 +75,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         return result;
     }
 
-    private IRITable delegateJob(SPARQLWorker worker, String current) {
+    private IRITable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
         Job job = jobs.get(current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,

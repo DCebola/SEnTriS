@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application;
 
 import org.apache.jena.graph.Node;
-import pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByDirection;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 
 import java.nio.ByteBuffer;
@@ -10,18 +9,8 @@ import java.util.UUID;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
-import static pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByDirection.*;
 
 public class Utils {
-
-    public static OrderByDirection extractOrderDirection(int dir) {
-        if (dir == 1)
-            return ASCENDING;
-        else if (dir == -1)
-            return DESCENDING;
-        else
-            return null;
-    }
 
     public static VariablesPattern extractVariablesPattern(Node subject, Node predicate, Node object) {
         if (subject.isVariable() && !predicate.isVariable() && !object.isVariable())

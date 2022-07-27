@@ -7,13 +7,16 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.fct.nova.id.srv.application.storage.InvalidNodeException;
+import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.*;
 
@@ -21,13 +24,14 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class RStorageEngine implements StorageEngine {
 
+
     final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
 
-    private final static String INFO = "%s".concat(BASIC_SEPARATOR).concat("INFO");
+    private final static String STORE_STATE = "%s".concat(BASIC_SEPARATOR).concat("STATE");
     private final static String NAMESPACES = "%s".concat(BASIC_SEPARATOR).concat("NS");
 
     private final static String S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("IRIS");
@@ -57,17 +61,17 @@ public class RStorageEngine implements StorageEngine {
 
 
     @Override
-    public boolean setupStore(String storeID, Map<String, String> namespaces) {
+    public boolean setupStore(String storeID, Map<String, String> namespaces) throws JedisException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.set(String.format(INFO, storeID), String.valueOf(false));
+            t.set(String.format(STORE_STATE, storeID), String.valueOf(false));
             namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
             t.exec();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-        return true;
     }
 
     private void putNamespace(Transaction t, String storeID, String namespaceKey, String namespaceValue) {
@@ -78,19 +82,34 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public boolean deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(INFO, storeID), String.valueOf(true));
+            jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-        return true;
+    }
+
+    public void checkID(String storeID) throws JedisException {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            if (storeExists(jedis, storeID))
+                throw new StoreAlreadyExistsException();
+            throw new StoreNotFoundException();
+        } catch (StoreAlreadyExistsException | StoreNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean storeExists(Jedis jedis, String storeID) {
+        return jedis.get(String.format(STORE_STATE, storeID)) != null;
     }
 
 
     @Override
-    public boolean saveTriple(String storeID, Triple triple) {
-
-        String storeInfo = String.format(INFO, storeID);
+    public boolean saveTriple(String storeID, Triple triple) throws InvalidNodeException {
+        String storeState = String.format(STORE_STATE, storeID);
         Node subject = triple.getSubject();
         Node predicate = triple.getPredicate();
         Node object = triple.getObject();
@@ -103,10 +122,9 @@ public class RStorageEngine implements StorageEngine {
 
             logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
-            boolean isDeleted = Boolean.parseBoolean(jedis.get(storeInfo));
+            boolean isDeleted = Boolean.parseBoolean(jedis.get(storeState));
 
             if (!isDeleted) {
-
                 Pipeline p = jedis.pipelined();
                 Response<String> resp_s = getIndexFromIRI(p, S_IRIS, storeID, s_iri);
                 Response<String> resp_p = getIndexFromIRI(p, P_IRIS, storeID, p_iri);
@@ -118,7 +136,7 @@ public class RStorageEngine implements StorageEngine {
                 String o_idx = resp_o.get();
 
                 Transaction t = jedis.multi();
-                t.watch(storeInfo);
+                t.watch(storeState);
 
 
                 if (s_idx == null) {
@@ -152,11 +170,13 @@ public class RStorageEngine implements StorageEngine {
 
                 t.exec();
             }
+            return true;
+        } catch (InvalidNodeException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
-        return true;
     }
 
 
@@ -196,6 +216,7 @@ public class RStorageEngine implements StorageEngine {
                     TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
 
+
     private void putIRI(Transaction transaction, String keyFormatter, String storeID, String nodeIRI, String idx) {
         transaction.hset(String.format(keyFormatter, storeID), nodeIRI, idx);
         transaction.hset(String.format(REV_IRIS, storeID), idx, nodeIRI);
@@ -218,7 +239,6 @@ public class RStorageEngine implements StorageEngine {
     public List<Triple> getTriples(String storeID) {
         List<Triple> triples = new LinkedList<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-
             Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
             List<Response<Set<String>>> responses = new ArrayList<>(s_idxs.size());
 
@@ -255,7 +275,7 @@ public class RStorageEngine implements StorageEngine {
 
             return triples;
         } catch (Exception e) {
-            return triples;
+            return null;
         }
     }
 

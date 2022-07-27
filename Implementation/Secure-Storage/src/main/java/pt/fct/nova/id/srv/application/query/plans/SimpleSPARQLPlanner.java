@@ -1,12 +1,12 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
-import org.apache.jena.sparql.algebra.OpVisitorByTypeBase;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
@@ -56,7 +56,9 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             generateGetJobs(((OpTriple) op).asBGP());
         } else if (op instanceof OpTable) {
             generateValuesJob((OpTable) op);
-        } /* else if (op instanceof OpDatasetNames) {
+        } else
+            throw new NotImplemented();
+        /* else if (op instanceof OpDatasetNames) {
         } else if (op instanceof OpPath) {
         } else if (op instanceof OpNull) {
         } else if (op instanceof OpQuad) {
@@ -202,14 +204,19 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     public void visit1(Op1 op) {
         logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
-            generateBindJob((OpExtendAssign) op);
+            //generateBindJob((OpExtendAssign) op);
+            throw new NotImplemented();
         } else if (op instanceof OpFilter) {
-            generateFilterJob((OpFilter) op);
+            //generateFilterJob((OpFilter) op);
+            throw new NotImplemented();
         } else if (op instanceof OpGroup) {
-            generateGroupJob((OpGroup) op);
+            //generateGroupJob((OpGroup) op);
+            throw new NotImplemented();
         } else if (op instanceof OpModifier) {
             visitOpModifier((OpModifier) op);
-        }/* else if (op instanceof OpGraph) {
+        } else
+            throw new NotImplemented();
+        /* else if (op instanceof OpGraph) {
         } else if (op instanceof OpLabel) {
         } else if (op instanceof OpProcedure) {
         } else if (op instanceof OpPropFunc) {
@@ -232,8 +239,8 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private String getPrevJobID(Op subOp) {
         String prevJobID = parsed_op.get(subOp);
-        //if (prevJobID == null)
-            //throw new QueryBuildException();
+        if (prevJobID == null)
+            throw new QueryBuildException();
         return prevJobID;
     }
 
@@ -260,7 +267,9 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             generateProjectJob((OpProject) op);
         } else if (op instanceof OpSlice) {
             generateSliceJob((OpSlice) op);
-        }/* else if (op instanceof OpTopN) {
+        } else
+            throw new NotImplemented();
+        /* else if (op instanceof OpTopN) {
         }  else if (op instanceof OpList) {
         }  else
              throw new NotImplemented();
@@ -280,11 +289,6 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private void generateOrderByJob(OpOrder op) {
-        for (SortCondition condition : op.getConditions()) {
-            OrderByDirection dir = extractOrderDirection(condition.getDirection());
-            if (dir == null)
-                throw new QueryBuildException();
-        }
         String jobID = generateID();
         plan.pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), op.getConditions()));
         parsed_op.put(op, jobID);
@@ -292,7 +296,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private void generateSliceJob(OpSlice op) {
         String jobID = generateID();
-        plan.pushJob(new SliceJob(jobID, op.getStart(), op.getLength()));
+        plan.pushJob(new SliceJob(jobID, getPrevJobID(op.getSubOp()), op.getStart(), op.getLength()));
         parsed_op.put(op, jobID);
     }
 
@@ -308,7 +312,9 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             generateMinusJob((OpMinus) op);
         } else if (op instanceof OpUnion) {
             generateUnionJob((OpUnion) op);
-        }/* else if (op instanceof OpConditional) {
+        } else
+            throw new NotImplemented();
+        /* else if (op instanceof OpConditional) {
         } else if (op instanceof OpDiff) {
         } else
             throw new NotImplemented();
@@ -352,6 +358,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visitN(OpN op) {
         logger.info("OPN: {}", op);
+        throw new NotImplemented();
         /*
         if (op instanceof OpDisjunction) {
         } else if (op instanceof OpSequence) {
