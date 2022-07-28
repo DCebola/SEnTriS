@@ -6,20 +6,19 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.query.execution.exceptions.GetJobPatternException;
-import pt.fct.nova.id.srv.application.query.execution.exceptions.JobInstanceException;
-import pt.fct.nova.id.srv.application.query.execution.exceptions.JobNotImplementedException;
-import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
+import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class SimpleSPARQLWorker implements SPARQLWorker {
@@ -47,14 +46,14 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public IRITable exec(Job job) {
+    public IRITable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof GetJob) return execGet((GetJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execGet(GetJob job) {
+    private IRITable execGet(GetJob job) throws SPARQLExecutionException {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
@@ -91,8 +90,25 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execValues(ValuesJob job) {
-        //TODO Execute ValuesJob
-        return new MemIRITable();
+        IRITable res = new MemIRITable();
+        Var var;
+        Node node;
+        Iterator<Var> vars;
+        for (Binding binding : job.getValues()) {
+            String p_idx = generateID();
+            vars = binding.vars();
+            while (vars.hasNext()) {
+                var = vars.next();
+                node = binding.get(var);
+                try {
+                    res.add(p_idx, var, storageEngine.parseNodeIRI(node));
+                } catch (InvalidNodeException e) {
+                    e.printStackTrace();
+                    throw new ValuesNodeException(job.getClass().toString(), job.getID(), node);
+                }
+            }
+        }
+        return res;
     }
 
     @Override
@@ -158,7 +174,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public IRITable exec(Job2 job, IRITable left, IRITable right) {
+    public IRITable exec(Job2 job, IRITable left, IRITable right) throws SPARQLExecutionException {
         if (job instanceof JoinJob)
             return execJoin(left, right);
         else if (job instanceof UnionJob)

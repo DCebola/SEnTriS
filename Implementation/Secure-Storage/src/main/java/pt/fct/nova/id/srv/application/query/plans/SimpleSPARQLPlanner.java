@@ -17,6 +17,8 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
+import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 
 import java.util.*;
 

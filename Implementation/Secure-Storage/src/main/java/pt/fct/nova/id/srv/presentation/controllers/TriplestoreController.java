@@ -13,6 +13,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
+import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
@@ -98,6 +99,8 @@ public class TriplestoreController implements TriplestoreAPI {
             ResultSet res = triplestore.executeQuery(storeID, query);
             ResultSetFormatter.outputAsJSON(out, res);
             return Response.ok(out.toByteArray()).build();
+        } catch (StoreNotFoundException e) {
+            return Response.ok(STORE_NOT_FOUND).status(Status.NOT_FOUND).build();
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED).status(Status.NOT_IMPLEMENTED).build();
         } catch (Exception e) {

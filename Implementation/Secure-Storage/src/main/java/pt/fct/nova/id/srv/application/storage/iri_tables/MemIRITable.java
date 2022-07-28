@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.storage.iri_tables;
 
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.*;
 
@@ -27,6 +28,7 @@ public class MemIRITable implements IRITable {
             patterns.put(v, new HashMap<>());
         }
     }
+
 
     @Override
     public void add(String patternIdx, Var var, String iri) {
