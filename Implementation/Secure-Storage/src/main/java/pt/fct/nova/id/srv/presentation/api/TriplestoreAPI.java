@@ -14,12 +14,21 @@ public interface TriplestoreAPI {
 
 
     @POST
+    @Path("create/{storeID}")
+    @Consumes(MULTIPART_FORM_DATA)
+    @Produces(APPLICATION_JSON)
+    Response create(
+            @PathParam("storeID") String storeID,
+            @MultipartForm UploadForm form) throws HttpResponseException;
+
+    @POST
     @Path("upload/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response upload(
             @PathParam("storeID") String storeID,
             @MultipartForm UploadForm form) throws HttpResponseException;
+
 
     @GET
     @Path("/download/{storeID}")

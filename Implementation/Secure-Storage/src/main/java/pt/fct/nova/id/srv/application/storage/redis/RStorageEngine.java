@@ -65,12 +65,25 @@ public class RStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(STORE_STATE, storeID), String.valueOf(false));
-            namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
+            if (namespaces != null)
+                namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
             t.exec();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    @Override
+    public void saveNamespaces(String storeID, Map<String, String> namespaces) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            if (namespaces != null)
+                namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
+            t.exec();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -90,20 +103,17 @@ public class RStorageEngine implements StorageEngine {
         }
     }
 
-    public void checkID(String storeID) throws JedisException {
+    public void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            if (storeExists(jedis, storeID))
+            if (jedis.get(String.format(STORE_STATE, storeID)) != null)
                 throw new StoreAlreadyExistsException();
-            throw new StoreNotFoundException();
+            else
+                throw new StoreNotFoundException();
         } catch (StoreAlreadyExistsException | StoreNotFoundException e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean storeExists(Jedis jedis, String storeID) {
-        return jedis.get(String.format(STORE_STATE, storeID)) != null;
     }
 
 

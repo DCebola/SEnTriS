@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -31,8 +32,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     private boolean isDistinct;
     private boolean isOrdered;
     private boolean isSliced;
-    private long offset;
-    private long length;
+    private Long offset;
+    private Long length;
 
 
     public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
@@ -41,8 +42,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         this.isDistinct = false;
         this.isOrdered = false;
         this.isSliced = false;
-        this.offset = 0;
-        this.length = Long.MAX_VALUE;
+        this.offset = Query.NOLIMIT;
+        this.length = Query.NOLIMIT;
     }
 
     @Override
@@ -108,6 +109,9 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                 }
             }
         }
+        res.getPatterns().forEach(
+                p -> System.out.println(Arrays.toString(p.toArray()))
+        );
         return res;
     }
 
@@ -148,8 +152,8 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
         isSliced = true;
-        offset = job.getOffset();
         length = job.getLength();
+        offset = job.getOffset();
         return prevJobResults;
     }
 
@@ -214,8 +218,14 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             if (isOrdered)
                 res = res.stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
         }
-        if (isSliced)
-            res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+        if (isSliced){
+            if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
+                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+            else if (offset != Query.NOLIMIT)
+                res = res.stream().skip(offset).collect(Collectors.toList());
+            else if (length != Query.NOLIMIT)
+                res = res.stream().limit(length).collect(Collectors.toList());
+        }
         return res;
     }
 

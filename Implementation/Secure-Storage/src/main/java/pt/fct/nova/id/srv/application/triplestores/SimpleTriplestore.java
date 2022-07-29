@@ -35,15 +35,32 @@ public class SimpleTriplestore implements Triplestore {
     public void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException {
         verifyStoreDoesNotExist(storeID);
         boolean success = storageEngine.setupStore(storeID, namespaces);
-        if (!success)
+        if (!success) {
+            storageEngine.deleteStore(storeID);
             throw new RuntimeException();
-        while (triples.hasNext()) {
-            success = storageEngine.saveTriple(storeID, triples.next());
-            if (!success) {
-                storageEngine.deleteStore(storeID);
-                throw new RuntimeException();
+        } else if (triples != null)
+            addTriples(storeID, triples);
+    }
+
+    private void addTriples(String storeID, Iterator<Triple> triples) throws InvalidNodeException {
+        boolean success;
+        if (triples != null) {
+            while (triples.hasNext()) {
+                success = storageEngine.saveTriple(storeID, triples.next());
+                if (!success) {
+                    storageEngine.deleteStore(storeID);
+                    throw new RuntimeException();
+                }
             }
         }
+    }
+
+    @Override
+    public void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException {
+        verifyStoreExists(storeID);
+        if (namespaces != null)
+            storageEngine.saveNamespaces(storeID, namespaces);
+        addTriples(storeID, triples);
     }
 
     @Override
@@ -65,7 +82,6 @@ public class SimpleTriplestore implements Triplestore {
     }
 
 
-
     private void verifyStoreExists(String storeID) throws StoreNotFoundException {
         try {
             storageEngine.checkID(storeID);
@@ -76,7 +92,7 @@ public class SimpleTriplestore implements Triplestore {
     private void verifyStoreDoesNotExist(String storeID) throws StoreAlreadyExistsException {
         try {
             storageEngine.checkID(storeID);
-        } catch (StoreAlreadyExistsException ignored) {
+        } catch (StoreNotFoundException ignored) {
         }
     }
 

@@ -53,7 +53,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response upload(String storeID, UploadForm form) {
+    public Response create(String storeID, UploadForm form) {
         Lang l = RDFLanguages.nameToLang(form.getSyntax());
         if (l == null)
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
@@ -76,6 +76,29 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
+    public Response upload(String storeID, UploadForm form) {
+        Lang l = RDFLanguages.nameToLang(form.getSyntax());
+        if (l == null)
+            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
+        else {
+            try {
+                triplestore.uploadData(
+                        storeID,
+                        AsyncParser.asyncParseTriples(form.getContents(), l, null),
+                        form.getNamespaces()
+                );
+                return Response.ok(SUCCESS_UPLOAD).build();
+            } catch (InvalidNodeException e) {
+                return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();
+            } catch (StoreNotFoundException e) {
+                return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
+            } catch (Exception e) {
+                return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+    }
+
+    @Override
     public Response download(String storeID, String syntax) {
         Lang l = RDFLanguages.nameToLang(syntax);
         if (l == null)
@@ -86,7 +109,7 @@ public class TriplestoreController implements TriplestoreAPI {
             RDFDataMgr.write(out, m, l);
             return Response.ok(out.toByteArray()).build();
         } catch (StoreNotFoundException e) {
-            return Response.ok(STORE_NOT_FOUND).status(Status.NOT_FOUND).build();
+            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(DOWNLOAD_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();

@@ -2,20 +2,20 @@ package pt.fct.nova.id.srv.application.query.jobs.jobs1;
 
 public class SliceJob extends BaseJob1 {
 
-    private final long length;
-    private final long offset;
+    private final Long length;
+    private final Long offset;
 
-    public SliceJob(String jobID, String prevJobID, long offset, long length) {
+    public SliceJob(String jobID, String prevJobID, Long offset, Long length) {
         super(jobID, prevJobID);
         this.offset = offset;
         this.length = length;
     }
 
-    public long getLength() {
+    public Long getLength() {
         return length;
     }
 
-    public long getOffset() {
+    public Long getOffset() {
         return offset;
     }
 }

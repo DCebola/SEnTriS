@@ -4,7 +4,10 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,8 @@ import java.util.Map;
 public interface StorageEngine {
 
     boolean setupStore(String storeID, Map<String, String> namespaces);
+
+    void saveNamespaces(String storeID, Map<String, String> namespaces);
 
     boolean deleteStore(String storeID);
 
@@ -39,5 +44,6 @@ public interface StorageEngine {
 
     Node generateNode(String iri);
 
-    void checkID(String id);
+    void checkID(String id) throws StoreAlreadyExistsException, StoreNotFoundException;
+
 }

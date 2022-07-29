@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.query.plans;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;

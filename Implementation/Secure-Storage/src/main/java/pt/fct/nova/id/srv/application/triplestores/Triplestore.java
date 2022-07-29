@@ -15,6 +15,8 @@ public interface Triplestore {
 
     void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException;
 
+    void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException;
+
     Model getDatasetModel(String storeID) throws StoreNotFoundException;
 
     ResultSet executeQuery(String storeID, String query) throws SPARQLExecutionException, StoreNotFoundException, InvalidNodeException;
