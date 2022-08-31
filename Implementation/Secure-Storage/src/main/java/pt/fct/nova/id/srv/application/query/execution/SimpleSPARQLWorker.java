@@ -27,23 +27,13 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     private final StorageEngine storageEngine;
     private final String storeID;
 
-    private List<SortCondition> sortConditions;
-
-    private boolean isDistinct;
-    private boolean isOrdered;
-    private boolean isSliced;
-    private Long offset;
-    private Long length;
+    private final SPARQLResult result;
 
 
     public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
         this.storeID = storeID;
         this.storageEngine = storageEngine;
-        this.isDistinct = false;
-        this.isOrdered = false;
-        this.isSliced = false;
-        this.offset = Query.NOLIMIT;
-        this.length = Query.NOLIMIT;
+        result = new SimpleSPARQLResult();
     }
 
     @Override
@@ -141,24 +131,20 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
-        isOrdered = true;
-        List<SortCondition> conditions = job.getSortConditions();
-        if (sortConditions != null)
-            sortConditions.addAll(conditions);
-        else
-            sortConditions = job.getSortConditions();
+        result.setOrdered(true);
+        result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
     private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
-        isSliced = true;
-        length = job.getLength();
-        offset = job.getOffset();
+        result.setSliced(true);
+        result.setLength(job.getLength());
+        result.setOffset(job.getOffset());
         return prevJobResults;
     }
 
     private IRITable execDistinct(IRITable prevJobResults) {
-        isDistinct = true;
+        result.setDistinct(true);
         return prevJobResults;
     }
 
@@ -169,12 +155,12 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private IRITable execFilter(FilterJob job, IRITable prevJobResults) {
         //TODO Execute FilterJob
-        return prevJobResults;
+        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
     }
 
     private IRITable execGroup(GroupJob job, IRITable prevJobResults) {
         //TODO Execute GroupJob
-        return prevJobResults;
+        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
     }
 
     @Override
@@ -209,16 +195,20 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     @Override
     public Collection<Binding> generateBindings(IRITable jobResults) {
         Collection<Binding> res;
+        boolean isDistinct = result.isDistinct();
+        boolean isOrdered = result.isOrdered();
         if (isDistinct && isOrdered)
-            res = generateBindings(new TreeSet<>(new BindingComparator(sortConditions)), jobResults);
+            res = generateBindings(new TreeSet<>(new BindingComparator(result.getSortConditions())), jobResults);
         else if (isDistinct)
             res = generateBindings(new HashSet<>(), jobResults);
         else {
             res = generateBindings(new LinkedList<>(), jobResults);
             if (isOrdered)
-                res = res.stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
+                res = res.stream().sorted(new BindingComparator(result.getSortConditions())).collect(Collectors.toList());
         }
-        if (isSliced){
+        if (result.isSliced()) {
+            long offset = result.getOffset();
+            long length = result.getLength();
             if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
                 res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
             else if (offset != Query.NOLIMIT)
