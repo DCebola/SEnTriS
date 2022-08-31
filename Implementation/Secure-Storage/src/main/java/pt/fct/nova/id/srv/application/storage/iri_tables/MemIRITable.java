@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.storage.iri_tables;
 
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.*;
 
@@ -129,30 +128,30 @@ public class MemIRITable implements IRITable {
     public IRITable join(IRITable other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
-        return join(mutual_vars, this, other, filter, INNER);
+        //Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
+        return join(mutual_vars, this, other, INNER);
     }
 
     private Set<String> getIncompatiblePatterns(IRITable left, IRITable right, Set<Var> vars) {
-        Set<String> diff = new HashSet<>();
+        Set<String> res = new HashSet<>();
         Map<String, Set<String>> left_iris, right_iris;
         for (Var v : vars) {
             left_iris = left.getIRIs(v);
             right_iris = right.getIRIs(v);
             for (Map.Entry<String, Set<String>> entry : left_iris.entrySet()) {
                 if (right_iris.get(entry.getKey()) == null)
-                    diff.addAll(entry.getValue());
+                    res.addAll(entry.getValue());
             }
             for (Map.Entry<String, Set<String>> entry : right_iris.entrySet()) {
                 if (left_iris.get(entry.getKey()) == null)
-                    diff.addAll(entry.getValue());
+                    res.addAll(entry.getValue());
             }
         }
-        return diff;
+        return res;
     }
 
 
-    private IRITable join(Set<Var> mutualVars, IRITable left, IRITable right, Set<String> filter, JoinType joinType) {
+    private IRITable join(Set<Var> mutualVars, IRITable left, IRITable right, JoinType joinType) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -173,6 +172,7 @@ public class MemIRITable implements IRITable {
             for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
                 l_p_idxs = entry.getValue();
                 r_p_idxs = iris_map2.get(entry.getKey());
+                /*
                 if (joinType.equals(LEFT)) {
                     non_compatible_l_p_idxs = new HashSet<>(l_p_idxs);
                     non_compatible_l_p_idxs.retainAll(filter);
@@ -181,10 +181,11 @@ public class MemIRITable implements IRITable {
                         copyIRIs(p, p, l_vars, left, res);
                     }
                 }
+                 */
                 if (r_p_idxs != null) {
-                    l_p_idxs.removeAll(filter);
-                    r_p_idxs.removeAll(filter);
-                    innerJoinPatterns(mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res);
+                    //l_p_idxs.removeAll(filter);
+                    //r_p_idxs.removeAll(filter);
+                    joinPatterns(mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
                 }
             }
             break;
@@ -200,8 +201,8 @@ public class MemIRITable implements IRITable {
         }
     }
 
-    private void innerJoinPatterns(Set<Var> mutualVars, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right,
-                                   Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res) {
+    private void joinPatterns(Set<Var> mutualVars, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right,
+                              Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res, JoinType joinType) {
         String p;
         for (String l : leftPatternIdxs) {
             for (String r : rightPatternIdxs) {
@@ -210,21 +211,24 @@ public class MemIRITable implements IRITable {
                     copyIRIs(p, l, mutualVars, left, res);
                     copyIRIs(p, l, leftVars, left, res);
                     copyIRIs(p, r, rightVars, right, res);
+                } else if (joinType.equals(LEFT)) {
+                    copyIRIs(l, l, mutualVars, left, res);
+                    copyIRIs(l, l, leftVars, left, res);
                 }
             }
         }
     }
 
     private boolean equalPatterns(Set<Var> mutualVars, IRITable left, String leftPattern, IRITable right, String rightPattern) {
-        String p1, p2;
+        String leftIRI, rightIRI;
         for (Var v2 : mutualVars) {
-            p1 = left.getPatternIdxs(v2).get(leftPattern);
-            p2 = right.getPatternIdxs(v2).get(rightPattern);
-            if (p1 == null && p2 != null)
+            leftIRI = left.getPatternIdxs(v2).get(leftPattern);
+            rightIRI = right.getPatternIdxs(v2).get(rightPattern);
+            if (leftIRI == null && rightIRI != null)
                 return false;
-            else if (p1 != null && p2 == null)
+            else if (leftIRI != null && rightIRI == null)
                 return false;
-            else if (p1 != null && !p1.equals(p2))
+            else if (leftIRI != null && !leftIRI.equals(rightIRI))
                 return false;
         }
         return true;
@@ -265,8 +269,8 @@ public class MemIRITable implements IRITable {
     public IRITable leftOuterJoin(IRITable other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
-        return join(mutual_vars, this, other, filter, LEFT);
+        //Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
+        return join(mutual_vars, this, other, LEFT);
     }
 
     @Override

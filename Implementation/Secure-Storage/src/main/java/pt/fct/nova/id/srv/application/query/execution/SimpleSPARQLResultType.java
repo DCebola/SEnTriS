@@ -5,7 +5,7 @@ import org.apache.jena.query.SortCondition;
 
 import java.util.List;
 
-public class SimpleSPARQLResult implements SPARQLResult {
+public class SimpleSPARQLResultType implements SPARQLResultType {
 
     private List<SortCondition> sortConditions;
     private boolean isDistinct;
@@ -14,7 +14,7 @@ public class SimpleSPARQLResult implements SPARQLResult {
     private Long offset;
     private Long length;
 
-    public SimpleSPARQLResult(List<SortCondition> sortConditions, boolean isDistinct, boolean isOrdered, boolean isSliced, Long offset, Long length) {
+    public SimpleSPARQLResultType(List<SortCondition> sortConditions, boolean isDistinct, boolean isOrdered, boolean isSliced, Long offset, Long length) {
         this.sortConditions = sortConditions;
         this.isDistinct = isDistinct;
         this.isOrdered = isOrdered;
@@ -23,7 +23,7 @@ public class SimpleSPARQLResult implements SPARQLResult {
         this.length = length;
     }
 
-    public SimpleSPARQLResult() {
+    public SimpleSPARQLResultType() {
         this.isDistinct = false;
         this.isOrdered = false;
         this.isSliced = false;

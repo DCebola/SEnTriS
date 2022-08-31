@@ -4,7 +4,7 @@ import org.apache.jena.query.SortCondition;
 
 import java.util.List;
 
-public interface SPARQLResult {
+public interface SPARQLResultType {
 
     void setSortConditions(List<SortCondition> sortConditions);
 

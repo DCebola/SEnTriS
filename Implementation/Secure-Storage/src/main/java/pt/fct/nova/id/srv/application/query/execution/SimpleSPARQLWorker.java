@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
@@ -27,13 +26,13 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     private final StorageEngine storageEngine;
     private final String storeID;
 
-    private final SPARQLResult result;
+    private final SPARQLResultType resultType;
 
 
     public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
         this.storeID = storeID;
         this.storageEngine = storageEngine;
-        result = new SimpleSPARQLResult();
+        resultType = new SimpleSPARQLResultType();
     }
 
     @Override
@@ -131,20 +130,20 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
-        result.setOrdered(true);
-        result.setSortConditions(job.getSortConditions());
+        resultType.setOrdered(true);
+        resultType.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
     private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
-        result.setSliced(true);
-        result.setLength(job.getLength());
-        result.setOffset(job.getOffset());
+        resultType.setSliced(true);
+        resultType.setLength(job.getLength());
+        resultType.setOffset(job.getOffset());
         return prevJobResults;
     }
 
     private IRITable execDistinct(IRITable prevJobResults) {
-        result.setDistinct(true);
+        resultType.setDistinct(true);
         return prevJobResults;
     }
 
@@ -195,20 +194,20 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     @Override
     public Collection<Binding> generateBindings(IRITable jobResults) {
         Collection<Binding> res;
-        boolean isDistinct = result.isDistinct();
-        boolean isOrdered = result.isOrdered();
+        boolean isDistinct = resultType.isDistinct();
+        boolean isOrdered = resultType.isOrdered();
         if (isDistinct && isOrdered)
-            res = generateBindings(new TreeSet<>(new BindingComparator(result.getSortConditions())), jobResults);
+            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
         else if (isDistinct)
             res = generateBindings(new HashSet<>(), jobResults);
         else {
             res = generateBindings(new LinkedList<>(), jobResults);
             if (isOrdered)
-                res = res.stream().sorted(new BindingComparator(result.getSortConditions())).collect(Collectors.toList());
+                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
         }
-        if (result.isSliced()) {
-            long offset = result.getOffset();
-            long length = result.getLength();
+        if (resultType.isSliced()) {
+            long offset = resultType.getOffset();
+            long length = resultType.getLength();
             if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
                 res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
             else if (offset != Query.NOLIMIT)
