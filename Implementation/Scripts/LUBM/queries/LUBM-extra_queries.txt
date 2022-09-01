@@ -1,0 +1,37 @@
+#Query 15: Test union
+#Find all graduate and undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+SELECT ?student
+WHERE
+{
+  {
+    ?student rdf:type ub:GraduateStudent
+  } 
+UNION 
+  {
+    ?student rdf:type ub:UndergraduateStudent
+  }
+}
+#ORDER BY ASC(?student)
+
+#Query 16: Test disjunction
+#Find all members of departments which are not undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+SELECT ?X ?Y
+WHERE
+{
+  {
+    ?X rdf:type ?Z .
+    ?Y rdf:type ub:Department .
+    ?X ub:memberOf ?Y
+  }
+MINUS
+  {
+    ?X rdf:type ub:UndergraduateStudent .
+    ?Y rdf:type ub:Department .
+    ?X ub:memberOf ?Y
+  }
+} 
+#ORDER BY ASC(?X)
