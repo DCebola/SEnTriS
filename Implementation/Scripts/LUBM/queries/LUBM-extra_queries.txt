@@ -2,18 +2,17 @@
 #Find all graduate and undergraduate students.
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
-SELECT ?student
+SELECT DISTINCT ?graduate ?undergraduate
 WHERE
 {
-  {
-    ?student rdf:type ub:GraduateStudent
-  } 
+ {
+  ?graduate rdf:type ub:GraduateStudent
+ } 
 UNION 
-  {
-    ?student rdf:type ub:UndergraduateStudent
-  }
+ {
+  ?undergraduate rdf:type ub:UndergraduateStudent
+ }
 }
-#ORDER BY ASC(?student)
 
 #Query 16: Test disjunction
 #Find all members of departments which are not undergraduate students.
