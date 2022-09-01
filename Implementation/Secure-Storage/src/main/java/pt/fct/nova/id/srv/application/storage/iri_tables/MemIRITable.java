@@ -180,7 +180,7 @@ public class MemIRITable implements IRITable {
                     }
                 }
                  */
-                if (r_p_idxs != null) {
+                if (r_p_idxs != null || joinType.equals(LEFT)) {
                     //l_p_idxs.removeAll(filter);
                     //r_p_idxs.removeAll(filter);
                     joinPatterns(mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
@@ -202,17 +202,23 @@ public class MemIRITable implements IRITable {
     private void joinPatterns(Set<Var> mutualVars, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right,
                               Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res, JoinType joinType) {
         String p;
+        boolean foundMatch;
         for (String l : leftPatternIdxs) {
-            for (String r : rightPatternIdxs) {
-                if (equalPatterns(mutualVars, left, l, right, r)) {
-                    p = generateID();
-                    copyIRIs(p, l, mutualVars, left, res);
-                    copyIRIs(p, l, leftVars, left, res);
-                    copyIRIs(p, r, rightVars, right, res);
-                } else if (joinType.equals(LEFT)) {
-                    copyIRIs(l, l, mutualVars, left, res);
-                    copyIRIs(l, l, leftVars, left, res);
+            foundMatch = false;
+            if (rightPatternIdxs != null) {
+                for (String r : rightPatternIdxs) {
+                    if (equalPatterns(mutualVars, left, l, right, r)) {
+                        foundMatch = true;
+                        p = generateID();
+                        copyIRIs(p, l, mutualVars, left, res);
+                        copyIRIs(p, l, leftVars, left, res);
+                        copyIRIs(p, r, rightVars, right, res);
+                    }
                 }
+            }
+            if (!foundMatch && joinType.equals(LEFT)) {
+                copyIRIs(l, l, mutualVars, left, res);
+                copyIRIs(l, l, leftVars, left, res);
             }
         }
     }
