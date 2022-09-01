@@ -13,6 +13,7 @@ UNION
   ?undergraduate rdf:type ub:UndergraduateStudent
  }
 }
+ORDER BY ASC(?graduate ?undergraduate)
 
 #Query 16: Test disjunction
 #Find all members of departments which are not undergraduate students.
