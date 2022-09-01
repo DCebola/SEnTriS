@@ -126,7 +126,6 @@ public class MemIRITable implements IRITable {
     public IRITable join(IRITable other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        //Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
         return join(mutual_vars, this, other, INNER);
     }
 
@@ -161,7 +160,7 @@ public class MemIRITable implements IRITable {
 
         IRITable res = new MemIRITable(vars);
 
-        Set<String> l_p_idxs, r_p_idxs, non_compatible_l_p_idxs;
+        Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
 
         for (Var v : mutualVars) {
@@ -170,21 +169,8 @@ public class MemIRITable implements IRITable {
             for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
                 l_p_idxs = entry.getValue();
                 r_p_idxs = iris_map2.get(entry.getKey());
-                /*
-                if (joinType.equals(LEFT)) {
-                    non_compatible_l_p_idxs = new HashSet<>(l_p_idxs);
-                    non_compatible_l_p_idxs.retainAll(filter);
-                    for (String p : non_compatible_l_p_idxs) {
-                        copyIRIs(p, p, mutualVars, left, res);
-                        copyIRIs(p, p, l_vars, left, res);
-                    }
-                }
-                 */
-                if (r_p_idxs != null || joinType.equals(LEFT)) {
-                    //l_p_idxs.removeAll(filter);
-                    //r_p_idxs.removeAll(filter);
+                if (r_p_idxs != null || joinType.equals(LEFT))
                     joinPatterns(mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
-                }
             }
             break;
         }
@@ -267,7 +253,6 @@ public class MemIRITable implements IRITable {
     public IRITable leftOuterJoin(IRITable other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        //Set<String> filter = getIncompatiblePatterns(this, other, mutual_vars);
         return join(mutual_vars, this, other, LEFT);
     }
 
