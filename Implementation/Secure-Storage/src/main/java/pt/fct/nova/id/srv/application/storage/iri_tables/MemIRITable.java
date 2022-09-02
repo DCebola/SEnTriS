@@ -41,8 +41,7 @@ public class MemIRITable implements IRITable {
             v_p_idxs = new HashMap<>();
             v_p_idxs.put(patternIdx, iri);
             patterns.put(var, v_p_idxs);
-        } else
-            v_p_idxs.put(patternIdx, iri);
+        } else v_p_idxs.put(patternIdx, iri);
     }
 
     private void addIRI(String iri, Var var, String patternIdx) {
@@ -53,10 +52,8 @@ public class MemIRITable implements IRITable {
             iris.put(var, v_iris);
         } else {
             Set<String> p_idxs = v_iris.get(iri);
-            if (p_idxs == null)
-                savePatternIdxs(v_iris, iri, patternIdx);
-            else
-                p_idxs.add(patternIdx);
+            if (p_idxs == null) savePatternIdxs(v_iris, iri, patternIdx);
+            else p_idxs.add(patternIdx);
         }
     }
 
@@ -107,11 +104,9 @@ public class MemIRITable implements IRITable {
             for (Var v : vars) {
                 iri = patterns.get(v).get(p_idx);
                 pattern.add(iri);
-                if (iri == null)
-                    i++;
+                if (iri == null) i++;
             }
-            if (i < vars.size())
-                res.add(pattern);
+            if (i < vars.size()) res.add(pattern);
         }
         return res;
     }
@@ -136,12 +131,10 @@ public class MemIRITable implements IRITable {
             left_iris = left.getIRIs(v);
             right_iris = right.getIRIs(v);
             for (Map.Entry<String, Set<String>> entry : left_iris.entrySet()) {
-                if (right_iris.get(entry.getKey()) == null)
-                    res.addAll(entry.getValue());
+                if (right_iris.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
             for (Map.Entry<String, Set<String>> entry : right_iris.entrySet()) {
-                if (left_iris.get(entry.getKey()) == null)
-                    res.addAll(entry.getValue());
+                if (left_iris.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
         }
         return res;
@@ -158,7 +151,11 @@ public class MemIRITable implements IRITable {
         l_vars.removeAll(right.getVars());
         r_vars.removeAll(left.getVars());
 
-        IRITable res = new MemIRITable(vars);
+        IRITable res;
+        if (left instanceof MemValuesTable && right instanceof MemValuesTable)
+            res = new MemValuesTable(vars);
+        else
+            res = new MemIRITable(vars);
 
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
@@ -180,13 +177,11 @@ public class MemIRITable implements IRITable {
     private void copyIRIs(String newPattern, String oldPattern, Set<Var> vars, IRITable source, IRITable target) {
         for (Var v : vars) {
             String iri = source.getPatternIdxs(v).get(oldPattern);
-            if (iri != null)
-                target.add(newPattern, v, iri);
+            if (iri != null) target.add(newPattern, v, iri);
         }
     }
 
-    private void joinPatterns(Set<Var> mutualVars, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right,
-                              Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res, JoinType joinType) {
+    private void joinPatterns(Set<Var> mutualVars, IRITable left, Set<Var> leftVars, Set<String> leftPatternIdxs, IRITable right, Set<Var> rightVars, Set<String> rightPatternIdxs, IRITable res, JoinType joinType) {
         String p;
         boolean foundMatch;
         for (String l : leftPatternIdxs) {
@@ -211,15 +206,22 @@ public class MemIRITable implements IRITable {
 
     private boolean equalPatterns(Set<Var> mutualVars, IRITable left, String leftPattern, IRITable right, String rightPattern) {
         String leftIRI, rightIRI;
-        for (Var v2 : mutualVars) {
-            leftIRI = left.getPatternIdxs(v2).get(leftPattern);
-            rightIRI = right.getPatternIdxs(v2).get(rightPattern);
-            if (leftIRI == null && rightIRI != null)
-                return false;
-            else if (leftIRI != null && rightIRI == null)
-                return false;
-            else if (leftIRI != null && !leftIRI.equals(rightIRI))
-                return false;
+        for (Var v : mutualVars) {
+            leftIRI = left.getPatternIdxs(v).get(leftPattern);
+            rightIRI = right.getPatternIdxs(v).get(rightPattern);
+
+            if (left instanceof MemValuesTable || right instanceof MemValuesTable) {
+                if (leftIRI != null && rightIRI != null && !leftIRI.equals(rightIRI)) {
+                    return false;
+                }
+            } else {
+                if (leftIRI == null && rightIRI != null)
+                    return false;
+                else if (leftIRI != null && rightIRI == null)
+                    return false;
+                else if (leftIRI != null && !leftIRI.equals(rightIRI))
+                    return false;
+            }
         }
         return true;
     }
@@ -270,8 +272,7 @@ public class MemIRITable implements IRITable {
             iris_map = this.getIRIs(v);
             for (Map.Entry<String, Set<String>> entry : iris_map.entrySet()) {
                 for (String p : entry.getValue()) {
-                    if (diff.contains(p))
-                        copyIRIs(p, p, mutual_vars, this, res);
+                    if (diff.contains(p)) copyIRIs(p, p, mutual_vars, this, res);
                 }
             }
             break;

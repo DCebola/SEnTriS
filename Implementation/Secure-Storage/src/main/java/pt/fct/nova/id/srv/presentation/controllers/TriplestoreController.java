@@ -123,7 +123,7 @@ public class TriplestoreController implements TriplestoreAPI {
             ResultSetFormatter.outputAsJSON(out, res);
             return Response.ok(out.toByteArray()).build();
         } catch (StoreNotFoundException e) {
-            return Response.ok(STORE_NOT_FOUND).status(Status.NOT_FOUND).build();
+            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED).status(Status.NOT_IMPLEMENTED).build();
         } catch (Exception e) {

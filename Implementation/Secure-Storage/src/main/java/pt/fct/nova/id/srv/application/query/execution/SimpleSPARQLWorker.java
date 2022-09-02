@@ -14,6 +14,7 @@ import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,7 +81,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execValues(ValuesJob job) {
-        IRITable res = new MemIRITable();
+        IRITable res = new MemValuesTable();
         Var var;
         Node node;
         Iterator<Var> vars;
@@ -98,9 +99,6 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
                 }
             }
         }
-        res.getPatterns().forEach(
-                p -> System.out.println(Arrays.toString(p.toArray()))
-        );
         return res;
     }
 
