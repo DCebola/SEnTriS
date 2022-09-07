@@ -53,11 +53,14 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visit0(Op0 op) {
         logger.info("OP0: {}", op);
-        switch (op) {
-            case OpBGP opBGP -> generateGetJobs(opBGP);
-            case OpTriple opTriple -> generateGetJobs(opTriple.asBGP());
-            case OpTable opTable -> generateValuesJob(opTable);
-            case null, default -> throw new NotImplemented();
+        if (op instanceof OpBGP opBGP) {
+            generateGetJobs(opBGP);
+        } else if (op instanceof OpTriple opTriple) {
+            generateGetJobs(opTriple.asBGP());
+        } else if (op instanceof OpTable opTable) {
+            generateValuesJob(opTable);
+        } else {
+            throw new NotImplemented();
         }
     }
 
@@ -195,18 +198,19 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visit1(Op1 op) {
         logger.info("OP1: {}", op);
-        switch (op) {
-            case OpExtendAssign opExtendAssign ->
-                    //generateBindJob((OpExtendAssign) op);
-                    throw new NotImplemented();
-            case OpFilter opFilter ->
-                    //generateFilterJob((OpFilter) op);
-                    throw new NotImplemented();
-            case OpGroup opGroup ->
-                    //generateGroupJob((OpGroup) op);
-                    throw new NotImplemented();
-            case OpModifier opModifier -> visitOpModifier(opModifier);
-            case null, default -> throw new NotImplemented();
+        if (op instanceof OpExtendAssign) {
+            throw new NotImplemented();
+        } else if (op instanceof OpFilter) {
+            //generateBindJob((OpExtendAssign) op);
+            throw new NotImplemented();
+        } else if (op instanceof OpGroup) {
+            //generateFilterJob((OpFilter) op);
+            throw new NotImplemented();
+        } else if (op instanceof OpModifier opModifier) {
+            //generateGroupJob((OpGroup) op);
+            visitOpModifier(opModifier);
+        } else {
+            throw new NotImplemented();
         }
     }
 
@@ -243,12 +247,16 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
 
     private void visitOpModifier(OpModifier op) {
-        switch (op) {
-            case OpDistinctReduced opDistinctReduced -> generateDistinctJob(opDistinctReduced);
-            case OpOrder opOrder -> generateOrderByJob(opOrder);
-            case OpProject opProject -> generateProjectJob(opProject);
-            case OpSlice opSlice -> generateSliceJob(opSlice);
-            case null, default -> throw new NotImplemented();
+        if (op instanceof OpDistinctReduced opDistinctReduced) {
+            generateDistinctJob(opDistinctReduced);
+        } else if (op instanceof OpOrder opOrder) {
+            generateOrderByJob(opOrder);
+        } else if (op instanceof OpProject opProject) {
+            generateProjectJob(opProject);
+        } else if (op instanceof OpSlice opSlice) {
+            generateSliceJob(opSlice);
+        } else {
+            throw new NotImplemented();
         }
     }
 
@@ -280,12 +288,16 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visit2(Op2 op) {
         logger.info("OP2: {}", op);
-        switch (op) {
-            case OpJoin opJoin -> generateJoinJob(opJoin);
-            case OpLeftJoin opLeftJoin -> generateOptionalJob(opLeftJoin);
-            case OpMinus opMinus -> generateMinusJob(opMinus);
-            case OpUnion opUnion -> generateUnionJob(opUnion);
-            case null, default -> throw new NotImplemented();
+        if (op instanceof OpJoin opJoin) {
+            generateJoinJob(opJoin);
+        } else if (op instanceof OpLeftJoin opLeftJoin) {
+            generateOptionalJob(opLeftJoin);
+        } else if (op instanceof OpMinus opMinus) {
+            generateMinusJob(opMinus);
+        } else if (op instanceof OpUnion opUnion) {
+            generateUnionJob(opUnion);
+        } else {
+            throw new NotImplemented();
         }
     }
 
