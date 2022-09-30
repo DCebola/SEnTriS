@@ -1,0 +1,37 @@
+[Data Owner]
+
+T <- Ontology
+K, K2 <- Private keys
+
+Enc(T, K, K2):
+	T' := {}
+	iri_ctr := {}
+	last_enc := {}
+	ctr := 0
+	foreach triple in T:
+		//Encryption of S, P and O
+		foreach v in triple:
+			if iri_ctr(v) != bot:
+				ctr := iri_ctr(v) + 1 
+				v' := enc(K, last_enc(v)||v)
+				tkn := enc(K2, v, ctr)
+				iri_ctr := [iri_ctr \ iri_ctr(v)] U [v -> ctr]
+				last_enc := [last_enc \ {last_enc(v)}] U [v -> v']
+				T' := T' U [tkn -> v']
+			else:
+				iri_ctr(v) = 0
+				v' := enc(K, v)
+				tkn := enc(K2, v, 0)
+				last_enc := last_enc U [v -> v']
+				T' := T' U [tkn -> v']
+	//Missing SP, SO, PO encryption 
+	foreach (v, ctr) in iri_ctr:
+		iri' := enc(K, last_enc(v)||LAST)
+		tkn := enc(K2, v, ctr + 1)
+		T' := T' U [tkn -> v']
+
+Output: T'
+
+GiveAccess(U):
+
+RevokeAccess(U):
