@@ -1,56 +1,55 @@
 # Data Owner
  Search Token: st ← E(k, idx || idx_ctr)
- Counter Token: ct ← E(k,  idx)
- Encrypted Node: n' ← E(k, n ||  st)
- Encrypted Index Counter: ctr' ← E(k, ctr || ct)
+ Encrypted Node: n' ←E(k2, E(k3, n) || eq_hash)
 
 ```pseudocode
-function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2):
-	Encoded_T ←  {}
+function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3, k4):
 	Eq ←  {} 
-	values ← {}
+	Encoded_T ←  {}
+	keywords ← {}
 	foreach t = (s,p,o) in T:
-		encodeNode(Encoded_T, Eq, values, k1, k2, s, p)
-		encodeNode(Encoded_T, Eq, values, k1, k2, s, o)
-		encodeNode(Encoded_T, Eq, values, k1, k2, p, s)
-		encodeNode(Encoded_T, Eq, values, k1, k2, p, o)
-		encodeNode(Encoded_T, Eq, values, k1, k2, o, s)
-		encodeNode(Encoded_T, Eq, values, k1, k2, o, p)
-		encodeNode(Encoded_T, Eq, values, k1, k2, s, p||o)
-		encodeNode(Encoded_T, Eq, values, k1, k2, p, s||o)
-		encodeNode(Encoded_T, Eq, values, k1, k2, o, s||p)			
+		foreach n in t:
+			nCtr ← setEQ(n)
+		generateTrapdoor(k1, s, p)
+		generateTrapdoor(k1, s, o)
+		generateTrapdoor(k1, p, s)
+		generateTrapdoor(k1, p, o)
+		generateTrapdoor(k1, o, s)
+		generateTrapdoor(k1, o, p)
+		generateTrapdoor(k1, s, p||o)
+		generateTrapdoor(k1, p, s||o)
+		generateTrapdoor(k1, o, s||p)			
 
-	foreach (v, ctr) in values:
-		ct := E(k1, v)
-		enc_ctr := E(k2, ctr || ct)
-		Encoded_T[ct] ← enc_ctr
-	
-	foreach (v, l) in Eq:
-		foreach v1 in l:
-			foreach v2 in l:
-				if v1 ≠ v2:
-					Encoded_T[v1] ← v2 or Encoded_T[E(k3, v1)] ← v2 //Depends on final design
-
-return Encoded_T, Eq
+	foreach (st, n) in Encoded_T:
+	 	//Option 1
+		Encoded_T[st] ← RND(k2, RND(k3, n) || CRYPT_DB_JOIN(k4, Eq[n]))
+		//Option 2
+		eq_tag ← RND(k3, CRYPT_DB_JOIN(k2, Eq[n])))
+		Encoded_T[st] ← eq_tag
+		Encoded_T[DET(k4, st)] ← RND(k3, n)
+return Encoded_T
 ```
 
 ```pseudocode
-function encodeTriple(Encoded_T, Eq, values, k1, k2, n, idx):
-	i ← values[idx]
+function generateTrapdoor(k, node, keyword):
+	idx ← getKeywordIdx(keyword)
+	st ← DET(k1, idx || i)
+	Encoded_T[st] ← n
+```
+
+```pseudocode
+function setEQ(node):
+	eq_tag ← Eq[node]
+	if eq_tag = ⊥:
+		Eq[node] ← Eq.size()
+		
+function getKeywordIdx(keyword):
+	i ← keywords[idx]
 	if i = ⊥:
-		values[idx] ← 0
+		keywords[idx] ← 0
 		i ← 0
 	else:
-		values[idx] ← i + 1
-
-	st ← E(k1, idx || i)
-	enc_n ← E(k2, n || st)
-	
-	Encoded_T[st] ← enc_n
-	
-	l ← Eq[n]
-	if l = ⊥:
-		Eq[n] ← [enc_n]
-	else
-		l ← l U enc_n		
+		keywords[idx] ← i + 1
+return i;
 ```
+
