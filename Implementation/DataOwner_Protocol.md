@@ -4,28 +4,28 @@
 
 ```pseudocode
 // Search Token: st ← E(k1, idx || idx_ctr)
-// Encrypted Node: ct ← E(k2, JOIN(k3, n))
+// Encrypted Node: ct ← E(k2, <) 
 State:
 	Encoded_T ←  {}
 	keywords ← {}
 
-function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3, k4):
+function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 	foreach t = (s,p,o) in T:
-		encodeNode(k1, k2, s, p)
-		encodeNode(k1, k2, s, o)
-		encodeNode(k1, k2, p, s)
-		encodeNode(k1, k2, p, o)
-		encodeNode(k1, k2, o, s)
-		encodeNode(k1, k2, o, p)
-		encodeNode(k1, k2, s, p||o)
-		encodeNode(k1, k2, p, s||o)
-		encodeNode(k1, k2, o, s||p)			
+		encodeNode(k1, k2, k3, s, p)
+		encodeNode(k1, k2, k3, s, o)
+		encodeNode(k1, k2, k3, p, s)
+		encodeNode(k1, k2, k3, p, o)
+		encodeNode(k1, k2, k3, o, s)
+		encodeNode(k1, k2, k3, o, p)
+		encodeNode(k1, k2, k3, s, p||o)
+		encodeNode(k1, k2, k3, p, s||o)
+		encodeNode(k1, k2, k3, o, s||p)			
 return Encoded_T
 
-function encodeNode(k1, k2, node, keyword):
+function encodeNode(k1, k2, k3, node, keyword):
 	idx ← getKeywordIdx(keyword)
 	st ← DET(k1, idx || i)
-    ct ← RND(k2, CRYPT_DB_JOIN(k4, node))
+    ct ← RND(k2, DET(k3, node))
 	Encoded_T[st] ← ct
 		
 function getKeywordIdx(keyword):
