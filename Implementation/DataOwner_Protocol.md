@@ -1,43 +1,82 @@
 # Data Owner
- Search Token: st ← E(k, idx || idx_ctr)
- Encrypted Node: n' ←E(k2, E(k3, n) || eq_hash)
+
+**Option 1:** Deterministic encryption of values (that can be re-encrypted), under a random encryption layer.
 
 ```pseudocode
+// Search Token: st ← E(k1, idx || idx_ctr)
+// Encrypted Node: ct ← E(k2, JOIN(k3, n))
+State:
+	Encoded_T ←  {}
+	keywords ← {}
+
 function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3, k4):
+	foreach t = (s,p,o) in T:
+		encodeNode(k1, k2, s, p)
+		encodeNode(k1, k2, s, o)
+		encodeNode(k1, k2, p, s)
+		encodeNode(k1, k2, p, o)
+		encodeNode(k1, k2, o, s)
+		encodeNode(k1, k2, o, p)
+		encodeNode(k1, k2, s, p||o)
+		encodeNode(k1, k2, p, s||o)
+		encodeNode(k1, k2, o, s||p)			
+return Encoded_T
+
+function encodeNode(k1, k2, node, keyword):
+	idx ← getKeywordIdx(keyword)
+	st ← DET(k1, idx || i)
+    ct ← RND(k2, CRYPT_DB_JOIN(k4, node))
+	Encoded_T[st] ← ct
+		
+function getKeywordIdx(keyword):
+	i ← keywords[idx]
+	if i = ⊥:
+		keywords[idx] ← 0
+		i ← 0
+	else:
+		keywords[idx] ← i + 1
+return i;
+```
+
+**Option 2:** Deterministic encryption of equality index (for each node), under a random encryption layer.
+
+```pseudocode
+// Equality Token: et ← DET(k1, idx || idx_ctr)
+// Equality tag: eq_tag ← RND(k2, JOIN(k3, eq_idx))
+// Search Token: st ← DET(k4, et)
+// Encrypted Node: ct ← RND(k5, n)
+State:
 	Eq ←  {} 
 	Encoded_T ←  {}
 	keywords ← {}
+
+function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3, k4, k5):
 	foreach t = (s,p,o) in T:
 		foreach n in t:
 			nCtr ← setEQ(n)
-		generateTrapdoor(k1, s, p)
-		generateTrapdoor(k1, s, o)
-		generateTrapdoor(k1, p, s)
-		generateTrapdoor(k1, p, o)
-		generateTrapdoor(k1, o, s)
-		generateTrapdoor(k1, o, p)
-		generateTrapdoor(k1, s, p||o)
-		generateTrapdoor(k1, p, s||o)
-		generateTrapdoor(k1, o, s||p)			
+		generateEQTrapdoor(k1, s, p)
+		generateEQTrapdoor(k1, s, o)
+		generateEQTrapdoor(k1, p, s)
+		generateEQTrapdoor(k1, p, o)
+		generateEQTrapdoor(k1, o, s)
+		generateEQTrapdoor(k1, o, p)
+		generateEQTrapdoor(k1, s, p||o)
+		generateEQTrapdoor(k1, p, s||o)
+		generateEQTrapdoor(k1, o, s||p)			
 
-	foreach (st, n) in Encoded_T:
-	 	//Option 1
-		Encoded_T[st] ← RND(k2, RND(k3, n) || CRYPT_DB_JOIN(k4, Eq[n]))
-		//Option 2
-		eq_tag ← RND(k3, CRYPT_DB_JOIN(k2, Eq[n])))
-		Encoded_T[st] ← eq_tag
-		Encoded_T[DET(k4, st)] ← RND(k3, n)
+	foreach (eq_t, n) in Encoded_T:
+		eq_tag ← RND(k2, CRYPT_DB_JOIN(k3, Eq[n])))
+		Encoded_T[eq_t] ← eq_tag
+		st ← DET(k4, st)
+		ct ← RND(k5, n)
+		Encoded_T[st] ← ct
 return Encoded_T
-```
 
-```pseudocode
-function generateTrapdoor(k, node, keyword):
+function generateEQTrapdoor(k, node, keyword):
 	idx ← getKeywordIdx(keyword)
-	st ← DET(k1, idx || i)
-	Encoded_T[st] ← n
-```
+	eq_t ← DET(k1, idx || i)
+	Encoded_T[eq_t] ← node
 
-```pseudocode
 function setEQ(node):
 	eq_tag ← Eq[node]
 	if eq_tag = ⊥:
