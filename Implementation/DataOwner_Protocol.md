@@ -23,19 +23,20 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 return Encoded_T
 
 function encodeNode(k1, k2, k3, node, keyword):
-	idx ← getKeywordIdx(keyword)
-	st ← DET(k1, idx || i)
-    ct ← RND(k2, DET(k3, node))
+	(seed, i) ← getKeywordIdx(keyword)
+	st ← RDN(k1, nextRandom(seed, i), keyword)
+    ct ← RND(k2, nextSecureRandom(), DET(k3, node))
 	Encoded_T[st] ← ct
 		
 function getKeywordIdx(keyword):
-	i ← keywords[idx]
-	if i = ⊥:
-		keywords[idx] ← 0
-		i ← 0
+	idx = (seed, i) ← keywords[idx]
+	if idx = ⊥:
+		seed  ← nextSecureRandom() 
+		idx ← (seed, 0)
+		keywords[idx] ← idx
 	else:
-		keywords[idx] ← i + 1
-return i;
+		keywords[idx] ← (seed, i + 1)
+return idx;
 ```
 
 **Option 2:** Homomorphic encryption of equality index (for each node), under a random encryption layer.
@@ -65,8 +66,10 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 		generateTrapdoor(k1, o, s||p)			
 
 	foreach (eq_t, n) in Encoded_T:
+		(seed, i) ← getKeywordIdx(keyword)
+		st ← RDN(k1, nextRandom(seed, i), keyword)
 		eq_tag ← HOM(k2, Eq[n])
-		ct ← RND(k5, n)
+		ct ← RND(k3, nextSecureRandom(), n)
 		Encoded_T[st] ← (eq_tag, ct)
 return Encoded_T
 
@@ -81,12 +84,20 @@ function setEQ(node):
 		Eq[node] ← Eq.size()
 		
 function getKeywordIdx(keyword):
-	i ← keywords[idx]
-	if i = ⊥:
-		keywords[idx] ← 0
-		i ← 0
+	idx = (seed, i) ← keywords[idx]
+	if idx = ⊥:
+		seed  ← nextSecureRandom() 
+		idx ← (seed, 0)
+		keywords[idx] ← idx
 	else:
-		keywords[idx] ← i + 1
-return i;
+		keywords[idx] ← (seed, i + 1)
+return idx;
 ```
 
+Notes:
+
+RDN: ChaCha20-Poly1305
+
+DET: ChaCha20-Poly1305 w/ nonce based on seeded random sequence
+
+HOM: Paillier
