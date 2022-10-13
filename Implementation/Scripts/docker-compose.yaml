@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-    db:
+    triplestore_db:
       image: redis:latest
-      container_name: secure-storage-db
+      container_name: triplestore-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       ports:
         - 6379:6379
@@ -15,26 +15,65 @@ services:
         - ./SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       networks:
-        - backend
+        - triplestore-net
       environment:
         REDIS_TLS_ENABLED: "yes"
 
-    api:
+    triplestore_api:
       depends_on:
-        - db
-      image: ${DOCKER_REGISTRY}/secure-storage
-      container_name: secure-storage-api
+        - triplestore-db
+      image: ${DOCKER_REGISTRY}/triplestore-api
+      container_name: triplestore-api
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
       volumes:
-        - ./SSL/server-truststore.ks:/usr/local/tomcat/ssl/server-truststore.ks
-        - ./SSL/server-cert.pem:/usr/local/tomcat/ssl/server-cert.pem
-        - ./SSL/server-key.pem:/usr/local/tomcat/ssl/server-key.pem
-        - ./API/server.xml:/usr/local/tomcat/conf/server.xml
-      ports:
-        - "8443:8443"
+        - ./SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
+        - ./SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/server-cert.pem
+        - ./SSL/triplestore-key.pem:/usr/local/tomcat/ssl/server-key.pem
+        - ./API/Triplestore/server.xml:/usr/local/tomcat/conf/server.xml
+      expose:
+        - "8443"
       networks:
-        - backend
+        - triplestore-frontend
+        - triplestore-backend
+        - proxy-backend
+      env_file:
+        - API/system-properties.env
+        - Secrets/api-secrets.env
+
+    proxy:
+      image: ${DOCKER_REGISTRY}/proxy
+      container_name: proxy
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ./SSL/proxy-truststore.ks:/usr/local/tomcat/ssl/proxy-truststore.ks
+        - ./SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
+        - ./SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
+        - ./API/proxy.xml:/usr/local/tomcat/conf/server.xml
+      ports:
+        - "8443"
+      networks:
+        - proxy-backend
+        - proxy-frontend
+      env_file:
+        - API/system-properties.env
+        - Secrets/api-secrets.env
+
+    data_owner:
+      image: ${DOCKER_REGISTRY}/data-owner
+      container_name: data-owner
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ./SSL/data-owner-truststore.ks:/usr/local/tomcat/ssl/data-owner-truststore.ks
+        - ./SSL/data-owner-cert.pem:/usr/local/tomcat/ssl/data-owner-cert.pem
+        - ./SSL/data-owner-key.pem:/usr/local/tomcat/ssl/data-owner-key.pem
+        - ./API/data-owner.xml:/usr/local/tomcat/conf/server.xml
+      ports:
+        - "8080:8443"
+      networks:
+        - triplestore-frontend
       env_file:
         - API/system-properties.env
         - Secrets/api-secrets.env
@@ -43,6 +82,15 @@ volumes:
     db_data:
 
 networks:
-  backend:
-    name: secure-storage-backend
+  triplestore-backend:
+    name: triplestore-backend
+    driver: bridge
+  triplestore-frontend:
+    name: triplestore-frontend
+    driver: bridge
+  proxy-backend:
+    name: proxy-backend
+    driver: bridge
+  proxy-frontend:
+    name: proxy-frontend
     driver: bridge
