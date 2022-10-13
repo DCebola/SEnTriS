@@ -15,9 +15,9 @@
                maxThreads="200" scheme="https" secure="true" SSLEnabled="true"> 
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig protocols="TLSv1.3">
-            <Certificate certificateKeyFile="ssl/triplestore-key.pem"
-                         certificateFile="ssl/triplestore-cert.pem" 
-                         certificateKeyPassword="${TRIPLESTORE_CERT_PWD}"
+            <Certificate certificateKeyFile="ssl/data-owner-key.pem"
+                         certificateFile="ssl/data-owner-cert.pem" 
+                         certificateKeyPassword="${DATA_OWNER_CERT_PWD}"
                          type="RSA" />
         </SSLHostConfig>
     </Connector>
