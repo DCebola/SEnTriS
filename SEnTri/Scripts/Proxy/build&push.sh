@@ -10,12 +10,12 @@ mvn clean compile package
 cp ./target/Proxy.war ../Scripts/Proxy/Proxy.war
 wait
 
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/SEnTri/proxy")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-proxy")) &> /dev/null
 wait
-docker rmi $(docker image ls $1/SEnTri/proxy) &> /dev/null
+docker rmi $(docker image ls $1/sentri-proxy) &> /dev/null
 wait
 
 cd ../Scripts/Proxy
-docker build -t $1/SEnTri/proxy .
+docker build -t $1/sentri-proxy .
 wait
-docker push $1/SEnTri/proxy
+docker push $1/sentri-proxy

@@ -22,7 +22,7 @@ services:
     triplestore_api:
       depends_on:
         - triplestore-db
-      image: ${DOCKER_REGISTRY}/SEnTri/triplestore-api
+      image: ${DOCKER_REGISTRY}/sentri-triplestore-api
       container_name: triplestore-api
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
@@ -42,7 +42,7 @@ services:
         - Secrets/triplestore-secrets.env
 
     proxy:
-      image: ${DOCKER_REGISTRY}/SEnTri/proxy
+      image: ${DOCKER_REGISTRY}/sentri-proxy
       container_name: proxy
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
@@ -61,7 +61,7 @@ services:
         - Secrets/proxy-secrets.env
 
     data_owner:
-      image: ${DOCKER_REGISTRY}/SEnTri/data-owner
+      image: ${DOCKER_REGISTRY}/sentri-data-owner
       container_name: data-owner
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"

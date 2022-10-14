@@ -10,12 +10,12 @@ mvn clean compile package
 cp ./target/Triplestore.war ../Scripts/Triplestore/Triplestore.war
 wait
 
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/SEnTri/triplestore-api")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-triplestore-api")) &> /dev/null
 wait
-docker rmi $(docker image ls $1/SEnTri/triplestore-api) &> /dev/null
+docker rmi $(docker image ls $1/sentri-triplestore-api) &> /dev/null
 wait
 
 cd ../Scripts/Triplestore
-docker build -t $1/SEnTri/triplestore-api .
+docker build -t $1/sentri-triplestore-api .
 wait
-docker push $1/SEnTri/triplestore-api
+docker push $1/sentri-triplestore-api
