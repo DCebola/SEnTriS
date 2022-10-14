@@ -271,12 +271,12 @@ TSWLatexianTemp*
 
 # xwatermark package
 *.xwm
-Implementation/Secure-Storage/.idea/
+*/*/.idea/
 
-Implementation/Scripts/SSL/
+*/*/SSL/
 
-Implementation/Scripts/Secrets/
+*/*/Secrets/
 
-Implementation/Scripts/db_data/
+*/*/db_data/
 
-Implementation/Secure-Storage/target/
+*/*/target/
