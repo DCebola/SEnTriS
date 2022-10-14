@@ -271,12 +271,12 @@ TSWLatexianTemp*
 
 # xwatermark package
 *.xwm
-*/*/.idea/
+SEnTri/*/.idea/
 
-*/*/SSL/
+SEnTri/Scripts/SSL/
 
-*/*/Secrets/
+SEnTri/Scripts/Secrets/
 
-*/*/db_data/
+SEnTri/Scripts/db_data/
 
-*/*/target/
+SEnTri/*/target/
