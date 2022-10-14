@@ -280,3 +280,7 @@ SEnTri/Scripts/Secrets/
 SEnTri/Scripts/db_data/
 
 SEnTri/*/target/
+
+SEnTri/Scripts/Triplestore/db_data/
+
+*.war
