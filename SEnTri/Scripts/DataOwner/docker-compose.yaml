@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+    data_owner:
+      image: ${DOCKER_REGISTRY}/sentri-data-owner
+      container_name: sentri-data-owner
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/data-owner-truststore.ks:/usr/local/tomcat/ssl/data-owner-truststore.ks
+        - ../SSL/data-owner-cert.pem:/usr/local/tomcat/ssl/data-owner-cert.pem
+        - ../SSL/data-owner-key.pem:/usr/local/tomcat/ssl/data-owner-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      ports:
+        - "8080:8443"
+      networks:
+        - sentri-data-owner-network
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/data-owner-secrets.env
+
+networks:
+  sentri-data-owner-network:
+    name: sentri-data-owner-network
+    driver: bridge

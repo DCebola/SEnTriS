@@ -43,3 +43,6 @@ keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/triplestore-tr
 
 keytool -import -file ./SSL/triplestore-cert.pem -alias triplestore -keystore ./SSL/proxy-truststore.ks
 keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/proxy-truststore.ks
+
+keytool -import -file ./SSL/triplestore-cert.pem -alias triplestore -keystore ./SSL/data-owner-truststore.ks
+keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/data-owner-truststore.ks

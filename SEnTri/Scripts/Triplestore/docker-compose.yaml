@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+    triplestore-db:
+      image: redis:latest
+      container_name: sentri-triplestore-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./db_data:/data
+        - ./SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ./SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ./SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ./SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - sentri-triplestore-network
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    triplestore-api:
+      depends_on:
+        - triplestore-db
+      image: ${DOCKER_REGISTRY}/sentri-triplestore-api
+      container_name: sentri-triplestore-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
+        - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
+        - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      ports:
+        - "8001:8443"
+      networks:
+        - sentri-triplestore-network
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/triplestore-secrets.env
+
+volumes:
+    db_data:
+
+networks:
+  sentri-triplestore-network:
+    name: sentri-triplestore-network
+    driver: bridge

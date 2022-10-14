@@ -5,16 +5,18 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-docker network rm $(docker network ls -q -f 'name=triplestore-backend')
+echo "Resetting system..."
+docker rm $(docker stop $(docker ps -q -f "name=sentri"))
 wait
-docker network rm $(docker network ls -q -f 'name=triplestore-frontend')
-wait
-docker network rm $(docker network ls -q -f 'name=proxy-backend')
-wait
-docker network rm $(docker network ls -q -f 'name=proxy-frontend')
+docker network rm $(docker network ls -q -f 'name=sentri')
 wait
 export var DOCKER_REGISTRY=$1
 wait
+cd ./Triplestore 
+docker-compose up --force-recreate --remove-orphans --detach
+cd ../Proxy 
+docker-compose up --force-recreate --remove-orphans --detach
+cd ../DataOwner 
 docker-compose up --force-recreate --remove-orphans --detach
 wait
 unset DOCKER_REGISTRY
