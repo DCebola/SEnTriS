@@ -1,11 +1,9 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import pt.fct.nova.id.srv.application.storage.redis.Redis;
 import pt.fct.nova.id.srv.presentation.api.ControlAPI;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import redis.clients.jedis.Jedis;
 
 /**
  * Resource providing endpoints with control information.
