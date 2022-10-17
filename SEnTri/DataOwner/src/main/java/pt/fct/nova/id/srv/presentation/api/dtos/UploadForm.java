@@ -21,7 +21,6 @@ public class UploadForm {
     private final InputStream contents;
 
     public UploadForm(String syntax, Map<String, String> namespaces, InputStream contents) {
-
         this.syntax = syntax;
         this.namespaces = namespaces;
         this.contents = contents;
