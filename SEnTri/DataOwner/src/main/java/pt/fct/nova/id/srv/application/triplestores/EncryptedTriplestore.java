@@ -1,9 +1,9 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.triplestores;
 
 import org.apache.jena.graph.Node;
+import pt.fct.nova.id.srv.application.InvalidNodeException;
 
-public class Utils {
-
+public class EncryptedTriplestore {
 
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
     private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");

@@ -6,12 +6,11 @@ import org.apache.http.client.HttpResponseException;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
-import static jakarta.ws.rs.core.MediaType.*;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 
-
 public interface TriplestoreAPI {
-
 
     @POST
     @Path("create/{storeID}")
@@ -29,22 +28,9 @@ public interface TriplestoreAPI {
             @PathParam("storeID") String storeID,
             @MultipartForm UploadForm form) throws HttpResponseException;
 
-
     @GET
-    @Path("/download/{storeID}")
-    @Produces({TEXT_TURTLE,
-            RDF_XML,
-            N_TRIPLES,
-            TRIG,
-            N_QUADS,
-            TRIX_XML,
-            RDF_THRIFT,
-            RDF_PROTOBUF})
-    Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
-
-    @GET
-    @Path("/query/{storeID}")
+    @Path("/{storeID}/query/")
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query); //For testing
 
 }
