@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpEntity;
@@ -15,9 +16,14 @@ import pt.fct.nova.id.srv.presentation.clients.HTTPSClient;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+@Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
 
     private static final String HTTP_CLIENT_ERROR = "Internal server error: DataOwner client.";
@@ -44,11 +50,15 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     private Response sendRequest(String storeID, HttpEntity body, String path) {
+        System.out.println(TRIPLESTORE_URI + String.format(path, storeID));
         HttpPost request = (HttpPost) Utils.createHttpRequestAndCopyHeaders(servletRequest, TRIPLESTORE_URI + String.format(path, storeID));
         request.setEntity(body);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return Utils.buildResponse(client.execute(request));
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
         }
         return Response.ok(HTTP_CLIENT_ERROR).status(INTERNAL_SERVER_ERROR).build();
     }

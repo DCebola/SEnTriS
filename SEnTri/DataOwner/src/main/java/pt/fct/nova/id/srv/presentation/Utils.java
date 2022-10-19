@@ -18,11 +18,12 @@ import java.nio.charset.StandardCharsets;
 public class Utils {
 
     private static Gson gson = new Gson();
+
     public static HttpRequest createHttpRequestAndCopyHeaders(HttpServletRequest request, String uri) {
         HttpRequest req = createHttpRequest(request.getMethod(), uri);
-        request.getHeaderNames().asIterator().forEachRemaining(
+        /*request.getHeaderNames().asIterator().forEachRemaining(
                 headerName -> req.addHeader(headerName, request.getHeader(headerName))
-        );
+        );*/
         return req;
     }
 
@@ -50,7 +51,9 @@ public class Utils {
 
     public static Response buildResponse(CloseableHttpResponse response) {
         try {
-            return Response.ok(new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8))
+            String r = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+            System.out.println(r);
+            return Response.ok()
                     .status(response.getStatusLine().getStatusCode()).build();
         } catch (IOException e) {
             return Response.ok().status(Response.Status.INTERNAL_SERVER_ERROR).build();
