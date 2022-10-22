@@ -31,7 +31,7 @@ generate_cert() {
 openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
 generate_cert triplestore '-ext ./SSL/openssl.conf -extensions server_cert'
 generate_cert proxy '-ext .SSL/openssl.conf -extensions server_cert'
-generate_cert data-owner '-ext ./SSL/openssl.conf -extensions client_cert'
+generate_cert data-owner '-ext ./SSL/openssl.conf -extensions server_cert'
 generate_cert redis 
 
 [ -f ./SSL/redis.dh ] || openssl dhparam -out ./SSL/redis.dh 2048

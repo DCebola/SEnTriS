@@ -12,9 +12,9 @@
     
     <Connector executor="tomcatThreadPool" 
                port="8443" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
-               maxThreads="200" scheme="https" secure="true" SSLEnabled="true" ciphers="{TLS_CIPHER_SUITES}"> 
+               maxThreads="200" scheme="https" secure="true" SSLEnabled="true"> 
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
-        <SSLHostConfig protocols="${TLS_VERSION}">
+        <SSLHostConfig protocols="${TLS_VERSION}" >
             <Certificate certificateKeyFile="ssl/proxy-key.pem"
                          certificateFile="ssl/proxy-cert.pem" 
                          certificateKeyPassword="${PROXY_CERT_PWD}"

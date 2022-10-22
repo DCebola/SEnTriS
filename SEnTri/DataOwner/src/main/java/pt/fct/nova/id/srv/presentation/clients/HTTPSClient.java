@@ -9,8 +9,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -24,7 +26,8 @@ public class HTTPSClient {
     private static HttpClientBuilder httpClientBuilder;
 
 
-    private static void sslConnectionSocketFactory() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, KeyManagementException {
+    private static void sslConnectionSocketFactory() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, KeyManagementException {
+        //sslConnectionSocketFactory = SSLConnectionSocketFactory.getSocketFactory();
         SSLContextBuilder builder = new SSLContextBuilder();
         KeyStore ksTrust = KeyStore.getInstance(KeyStore.getDefaultType());
         ksTrust.load(new FileInputStream(System.getenv("DATA_OWNER_TRUSTSTORE_PATH")), System.getenv("DATA_OWNER_TRUSTSTORE_PWD").toCharArray());
@@ -34,13 +37,14 @@ public class HTTPSClient {
                 System.getenv("TLS_VERSION").split(","),
                 System.getenv("TLS_CIPHER_SUITES").split(","),
                 SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+
     }
 
     private static void createHttpClientBuilder() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, KeyManagementException {
         if (sslConnectionSocketFactory == null)
             sslConnectionSocketFactory();
         httpClientBuilder = HttpClients.custom()
-                .setSSLHostnameVerifier(new DefaultHostnameVerifier())
+                .setSSLHostnameVerifier(SSLConnectionSocketFactory.getDefaultHostnameVerifier())
                 .setSSLSocketFactory(sslConnectionSocketFactory);
     }
 
