@@ -12,9 +12,10 @@
     
     <Connector executor="tomcatThreadPool" 
                port="8443" protocol="org.apache.coyote.http11.Http11Nio2Protocol"
-               maxThreads="200" scheme="https" secure="true" SSLEnabled="true"> 
+               maxThreads="200" scheme="https" secure="true" SSLEnabled="true"
+               sslImplementationName="org.apache.tomcat.util.net.jsse.JSSEImplementation"> 
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
-        <SSLHostConfig protocols="${TLS_VERSION}">
+        <SSLHostConfig protocols="${TLS_VERSION}" ciphers="${TLS_CIPHER_SUITES}">
             <Certificate certificateKeyFile="ssl/triplestore-key.pem"
                          certificateFile="ssl/triplestore-cert.pem" 
                          certificateKeyPassword="${TRIPLESTORE_CERT_PWD}"
@@ -25,7 +26,6 @@
     <Engine name="Catalina" defaultHost="localhost" >
           <Host name="localhost"  appBase="webapps" unpackWARs="true" autoDeploy="true"> </Host>
     </Engine>
-
   </Service>
 </Server>
 

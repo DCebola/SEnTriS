@@ -13,7 +13,7 @@ services:
         - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       networks:
-        - sentri-triplestore-network
+        - sentri-triplestore-backend
       environment:
         REDIS_TLS_ENABLED: "yes"
 
@@ -28,11 +28,17 @@ services:
         - ../SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
         - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
         - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
+        - ./logging.properties:/usr/local/tomcat/conf/logging.properties
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8001:8443"
+      external_links:
+        - sentri-proxy
+        - sentri-data-owner
       networks:
-        - sentri-triplestore-network
+        - sentri-triplestore-backend
+        - sentri-triplestore-frontend
+        - sentri-internal
       env_file:
         - ./system-properties.env
         - ../Secrets/triplestore-secrets.env
@@ -41,6 +47,12 @@ volumes:
     db_data:
 
 networks:
-  sentri-triplestore-network:
-    name: sentri-triplestore-network
+  sentri-triplestore-backend:
+    name: sentri-triplestore-backend
+    driver: bridge
+  sentri-internal:
+    name: sentri-internal
+    driver: bridge
+  sentri-triplestore-frontend:
+    name: sentri-triplestore-frontend
     driver: bridge

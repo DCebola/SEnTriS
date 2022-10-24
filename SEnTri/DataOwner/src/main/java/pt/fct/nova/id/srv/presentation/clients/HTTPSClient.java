@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.presentation.clients;
 
 
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -9,10 +9,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
 
+import javax.net.ssl.SSLSessionContext;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -27,7 +26,6 @@ public class HTTPSClient {
 
 
     private static void sslConnectionSocketFactory() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, KeyManagementException {
-        //sslConnectionSocketFactory = SSLConnectionSocketFactory.getSocketFactory();
         SSLContextBuilder builder = new SSLContextBuilder();
         KeyStore ksTrust = KeyStore.getInstance(KeyStore.getDefaultType());
         ksTrust.load(new FileInputStream(System.getenv("DATA_OWNER_TRUSTSTORE_PATH")), System.getenv("DATA_OWNER_TRUSTSTORE_PWD").toCharArray());
@@ -36,7 +34,9 @@ public class HTTPSClient {
                 builder.build(),
                 System.getenv("TLS_VERSION").split(","),
                 System.getenv("TLS_CIPHER_SUITES").split(","),
-                SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+                new NoopHostnameVerifier());
+
+
 
     }
 
@@ -44,7 +44,6 @@ public class HTTPSClient {
         if (sslConnectionSocketFactory == null)
             sslConnectionSocketFactory();
         httpClientBuilder = HttpClients.custom()
-                .setSSLHostnameVerifier(SSLConnectionSocketFactory.getDefaultHostnameVerifier())
                 .setSSLSocketFactory(sslConnectionSocketFactory);
     }
 

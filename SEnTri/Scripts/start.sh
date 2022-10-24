@@ -6,10 +6,10 @@ if [ $# -ne 1 ]; then
 fi
 
 echo "Resetting system..."
-docker rm $(docker stop $(docker ps -q -f "name=sentri"))
+docker rm $(docker stop $(docker ps -q -f "name=sentri")) &> /dev/null
 wait
-docker network rm $(docker network ls -q -f 'name=sentri')
-wait
+#docker network rm $(docker network ls -q -f 'name=sentri')
+#wait
 export var DOCKER_REGISTRY=$1
 wait
 cd ./Triplestore 

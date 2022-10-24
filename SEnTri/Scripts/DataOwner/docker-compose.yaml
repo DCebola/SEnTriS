@@ -10,16 +10,29 @@ services:
         - ../SSL/data-owner-truststore.ks:/usr/local/tomcat/ssl/data-owner-truststore.ks
         - ../SSL/data-owner-cert.pem:/usr/local/tomcat/ssl/data-owner-cert.pem
         - ../SSL/data-owner-key.pem:/usr/local/tomcat/ssl/data-owner-key.pem
+        - ./logging.properties:/usr/local/tomcat/conf/logging.properties
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8080:8443"
+      external_links:
+        - sentri-triplestore-api
+        - sentri-proxy
       networks:
-        - sentri-data-owner-network
+        - sentri-data-owner-frontend
+        - sentri-proxy-frontend
+        - sentri-triplestore-frontend
       env_file:
         - ./system-properties.env
         - ../Secrets/data-owner-secrets.env
 
 networks:
-  sentri-data-owner-network:
-    name: sentri-data-owner-network
+  sentri-data-owner-frontend:
+    name: sentri-data-owner-frontend
     driver: bridge
+  sentri-proxy-frontend:
+    name: sentri-proxy-frontend
+    external: true
+  sentri-triplestore-frontend:
+    name: sentri-triplestore-frontend
+    external: true
+  

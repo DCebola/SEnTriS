@@ -5,8 +5,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
@@ -25,7 +23,6 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 public class RStorageEngine implements StorageEngine {
 
 
-    final static Logger logger = LoggerFactory.getLogger(RStorageEngine.class);
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
@@ -123,14 +120,11 @@ public class RStorageEngine implements StorageEngine {
         Node subject = triple.getSubject();
         Node predicate = triple.getPredicate();
         Node object = triple.getObject();
-        logger.debug("#{}: Triple:{}", storeID, triple);
 
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String s_iri = parseNodeIRI(subject);
             String p_iri = parseNodeIRI(predicate);
             String o_iri = parseNodeIRI(object);
-
-            logger.debug("#{}: ({}) -> [{}] -> ({})", storeID, s_iri, p_iri, o_iri);
 
             boolean isDeleted = Boolean.parseBoolean(jedis.get(storeState));
 
@@ -162,8 +156,6 @@ public class RStorageEngine implements StorageEngine {
                     putIRI(t, O_IRIS, storeID, o_iri, o_idx);
                 }
 
-                logger.debug("#{}: Indexes=[s_{}, p_{}, o_{}]", storeID, s_idx, p_idx, o_idx);
-
                 String sp_idx = generateComplementIndex(s_idx, p_idx);
                 String so_idx = generateComplementIndex(s_idx, o_idx);
                 String po_idx = generateComplementIndex(p_idx, o_idx);
@@ -175,8 +167,6 @@ public class RStorageEngine implements StorageEngine {
                 putCompoundIndex(t, SINGLE_SP, storeID, sp_idx, o_idx);
                 putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
                 putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
-
-                logger.debug("#{}: Pipelined INDEX uploads.", storeID);
 
                 t.exec();
             }
@@ -191,12 +181,10 @@ public class RStorageEngine implements StorageEngine {
 
 
     private Response<String> getIndexFromIRI(Pipeline p, String keyFormatter, String storeID, String iri) {
-        logger.debug("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return p.hget(String.format(keyFormatter, storeID), iri);
     }
 
     private String getIndexFromIRI(Jedis jedis, String keyFormatter, String storeID, String iri) {
-        logger.debug("GetIndexFromIRI: [{}, {}]", String.format(keyFormatter, storeID), iri);
         return jedis.hget(String.format(keyFormatter, storeID), iri);
     }
 
@@ -322,7 +310,6 @@ public class RStorageEngine implements StorageEngine {
             p.sync();
             String idx_1 = resp_idx_1.get();
             String idx_2 = resp_idx_2.get();
-            logger.debug("{}, {}", idx_1, idx_2);
             if (idx_1 == null || idx_2 == null)
                 return res;
 

@@ -7,19 +7,27 @@ services:
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
       volumes:
-        - ./SSL/proxy-truststore.ks:/usr/local/tomcat/ssl/proxy-truststore.ks
-        - ./SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
-        - ./SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
+        - ../SSL/proxy-truststore.ks:/usr/local/tomcat/ssl/proxy-truststore.ks
+        - ../SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
+        - ../SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
+        - ./logging.properties:/usr/local/tomcat/conf/logging.properties        
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
-        - "8000:8443"
+        - "8002:8443"
       networks:
-        - sentri-proxy-network
+        - sentri-proxy-frontend
+        - sentri-internal
+      external_links:
+        - sentri-triplestore-api
+        - sentri-data-owner
       env_file:
         - ./system-properties.env
         - ../Secrets/proxy-secrets.env
 
 networks:
-  sentri-proxy-network:
-    name: sentri-proxy-network
+  sentri-proxy-frontend:
+    name: sentri-proxy-frontend
     driver: bridge
+  sentri-internal:
+    name: sentri-internal
+    external: true

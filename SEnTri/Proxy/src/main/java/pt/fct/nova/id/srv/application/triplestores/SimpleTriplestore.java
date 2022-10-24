@@ -1,14 +1,11 @@
 package pt.fct.nova.id.srv.application.triplestores;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
@@ -22,7 +19,6 @@ import java.util.Map;
 
 public class SimpleTriplestore implements Triplestore {
 
-    final static Logger logger = LoggerFactory.getLogger(SimpleTriplestore.class);
 
     private final StorageEngine storageEngine;
     private final QueryEngine queryEngine;

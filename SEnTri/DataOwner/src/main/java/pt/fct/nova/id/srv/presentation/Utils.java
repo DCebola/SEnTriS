@@ -14,31 +14,14 @@ import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 public class Utils {
 
+    private static Logger logger = Logger.getLogger(Utils.class.getName());
+
     private static Gson gson = new Gson();
-
-    public static HttpRequest createHttpRequestAndCopyHeaders(HttpServletRequest request, String uri) {
-        HttpRequest req = createHttpRequest(request.getMethod(), uri);
-        /*request.getHeaderNames().asIterator().forEachRemaining(
-                headerName -> req.addHeader(headerName, request.getHeader(headerName))
-        );*/
-        return req;
-    }
-
-    private static HttpRequest createHttpRequest(String httpMethod, String uri) {
-        return switch (httpMethod) {
-            case HttpMethod.GET -> new HttpGet(uri);
-            case HttpMethod.POST -> new HttpPost(uri);
-            case HttpMethod.DELETE -> new HttpDelete(uri);
-            case HttpMethod.PUT -> new HttpPut(uri);
-            case HttpMethod.HEAD -> new HttpHead(uri);
-            case HttpMethod.OPTIONS -> new HttpOptions(uri);
-            case HttpMethod.PATCH -> new HttpPatch(uri);
-            default -> null;
-        };
-    }
 
     public static HttpEntity uploadFormToHttpEntity(UploadForm form) {
         return MultipartEntityBuilder

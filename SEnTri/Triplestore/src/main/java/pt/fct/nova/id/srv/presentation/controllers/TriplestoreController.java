@@ -39,19 +39,7 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String STORE_NOT_FOUND = "Store %s not found.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
-    private final Triplestore triplestore = generateTriplestore(System.getenv("STORAGE_ENGINE"), System.getenv("QUERY_ENGINE"));
-
-    private Triplestore generateTriplestore(String storageEngineType, String queryEngineType) {
-        try {
-            return new SimpleTriplestore(
-                    (StorageEngine) Class.forName(storageEngineType).getConstructor().newInstance(),
-                    (QueryEngine) Class.forName(queryEngineType).getConstructor().newInstance());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
-    }
-
+    private final Triplestore triplestore = new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
     @Override
     public Response create(String storeID, UploadForm form) {
         Lang l = RDFLanguages.nameToLang(form.getSyntax());
