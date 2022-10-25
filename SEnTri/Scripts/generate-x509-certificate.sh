@@ -8,14 +8,14 @@ rm SSL/*
 
 generate_cert() {
     local name=$1
+    local subjectName=$2
 
     local keyfile=./SSL/${name}-key.pem
     local certfile=./SSL/${name}-cert.pem
     [ -f $keyfile ] || touch $keyfile && openssl genrsa -out $keyfile 4096
     openssl req \
         -new -sha256 \
-        -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" \
-        -addext "subjectAltName = DNS:sentri-triplestore-api,DNS:sentri-proxy,DNS:sentri-data-owner" \
+        -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=$subjectName" \
         -key $keyfile | \
         openssl x509 \
             -req -sha256 \
@@ -29,13 +29,13 @@ generate_cert() {
 
 openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
 wait
-generate_cert triplestore
+generate_cert triplestore sentri-triplestore-api
 wait
-generate_cert proxy
+generate_cert proxy sentri-proxy
 wait
-generate_cert data-owner
+generate_cert data-owner sentri-data-owner
 wait
-generate_cert redis 
+generate_cert redis sentri-triplestore-db
 wait
 
 [ -f ./SSL/redis.dh ] || openssl dhparam -out ./SSL/redis.dh 2048

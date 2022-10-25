@@ -12,14 +12,11 @@ services:
         - ../SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
         - ./logging.properties:/usr/local/tomcat/conf/logging.properties        
         - ./server.xml:/usr/local/tomcat/conf/server.xml
-      ports:
-        - "8002:8443"
+      expose:
+        - "8443"
       networks:
         - sentri-proxy-frontend
         - sentri-internal
-      external_links:
-        - sentri-triplestore-api
-        - sentri-data-owner
       env_file:
         - ./system-properties.env
         - ../Secrets/proxy-secrets.env

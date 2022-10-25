@@ -14,9 +14,6 @@ services:
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8080:8443"
-      external_links:
-        - sentri-triplestore-api
-        - sentri-proxy
       networks:
         - sentri-data-owner-frontend
         - sentri-proxy-frontend

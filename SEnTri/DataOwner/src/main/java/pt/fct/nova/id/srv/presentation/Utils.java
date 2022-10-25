@@ -14,7 +14,6 @@ import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 public class Utils {
@@ -34,9 +33,7 @@ public class Utils {
 
     public static Response buildResponse(CloseableHttpResponse response) {
         try {
-            String r = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
-            System.out.println(r);
-            return Response.ok()
+            return Response.ok(new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8))
                     .status(response.getStatusLine().getStatusCode()).build();
         } catch (IOException e) {
             return Response.ok().status(Response.Status.INTERNAL_SERVER_ERROR).build();
