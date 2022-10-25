@@ -29,7 +29,7 @@ public interface TriplestoreAPI {
             @MultipartForm UploadForm form) throws HttpResponseException;
 
     @GET
-    @Path("/{storeID}/query/")
+    @Path("query/{storeID}/")
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query); //For testing
 

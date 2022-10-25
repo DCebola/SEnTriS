@@ -44,7 +44,6 @@ public class TriplestoreController implements TriplestoreAPI {
     private Response sendRequest(String storeID, HttpEntity body, String path) {
         HttpPost request = new HttpPost(TRIPLESTORE_URI + String.format(path, storeID));
         request.setEntity(body);
-        System.out.println(request);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return Utils.buildResponse(client.execute(request));
         } catch (IOException e) {

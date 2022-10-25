@@ -3,11 +3,12 @@
 **Option 1:** Deterministic encryption of values, under a random encryption layer.
 
 ```pseudocode
-// Search Token: st ← E(k1, idx || idx_ctr)
+// Search Token: st ← E(k1, idx, keyword)
 // Encrypted Node: ct ← E(k2, DET(k3, node)) 
 State:
 	Encoded_T ←  {}
 	keywords ← {}
+	rand ← newSecureRandom()
 
 function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 	foreach t = (s,p,o) in T:
@@ -19,30 +20,29 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 		encodeNode(k1, k2, k3, o, p)
 		encodeNode(k1, k2, k3, s, p||o)
 		encodeNode(k1, k2, k3, p, s||o)
-		encodeNode(k1, k2, k3, o, s||p)			
+		encodeNode(k1, k2, k3, o, s||p)
 return Encoded_T
 
 function encodeNode(k1, k2, k3, node, keyword):
-	(seed, i) ← getKeywordIdx(keyword)
-	st ← RDN(k1, nextRandom(seed, i), keyword)
-    ct ← RND(k2, nextSecureRandom(), DET(k3, node))
+	i ← getKeywordIdx(keyword)
+	st ← DET(k1, rand + i, keyword)
+    ct ← RND(k2, DET(k3, node))
 	Encoded_T[st] ← ct
 		
 function getKeywordIdx(keyword):
-	idx = (seed, i) ← keywords[idx]
-	if idx = ⊥:
-		seed  ← nextSecureRandom() 
-		idx ← (seed, 0)
-		keywords[idx] ← idx
+	idx ← keywords[keyword]
+	if idx == ⊥:
+		idx ← 1
+		keywords[keyword] ← idx
 	else:
-		keywords[idx] ← (seed, i + 1)
+		keywords[keyword] ← i + 1
 return idx;
 ```
 
 **Option 2:** Homomorphic encryption of equality index (for each node), under a random encryption layer.
 
 ```pseudocode
-// Search Token: st ← DET(k1, idx || idx_ctr)
+// Search Token: st ← DET(k1, idx, keyword)
 // Equality tag: eq_tag ← HOM(k2, eq_idx)
 // Encrypted Node: ct ← RND(k3, n)
 // st ← eq_tag, ct
@@ -50,6 +50,7 @@ State:
 	Eq ←  {} 
 	Encoded_T ←  {}
 	keywords ← {}
+	rand ← newSecureRandom()
 
 function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 	foreach t = (s,p,o) in T:
@@ -65,17 +66,15 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 		generateTrapdoor(k1, p, s||o)
 		generateTrapdoor(k1, o, s||p)			
 
-	foreach (eq_t, n) in Encoded_T:
-		(seed, i) ← getKeywordIdx(keyword)
-		st ← RDN(k1, nextRandom(seed, i), keyword)
+	foreach (st, n) in Encoded_T:
 		eq_tag ← HOM(k2, Eq[n])
-		ct ← RND(k3, nextSecureRandom(), n)
+		ct ← RND(k3, n)
 		Encoded_T[st] ← (eq_tag, ct)
 return Encoded_T
 
 function generateTrapdoor(k, node, keyword):
-	idx ← getKeywordIdx(keyword)
-	st ← DET(k1, idx || i)
+	i ← getKeywordIdx(keyword)
+	st ← DET(k1, rand + i, keyword)
 	Encoded_T[st] ← node
 
 function setEQ(node):
@@ -84,13 +83,12 @@ function setEQ(node):
 		Eq[node] ← Eq.size()
 		
 function getKeywordIdx(keyword):
-	idx = (seed, i) ← keywords[idx]
+	idx ← keywords[keyword]
 	if idx = ⊥:
-		seed  ← nextSecureRandom() 
-		idx ← (seed, 0)
-		keywords[idx] ← idx
+		idx ← 1
+		keywords[keyword] ← idx
 	else:
-		keywords[idx] ← (seed, i + 1)
+		keywords[keyword] ← idx + 1
 return idx;
 ```
 
