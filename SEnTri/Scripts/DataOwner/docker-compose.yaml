@@ -10,7 +10,7 @@ services:
         - ../SSL/data-owner-truststore.ks:/usr/local/tomcat/ssl/data-owner-truststore.ks
         - ../SSL/data-owner-cert.pem:/usr/local/tomcat/ssl/data-owner-cert.pem
         - ../SSL/data-owner-key.pem:/usr/local/tomcat/ssl/data-owner-key.pem
-        - ./logging.properties:/usr/local/tomcat/conf/logging.properties
+        #- ./logging.properties:/usr/local/tomcat/conf/logging.properties
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8080:8443"

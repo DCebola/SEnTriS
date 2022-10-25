@@ -16,8 +16,6 @@ import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
-
 public class SimpleTriplestore implements Triplestore {
 
     private final StorageEngine storageEngine;

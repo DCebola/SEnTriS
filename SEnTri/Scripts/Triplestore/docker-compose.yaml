@@ -28,7 +28,7 @@ services:
         - ../SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
         - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
         - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
-        - ./logging.properties:/usr/local/tomcat/conf/logging.properties
+        #- ./logging.properties:/usr/local/tomcat/conf/logging.properties
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       expose:
         - "8443"

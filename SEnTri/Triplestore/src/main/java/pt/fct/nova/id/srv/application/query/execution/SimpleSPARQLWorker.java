@@ -26,9 +26,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
     private final String storeID;
-
     private final SPARQLResultType resultType;
-
 
     public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
         this.storeID = storeID;

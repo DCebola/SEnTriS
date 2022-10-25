@@ -10,19 +10,20 @@ import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 import static pt.fct.nova.id.srv.application.Utils.*;
 
 public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
-    final static Logger logger = Logger.getLogger(SimpleSPARQLPlanner.class.getName());
+    final static Logger logger = LoggerFactory.getLogger(SimpleSPARQLPlanner.class);
 
     private final Map<Op, String> parsed_op;
 
@@ -47,7 +48,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit0(Op0 op) {
-        logger.info("OP0: " + op);
+        logger.info("OP0: {}", op);
         if (op instanceof OpBGP opBGP) {
             generateGetJobs(opBGP);
         } else if (op instanceof OpTriple opTriple) {
@@ -191,7 +192,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit1(Op1 op) {
-        logger.info("OP1: " + op);
+        logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
             throw new NotImplemented();
         } else if (op instanceof OpFilter) {
@@ -281,7 +282,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit2(Op2 op) {
-        logger.info("OP2: " + op);
+        logger.info("OP2: {}", op);
         if (op instanceof OpJoin opJoin) {
             generateJoinJob(opJoin);
         } else if (op instanceof OpLeftJoin opLeftJoin) {

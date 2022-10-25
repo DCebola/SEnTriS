@@ -10,7 +10,7 @@ services:
         - ../SSL/proxy-truststore.ks:/usr/local/tomcat/ssl/proxy-truststore.ks
         - ../SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
         - ../SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
-        - ./logging.properties:/usr/local/tomcat/conf/logging.properties        
+        #- ./logging.properties:/usr/local/tomcat/conf/logging.properties        
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       expose:
         - "8443"

@@ -22,8 +22,6 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class RStorageEngine implements StorageEngine {
 
-
-
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
