@@ -52,7 +52,7 @@ State:
 	keywords ← {}
 	rand ← newSecureRandom()
 
-function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
+function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2 = (pk, sk), k3):
 	foreach t = (s,p,o) in T:
 		foreach n in t:
 			nCtr ← setEQ(n)
@@ -65,7 +65,7 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 		generateTrapdoor(k1, s, p||o)
 		generateTrapdoor(k1, p, s||o)
 		generateTrapdoor(k1, o, s||p)			
-
+	
 	foreach (st, n) in Encoded_T:
 		eq_tag ← HOM(k2, Eq[n])
 		ct ← RND(k3, n)
@@ -98,4 +98,4 @@ RDN: ChaCha20-Poly1305
 
 DET: ChaCha20-Poly1305 w/ nonce based on seeded random sequence
 
-HOM: Paillier
+HOM: DGK cryptographic system
