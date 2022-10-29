@@ -38,6 +38,20 @@ public class EncryptedTriplestore implements Triplestore {
         } else throw new UnknownProtocolException();
     }
 
+    private void createDatasetUsingDGK(String storeID, Iterator<Triple> triples) {
+        //TODO: Get master key or Generate & Store master key,
+        //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
+        //TODO: Protocol 2.
+        //TODO: Save data in Redis, encrypted under master key.
+    }
+
+    private void createDatasetUsingOnions(String storeID, Iterator<Triple> triples) {
+        //TODO: Get master key or Generate & Store master key,
+        //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
+        //TODO: Protocol 1.
+        //TODO: Save data in Redis, encrypted under master key.
+    }
+
 
     @Override
     public void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
@@ -46,6 +60,22 @@ public class EncryptedTriplestore implements Triplestore {
         else if (PROTOCOL.equals("PROTOCOL_2")) {
             uploadDataUsingDGK(storeID, triples);
         } else throw new UnknownProtocolException();
+    }
+
+    private void uploadDataUsingDGK(String storeID, Iterator<Triple> triples) {
+        //TODO: Get master key or Generate & Store master key,
+        //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
+        //TODO: Retrieve data associated to store.
+        //TODO: Continue protocol 2.
+        //TODO: Save data in Redis.
+    }
+
+    private void uploadDataUsingOnions(String storeID, Iterator<Triple> triples) {
+        //TODO: Get master key or Generate & Store master key,
+        //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
+        //TODO: Retrieve data associated to store.
+        //TODO: Continue protocol 1.
+        //TODO: Save data in Redis.
     }
 
 }
