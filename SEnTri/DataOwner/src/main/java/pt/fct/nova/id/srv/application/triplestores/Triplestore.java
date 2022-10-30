@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface Triplestore {
 
-    void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws InvalidNodeException, UnknownProtocolException;
+    void createDataset(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws InvalidNodeException, UnknownProtocolException;
 
-    void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException;
+    void uploadData(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException;
 }

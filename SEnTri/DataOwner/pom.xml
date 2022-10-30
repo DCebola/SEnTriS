@@ -16,6 +16,16 @@
     </properties>
 
     <dependencies>
+        <!-- Bouncy Castle -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.72</version>
+        </dependency>
+
+
+
+
         <!-- Servlet/REST  -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

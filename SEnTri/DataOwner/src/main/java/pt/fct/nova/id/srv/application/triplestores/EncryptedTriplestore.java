@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.triplestores;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.InvalidNodeException;
@@ -30,22 +31,23 @@ public class EncryptedTriplestore implements Triplestore {
     }
 
     @Override
-    public void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
+    public void createDataset(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
         if (PROTOCOL.equals("PROTOCOL_1"))
-            createDatasetUsingOnions(storeID, triples);
+            createDatasetUsingOnions(storeID, password, triples);
         else if (PROTOCOL.equals("PROTOCOL_2")) {
-            createDatasetUsingDGK(storeID, triples);
+            createDatasetUsingDGK(storeID, password, triples);
         } else throw new UnknownProtocolException();
     }
 
-    private void createDatasetUsingDGK(String storeID, Iterator<Triple> triples) {
+    private void createDatasetUsingDGK(String storeID, String password, Iterator<Triple> triples) {
+        RandomStringUtils.random(256, true, true);
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
         //TODO: Protocol 2.
         //TODO: Save data in Redis, encrypted under master key.
     }
 
-    private void createDatasetUsingOnions(String storeID, Iterator<Triple> triples) {
+    private void createDatasetUsingOnions(String storeID, String password, Iterator<Triple> triples) {
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
         //TODO: Protocol 1.
@@ -54,15 +56,15 @@ public class EncryptedTriplestore implements Triplestore {
 
 
     @Override
-    public void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
+    public void uploadData(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
         if (PROTOCOL.equals("PROTOCOL_1"))
-            uploadDataUsingOnions(storeID, triples);
+            uploadDataUsingOnions(storeID, password, triples);
         else if (PROTOCOL.equals("PROTOCOL_2")) {
-            uploadDataUsingDGK(storeID, triples);
+            uploadDataUsingDGK(storeID, password, triples);
         } else throw new UnknownProtocolException();
     }
 
-    private void uploadDataUsingDGK(String storeID, Iterator<Triple> triples) {
+    private void uploadDataUsingDGK(String storeID, String password, Iterator<Triple> triples) {
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
         //TODO: Retrieve data associated to store.
@@ -70,7 +72,7 @@ public class EncryptedTriplestore implements Triplestore {
         //TODO: Save data in Redis.
     }
 
-    private void uploadDataUsingOnions(String storeID, Iterator<Triple> triples) {
+    private void uploadDataUsingOnions(String storeID, String password, Iterator<Triple> triples) {
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
         //TODO: Retrieve data associated to store.
