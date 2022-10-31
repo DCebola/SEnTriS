@@ -5,13 +5,14 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
-import pt.fct.nova.id.srv.application.InvalidNodeException;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.api.SecureTriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
-public class SecureTriplestoreController implements TriplestoreAPI {
+public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
@@ -19,12 +20,10 @@ public class SecureTriplestoreController implements TriplestoreAPI {
 
 
     @Override
-    public Response create(String storeID, UploadForm form) {
-        //TODO: verify password.
+    public Response create(String storeID, SecureUploadForm form) {
+        //TODO: verify password to access/save keys/secrets.
         try {
-            new Protocol1().exec(
-                    storeID,
-                    form.getPassword(),
+            new Protocol1(storeID).exec(
                     AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null)
             );
             return Response.ok(SUCCESS_UPLOAD).build();
@@ -45,12 +44,8 @@ public class SecureTriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response upload(String storeID, UploadForm form) throws HttpResponseException {
+    public Response upload(String storeID, SecureUploadForm form) {
         return null;
     }
 
-    @Override
-    public Response answerSPARQLQuery(String storeID, String query) {
-        return null;
-    }
 }

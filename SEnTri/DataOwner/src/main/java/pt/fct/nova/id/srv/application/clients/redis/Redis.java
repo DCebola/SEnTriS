@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.storage.redis;
+package pt.fct.nova.id.srv.application.clients.redis;
 
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;

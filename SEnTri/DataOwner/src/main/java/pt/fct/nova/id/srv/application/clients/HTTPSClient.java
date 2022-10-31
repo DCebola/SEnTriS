@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.presentation.clients;
+package pt.fct.nova.id.srv.application.clients;
 
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;

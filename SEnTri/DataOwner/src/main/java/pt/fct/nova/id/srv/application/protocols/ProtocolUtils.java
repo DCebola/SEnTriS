@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application.protocols;
 
 import org.apache.jena.graph.Node;
-import pt.fct.nova.id.srv.application.InvalidNodeException;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
 public class ProtocolUtils {
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");

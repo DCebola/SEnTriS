@@ -10,7 +10,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
-import pt.fct.nova.id.srv.presentation.clients.HTTPSClient;
+import pt.fct.nova.id.srv.application.clients.HTTPSClient;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

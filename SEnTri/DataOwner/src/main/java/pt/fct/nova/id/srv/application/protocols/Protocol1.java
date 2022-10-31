@@ -2,13 +2,16 @@ package pt.fct.nova.id.srv.application.protocols;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.InvalidNodeException;
+import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
+import pt.fct.nova.id.srv.application.clients.exception.TriplestoreClientException;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -17,25 +20,91 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Protocol1 implements DataOwnerProtocol {
+
+    private final int batchLength;
+    private final String storeID;
+
+    private boolean toBeCreated;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
     private final Map<String, String> encryptedT;
     private final Map<String, Pair<Integer, byte[]>> keywords;
 
-    public Protocol1() throws NoSuchAlgorithmException {
+    public Protocol1(int batchLength, String storeID, Map<String, Pair<Integer, byte[]>> keywords) throws NoSuchAlgorithmException {
+        this.storeID = storeID;
+        this.iv = SymmetricCipher.generateIV();
+        this.k1 = SymmetricCipher.generateKey();
+        this.k2 = SymmetricCipher.generateKey();
+        this.k3 = SymmetricCipher.generateKey();
+        this.encryptedT = new HashMap<>();
+        this.keywords = keywords;
+        this.batchLength = batchLength;
+        this.toBeCreated = false;
+    }
+
+    public Protocol1(String storeID, Map<String, Pair<Integer, byte[]>> keywords) throws NoSuchAlgorithmException {
+        this.storeID = storeID;
+        this.iv = SymmetricCipher.generateIV();
+        this.k1 = SymmetricCipher.generateKey();
+        this.k2 = SymmetricCipher.generateKey();
+        this.k3 = SymmetricCipher.generateKey();
+        this.encryptedT = new HashMap<>();
+        this.keywords = keywords;
+        this.batchLength = -1;
+        this.toBeCreated = false;
+
+    }
+
+    public Protocol1(String storeID) throws NoSuchAlgorithmException {
+        this.storeID = storeID;
         this.iv = SymmetricCipher.generateIV();
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
+        this.batchLength = -1;
+        this.toBeCreated = true;
     }
 
-    public void exec(String storeID, String password, Iterator<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        //TODO: Check database already exists.
-        //TODO: Save values
+    public int getBatchLength() {
+        return batchLength;
+    }
+
+    public String getStoreID() {
+        return storeID;
+    }
+
+    public boolean isToBeCreated() {
+        return toBeCreated;
+    }
+
+    public byte[] getIv() {
+        return iv;
+    }
+
+    public SecretKey getK1() {
+        return k1;
+    }
+
+    public SecretKey getK2() {
+        return k2;
+    }
+
+    public SecretKey getK3() {
+        return k3;
+    }
+
+    public Map<String, Pair<Integer, byte[]>> getKeywords() {
+        return keywords;
+    }
+
+    public void exec(Iterator<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
+            NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException,
+            InvalidKeyException, RuntimeException, TriplestoreClientException, UnsupportedEncodingException {
         Triple t;
         String s, p, o;
+        int i = 0;
         while (triples.hasNext()) {
             t = triples.next();
             s = ProtocolUtils.parseNodeIRI(t.getSubject());
@@ -50,11 +119,30 @@ public class Protocol1 implements DataOwnerProtocol {
             encodeNode(k1, k2, k3, s, String.format(COMPOUND_KEYWORD, p, o));
             encodeNode(k1, k2, k3, p, String.format(COMPOUND_KEYWORD, s, o));
             encodeNode(k1, k2, k3, o, String.format(COMPOUND_KEYWORD, s, p));
+            if (batchLength > 0 && i == batchLength) {
+                save();
+                i = 0;
+            }
+            i++;
         }
+        save();
         encryptKeywordInfo();
     }
 
-    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private void save() throws UnsupportedEncodingException {
+        //TODO: Process response.
+        if (toBeCreated) {
+            TriplestoreClient.create(storeID, encryptedT);
+            encryptedT.clear();
+            toBeCreated = false;
+        } else {
+            TriplestoreClient.upload(storeID, encryptedT);
+            encryptedT.clear();
+        }
+    }
+
+    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreClientException, UnsupportedEncodingException {
+        int i = 0;
         for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
             Pair<Integer, byte[]> value = entry.getValue();
             byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
@@ -63,7 +151,13 @@ public class Protocol1 implements DataOwnerProtocol {
                     Base64.getEncoder().encodeToString(st),
                     Base64.getEncoder().encodeToString(ct)
             );
+            if (batchLength > 0 && i == batchLength) {
+                save();
+                i = 0;
+            }
+            i++;
         }
+        save();
     }
 
     private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
