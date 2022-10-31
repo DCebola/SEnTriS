@@ -12,10 +12,9 @@ import java.util.Map;
 public class EncryptedTriplestore implements Triplestore {
 
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-    private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
+    private static final  String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
     private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
     private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
-
     private static final String PROTOCOL = System.getenv("PROTOCOL");
 
 
@@ -30,8 +29,8 @@ public class EncryptedTriplestore implements Triplestore {
             return String.format(BLANK_IRI, node.getBlankNodeId());
     }
 
-    @Override
-    public void createDataset(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
+
+    public void createDataset(String storeID, String password, Iterator<Triple> triples) throws UnknownProtocolException {
         if (PROTOCOL.equals("PROTOCOL_1"))
             createDatasetUsingOnions(storeID, password, triples);
         else if (PROTOCOL.equals("PROTOCOL_2")) {
@@ -40,7 +39,6 @@ public class EncryptedTriplestore implements Triplestore {
     }
 
     private void createDatasetUsingDGK(String storeID, String password, Iterator<Triple> triples) {
-        RandomStringUtils.random(256, true, true);
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).
         //TODO: Protocol 2.
@@ -56,7 +54,7 @@ public class EncryptedTriplestore implements Triplestore {
 
 
     @Override
-    public void uploadData(String storeID, String password, Iterator<Triple> triples, Map<String, String> namespaces) throws UnknownProtocolException {
+    public void uploadData(String storeID, String password, Iterator<Triple> triples) throws UnknownProtocolException {
         if (PROTOCOL.equals("PROTOCOL_1"))
             uploadDataUsingOnions(storeID, password, triples);
         else if (PROTOCOL.equals("PROTOCOL_2")) {

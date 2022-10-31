@@ -52,7 +52,6 @@ public class TriplestoreController implements TriplestoreAPI {
                         AsyncParser.asyncParseTriples(form.getContents(), l, null),
                         form.getNamespaces()
                 );
-                System.out.println("Created database.");
                 return Response.ok(SUCCESS_UPLOAD).build();
             } catch (InvalidNodeException e) {
                 return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();
