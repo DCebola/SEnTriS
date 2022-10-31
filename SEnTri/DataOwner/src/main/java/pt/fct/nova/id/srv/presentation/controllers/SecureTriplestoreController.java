@@ -6,9 +6,10 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
 import pt.fct.nova.id.srv.application.InvalidNodeException;
-import pt.fct.nova.id.srv.application.triplestores.EncryptedTriplestore;
+import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
+import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 public class SecureTriplestoreController implements TriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
@@ -16,29 +17,31 @@ public class SecureTriplestoreController implements TriplestoreAPI {
     private static final String SUCCESS_UPLOAD = "Successful upload.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
-    EncryptedTriplestore triplestore = new EncryptedTriplestore();
-
 
     @Override
-    public Response create(String storeID, UploadForm form) throws HttpResponseException {
-        Lang l = RDFLanguages.nameToLang(form.getSyntax());
-        if (l == null)
+    public Response create(String storeID, UploadForm form) {
+        //TODO: verify password.
+        try {
+            new Protocol1().exec(
+                    storeID,
+                    form.getPassword(),
+                    AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null)
+            );
+            return Response.ok(SUCCESS_UPLOAD).build();
+        } catch (InvalidNodeException e) {
+            return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
+        } catch (UnknownRDFLanguageException e) {
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
-        else {
-            try {
-                triplestore.createDataset(
-                        storeID,
-                        form.getPassword(),
-                        AsyncParser.asyncParseTriples(form.getContents(), l, null)
-                );
-                return Response.ok(SUCCESS_UPLOAD).build();
-            } catch (InvalidNodeException e) {
-                return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
-            } catch (Exception e) {
-                return Response.ok(PARSING_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (Exception e) {
+            return Response.ok(PARSING_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return null;
+    }
+
+    private Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
+        Lang l = RDFLanguages.nameToLang(syntax);
+        if (l == null)
+            throw new UnknownRDFLanguageException();
+        return l;
     }
 
     @Override

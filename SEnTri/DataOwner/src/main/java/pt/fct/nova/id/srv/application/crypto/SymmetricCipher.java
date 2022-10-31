@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.crypto;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -16,7 +17,7 @@ public class SymmetricCipher {
     private static final int IV_SIZE = Integer.parseInt(System.getenv("SYMMETRIC_IV_SIZE"));
 
 
-    public byte[] encrypt(byte[] input, SecretKey key, byte[] iv) throws NoSuchPaddingException,
+    public static byte[] encrypt(byte[] input, SecretKey key, byte[] iv) throws NoSuchPaddingException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException {
         checkAlgorithm(ALGORITHM + "/" + MODE + "/" + PADDING);
@@ -29,7 +30,13 @@ public class SymmetricCipher {
                 .array();
     }
 
-    private void checkAlgorithm(String alg) throws NoSuchAlgorithmException {
+    public static byte[] encrypt(byte[] input, SecretKey key) throws NoSuchPaddingException,
+            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
+            IllegalBlockSizeException, BadPaddingException {
+        return encrypt(input, key, generateIV());
+    }
+
+    private static void checkAlgorithm(String alg) throws NoSuchAlgorithmException {
         if (!alg.equals("AES/GCM/NoPadding") && !alg.equals("ChaCha20-Poly1305/None/NoPadding"))
             throw new NoSuchAlgorithmException();
     }
@@ -40,9 +47,14 @@ public class SymmetricCipher {
         return keyGenerator.generateKey();
     }
 
-    public static byte[] generateIv() {
+    public static byte[] generateIV() {
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);
         return iv;
+    }
+
+    public static byte[] incrementIV(byte[] iv) {
+        BigInteger ivAsBigInt = new BigInteger(iv);
+        return ivAsBigInt.add(BigInteger.ONE).toByteArray();
     }
 }
