@@ -5,6 +5,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.AsyncParser;
+import pt.fct.nova.id.srv.application.protocols.DataOwnerProtocol;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.presentation.api.SecureTriplestoreAPI;
@@ -23,9 +24,9 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public Response create(String storeID, SecureUploadForm form) {
         //TODO: verify password to access/save keys/secrets.
         try {
-            new Protocol1(storeID).exec(
-                    AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null)
-            );
+            DataOwnerProtocol protocol = new Protocol1(storeID);
+            protocol.exec(AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null));
+            //TODO: save keys/secrets
             return Response.ok(SUCCESS_UPLOAD).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
