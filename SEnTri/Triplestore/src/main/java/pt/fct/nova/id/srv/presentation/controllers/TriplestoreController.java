@@ -13,12 +13,12 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import org.apache.jena.riot.system.AsyncParser;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
+import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
@@ -41,7 +41,7 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String STORE_NOT_FOUND = "Store %s not found.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
-    private final Triplestore triplestore = new Triplestore(new RStorageEngine(), new SPARQLQueryEngine());
+    private final Triplestore triplestore = new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
     public Response create(String storeID, UploadForm form) {

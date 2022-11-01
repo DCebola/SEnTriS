@@ -15,9 +15,10 @@ import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsExcep
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-public class SimpleTriplestore implements Triplestore {
 
+public class SimpleTriplestore implements Triplestore {
     private final StorageEngine storageEngine;
     private final QueryEngine queryEngine;
 
@@ -27,7 +28,7 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public void createDataset(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException {
+    public void createDataset(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException {
         verifyStoreDoesNotExist(storeID);
         boolean success = storageEngine.setupStore(storeID, namespaces);
         if (!success) {
@@ -37,11 +38,11 @@ public class SimpleTriplestore implements Triplestore {
             addTriples(storeID, triples);
     }
 
-    private void addTriples(String storeID, Iterator<Triple> triples) throws InvalidNodeException {
+    private void addTriples(String storeID, List<Triple> triples) throws InvalidNodeException {
         boolean success;
         if (triples != null) {
-            while (triples.hasNext()) {
-                success = storageEngine.saveTriple(storeID, triples.next());
+            for (Triple t : triples) {
+                success = storageEngine.saveTriple(storeID, t);
                 if (!success) {
                     storageEngine.deleteStore(storeID);
                     throw new RuntimeException();
@@ -51,7 +52,7 @@ public class SimpleTriplestore implements Triplestore {
     }
 
     @Override
-    public void uploadData(String storeID, Iterator<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException {
+    public void uploadData(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException {
         verifyStoreExists(storeID);
         if (namespaces != null)
             storageEngine.saveNamespaces(storeID, namespaces);
@@ -67,7 +68,6 @@ public class SimpleTriplestore implements Triplestore {
         storageEngine.getNamespaces(storeID).forEach(m::setNsPrefix);
         return m;
     }
-
 
     @Override
     public ResultSet executeQuery(String storeID, String query) throws StoreNotFoundException {
@@ -90,5 +90,4 @@ public class SimpleTriplestore implements Triplestore {
         } catch (StoreNotFoundException ignored) {
         }
     }
-
 }
