@@ -4,25 +4,29 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.riot.system.AsyncParser;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
-import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.List;
 
 
 @Path("triplestore")
@@ -37,14 +41,16 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String STORE_NOT_FOUND = "Store %s not found.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
-    private final Triplestore triplestore = new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
+    private final Triplestore triplestore = new Triplestore(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
     public Response create(String storeID, UploadForm form) {
         try {
+
             triplestore.createDataset(
                     storeID,
-                    AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
+                    //AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
+                    parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
                     form.getNamespaces()
             );
             return Response.ok(SUCCESS_UPLOAD).build();
@@ -66,12 +72,19 @@ public class TriplestoreController implements TriplestoreAPI {
         return l;
     }
 
+    private List<Triple> parseTriples(InputStream content, Lang lang) {
+        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
+        RDFParser.source(content).lang(lang).parse(tripleCollector);
+        return tripleCollector.getCollected();
+    }
+
     @Override
     public Response upload(String storeID, UploadForm form) {
         try {
             triplestore.uploadData(
                     storeID,
-                    AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
+                    //AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
+                    parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
                     form.getNamespaces()
             );
             return Response.ok(SUCCESS_UPLOAD).build();

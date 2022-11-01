@@ -3,7 +3,8 @@ package pt.fct.nova.id.srv.application.protocols;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreClientException;
+import pt.fct.nova.id.srv.application.clients.exception.TriplestoreCreateException;
+import pt.fct.nova.id.srv.application.clients.exception.TriplestoreUploadException;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
@@ -99,14 +100,12 @@ public class Protocol1 implements DataOwnerProtocol {
         return keywords;
     }
 
-    public void exec(Iterator<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
+    public void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException,
-            InvalidKeyException, RuntimeException, TriplestoreClientException, UnsupportedEncodingException {
-        Triple t;
+            InvalidKeyException, RuntimeException, TriplestoreCreateException, UnsupportedEncodingException, TriplestoreUploadException {
         String s, p, o;
         int i = 0;
-        while (triples.hasNext()) {
-            t = triples.next();
+        for(Triple t: triples) {
             s = ProtocolUtils.parseNodeIRI(t.getSubject());
             p = ProtocolUtils.parseNodeIRI(t.getSubject());
             o = ProtocolUtils.parseNodeIRI(t.getSubject());
@@ -129,8 +128,7 @@ public class Protocol1 implements DataOwnerProtocol {
         encryptKeywordInfo();
     }
 
-    private void save() throws UnsupportedEncodingException {
-        //TODO: Process response.
+    private void save() throws UnsupportedEncodingException, TriplestoreCreateException, TriplestoreUploadException {
         if (toBeCreated) {
             TriplestoreClient.create(storeID, encryptedT);
             encryptedT.clear();
@@ -141,7 +139,10 @@ public class Protocol1 implements DataOwnerProtocol {
         }
     }
 
-    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreClientException, UnsupportedEncodingException {
+    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
+            NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
+            BadPaddingException, InvalidKeyException, TriplestoreCreateException, UnsupportedEncodingException,
+            TriplestoreUploadException {
         int i = 0;
         for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
             Pair<Integer, byte[]> value = entry.getValue();
@@ -160,7 +161,9 @@ public class Protocol1 implements DataOwnerProtocol {
         save();
     }
 
-    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword)
+            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
         encryptedT.put(
