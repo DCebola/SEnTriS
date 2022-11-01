@@ -20,7 +20,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class Protocol1 implements DataOwnerProtocol {
+public class Protocol1 implements WriteProtocol {
 
     private final int batchLength;
     private final String storeID;

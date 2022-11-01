@@ -15,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-public interface DataOwnerProtocol {
+public interface WriteProtocol {
     String KEYWORD_SEPARATOR = System.getenv("KEYWORD_SEPARATOR");
     String COMPOUND_KEYWORD = "%s".concat(KEYWORD_SEPARATOR).concat("%s");
 

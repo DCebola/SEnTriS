@@ -1,32 +1,22 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.HttpResponseException;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import org.apache.jena.riot.system.AsyncParser;
-import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreClientException;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreDeleteException;
-import pt.fct.nova.id.srv.application.protocols.DataOwnerProtocol;
+import pt.fct.nova.id.srv.application.protocols.WriteProtocol;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.presentation.api.SecureTriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
-import java.io.BufferedOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
@@ -43,7 +33,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public Response create(String storeID, SecureUploadForm form) {
         //TODO: verify password to access/save keys/secrets.
         try {
-            DataOwnerProtocol protocol = new Protocol1(storeID);
+            WriteProtocol protocol = new Protocol1(storeID);
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             Collections.shuffle(triples);
             protocol.exec(triples);
