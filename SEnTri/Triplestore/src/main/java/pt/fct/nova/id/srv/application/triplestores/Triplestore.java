@@ -18,4 +18,5 @@ public interface Triplestore {
 
     ResultSet executeQuery(String storeID, String query);
 
+    void delete(String storeID);
 }

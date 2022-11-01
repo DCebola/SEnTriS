@@ -15,10 +15,13 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
+import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
 public class RStorageEngine implements StorageEngine {
 
@@ -53,6 +56,7 @@ public class RStorageEngine implements StorageEngine {
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
+    private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR);
 
 
     @Override
@@ -90,12 +94,33 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public boolean deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
+            //jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
+            deleteStoreData(jedis, storeID);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private void deleteStoreData(Jedis jedis, String storeID) {
+        ScanParams params = new ScanParams().count(1000);
+        System.out.println(String.format(STORE_DATA_PATTERN, storeID));
+        params.match(String.format(STORE_DATA_PATTERN, storeID));
+        //Transaction t = jedis.multi();
+        String cursor = SCAN_POINTER_START;
+        while (!cursor.equals("0")) {
+            ScanResult<String> scanResult = jedis.scan(cursor, params);
+            List<String> res = scanResult.getResult();
+            System.out.println(Arrays.toString(res.toArray()));
+            res.forEach(s -> {
+                System.out.println(s);
+                //t.del(s);
+            });
+            cursor = scanResult.getCursor();
+        }
+        //t.multi();
+
     }
 
     public void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException {

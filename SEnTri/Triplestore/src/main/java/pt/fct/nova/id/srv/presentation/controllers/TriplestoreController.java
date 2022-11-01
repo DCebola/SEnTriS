@@ -40,6 +40,7 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
     private static final String STORE_NOT_FOUND = "Store %s not found.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
+    private static final String SUCCESS_DELETE = "Store %s deleted.";
 
     private final Triplestore triplestore = new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
 
@@ -49,7 +50,6 @@ public class TriplestoreController implements TriplestoreAPI {
 
             triplestore.createDataset(
                     storeID,
-                    //AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
                     parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
                     form.getNamespaces()
             );
@@ -83,7 +83,6 @@ public class TriplestoreController implements TriplestoreAPI {
         try {
             triplestore.uploadData(
                     storeID,
-                    //AsyncParser.asyncParseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()), null),
                     parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
                     form.getNamespaces()
             );
@@ -127,6 +126,16 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(NOT_IMPLEMENTED).status(Status.NOT_IMPLEMENTED).build();
         } catch (Exception e) {
             return Response.ok(QUERY_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response delete(String storeID) {
+        try {
+            triplestore.delete(storeID);
+            return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
+        } catch (StoreNotFoundException e) {
+            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
         }
     }
 

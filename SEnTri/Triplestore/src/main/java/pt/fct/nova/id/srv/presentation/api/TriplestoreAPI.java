@@ -47,4 +47,9 @@ public interface TriplestoreAPI {
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
 
+    @DELETE
+    @Path("/delete/{storeID}")
+    @Produces(APPLICATION_JSON)
+    Response delete(@PathParam("storeID") String storeID);
+
 }

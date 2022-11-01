@@ -76,6 +76,11 @@ public class SimpleTriplestore implements Triplestore {
         return new SimpleSPARQLExecution(plan).exec(storeID, storageEngine);
     }
 
+    @Override
+    public void delete(String storeID) {
+        storageEngine.deleteStore(storeID);
+    }
+
 
     private void verifyStoreExists(String storeID) throws StoreNotFoundException {
         try {
