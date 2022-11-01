@@ -14,9 +14,9 @@ export var DOCKER_REGISTRY=$1
 wait
 cd ./Triplestore 
 docker-compose up --force-recreate --remove-orphans --detach
-cd ../Proxy 
-docker-compose up --force-recreate --remove-orphans --detach
-cd ../DataOwner 
-docker-compose up --force-recreate --remove-orphans --detach
-wait
+#cd ../Proxy 
+#docker-compose up --force-recreate --remove-orphans --detach
+#cd ../DataOwner 
+#docker-compose up --force-recreate --remove-orphans --detach
+#wait
 unset DOCKER_REGISTRY
