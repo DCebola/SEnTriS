@@ -78,6 +78,7 @@ public class SimpleTriplestore implements Triplestore {
 
     @Override
     public void delete(String storeID) {
+        verifyStoreExists(storeID);
         storageEngine.deleteStore(storeID);
     }
 

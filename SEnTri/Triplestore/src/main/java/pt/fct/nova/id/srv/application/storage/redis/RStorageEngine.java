@@ -56,7 +56,7 @@ public class RStorageEngine implements StorageEngine {
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
-    private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR);
+    private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
 
     @Override
@@ -94,7 +94,7 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public boolean deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            //jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
+            jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
             deleteStoreData(jedis, storeID);
             return true;
         } catch (Exception e) {
@@ -104,23 +104,20 @@ public class RStorageEngine implements StorageEngine {
     }
 
     private void deleteStoreData(Jedis jedis, String storeID) {
-        ScanParams params = new ScanParams().count(1000);
-        System.out.println(String.format(STORE_DATA_PATTERN, storeID));
+        ScanParams params = new ScanParams();
         params.match(String.format(STORE_DATA_PATTERN, storeID));
-        //Transaction t = jedis.multi();
         String cursor = SCAN_POINTER_START;
-        while (!cursor.equals("0")) {
+        Set<String> collector = new HashSet<>();
+        do {
             ScanResult<String> scanResult = jedis.scan(cursor, params);
             List<String> res = scanResult.getResult();
-            System.out.println(Arrays.toString(res.toArray()));
-            res.forEach(s -> {
-                System.out.println(s);
-                //t.del(s);
-            });
+            collector.addAll(res);
             cursor = scanResult.getCursor();
-        }
-        //t.multi();
-
+        } while (!cursor.equals(SCAN_POINTER_START));
+        Transaction t = jedis.multi();
+        t.del(collector.toArray(String[]::new));
+        t.del(String.format(STORE_STATE, storeID));
+        t.exec();
     }
 
     public void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException {
