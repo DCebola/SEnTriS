@@ -12,8 +12,8 @@ services:
         - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
         - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
-      ports:
-        - "6379:6379"
+      expose:
+        - "6379"
       networks:
         - sentri-triplestore-backend
       environment:

@@ -18,7 +18,7 @@ import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
-import pt.fct.nova.id.srv.application.triplestores.SimpleTriplestore;
+import pt.fct.nova.id.srv.application.triplestores.TriplestoreImpl;
 import pt.fct.nova.id.srv.application.triplestores.Triplestore;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
@@ -42,7 +42,7 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String SUCCESS_DELETE = "Store %s deleted.";
 
-    private final Triplestore triplestore = new SimpleTriplestore(new RStorageEngine(), new SPARQLQueryEngine());
+    private final Triplestore triplestore = new TriplestoreImpl(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
     public Response create(String storeID, UploadForm form) {

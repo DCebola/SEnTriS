@@ -7,6 +7,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.*;
@@ -60,17 +61,14 @@ public class RStorageEngine implements StorageEngine {
 
 
     @Override
-    public boolean setupStore(String storeID, Map<String, String> namespaces) throws JedisException {
+    public void setupStore(String storeID, Map<String, String> namespaces) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(STORE_STATE, storeID), String.valueOf(false));
             if (namespaces != null)
                 namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
             t.exec();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        } catch (Exception ignored) {
         }
     }
 
@@ -92,14 +90,12 @@ public class RStorageEngine implements StorageEngine {
 
 
     @Override
-    public boolean deleteStore(String storeID) {
+    public void deleteStore(String storeID) throws StorageEngineException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
             deleteStoreData(jedis, storeID);
-            return true;
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new StorageEngineException();
         }
     }
 
@@ -128,14 +124,13 @@ public class RStorageEngine implements StorageEngine {
                 throw new StoreNotFoundException();
         } catch (StoreAlreadyExistsException | StoreNotFoundException e) {
             throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 
 
     @Override
-    public boolean saveTriple(String storeID, Triple triple) throws InvalidNodeException {
+    public void saveTriple(String storeID, Triple triple) throws InvalidNodeException, StorageEngineException {
         String storeState = String.format(STORE_STATE, storeID);
         Node subject = triple.getSubject();
         Node predicate = triple.getPredicate();
@@ -189,13 +184,12 @@ public class RStorageEngine implements StorageEngine {
                 putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
 
                 t.exec();
-            }
-            return true;
+            } else
+                deleteStore(storeID);
         } catch (InvalidNodeException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new StorageEngineException();
         }
     }
 

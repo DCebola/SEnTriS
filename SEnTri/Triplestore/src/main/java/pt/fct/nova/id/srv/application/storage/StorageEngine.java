@@ -4,6 +4,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
@@ -14,13 +15,13 @@ import java.util.Map;
 
 public interface StorageEngine {
 
-    boolean setupStore(String storeID, Map<String, String> namespaces);
+    void setupStore(String storeID, Map<String, String> namespaces) throws StorageEngineException;
 
     void saveNamespaces(String storeID, Map<String, String> namespaces);
 
-    boolean deleteStore(String storeID);
+    void deleteStore(String storeID) throws StorageEngineException;
 
-    boolean saveTriple(String storeID, Triple triple) throws InvalidNodeException;
+    void saveTriple(String storeID, Triple triple) throws InvalidNodeException, StorageEngineException;
 
     List<Triple> getTriples(String storeID);
 
@@ -44,6 +45,6 @@ public interface StorageEngine {
 
     Node generateNode(String iri);
 
-    void checkID(String id) throws StoreAlreadyExistsException, StoreNotFoundException;
+    void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException;
 
 }

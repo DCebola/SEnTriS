@@ -11,48 +11,44 @@ import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class SimpleTriplestore implements Triplestore {
+public class TriplestoreImpl implements Triplestore {
     private final StorageEngine storageEngine;
     private final QueryEngine queryEngine;
 
-    public SimpleTriplestore(StorageEngine storageEngine, QueryEngine queryEngine) {
+    public TriplestoreImpl(StorageEngine storageEngine, QueryEngine queryEngine) {
         this.storageEngine = storageEngine;
         this.queryEngine = queryEngine;
     }
 
     @Override
-    public void createDataset(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException {
+    public void createDataset(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreAlreadyExistsException, InvalidNodeException, StorageEngineException {
         verifyStoreDoesNotExist(storeID);
-        boolean success = storageEngine.setupStore(storeID, namespaces);
-        if (!success) {
-            storageEngine.deleteStore(storeID);
-            throw new RuntimeException();
-        } else if (triples != null)
-            addTriples(storeID, triples);
+        storageEngine.setupStore(storeID, namespaces);
+        addTriples(storeID, triples);
     }
 
-    private void addTriples(String storeID, List<Triple> triples) throws InvalidNodeException {
-        boolean success;
-        if (triples != null) {
-            for (Triple t : triples) {
-                success = storageEngine.saveTriple(storeID, t);
-                if (!success) {
-                    storageEngine.deleteStore(storeID);
-                    throw new RuntimeException();
+    private void addTriples(String storeID, List<Triple> triples) throws InvalidNodeException, StorageEngineException {
+        try {
+            if (triples != null) {
+                for (Triple t : triples) {
+                    storageEngine.saveTriple(storeID, t);
                 }
             }
+        } catch (StorageEngineException e) {
+            storageEngine.deleteStore(storeID);
         }
+
     }
 
     @Override
-    public void uploadData(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException {
+    public void uploadData(String storeID, List<Triple> triples, Map<String, String> namespaces) throws StoreNotFoundException, InvalidNodeException, StorageEngineException {
         verifyStoreExists(storeID);
         if (namespaces != null)
             storageEngine.saveNamespaces(storeID, namespaces);
