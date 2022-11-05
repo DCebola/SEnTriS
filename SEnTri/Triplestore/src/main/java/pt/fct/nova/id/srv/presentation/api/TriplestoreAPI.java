@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.HttpResponseException;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
@@ -16,18 +15,18 @@ public interface TriplestoreAPI {
     @POST
     @Path("create/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
-    @Produces(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
     Response create(
             @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form) throws HttpResponseException;
+            @MultipartForm UploadForm form);
 
     @POST
     @Path("upload/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
-    @Produces(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
     Response upload(
             @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form) throws HttpResponseException;
+            @MultipartForm UploadForm form);
 
 
     @GET
@@ -42,14 +41,15 @@ public interface TriplestoreAPI {
             RDF_PROTOBUF})
     Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
 
-    @GET
+    @POST
     @Path("/query/{storeID}")
+    @Consumes(SPARQL_QUERY)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
 
     @DELETE
     @Path("/delete/{storeID}")
-    @Produces(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
     Response delete(@PathParam("storeID") String storeID);
 
 }

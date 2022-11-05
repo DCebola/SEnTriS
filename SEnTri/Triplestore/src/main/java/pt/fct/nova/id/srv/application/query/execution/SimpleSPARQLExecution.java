@@ -15,6 +15,8 @@ import java.util.*;
 
 public class SimpleSPARQLExecution implements SPARQLExecution {
 
+
+
     private final Map<String, Job> jobs;
     private final Map<String, IRITable> jobResults;
     private String current;
@@ -32,6 +34,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         this.current = null;
         jobResults = new HashMap<>();
     }
+
 
     @Override
     public Iterator<String> getPendingJobs() {
@@ -64,8 +67,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public ResultSet exec(String storeID, StorageEngine engine) throws SPARQLExecutionException{
-        SPARQLWorker worker = new SimpleSPARQLWorker(storeID, engine);
+    public ResultSet exec(SPARQLWorker worker) throws SPARQLExecutionException{
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));

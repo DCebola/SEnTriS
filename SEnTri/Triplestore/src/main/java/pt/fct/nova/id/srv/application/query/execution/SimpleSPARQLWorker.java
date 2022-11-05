@@ -36,13 +36,13 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
-        if (job instanceof GetJob) return execGet((GetJob) job);
+        if (job instanceof SearchJob) return execGet((SearchJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execGet(GetJob job) throws SPARQLExecutionException {
+    private IRITable execGet(SearchJob job) throws SPARQLExecutionException {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
@@ -57,7 +57,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             case SPO -> storageEngine.findAll(storeID, Var.alloc(s), Var.alloc(p), Var.alloc(o));
         };
         if (res == null)
-            throw new GetJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
+            throw new SearchJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
         return res;
     }
 

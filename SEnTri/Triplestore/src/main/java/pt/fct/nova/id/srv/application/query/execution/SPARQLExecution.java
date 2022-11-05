@@ -20,5 +20,5 @@ public interface SPARQLExecution {
 
     ResultSet getResults();
 
-    ResultSet exec(String storeID, StorageEngine storageEngine) throws SPARQLExecutionException;
+    ResultSet exec(SPARQLWorker worker) throws SPARQLExecutionException;
 }

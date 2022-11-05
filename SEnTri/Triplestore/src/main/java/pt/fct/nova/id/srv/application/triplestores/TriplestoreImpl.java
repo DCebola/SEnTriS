@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.query.QueryEngine;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
+import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLWorker;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
@@ -69,7 +70,7 @@ public class TriplestoreImpl implements Triplestore {
     public ResultSet executeQuery(String storeID, String query) throws StoreNotFoundException {
         verifyStoreExists(storeID);
         QueryExecutionPlan plan = queryEngine.getQueryPlan(query);
-        return new SimpleSPARQLExecution(plan).exec(storeID, storageEngine);
+        return new SimpleSPARQLExecution(plan).exec(new SimpleSPARQLWorker(storeID, storageEngine));
     }
 
     @Override

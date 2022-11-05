@@ -5,8 +5,10 @@ import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
+import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -90,5 +92,18 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
         } catch (Exception ignored) {
         }
 
+    }
+
+    @Override
+    public IRITable search(String storeID, List<String> trapdoors) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            List<Response<String>> responses;
+            trapdoors.forEach(p::get);
+            p.sync();
+
+        } catch (Exception e) {
+            throw new StorageEngineException();
+        }
     }
 }

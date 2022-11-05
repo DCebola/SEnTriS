@@ -63,7 +63,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private void generateGetJobs(OpBGP op) {
         List<Triple> patterns = op.getPattern().getList();
         int total_patterns = patterns.size();
-        List<GetJob> getJobs = new ArrayList<>(total_patterns);
+        List<SearchJob> searchJobs = new ArrayList<>(total_patterns);
 
         patterns.forEach(
                 t -> {
@@ -73,17 +73,17 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                     String jobID = generateID();
                     if (total_patterns == 1) {
                         parsed_op.put(op, jobID);
-                        plan.pushJob(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
+                        plan.pushJob(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                     } else
-                        getJobs.add(new GetJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
+                        searchJobs.add(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
                 }
         );
         if (total_patterns >= 2)
-            generateJoinPipeline(op, getJobs);
+            generateJoinPipeline(op, searchJobs);
     }
 
-    private void generateJoinPipeline(OpBGP op, List<GetJob> getJobs) {
-        int num_jobs = getJobs.size();
+    private void generateJoinPipeline(OpBGP op, List<SearchJob> searchJobs) {
+        int num_jobs = searchJobs.size();
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
         List<Job> joins = new ArrayList<>(num_jobs);
@@ -92,7 +92,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
         Set<Var> vars;
         for (int i = 0; i < num_jobs; i++) {
-            vars = extractVars(getJobs.get(i));
+            vars = extractVars(searchJobs.get(i));
             all_vars.addAll(vars);
             result_vars.add(vars);
             to_be_processed.add(i);
@@ -113,9 +113,9 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                     for (Var v : vars) {
                         if (!vars2.isEmpty() && vars2.contains(v)) {
                             compatible = i;
-                            if (current < num_jobs) l = getJobs.get(current);
+                            if (current < num_jobs) l = searchJobs.get(current);
                             else l = joins.get(current - num_jobs);
-                            if (i < num_jobs) r = getJobs.get(i);
+                            if (i < num_jobs) r = searchJobs.get(i);
                             else r = joins.get(i - num_jobs);
                             pipeline.add(l);
                             pipeline.add(r);
@@ -152,7 +152,7 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         }
     }
 
-    private Set<Var> extractVars(GetJob job) {
+    private Set<Var> extractVars(SearchJob job) {
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
