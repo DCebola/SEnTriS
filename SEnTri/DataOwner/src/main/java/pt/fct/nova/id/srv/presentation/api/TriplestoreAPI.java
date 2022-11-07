@@ -9,6 +9,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
+import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_QUERY;
 
 public interface TriplestoreAPI {
 
@@ -28,9 +29,10 @@ public interface TriplestoreAPI {
             @PathParam("storeID") String storeID,
             @MultipartForm UploadForm form) throws HttpResponseException;
 
-    @GET
-    @Path("query/{storeID}/")
+    @POST
+    @Path("/query/{storeID}")
+    @Consumes(SPARQL_QUERY)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query); //For testing
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
 
 }

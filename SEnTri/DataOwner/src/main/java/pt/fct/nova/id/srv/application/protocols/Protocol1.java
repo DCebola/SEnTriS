@@ -24,7 +24,6 @@ public class Protocol1 implements WriteProtocol {
 
     private final int batchLength;
     private final String storeID;
-
     private boolean toBeCreated;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;

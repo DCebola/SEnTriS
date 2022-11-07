@@ -17,5 +17,5 @@ public interface SPARQLWorker {
 
     IRITable exec(Job2 job, IRITable left, IRITable right) throws SPARQLExecutionException;
 
-    Collection<Binding> generateBindings(IRITable jobResults) throws SPARQLExecutionException;
+    Collection<Binding> generateBindings(IRITable jobResults);
 }

@@ -6,7 +6,12 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
+import pt.fct.nova.id.srv.application.clients.StorageClient;
+import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreClientException;
+import pt.fct.nova.id.srv.application.clients.exception.TriplestoreDeleteException;
+import pt.fct.nova.id.srv.application.protocols.Protocol2;
+import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.WriteProtocol;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
@@ -29,15 +34,27 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String ROLLBACK_ERROR = "Rollback Error: %s\nRoot: %s";
 
 
+
     @Override
-    public Response create(String storeID, SecureUploadForm form) {
-        //TODO: verify password to access/save keys/secrets.
+    public Response create(ProtocolVersion protocolVersion, String storeID, SecureUploadForm form) {
+        //TODO: check password && access
         try {
-            WriteProtocol protocol = new Protocol1(storeID);
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
-            Collections.shuffle(triples);
-            protocol.exec(triples);
-            //TODO: save keys/secrets
+            WriteProtocol protocol;
+            switch (protocolVersion){
+                case V1 -> {
+                    protocol = new Protocol1(storeID);
+                    Collections.shuffle(triples);
+                    protocol.exec(triples);
+                    StorageClient.saveProtocolSecrets(protocol);
+                }
+                case V2 -> {
+                    protocol = new Protocol2();
+                    Collections.shuffle(triples);
+                    protocol.exec(triples);
+                    StorageClient.saveProtocolSecrets(protocol);
+                }
+            }
             return Response.ok(SUCCESS_CREATE).build();
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
@@ -55,7 +72,6 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     }
 
     private Response rollback(String storeID, Exception e) {
-        /*
         try {
             TriplestoreClient.delete(storeID);
             if (e instanceof InvalidNodeException)
@@ -66,11 +82,6 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             return Response.ok(String.format(ROLLBACK_ERROR, e2.getMessage(), BAD_NODE))
                     .status(Response.Status.BAD_REQUEST).build();
         }
-        */
-        if (e instanceof InvalidNodeException)
-            return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
-        else
-            return Response.ok(String.format(CREATE_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
     }
 
     private Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
@@ -81,7 +92,12 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     }
 
     @Override
-    public Response upload(String storeID, SecureUploadForm form) {
+    public Response upload(ProtocolVersion protocolVersion, String storeID, SecureUploadForm form) {
+        return null;
+    }
+
+    @Override
+    public Response answerSPARQLQuery(ProtocolVersion protocolVersion, String storeID, String query) {
         return null;
     }
 

@@ -19,7 +19,7 @@ public class MemIRITable implements IRITable {
         patterns = new HashMap<>();
     }
 
-    public MemIRITable(Set<Var> vars) {
+    public MemIRITable(Iterable<Var> vars) {
         iris = new HashMap<>();
         patterns = new HashMap<>();
         for (Var v : vars) {

@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.presentation.api;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.presentation.api.dtos.SearchBody;
 
 import java.util.List;
 import java.util.Map;
@@ -29,10 +30,10 @@ public interface EncryptedTriplestoreAPI {
             Map<String, String> encryptedNodes);
 
     @POST
-    @Path("/search/{storeID}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_JSON)
-    Response search(@PathParam("storeID") String storeID, List<String> queryExecutionPlan);
+    @Path("/query/{storeID}")
+    @Consumes(SPARQL_QUERY)
+    @Produces(SPARQL_JSON_RESULTS)
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID, QueryExecutionPlan queryExecutionPlan);
 
     @DELETE
     @Path("/delete/{storeID}")

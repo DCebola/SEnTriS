@@ -1,11 +1,13 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
+import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -13,11 +15,9 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
 public class EncryptedRStorageEngine implements EncryptedStorageEngine {
@@ -95,15 +95,43 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
     }
 
     @Override
-    public IRITable search(String storeID, List<String> trapdoors) {
+    public IRITable search(String storeID, Var var1, Var var2, List<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            List<Response<String>> responses;
-            trapdoors.forEach(p::get);
+            MemIRITable res = new MemIRITable();
+            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key -> responses.add(p.get(key)));
             p.sync();
+            String c1, c2, p_idx;
+            for (int i = 0; i < responses.size(); i += 2) {
+                c1 = responses.get(i).get();
+                c2 = responses.get(i + 1).get();
+                if (c1 != null && c2 != null) {
+                    p_idx = generateID();
+                    res.add(p_idx, var1, c1);
+                    res.add(p_idx, var2, c2);
+                }
+            }
+            return res;
+        }
+    }
 
-        } catch (Exception e) {
-            throw new StorageEngineException();
+    @Override
+    public IRITable search(String storeID, Var var, List<String> trapdoors) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            MemIRITable res = new MemIRITable();
+            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key -> responses.add(p.get(key)));
+            p.sync();
+            String c;
+            for (Response<String> r : responses) {
+                c = r.get();
+                if (c != null) {
+                    res.add(generateID(), var, c);
+                }
+            }
+            return res;
         }
     }
 }

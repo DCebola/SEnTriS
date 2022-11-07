@@ -1,35 +1,37 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.graph.Node;
+import jakarta.ws.rs.core.Response;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.Utils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
+import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
+
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 
+
+import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static pt.fct.nova.id.srv.application.Utils.generateID;
-import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
-public class SimpleSPARQLWorker implements SPARQLWorker {
-
-    private final StorageEngine storageEngine;
+public class SecureSPARQLWorker implements SPARQLWorker {
+    private final EncryptedStorageEngine storageEngine;
     private final String storeID;
     private final SPARQLResultType resultType;
 
-    public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
+    public SecureSPARQLWorker(String storeID, EncryptedStorageEngine storageEngine) {
         this.storeID = storeID;
         this.storageEngine = storageEngine;
         resultType = new SimpleSPARQLResultType();
@@ -37,68 +39,23 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
-        if (job instanceof SearchJob) return execGet((SearchJob) job);
+        if (job instanceof SecureSearchJob) return execSearch((SecureSearchJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
-        else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
+        else if (job instanceof SecureValuesJob) return ((SecureValuesJob) job).getValues();
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execGet(SearchJob job) throws SPARQLExecutionException {
-        Node s = job.getSubject();
-        Node p = job.getPredicate();
-        Node o = job.getObject();
-        VariablesPattern vp = job.getVariablesPattern();
-        IRITable res = switch (vp) {
-            case S -> retrieveGetResults(S, Var.alloc(s), p, o);
-            case P -> retrieveGetResults(P, Var.alloc(p), s, o);
-            case O -> retrieveGetResults(O, Var.alloc(o), s, p);
-            case SP -> retrieveGetResults(SP, Var.alloc(s), Var.alloc(p), o);
-            case SO -> retrieveGetResults(SO, Var.alloc(s), Var.alloc(o), p);
-            case PO -> retrieveGetResults(PO, Var.alloc(p), Var.alloc(o), s);
-            case SPO -> storageEngine.findAll(storeID, Var.alloc(s), Var.alloc(p), Var.alloc(o));
-        };
-        if (res == null)
-            throw new SearchJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
-        return res;
-    }
-
-    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        if (varPattern == VariablesPattern.S) return storageEngine.findSubjects(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.P) return storageEngine.findPredicates(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.O) return storageEngine.findObjects(storeID, node1, node2, var);
-        return null;
-    }
-
-    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
-        if (varPattern == VariablesPattern.SP)
-            return storageEngine.findSP(storeID, node, var1, var2);
-        else if (varPattern == VariablesPattern.SO)
-            return storageEngine.findSO(storeID, node, var1, var2);
-        else if (varPattern == VariablesPattern.PO)
-            return storageEngine.findPO(storeID, node, var1, var2);
-        return null;
-    }
-
-    private IRITable execValues(ValuesJob job) {
-        IRITable res = new MemValuesTable();
-        Var var;
-        Node node;
-        Iterator<Var> vars;
-        for (Binding binding : job.getValues()) {
-            String p_idx = generateID();
-            vars = binding.vars();
-            while (vars.hasNext()) {
-                var = vars.next();
-                node = binding.get(var);
-                try {
-                    res.add(p_idx, var, storageEngine.parseNodeIRI(node));
-                } catch (InvalidNodeException e) {
-                    e.printStackTrace();
-                    throw new ValuesNodeException(job.getClass().toString(), job.getID(), node);
-                }
-            }
+    private IRITable execSearch(SecureSearchJob job) {
+        List<Var> vars = job.getVars();
+        int numVars = vars.size();
+        if (numVars > 2 || numVars == 0)
+            throw new SecureSearchException(job.getClass().toString(), job.getID(), numVars);
+        else {
+            if (numVars == 2)
+                return storageEngine.search(storeID, vars.get(0), vars.get(1), job.getTrapdoors());
+            else
+                return storageEngine.search(storeID, vars.get(0), job.getTrapdoors());
         }
-        return res;
     }
 
     @Override
@@ -190,40 +147,40 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public Collection<Binding> generateBindings(IRITable jobResults) {
-            Collection<Binding> res;
-            boolean isDistinct = resultType.isDistinct();
-            boolean isOrdered = resultType.isOrdered();
-            if (isDistinct && isOrdered)
-                res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
-            else if (isDistinct)
-                res = generateBindings(new HashSet<>(), jobResults);
-            else {
-                res = generateBindings(new LinkedList<>(), jobResults);
-                if (isOrdered)
-                    res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
-            }
-            if (resultType.isSliced()) {
-                long offset = resultType.getOffset();
-                long length = resultType.getLength();
-                if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                    res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
-                else if (offset != Query.NOLIMIT)
-                    res = res.stream().skip(offset).collect(Collectors.toList());
-                else if (length != Query.NOLIMIT)
-                    res = res.stream().limit(length).collect(Collectors.toList());
-            }
-            return res;
+        Collection<Binding> res;
+        boolean isDistinct = resultType.isDistinct();
+        boolean isOrdered = resultType.isOrdered();
+        if (isDistinct && isOrdered)
+            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
+        else if (isDistinct)
+            res = generateBindings(new HashSet<>(), jobResults);
+        else {
+            res = generateBindings(new LinkedList<>(), jobResults);
+            if (isOrdered)
+                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
+        }
+        if (resultType.isSliced()) {
+            long offset = resultType.getOffset();
+            long length = resultType.getLength();
+            if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
+                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+            else if (offset != Query.NOLIMIT)
+                res = res.stream().skip(offset).collect(Collectors.toList());
+            else if (length != Query.NOLIMIT)
+                res = res.stream().limit(length).collect(Collectors.toList());
+        }
+        return res;
     }
 
     private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         BindingBuilder builder = Binding.builder();
         int i;
-        for (List<String> p_iris : jobResults.getPatterns()) {
+        for (List<String> p_values : jobResults.getPatterns()) {
             i = 0;
-            for (String iri : p_iris) {
-                if (iri != null)
-                    builder.add(vars.get(i), storageEngine.generateNode(iri));
+            for (String val : p_values) {
+                if (val != null)
+                    builder.add(vars.get(i), NodeFactory.createURI(val));
                 i++;
             }
             bindings.add(builder.build());
