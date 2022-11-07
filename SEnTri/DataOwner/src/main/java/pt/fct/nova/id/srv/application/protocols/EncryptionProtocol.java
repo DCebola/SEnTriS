@@ -15,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-public interface WriteProtocol {
+public interface EncryptionProtocol {
     String KEYWORD_SEPARATOR = System.getenv("KEYWORD_SEPARATOR");
     String COMPOUND_KEYWORD = "%s".concat(KEYWORD_SEPARATOR).concat("%s");
 

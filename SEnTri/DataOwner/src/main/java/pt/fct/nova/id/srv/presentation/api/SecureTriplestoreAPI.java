@@ -25,11 +25,10 @@ public interface SecureTriplestoreAPI {
             @MultipartForm SecureUploadForm form);
 
     @POST
-    @Path("/{protocolVersion}/upload/{storeID}")
+    @Path("/upload/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response upload(
-            @PathParam("protocolVersion") ProtocolVersion protocolVersion,
             @PathParam("storeID") String storeID,
             @MultipartForm SecureUploadForm form);
 

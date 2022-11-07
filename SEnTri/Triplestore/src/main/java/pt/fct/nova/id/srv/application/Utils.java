@@ -1,23 +1,10 @@
 package pt.fct.nova.id.srv.application;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.SortCondition;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLResultType;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
-import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 

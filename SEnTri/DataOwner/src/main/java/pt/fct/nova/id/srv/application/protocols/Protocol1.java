@@ -20,7 +20,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class Protocol1 implements WriteProtocol {
+public class Protocol1 implements EncryptionProtocol {
 
     private final int batchLength;
     private final String storeID;
@@ -30,29 +30,88 @@ public class Protocol1 implements WriteProtocol {
     private final Map<String, String> encryptedT;
     private final Map<String, Pair<Integer, byte[]>> keywords;
 
-    public Protocol1(int batchLength, String storeID, Map<String, Pair<Integer, byte[]>> keywords) throws NoSuchAlgorithmException {
+    public Protocol1(int batchLength, String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
         this.storeID = storeID;
-        this.iv = SymmetricCipher.generateIV();
-        this.k1 = SymmetricCipher.generateKey();
-        this.k2 = SymmetricCipher.generateKey();
-        this.k3 = SymmetricCipher.generateKey();
+        this.iv = iv;
+        this.k1 = k1;
+        this.k2 = k2;
+        this.k3 = k3;
         this.encryptedT = new HashMap<>();
-        this.keywords = keywords;
+        this.keywords = new HashMap<>();
         this.batchLength = batchLength;
         this.toBeCreated = false;
     }
 
-    public Protocol1(String storeID, Map<String, Pair<Integer, byte[]>> keywords) throws NoSuchAlgorithmException {
+    public Protocol1(String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
+        this.storeID = storeID;
+        this.iv = iv;
+        this.k1 = k1;
+        this.k2 = k2;
+        this.k3 = k3;
+        this.encryptedT = new HashMap<>();
+        this.keywords = new HashMap<>();
+        this.batchLength = -1;
+        this.toBeCreated = false;
+
+    }
+
+    public Map<String, Pair<Integer, byte[]>> fetchKeywords(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Set<String> skip = new HashSet<>();
+        HashMap<String, String> trapdoors = new HashMap<>();
+        String s, p, o, po, so, sp;
+        for (Triple t : triples) {
+            s = ProtocolUtils.parseNodeIRI(t.getSubject());
+            p = ProtocolUtils.parseNodeIRI(t.getSubject());
+            o = ProtocolUtils.parseNodeIRI(t.getSubject());
+            po = String.format(COMPOUND_KEYWORD, p, o);
+            so = String.format(COMPOUND_KEYWORD, s, o);
+            sp = String.format(COMPOUND_KEYWORD, s, p);
+            if (!skip.contains(s))
+                trapdoors.put(s, generateTrapdoor(s));
+            if (!skip.contains(p))
+                trapdoors.put(p, generateTrapdoor(p));
+            if (!skip.contains(o))
+                trapdoors.put(o, generateTrapdoor(o));
+            if (!skip.contains(po))
+                trapdoors.put(po, generateTrapdoor(po));
+            if (!skip.contains(so))
+                trapdoors.put(so, generateTrapdoor(so));
+            if (!skip.contains(sp))
+                trapdoors.put(sp, generateTrapdoor(sp));
+            skip.add(s);
+            skip.add(p);
+            skip.add(o);
+            skip.add(po);
+            skip.add(so);
+            skip.add(sp);
+        }
+        return fetchKeywords(trapdoors);
+    }
+
+    private Map<String, Pair<Integer, byte[]>> fetchKeywords(HashMap<String, String> trapdoors) {
+        //TODO: fetch data
+        return new HashMap<>();
+    }
+
+    private String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return Base64.getEncoder().encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
+    }
+
+    public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
+        keywords.putAll(values);
+    }
+
+
+    public Protocol1(int batchLength, String storeID) throws NoSuchAlgorithmException {
         this.storeID = storeID;
         this.iv = SymmetricCipher.generateIV();
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
         this.encryptedT = new HashMap<>();
-        this.keywords = keywords;
-        this.batchLength = -1;
-        this.toBeCreated = false;
-
+        this.keywords = new HashMap<>();
+        this.batchLength = batchLength;
+        this.toBeCreated = true;
     }
 
     public Protocol1(String storeID) throws NoSuchAlgorithmException {
@@ -104,7 +163,7 @@ public class Protocol1 implements WriteProtocol {
             InvalidKeyException, RuntimeException, TriplestoreCreateException, UnsupportedEncodingException, TriplestoreUploadException {
         String s, p, o;
         int i = 0;
-        for(Triple t: triples) {
+        for (Triple t : triples) {
             s = ProtocolUtils.parseNodeIRI(t.getSubject());
             p = ProtocolUtils.parseNodeIRI(t.getSubject());
             o = ProtocolUtils.parseNodeIRI(t.getSubject());
@@ -188,5 +247,6 @@ public class Protocol1 implements WriteProtocol {
             keywords.put(keyword, new Pair<>(entry.getLeft() + 1, SymmetricCipher.incrementIV(entry.getRight())));
         return entry.getRight();
     }
+
 
 }

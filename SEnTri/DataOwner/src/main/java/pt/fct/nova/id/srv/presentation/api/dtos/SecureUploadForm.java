@@ -5,7 +5,6 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
 import java.io.InputStream;
-import java.util.Map;
 
 public class SecureUploadForm {
     @FormParam("password")
@@ -15,24 +14,34 @@ public class SecureUploadForm {
     @PartType(MediaType.TEXT_PLAIN)
     private final String syntax;
 
+    @FormParam("batchSize")
+    @PartType(MediaType.TEXT_PLAIN)
+    private final Integer batchLength;
+
     @FormParam("contents")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final InputStream contents;
 
-    public SecureUploadForm(String password, String syntax, InputStream contents) {
+    public SecureUploadForm(String password, String syntax, String batchLength, InputStream contents) {
         this.password = password;
         this.syntax = syntax;
+        this.batchLength = Integer.parseInt(batchLength);
         this.contents = contents;
     }
 
     public SecureUploadForm() {
+        this.batchLength = -1;
         this.password = null;
         this.syntax = null;
         this.contents = null;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean isBatched() {
+        return batchLength > 0;
+    }
+
+    public char[] getPassword() {
+        return password.toCharArray();
     }
 
     public String getSyntax() {
@@ -44,4 +53,7 @@ public class SecureUploadForm {
         return contents;
     }
 
+    public int getBatchLength() {
+        return batchLength;
+    }
 }
