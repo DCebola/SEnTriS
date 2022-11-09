@@ -7,6 +7,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
@@ -31,7 +32,7 @@ public class Utils {
 
     public static Response buildResponse(CloseableHttpResponse response) {
         try {
-            return Response.ok(new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8))
+            return Response.ok(EntityUtils.toString(response.getEntity()))
                     .status(response.getStatusLine().getStatusCode()).build();
         } catch (IOException e) {
             return Response.ok().status(Response.Status.INTERNAL_SERVER_ERROR).build();

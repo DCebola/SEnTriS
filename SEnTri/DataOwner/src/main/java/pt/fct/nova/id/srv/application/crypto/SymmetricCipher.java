@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.crypto;
 
 import javax.crypto.*;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -8,6 +9,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class SymmetricCipher {
     private static final String ALGORITHM = System.getenv("SYMMETRIC_ALGORITHM");
@@ -23,11 +26,20 @@ public class SymmetricCipher {
         checkAlgorithm(ALGORITHM + "/" + MODE + "/" + PADDING);
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] ciphertext = cipher.doFinal(input);
-        return ByteBuffer.allocate(ciphertext.length + IV_SIZE)
-                .put(ciphertext)
+        byte[] cipherText = cipher.doFinal(input);
+        return ByteBuffer.allocate(cipherText.length + IV_SIZE)
+                .put(cipherText)
                 .put(iv)
                 .array();
+    }
+
+    public static byte[] decrypt(SecretKey key, byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        checkAlgorithm(ALGORITHM + "/" + MODE + "/" + PADDING);
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(Arrays.copyOfRange(cipherText, cipherText.length - IV_SIZE, cipherText.length)));
+        return cipher.doFinal(Base64.getDecoder().decode(cipherText));
     }
 
     public static byte[] encrypt(byte[] input, SecretKey key) throws NoSuchPaddingException,
@@ -57,4 +69,6 @@ public class SymmetricCipher {
         BigInteger ivAsBigInt = new BigInteger(iv);
         return ivAsBigInt.add(BigInteger.ONE).toByteArray();
     }
+
+
 }

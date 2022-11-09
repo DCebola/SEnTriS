@@ -4,6 +4,7 @@ import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreCreateException;
+import pt.fct.nova.id.srv.application.clients.exception.TriplestoreSearchException;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreUploadException;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -54,53 +55,6 @@ public class Protocol1 implements EncryptionProtocol {
         this.toBeCreated = false;
 
     }
-
-    public Map<String, Pair<Integer, byte[]>> fetchKeywords(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Set<String> skip = new HashSet<>();
-        HashMap<String, String> trapdoors = new HashMap<>();
-        String s, p, o, po, so, sp;
-        for (Triple t : triples) {
-            s = ProtocolUtils.parseNodeIRI(t.getSubject());
-            p = ProtocolUtils.parseNodeIRI(t.getSubject());
-            o = ProtocolUtils.parseNodeIRI(t.getSubject());
-            po = String.format(COMPOUND_KEYWORD, p, o);
-            so = String.format(COMPOUND_KEYWORD, s, o);
-            sp = String.format(COMPOUND_KEYWORD, s, p);
-            if (!skip.contains(s))
-                trapdoors.put(s, generateTrapdoor(s));
-            if (!skip.contains(p))
-                trapdoors.put(p, generateTrapdoor(p));
-            if (!skip.contains(o))
-                trapdoors.put(o, generateTrapdoor(o));
-            if (!skip.contains(po))
-                trapdoors.put(po, generateTrapdoor(po));
-            if (!skip.contains(so))
-                trapdoors.put(so, generateTrapdoor(so));
-            if (!skip.contains(sp))
-                trapdoors.put(sp, generateTrapdoor(sp));
-            skip.add(s);
-            skip.add(p);
-            skip.add(o);
-            skip.add(po);
-            skip.add(so);
-            skip.add(sp);
-        }
-        return fetchKeywords(trapdoors);
-    }
-
-    private Map<String, Pair<Integer, byte[]>> fetchKeywords(HashMap<String, String> trapdoors) {
-        //TODO: fetch data
-        return new HashMap<>();
-    }
-
-    private String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return Base64.getEncoder().encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
-    }
-
-    public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
-        keywords.putAll(values);
-    }
-
 
     public Protocol1(int batchLength, String storeID) throws NoSuchAlgorithmException {
         this.storeID = storeID;
@@ -186,6 +140,27 @@ public class Protocol1 implements EncryptionProtocol {
         encryptKeywordInfo();
     }
 
+    public Map<String, Pair<Integer, byte[]>> fetchKeywords(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
+        HashMap<String, String> trapdoors = new HashMap<>();
+        Set<String> skip = new HashSet<>();
+        String s, p, o, po, so, sp;
+        for (Triple t : triples) {
+            s = ProtocolUtils.parseNodeIRI(t.getSubject());
+            p = ProtocolUtils.parseNodeIRI(t.getPredicate());
+            o = ProtocolUtils.parseNodeIRI(t.getObject());
+            po = String.format(COMPOUND_KEYWORD, p, o);
+            so = String.format(COMPOUND_KEYWORD, s, o);
+            sp = String.format(COMPOUND_KEYWORD, s, p);
+            generateKeywordTrapdoor(trapdoors, skip, s);
+            generateKeywordTrapdoor(trapdoors, skip, p);
+            generateKeywordTrapdoor(trapdoors, skip, o);
+            generateKeywordTrapdoor(trapdoors, skip, po);
+            generateKeywordTrapdoor(trapdoors, skip, so);
+            generateKeywordTrapdoor(trapdoors, skip, sp);
+        }
+        return fetchKeywords(trapdoors);
+    }
+
     private void save() throws UnsupportedEncodingException, TriplestoreCreateException, TriplestoreUploadException {
         if (toBeCreated) {
             TriplestoreClient.create(storeID, encryptedT);
@@ -205,7 +180,7 @@ public class Protocol1 implements EncryptionProtocol {
         for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
             Pair<Integer, byte[]> value = entry.getValue();
             byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
-            byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(4).putInt(value.getLeft()).array());
+            byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(Integer.BYTES).putInt(value.getLeft()).array());
             encryptedT.put(
                     Base64.getEncoder().encodeToString(st),
                     Base64.getEncoder().encodeToString(ct)
@@ -246,6 +221,53 @@ public class Protocol1 implements EncryptionProtocol {
         } else
             keywords.put(keyword, new Pair<>(entry.getLeft() + 1, SymmetricCipher.incrementIV(entry.getRight())));
         return entry.getRight();
+    }
+
+
+
+    private void generateKeywordTrapdoor(HashMap<String, String> trapdoors, Set<String> skip, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (!skip.contains(keyword)) {
+            trapdoors.put(keyword, generateTrapdoor(keyword));
+            skip.add(keyword);
+        }
+    }
+
+    private Map<String, Pair<Integer, byte[]>> fetchKeywords(HashMap<String, String> keywordsAndTrapdoors) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
+        List<String> trapdoors = new ArrayList<>(keywordsAndTrapdoors.size());
+        String[] keywords = new String[keywordsAndTrapdoors.size()];
+        int i = 0;
+        for (Map.Entry<String, String> entry : keywordsAndTrapdoors.entrySet()) {
+            trapdoors.add(entry.getKey());
+            keywords[i] = entry.getValue();
+            i++;
+        }
+        List<String> keywordsTotals = TriplestoreClient.search(storeID, trapdoors);
+        int max = -1;
+        int total;
+        Map<Integer, byte[]> generatedIvs = new HashMap<>();
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        Map<String, Pair<Integer, byte[]>> res = new HashMap<>();
+        i = 0;
+        for (String encTotal : keywordsTotals) {
+            total = buffer.put(SymmetricCipher.decrypt(k2, Base64.getDecoder().decode(encTotal))).rewind().getInt();
+            buffer.reset();
+            if (total > max) {
+                for (int j = 0; j < total - max; j++)
+                    generatedIvs.put(total - j, SymmetricCipher.incrementIV(iv));
+                max = total;
+            }
+            res.put(keywords[i], new Pair<>(total, generatedIvs.get(total)));
+            i++;
+        }
+        return res;
+    }
+
+    private String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return Base64.getEncoder().encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
+    }
+
+    public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
+        keywords.putAll(values);
     }
 
 

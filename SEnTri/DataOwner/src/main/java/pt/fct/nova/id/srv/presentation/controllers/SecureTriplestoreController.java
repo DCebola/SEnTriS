@@ -8,10 +8,7 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.clients.StorageClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreClientException;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreCreateException;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreDeleteException;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreUploadException;
+import pt.fct.nova.id.srv.application.clients.exception.*;
 import pt.fct.nova.id.srv.application.crypto.KeyStoreUtils;
 import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
@@ -46,6 +43,8 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String CREATE_ERROR = "Error during protocol execution while trying to create of triplestore %s: %s";
     private static final String ROLLBACK_ERROR = "Rollback Error: %s\nRoot: %s";
+
+    private static final String NOT_IMPLEMENTED = "Not implemented.";
 
     @Override
     public Response create(ProtocolVersion protocolVersion, String storeID, SecureUploadForm form) {
@@ -123,8 +122,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                 case V1 -> {
                     Protocol1 p = initProtocol1(storeID, form, secrets);
                     Collections.shuffle(triples);
-                    //TODO: batch update
-                    p.updateKeywords(p.fetchKeywords(triples));
+                    fetchAndUpdateKeywords(form, triples, p);
                     execEncryptionProtocol(p, triples, form.getPassword());
                 }
                 case V2 -> {
@@ -137,12 +135,26 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             return Response.ok(SUCCESS_UPLOAD).build();
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
-        } catch (InvalidNodeException | TriplestoreClientException e) {
+        } catch (InvalidNodeException | TriplestoreUploadException | TriplestoreCreateException e) {
             return rollback(storeID, e);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(PARSING_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private static void fetchAndUpdateKeywords(SecureUploadForm form, List<Triple> triples, Protocol1 p) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
+        if (form.isBatched()) {
+            int total = triples.size();
+            int batchLength = form.getBatchLength();
+            int rounds = total / batchLength;
+            int remainder = total % batchLength;
+            for (int i = 1; i < rounds; i += batchLength)
+                p.updateKeywords(p.fetchKeywords(triples.subList(i, i + batchLength)));
+            if (remainder > 0)
+                p.updateKeywords(p.fetchKeywords(triples.subList(total - remainder, total)));
+        } else
+            p.updateKeywords(p.fetchKeywords(triples));
     }
 
     private static Protocol1 initProtocol1(String storeID, SecureUploadForm form, List<String> secrets) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
@@ -158,7 +170,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
 
     @Override
     public Response answerSPARQLQuery(ProtocolVersion protocolVersion, String storeID, String query) {
-        return null;
+        return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
 }

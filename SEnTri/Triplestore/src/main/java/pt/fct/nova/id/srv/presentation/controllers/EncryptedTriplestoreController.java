@@ -26,7 +26,6 @@ import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     private static final String SAVE_ERROR_MSG = "Error saving encrypted contents.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
-
     private static final String QUERY_ERROR_MSG = "Error while executing query.";
     private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
     private static final String STORE_NOT_FOUND = "Store %s not found.";
