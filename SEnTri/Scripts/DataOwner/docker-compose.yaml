@@ -1,7 +1,25 @@
 version: "3.9"
 
 services:
-    data_owner:
+  data-owner-db:
+      image: redis:latest
+      container_name: sentri-client-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./db_data:/data
+        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      expose:
+        - "6379"
+      networks:
+        - sentri-data-owner-backend
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    data-owner:
       image: ${DOCKER_REGISTRY}/sentri-data-owner
       container_name: sentri-data-owner
       command: >
@@ -22,7 +40,13 @@ services:
         - ./system-properties.env
         - ../Secrets/data-owner-secrets.env
 
+volumes:
+    db_data:
+
 networks:
+  sentri-data-owner-backend:
+    name: sentri-data-owner-backend
+    driver: bridge
   sentri-data-owner-frontend:
     name: sentri-data-owner-frontend
     driver: bridge
