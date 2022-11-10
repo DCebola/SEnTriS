@@ -30,6 +30,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
     private static final String STORE_NOT_FOUND = "Store %s not found.";
     private static final String SUCCESS_DELETE = "Store %s deleted.";
+    private static final String SUCCESS_DELETE_BATCH = "Successful deletion of values at store %s.";
 
     EncryptedStorageEngine storageEngine = new EncryptedRStorageEngine();
     EncryptedTriplestore encryptedTriplestore = new EncryptedTriplestoreImpl(storageEngine);
@@ -75,9 +76,29 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
+    public Response search(String storeID, List<String> trapdoors) {
+        try {
+            encryptedTriplestore.search(storeID, trapdoors);
+            return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
+        } catch (StoreNotFoundException e) {
+            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    @Override
     public Response delete(String storeID) {
         try {
             encryptedTriplestore.delete(storeID);
+            return Response.ok(String.format(SUCCESS_DELETE_BATCH, storeID)).build();
+        } catch (StoreNotFoundException e) {
+            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    @Override
+    public Response delete(String storeID, List<String> trapdoors) {
+        try {
+            encryptedTriplestore.delete(storeID, trapdoors);
             return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
         } catch (StoreNotFoundException e) {
             return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();

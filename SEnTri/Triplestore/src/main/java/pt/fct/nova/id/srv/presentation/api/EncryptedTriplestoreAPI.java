@@ -35,8 +35,20 @@ public interface EncryptedTriplestoreAPI {
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@PathParam("storeID") String storeID, QueryExecutionPlan queryExecutionPlan);
 
+    @POST
+    @Path("/search/{storeID}")
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    Response search(@PathParam("storeID") String storeID, List<String> trapdoors);
+
     @DELETE
     @Path("/delete/{storeID}")
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("storeID") String storeID);
+
+    @POST
+    @Path("/delete/{storeID}")
+    @Consumes(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
+    Response delete(@PathParam("storeID") String storeID, List<String> trapdoors);
 }

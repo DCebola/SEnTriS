@@ -11,13 +11,16 @@ import java.util.Map;
 
 public interface EncryptedStorageEngine {
 
-    void setupStore(String storeID) throws StorageEngineException;
+    void setup(String storeID) throws StorageEngineException;
 
-    void deleteStore(String storeID) throws StorageEngineException;
+    void delete(String storeID) throws StorageEngineException;
+
+    void delete(String storeID, List<String> trapdoors) throws StorageEngineException;
 
     void save(String storeID, Map<String, String> encryptedNodes) throws StorageEngineException;
 
     void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException;
+    List<String> search(String storeID, List<String> trapdoors);
 
     IRITable search(String storeID, Var var, List<String> trapdoors);
 

@@ -111,7 +111,7 @@ public class RStorageEngine implements StorageEngine {
             cursor = scanResult.getCursor();
         } while (!cursor.equals(SCAN_POINTER_START));
         Transaction t = jedis.multi();
-        t.del(collector.toArray(String[]::new));
+        collector.forEach(t::del);
         t.del(String.format(STORE_STATE, storeID));
         t.exec();
     }

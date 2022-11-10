@@ -31,24 +31,24 @@ public class Protocol1 implements EncryptionProtocol {
     private final Map<String, String> encryptedT;
     private final Map<String, Pair<Integer, byte[]>> keywords;
 
-    public Protocol1(int batchLength, String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
-        this.storeID = storeID;
+    public Protocol1(int batchLength, String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.iv = iv;
         this.k1 = k1;
         this.k2 = k2;
         this.k3 = k3;
+        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = batchLength;
         this.toBeCreated = false;
     }
 
-    public Protocol1(String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
-        this.storeID = storeID;
+    public Protocol1(String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.iv = iv;
         this.k1 = k1;
         this.k2 = k2;
         this.k3 = k3;
+        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = -1;
@@ -56,24 +56,24 @@ public class Protocol1 implements EncryptionProtocol {
 
     }
 
-    public Protocol1(int batchLength, String storeID) throws NoSuchAlgorithmException {
-        this.storeID = storeID;
+    public Protocol1(int batchLength, String storeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         this.iv = SymmetricCipher.generateIV();
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
+        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = batchLength;
         this.toBeCreated = true;
     }
 
-    public Protocol1(String storeID) throws NoSuchAlgorithmException {
-        this.storeID = storeID;
+    public Protocol1(String storeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         this.iv = SymmetricCipher.generateIV();
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
+        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = -1;

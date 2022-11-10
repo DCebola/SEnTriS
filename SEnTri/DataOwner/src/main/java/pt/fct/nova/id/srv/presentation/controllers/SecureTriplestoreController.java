@@ -157,7 +157,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             p.updateKeywords(p.fetchKeywords(triples));
     }
 
-    private static Protocol1 initProtocol1(String storeID, SecureUploadForm form, List<String> secrets) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException {
+    private static Protocol1 initProtocol1(String storeID, SecureUploadForm form, List<String> secrets) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         SecretKey k1 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_1), form.getPassword());
         SecretKey k2 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_2), form.getPassword());
         SecretKey k3 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_3), form.getPassword());

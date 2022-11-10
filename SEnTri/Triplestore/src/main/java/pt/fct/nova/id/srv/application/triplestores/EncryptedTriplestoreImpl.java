@@ -1,12 +1,11 @@
 package pt.fct.nova.id.srv.application.triplestores;
 
-import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
 import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 
+import java.util.List;
 import java.util.Map;
 
 public class EncryptedTriplestoreImpl implements EncryptedTriplestore {
@@ -20,7 +19,7 @@ public class EncryptedTriplestoreImpl implements EncryptedTriplestore {
     @Override
     public void createDataset(String storeID, Map<String, String> encryptedNodes) throws StoreAlreadyExistsException {
         verifyStoreDoesNotExist(storeID);
-        storageEngine.setupStore(storeID);
+        storageEngine.setup(storeID);
         saveNodes(storeID, encryptedNodes);
 
     }
@@ -31,7 +30,7 @@ public class EncryptedTriplestoreImpl implements EncryptedTriplestore {
                 storageEngine.save(storeID, encryptedNodes);
             }
         } catch (StorageEngineException e) {
-            storageEngine.deleteStore(storeID);
+            storageEngine.delete(storeID);
         }
     }
 
@@ -44,7 +43,19 @@ public class EncryptedTriplestoreImpl implements EncryptedTriplestore {
     @Override
     public void delete(String storeID) {
         verifyStoreExists(storeID);
-        storageEngine.deleteStore(storeID);
+        storageEngine.delete(storeID);
+    }
+
+    @Override
+    public void delete(String storeID, List<String> trapdoors) {
+        verifyStoreExists(storeID);
+        storageEngine.delete(storeID, trapdoors);
+    }
+
+    @Override
+    public List<String> search(String storeID, List<String> trapdoors) {
+        verifyStoreExists(storeID);
+        return storageEngine.search(storeID, trapdoors);
     }
 
     private void verifyStoreExists(String storeID) throws StoreNotFoundException {

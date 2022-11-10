@@ -11,7 +11,6 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 
 public interface TriplestoreAPI {
 
-
     @POST
     @Path("create/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
@@ -27,7 +26,6 @@ public interface TriplestoreAPI {
     Response upload(
             @PathParam("storeID") String storeID,
             @MultipartForm UploadForm form);
-
 
     @GET
     @Path("/download/{storeID}")
