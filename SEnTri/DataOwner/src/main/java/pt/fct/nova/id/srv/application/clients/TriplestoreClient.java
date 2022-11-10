@@ -68,11 +68,13 @@ public class TriplestoreClient {
         }
     }
 
-    public static Response delete(String storeID, List<String> trapdoors) throws UnsupportedEncodingException, TriplestoreDeleteException {
+    public static Response delete(String storeID, List<String> trapdoors) throws TriplestoreDeleteException {
         try (Response response = buildResponse(sendRequest(storeID, new StringEntity(gson.toJson(trapdoors)), DELETE_PATH))) {
             if (response.getStatus() != Response.Status.OK.getStatusCode())
                 throw new TriplestoreDeleteException(String.format(ERROR_MESSAGE, DELETE, response.getStatus(), response.getEntity().toString()));
             else return response;
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 

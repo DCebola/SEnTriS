@@ -135,7 +135,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             return Response.ok(SUCCESS_UPLOAD).build();
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
-        } catch (InvalidNodeException | TriplestoreUploadException | TriplestoreCreateException e) {
+        } catch (InvalidNodeException | TriplestoreUploadException e) {
             return rollback(storeID, e);
         } catch (Exception e) {
             e.printStackTrace();

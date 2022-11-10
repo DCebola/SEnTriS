@@ -40,5 +40,4 @@ public interface SecureTriplestoreAPI {
             @PathParam("protocolVersion") ProtocolVersion protocolVersion,
             @PathParam("storeID") String storeID,
             String query);
-
 }
