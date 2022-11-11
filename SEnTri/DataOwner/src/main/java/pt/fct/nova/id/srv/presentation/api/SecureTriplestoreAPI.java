@@ -2,11 +2,9 @@ package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.HttpResponseException;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
