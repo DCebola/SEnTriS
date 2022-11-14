@@ -22,10 +22,9 @@ public final class PasswordUtils {
         return hash(password, generateRandomSalt());
     }
 
-    public static boolean verify(String password, String hash) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] hashBytes = hash.getBytes();
-        byte[] salt = Arrays.copyOfRange(hashBytes, k, k + s);
-        return Arrays.equals(hash(password, salt), hashBytes);
+    public static boolean verify(String password, byte[] hash) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] salt = Arrays.copyOfRange(hash, k, k + s);
+        return Arrays.equals(hash(password, salt), hash);
     }
 
     private static byte[] hash(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {

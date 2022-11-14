@@ -9,9 +9,9 @@ import pt.fct.nova.id.srv.presentation.api.dtos.AccessPolicyForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UserDTO;
 
 import static jakarta.ws.rs.core.MediaType.*;
+import static pt.fct.nova.id.srv.application.clients.iam.IAMStore.COOKIE_PARAM;
 
 public interface IdentityAndAccessManagementAPI {
-    String COOKIE_PARAM = "session:";
 
     @POST
     @Path("auth")
@@ -23,18 +23,12 @@ public interface IdentityAndAccessManagementAPI {
     @Path("users")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response addUser(@Form AuthForm credentials);
-
-    @PUT
-    @Path("users/{username}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(TEXT_PLAIN)
-    Response updateUser(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, UserDTO user);
+    Response registerUser(@Form AuthForm credentials);
 
     @DELETE
     @Path("users/{username}")
     @Produces(TEXT_PLAIN)
-    Response deleteUSer(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
+    Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
 
     @POST
     @Path("users/{username}/access")
@@ -49,9 +43,16 @@ public interface IdentityAndAccessManagementAPI {
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, @Form AccessPolicyForm accessPolicy);
 
     @GET
-    @Path("pending-role-requests")
+    @Path("role-requests")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie);
+
+    @DELETE
+    @Path("role-requests/{requestID}")
+    @Consumes(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
+    Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, RoleRequest roleRequest);
+
 
     @GET
     @Path("store-access-policies/{storeID}")
