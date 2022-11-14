@@ -2,6 +2,9 @@ package pt.fct.nova.id.srv.application.protocols;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
+import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
+import static org.apache.commons.codec.binary.Base64.decodeBase64;
+
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreCreateException;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreSearchException;
@@ -36,7 +39,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.k1 = k1;
         this.k2 = k2;
         this.k3 = k3;
-        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
+        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = batchLength;
@@ -48,7 +51,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.k1 = k1;
         this.k2 = k2;
         this.k3 = k3;
-        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
+        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = -1;
@@ -61,7 +64,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
-        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
+        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = batchLength;
@@ -73,7 +76,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
-        this.storeID = Base64.getEncoder().encodeToString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
+        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
         this.batchLength = -1;
@@ -182,8 +185,8 @@ public class Protocol1 implements EncryptionProtocol {
             byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
             byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(Integer.BYTES).putInt(value.getLeft()).array());
             encryptedT.put(
-                    Base64.getEncoder().encodeToString(st),
-                    Base64.getEncoder().encodeToString(ct)
+                    encodeBase64URLSafeString(st),
+                    encodeBase64URLSafeString(ct)
             );
             if (batchLength > 0 && i == batchLength) {
                 save();
@@ -200,8 +203,8 @@ public class Protocol1 implements EncryptionProtocol {
         byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
         encryptedT.put(
-                Base64.getEncoder().encodeToString(st),
-                Base64.getEncoder().encodeToString(ct)
+                encodeBase64URLSafeString(st),
+                encodeBase64URLSafeString(ct)
         );
     }
 
@@ -249,7 +252,7 @@ public class Protocol1 implements EncryptionProtocol {
         Map<String, Pair<Integer, byte[]>> res = new HashMap<>();
         i = 0;
         for (String encTotal : keywordsTotals) {
-            total = buffer.put(SymmetricCipher.decrypt(k2, Base64.getDecoder().decode(encTotal))).rewind().getInt();
+            total = buffer.put(SymmetricCipher.decrypt(k2, decodeBase64(encTotal))).rewind().getInt();
             buffer.reset();
             if (total > max) {
                 for (int j = 0; j < total - max; j++)
@@ -263,7 +266,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     private String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return Base64.getEncoder().encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
+        return encodeBase64URLSafeString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
     }
 
     public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {

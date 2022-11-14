@@ -1,12 +1,14 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
+import com.google.gson.Gson;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import pt.fct.nova.id.srv.application.clients.StorageClient;
+import pt.fct.nova.id.srv.application.clients.SecretsClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.*;
 import pt.fct.nova.id.srv.application.crypto.KeyStoreUtils;
@@ -31,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static pt.fct.nova.id.srv.application.clients.StorageClient.*;
+import static pt.fct.nova.id.srv.application.clients.SecretsClient.*;
 
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
@@ -43,28 +45,28 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String CREATE_ERROR = "Error during protocol execution while trying to create of triplestore %s: %s";
     private static final String ROLLBACK_ERROR = "Rollback Error: %s\nRoot: %s";
-
     private static final String NOT_IMPLEMENTED = "Not implemented.";
+    private static final Gson gson = new Gson();
 
     @Override
     public Response create(ProtocolVersion protocolVersion, String storeID, SecureUploadForm form) {
-        //TODO: check password && access
-        if (StorageClient.exists(storeID))
+        //TODO: check session and access
+        if (SecretsClient.exists(storeID))
             return Response.ok(String.format(STORE_ALREADY_EXISTS, storeID)).status(Response.Status.BAD_REQUEST).build();
         try {
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (protocolVersion) {
                 case V1 -> {
                     if (form.isBatched())
-                        execEncryptionProtocol(new Protocol1(form.getBatchLength(), storeID), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol1(form.getBatchLength(), storeID), triples);
                     else
-                        execEncryptionProtocol(new Protocol1(storeID), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol1(storeID), triples);
                 }
                 case V2 -> {
                     if (form.isBatched())
-                        execEncryptionProtocol(new Protocol2(), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol2(), triples);
                     else
-                        execEncryptionProtocol(new Protocol2(), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol2(), triples);
                 }
             }
             return Response.ok(SUCCESS_CREATE).build();
@@ -78,10 +80,10 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         }
     }
 
-    private static void execEncryptionProtocol(EncryptionProtocol protocol, List<Triple> triples, char[] password) throws NoSuchAlgorithmException, InvalidNodeException, UnknownProtocolException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, TriplestoreCreateException, UnsupportedEncodingException, TriplestoreUploadException, KeyStoreException {
+    private static void execEncryptionProtocol(EncryptionProtocol protocol, List<Triple> triples) throws NoSuchAlgorithmException, InvalidNodeException, UnknownProtocolException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, TriplestoreCreateException, UnsupportedEncodingException, TriplestoreUploadException, KeyStoreException {
         Collections.shuffle(triples);
         protocol.exec(triples);
-        StorageClient.saveProtocolSecrets(protocol, password);
+        SecretsClient.saveProtocolSecrets(protocol);
     }
 
     private List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException {
@@ -114,7 +116,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public Response upload(String storeID, SecureUploadForm form) {
         //TODO: check password && access
         try {
-            List<String> secrets = StorageClient.getProtocolSecrets(storeID);
+            List<String> secrets = SecretsClient.getProtocolSecrets(storeID);
             if (secrets.isEmpty())
                 return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
@@ -123,13 +125,13 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Protocol1 p = initProtocol1(storeID, form, secrets);
                     Collections.shuffle(triples);
                     fetchAndUpdateKeywords(form, triples, p);
-                    execEncryptionProtocol(p, triples, form.getPassword());
+                    execEncryptionProtocol(p, triples);
                 }
                 case V2 -> {
                     if (form.isBatched())
-                        execEncryptionProtocol(new Protocol2(), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol2(), triples);
                     else
-                        execEncryptionProtocol(new Protocol2(), triples, form.getPassword());
+                        execEncryptionProtocol(new Protocol2(), triples);
                 }
             }
             return Response.ok(SUCCESS_UPLOAD).build();
@@ -157,10 +159,10 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             p.updateKeywords(p.fetchKeywords(triples));
     }
 
-    private static Protocol1 initProtocol1(String storeID, SecureUploadForm form, List<String> secrets) throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        SecretKey k1 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_1), form.getPassword());
-        SecretKey k2 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_2), form.getPassword());
-        SecretKey k3 = KeyStoreUtils.getSecretKey(secrets.get(P1_KEY_3), form.getPassword());
+    private static Protocol1 initProtocol1(String storeID, SecureUploadForm form, List<String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+        SecretKey k1 = gson.fromJson(secrets.get(P1_KEY_1), SecretKey.class);
+        SecretKey k2 = gson.fromJson(secrets.get(P1_KEY_2), SecretKey.class);
+        SecretKey k3 = gson.fromJson(secrets.get(P1_KEY_3), SecretKey.class);
         byte[] iv = decodeBase64(secrets.get(P1_IV));
         if (form.isBatched())
             return new Protocol1(form.getBatchLength(), storeID, k1, k2, k3, iv);

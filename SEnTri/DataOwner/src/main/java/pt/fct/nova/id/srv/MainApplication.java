@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv;
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
 
 import jakarta.ws.rs.core.Application;
+import pt.fct.nova.id.srv.presentation.controllers.IAMController;
 import pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController;
 import pt.fct.nova.id.srv.presentation.controllers.TriplestoreController;
 
@@ -17,6 +18,7 @@ public class MainApplication extends Application {
         resources.add(ControlController.class);
         resources.add(SecureTriplestoreController.class);
         resources.add(TriplestoreController.class);
+        resources.add(IAMController.class);
     }
 
     @Override
