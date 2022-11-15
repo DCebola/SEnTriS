@@ -26,7 +26,6 @@ import javax.crypto.SecretKey;
 import java.io.InputStream;
 import java.security.*;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,6 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String CREATE_ERROR = "Error during protocol execution while trying to create triplestore %s: %s";
     private static final String UPLOAD_ERROR = "Error during protocol execution while trying to upload to triplestore %s: %s";
-    private static final String ROLLBACK_ERROR = "Rollback Error: %s";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
     private static final String OPERATION_TIMEOUT = "Operation timeout.";
     private static final Gson gson = new Gson();

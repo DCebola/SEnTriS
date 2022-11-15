@@ -14,8 +14,8 @@ public class IAMStore {
     public static final String COOKIE_PARAM = "session";
     private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
     private static final String SESSION = "S".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String USER_PASSWORD = "P".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String USER_ACCESS_POLICY = "UA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String USER_DATA = "UD".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_ACCESS_POLICY = "SA".concat(BASIC_SEPARATOR).concat("%s");
 
     public static NewCookie cacheSession(String username) {
@@ -53,28 +53,28 @@ public class IAMStore {
     }
 
 
-    public static UserAccessPolicy getUserAccessPolicy(String username) {
+    public static UserData getUserData(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return gson.fromJson(jedis.get(String.format(USER_ACCESS_POLICY, username)), UserAccessPolicy.class);
+            return gson.fromJson(jedis.get(String.format(USER_DATA, username)), UserData.class);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static void saveUser(String username, UserAccessPolicy userAccessPolicy) {
+    public static void saveUser(String username, UserData user) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(USER_ACCESS_POLICY, username), gson.toJson(userAccessPolicy, UserAccessPolicy.class));
+            jedis.set(String.format(USER_DATA, username), gson.toJson(user, UserData.class));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void saveUser(String username, String password, UserAccessPolicy userAccessPolicy) {
+    public static void saveUser(String username, String password, UserData user) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(USER_PASSWORD, username), password);
-            t.set(String.format(USER_ACCESS_POLICY, username), gson.toJson(userAccessPolicy, UserAccessPolicy.class));
+            t.set(String.format(USER_DATA, username), gson.toJson(user, UserData.class));
             t.exec();
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,25 +94,25 @@ public class IAMStore {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.del(String.format(USER_PASSWORD, username));
-            t.del(String.format(USER_ACCESS_POLICY, username));
+            t.del(String.format(USER_DATA, username));
             t.exec();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public AccessPolicy getStoreAccessPolicy(String storeID) {
+    public static StoreAccessPolicy getStoreAccessPolicy(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return gson.fromJson(jedis.get(String.format(STORE_ACCESS_POLICY, storeID)), AccessPolicy.class);
+            return gson.fromJson(jedis.get(String.format(STORE_ACCESS_POLICY, storeID)), StoreAccessPolicy.class);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static void saveStoreAccessPolicy(String storeID, AccessPolicy accessPolicy) {
+    public static void saveStoreAccessPolicy(String storeID, StoreAccessPolicy storeAccessPolicy) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(STORE_ACCESS_POLICY, storeID), gson.toJson(accessPolicy, AccessPolicy.class));
+            jedis.set(String.format(STORE_ACCESS_POLICY, storeID), gson.toJson(storeAccessPolicy, StoreAccessPolicy.class));
         } catch (Exception e) {
             e.printStackTrace();
         }

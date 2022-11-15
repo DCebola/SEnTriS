@@ -2,34 +2,40 @@ package pt.fct.nova.id.srv.presentation.api.dtos;
 
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
-import java.util.List;
-
 public class AccessPolicyForm {
 
-    @FormParam("own")
-    private final List<String> own;
+    @FormParam("issuer")
+    private final String issuer;
+
+    @FormParam("store")
+    private final String storeID;
 
     @FormParam("write")
-    private final List<String> write;
+    private final boolean write;
 
     @FormParam("read")
-    private final List<String> read;
+    private final boolean read;
 
-    public AccessPolicyForm(List<String> own, List<String> write, List<String> read) {
-        this.own = own;
+    public AccessPolicyForm(String issuer, String storeID, boolean write, boolean read) {
+        this.issuer = issuer;
+        this.storeID = storeID;
         this.write = write;
         this.read = read;
     }
 
-    public List<String> getOwn() {
-        return own;
-    }
-
-    public List<String> getWrite() {
+    public boolean getWrite() {
         return write;
     }
 
-    public List<String> getRead() {
+    public boolean getRead() {
         return read;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public String getStoreID() {
+        return storeID;
     }
 }
