@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.clients;
 
 import com.google.gson.Gson;
 import jakarta.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;

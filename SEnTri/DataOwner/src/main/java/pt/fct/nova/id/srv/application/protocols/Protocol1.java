@@ -2,13 +2,12 @@ package pt.fct.nova.id.srv.application.protocols;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
+
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreCreateException;
 import pt.fct.nova.id.srv.application.clients.exception.TriplestoreSearchException;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreUploadException;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
@@ -16,7 +15,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -26,25 +24,11 @@ import java.util.*;
 
 public class Protocol1 implements EncryptionProtocol {
 
-    private final int batchLength;
     private final String storeID;
-    private boolean toBeCreated;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
     private final Map<String, String> encryptedT;
     private final Map<String, Pair<Integer, byte[]>> keywords;
-
-    public Protocol1(int batchLength, String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        this.iv = iv;
-        this.k1 = k1;
-        this.k2 = k2;
-        this.k3 = k3;
-        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
-        this.encryptedT = new HashMap<>();
-        this.keywords = new HashMap<>();
-        this.batchLength = batchLength;
-        this.toBeCreated = false;
-    }
 
     public Protocol1(String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.iv = iv;
@@ -54,21 +38,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
-        this.batchLength = -1;
-        this.toBeCreated = false;
 
-    }
-
-    public Protocol1(int batchLength, String storeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        this.iv = SymmetricCipher.generateIV();
-        this.k1 = SymmetricCipher.generateKey();
-        this.k2 = SymmetricCipher.generateKey();
-        this.k3 = SymmetricCipher.generateKey();
-        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
-        this.encryptedT = new HashMap<>();
-        this.keywords = new HashMap<>();
-        this.batchLength = batchLength;
-        this.toBeCreated = true;
     }
 
     public Protocol1(String storeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
@@ -79,20 +49,10 @@ public class Protocol1 implements EncryptionProtocol {
         this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
-        this.batchLength = -1;
-        this.toBeCreated = true;
-    }
-
-    public int getBatchLength() {
-        return batchLength;
     }
 
     public String getStoreID() {
         return storeID;
-    }
-
-    public boolean isToBeCreated() {
-        return toBeCreated;
     }
 
     public byte[] getIv() {
@@ -115,11 +75,19 @@ public class Protocol1 implements EncryptionProtocol {
         return keywords;
     }
 
+    public Map<String, String> getEncryptedT() {
+        return encryptedT;
+    }
+    @Override
     public void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException,
-            InvalidKeyException, RuntimeException, TriplestoreCreateException, UnsupportedEncodingException, TriplestoreUploadException {
+            InvalidKeyException, RuntimeException {
+        encryptTriples(triples);
+        encryptKeywordInfo();
+    }
+
+    private void encryptTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String s, p, o;
-        int i = 0;
         for (Triple t : triples) {
             s = ProtocolUtils.parseNodeIRI(t.getSubject());
             p = ProtocolUtils.parseNodeIRI(t.getSubject());
@@ -133,14 +101,21 @@ public class Protocol1 implements EncryptionProtocol {
             encodeNode(k1, k2, k3, s, String.format(COMPOUND_KEYWORD, p, o));
             encodeNode(k1, k2, k3, p, String.format(COMPOUND_KEYWORD, s, o));
             encodeNode(k1, k2, k3, o, String.format(COMPOUND_KEYWORD, s, p));
-            if (batchLength > 0 && i == batchLength) {
-                save();
-                i = 0;
-            }
-            i++;
         }
-        save();
-        encryptKeywordInfo();
+    }
+
+    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
+            NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
+            BadPaddingException, InvalidKeyException {
+        for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
+            Pair<Integer, byte[]> value = entry.getValue();
+            byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
+            byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(Integer.BYTES).putInt(value.getLeft()).array());
+            encryptedT.put(
+                    encodeBase64URLSafeString(st),
+                    encodeBase64URLSafeString(ct)
+            );
+        }
     }
 
     public Map<String, Pair<Integer, byte[]>> fetchKeywords(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
@@ -161,40 +136,7 @@ public class Protocol1 implements EncryptionProtocol {
             generateKeywordTrapdoor(trapdoors, skip, so);
             generateKeywordTrapdoor(trapdoors, skip, sp);
         }
-        return fetchKeywords(trapdoors);
-    }
-
-    private void save() throws UnsupportedEncodingException, TriplestoreCreateException, TriplestoreUploadException {
-        if (toBeCreated) {
-            TriplestoreClient.create(storeID, encryptedT);
-            encryptedT.clear();
-            toBeCreated = false;
-        } else {
-            TriplestoreClient.upload(storeID, encryptedT);
-            encryptedT.clear();
-        }
-    }
-
-    private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
-            NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
-            BadPaddingException, InvalidKeyException, TriplestoreCreateException, UnsupportedEncodingException,
-            TriplestoreUploadException {
-        int i = 0;
-        for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
-            Pair<Integer, byte[]> value = entry.getValue();
-            byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
-            byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(Integer.BYTES).putInt(value.getLeft()).array());
-            encryptedT.put(
-                    encodeBase64URLSafeString(st),
-                    encodeBase64URLSafeString(ct)
-            );
-            if (batchLength > 0 && i == batchLength) {
-                save();
-                i = 0;
-            }
-            i++;
-        }
-        save();
+        return generateKeywordsIV(trapdoors);
     }
 
     private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword)
@@ -227,7 +169,6 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
-
     private void generateKeywordTrapdoor(HashMap<String, String> trapdoors, Set<String> skip, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         if (!skip.contains(keyword)) {
             trapdoors.put(keyword, generateTrapdoor(keyword));
@@ -235,7 +176,7 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    private Map<String, Pair<Integer, byte[]>> fetchKeywords(HashMap<String, String> keywordsAndTrapdoors) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
+    private Map<String, Pair<Integer, byte[]>> generateKeywordsIV(HashMap<String, String> keywordsAndTrapdoors) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
         List<String> trapdoors = new ArrayList<>(keywordsAndTrapdoors.size());
         String[] keywords = new String[keywordsAndTrapdoors.size()];
         int i = 0;
@@ -272,6 +213,4 @@ public class Protocol1 implements EncryptionProtocol {
     public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
         keywords.putAll(values);
     }
-
-
 }

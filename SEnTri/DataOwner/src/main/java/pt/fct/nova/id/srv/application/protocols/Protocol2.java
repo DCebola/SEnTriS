@@ -12,5 +12,4 @@ public class Protocol2 implements EncryptionProtocol {
         //TODO: Protocol 2.
         //TODO: Save data in Redis, encrypted under master key.
     }
-
 }

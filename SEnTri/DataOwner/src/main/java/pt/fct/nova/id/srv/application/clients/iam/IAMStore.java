@@ -9,7 +9,6 @@ import redis.clients.jedis.Transaction;
 import java.util.UUID;
 
 public class IAMStore {
-
     private static final Gson gson = new Gson();
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
