@@ -7,9 +7,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.clients.LockClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
-import pt.fct.nova.id.srv.application.clients.iam.IAMStore;
-import pt.fct.nova.id.srv.application.clients.iam.StoreAccessPolicy;
-import pt.fct.nova.id.srv.application.clients.iam.UserData;
+import pt.fct.nova.id.srv.application.clients.iam.*;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.api.IdentityAndAccessManagementAPI;
@@ -180,7 +178,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
 
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !issuer.getOwned().contains(storeID))) {
                 if (username.equals(issuerUsername)) {
-                    IAMStore.enqueueAccessRequest(accessPolicyForm);
+                    IAMStore.saveAccessRequest(new AccessRequest(username, storeID, accessPolicyForm.getRead(), accessPolicyForm.getWrite()));
                     LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
                     return Response.ok(SUCCESSFUL_ACCESS_REQUEST_ISSUED).build();
                 } else {
@@ -222,7 +220,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
 
             if (issuerRole.equals(BASIC) || issuerRole.equals(PRIVILEGED)) {
                 if (username.equals(issuerUsername)) {
-                    IAMStore.enqueueRoleRequest(roleForm);
+                    IAMStore.saveRoleRequest(new RoleRequest(username, roleForm.getRole()));
                     LockClient.releaseUserLock(username, lockID);
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else {
@@ -267,6 +265,16 @@ public class IAMController implements IdentityAndAccessManagementAPI {
         } catch (SessionException e) {
             return handleSessionException(e);
         }
+    }
+
+    @Override
+    public Response getPendingAccessRequest(Cookie cookie, String username, String requestID) {
+        return null;
+    }
+
+    @Override
+    public Response getPendingRoleRequests(Cookie cookie, String username, String requestID) {
+        return null;
     }
 
     @Override

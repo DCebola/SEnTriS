@@ -17,22 +17,21 @@ public interface TriplestoreAPI {
     @Path("create/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    Response create(
-            @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form) throws HttpResponseException;
+    Response create(@PathParam("storeID") String storeID,
+                    @MultipartForm UploadForm form);
 
     @POST
     @Path("upload/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    Response upload(
-            @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form) throws HttpResponseException;
+    Response upload(@PathParam("storeID") String storeID,
+                    @MultipartForm UploadForm form);
 
     @POST
     @Path("/query/{storeID}")
     @Consumes(SPARQL_QUERY)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID,
+                               String query);
 
 }

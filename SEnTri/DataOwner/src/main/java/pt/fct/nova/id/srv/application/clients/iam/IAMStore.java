@@ -8,8 +8,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.RoleForm;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class IAMStore {
     private static final Gson gson = new Gson();
@@ -20,6 +19,8 @@ public class IAMStore {
     private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_DATA = "UD".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_ACCESS_POLICY = "SA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String PENDING_ACCESS_REQUESTS = "PA";
+    private static final String PENDING_ROLE_REQUESTS = "PR";
 
     public static NewCookie cacheSession(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -31,9 +32,6 @@ public class IAMStore {
             t.expire(key, Integer.toUnsignedLong(COOKIE_LIFETIME));
             t.exec();
             return buildCookie(uuid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
@@ -49,9 +47,6 @@ public class IAMStore {
     public static String getSession(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.get(String.format(SESSION, username));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
@@ -59,17 +54,12 @@ public class IAMStore {
     public static UserData getUserData(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return gson.fromJson(jedis.get(String.format(USER_DATA, username)), UserData.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
     public static void saveUser(String username, UserData user) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             jedis.set(String.format(USER_DATA, username), gson.toJson(user, UserData.class));
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -79,17 +69,12 @@ public class IAMStore {
             t.set(String.format(USER_PASSWORD, username), password);
             t.set(String.format(USER_DATA, username), gson.toJson(user, UserData.class));
             t.exec();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     public static String getPassword(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.get(String.format(USER_PASSWORD, username));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
@@ -99,48 +84,61 @@ public class IAMStore {
             t.del(String.format(USER_PASSWORD, username));
             t.del(String.format(USER_DATA, username));
             t.exec();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     public static StoreAccessPolicy getStoreAccessPolicy(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return gson.fromJson(jedis.get(String.format(STORE_ACCESS_POLICY, storeID)), StoreAccessPolicy.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
     public static void saveStoreAccessPolicy(String storeID, StoreAccessPolicy storeAccessPolicy) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             jedis.set(String.format(STORE_ACCESS_POLICY, storeID), gson.toJson(storeAccessPolicy, StoreAccessPolicy.class));
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     public static void deleteStoreAccessPolicy(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             jedis.del(String.format(STORE_ACCESS_POLICY, storeID));
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
 
-    public static void enqueueAccessRequest(AccessPolicyForm accessPolicyForm) {
+    public static void saveAccessRequest(AccessRequest accessRequest) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.hset(PENDING_ACCESS_REQUESTS, UUID.randomUUID().toString(), gson.toJson(accessRequest, AccessRequest.class));
+        }
     }
 
-    public static void enqueueRoleRequest(RoleForm roleForm) {
+    public static void saveRoleRequest(RoleRequest roleRequest) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.hset(PENDING_ROLE_REQUESTS, UUID.randomUUID().toString(), gson.toJson(roleRequest, RoleRequest.class));
+        }
     }
 
-    public static List<AccessPolicyForm> getPendingAccessRequests() {
-        return null;
+    public static AccessRequest getPendingAccessRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return gson.fromJson(jedis.hget(String.format(PENDING_ACCESS_REQUESTS), requestID), AccessRequest.class);
+        }
     }
 
-    public static List<RoleForm> getPendingRoleRequests() {
-        return null;
+    public static RoleRequest getPendingRoleRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return gson.fromJson(jedis.hget(String.format(PENDING_ROLE_REQUESTS), requestID), RoleRequest.class);
+        }
+    }
+
+    public static Set<String> getPendingAccessRequests() {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.hkeys(String.format(PENDING_ACCESS_REQUESTS));
+        }
+    }
+
+    public static Set<String> getPendingRoleRequests() {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.hkeys(String.format(PENDING_ROLE_REQUESTS));
+        }
     }
 }

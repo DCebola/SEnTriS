@@ -26,30 +26,58 @@ public interface IdentityAndAccessManagementAPI {
     @DELETE
     @Path("{username}")
     @Produces(TEXT_PLAIN)
-    Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
+    Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                        @PathParam("username") String username);
 
     @DELETE
     @Path("{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, @Form AccessPolicyForm accessPolicyForm);
+    Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                          @PathParam("username") String username,
+                          @Form AccessPolicyForm accessPolicyForm);
 
     @POST
     @Path("{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, @Form AccessPolicyForm accessPolicyForm);
+    Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                     @PathParam("username") String username,
+                                     @Form AccessPolicyForm accessPolicyForm);
 
     @POST
     @Path("{username}/role")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response issueGrantRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username, @Form RoleForm roleForm);
+    Response issueGrantRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                   @PathParam("username") String username,
+                                   @Form RoleForm roleForm);
 
     @GET
     @Path("{username}/access-requests")
     @Produces(APPLICATION_JSON)
-    Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
+    Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                      @PathParam("username") String username);
+
+    @GET
+    @Path("{username}/role-requests")
+    @Produces(APPLICATION_JSON)
+    Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("username") String username);
+
+    @GET
+    @Path("{username}/access-requests/{requestID}")
+    @Produces(APPLICATION_JSON)
+    Response getPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                     @PathParam("username") String username,
+                                     @PathParam("requestID") String requestID);
+
+    @GET
+    @Path("{username}/role-requests/{requestID}")
+    @Produces(APPLICATION_JSON)
+    Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("username") String username,
+                                    @PathParam("requestID") String requestID);
 
     @DELETE
     @Path("access-requests/{requestID}")
@@ -58,11 +86,6 @@ public interface IdentityAndAccessManagementAPI {
     Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                   @PathParam("requestID") String requestID,
                                   @Form RequestDecisionForm requestDecisionForm);
-
-    @GET
-    @Path("{username}/role-requests")
-    @Produces(APPLICATION_JSON)
-    Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
 
     @DELETE
     @Path("role-requests/{requestID}")

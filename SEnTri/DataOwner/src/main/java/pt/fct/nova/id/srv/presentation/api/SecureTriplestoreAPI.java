@@ -17,25 +17,22 @@ public interface SecureTriplestoreAPI {
     @Path("/{protocolVersion}/create/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    Response create(
-            @PathParam("protocolVersion") ProtocolVersion protocolVersion,
-            @PathParam("storeID") String storeID,
-            @MultipartForm SecureUploadForm form);
+    Response create(@PathParam("protocolVersion") ProtocolVersion protocolVersion,
+                    @PathParam("storeID") String storeID,
+                    @MultipartForm SecureUploadForm form);
 
     @POST
     @Path("/upload/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    Response upload(
-            @PathParam("storeID") String storeID,
-            @MultipartForm SecureUploadForm form);
+    Response upload(@PathParam("storeID") String storeID,
+                    @MultipartForm SecureUploadForm form);
 
     @POST
     @Path("/{protocolVersion}/query/{storeID}")
     @Consumes(SPARQL_QUERY)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(
-            @PathParam("protocolVersion") ProtocolVersion protocolVersion,
-            @PathParam("storeID") String storeID,
-            String query);
+    Response answerSPARQLQuery(@PathParam("protocolVersion") ProtocolVersion protocolVersion,
+                               @PathParam("storeID") String storeID,
+                               String query);
 }

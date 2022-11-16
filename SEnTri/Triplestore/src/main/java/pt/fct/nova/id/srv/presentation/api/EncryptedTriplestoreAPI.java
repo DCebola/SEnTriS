@@ -17,29 +17,29 @@ public interface EncryptedTriplestoreAPI {
     @Path("create/{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response create(
-            @PathParam("storeID") String storeID,
-            Map<String, String> encryptedNodes);
+    Response create(@PathParam("storeID") String storeID,
+                    Map<String, String> encryptedNodes);
 
     @POST
     @Path("upload/{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response upload(
-            @PathParam("storeID") String storeID,
-            Map<String, String> encryptedNodes);
+    Response upload(@PathParam("storeID") String storeID,
+                    Map<String, String> encryptedNodes);
 
     @POST
     @Path("/query/{storeID}")
-    @Consumes(SPARQL_QUERY)
+    @Consumes(APPLICATION_JSON)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID, QueryExecutionPlan queryExecutionPlan);
+    Response answerSPARQLQuery(@PathParam("storeID") String storeID,
+                               QueryExecutionPlan queryExecutionPlan);
 
     @POST
     @Path("/search/{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    Response search(@PathParam("storeID") String storeID, List<String> trapdoors);
+    Response search(@PathParam("storeID") String storeID,
+                    List<String> trapdoors);
 
     @DELETE
     @Path("/delete/{storeID}")
@@ -50,5 +50,6 @@ public interface EncryptedTriplestoreAPI {
     @Path("/delete/{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response delete(@PathParam("storeID") String storeID, List<String> trapdoors);
+    Response delete(@PathParam("storeID") String storeID,
+                    List<String> trapdoors);
 }
