@@ -60,12 +60,12 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
                     try {
-                        String lockID = LockClient.acquireLock(storeID);
+                        String lockID = LockClient.acquireStoreLock(storeID);
                         if (lockID == null)
                             return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
                         TriplestoreClient.create(storeID, p.getEncryptedT());
                         SecretsClient.saveProtocolSecrets(p);
-                        LockClient.releaseLock(storeID, lockID);
+                        LockClient.releaseStoreLock(storeID, lockID);
                     } catch (TriplestoreClientException e) {
                         return Response.ok(String.format(CREATE_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
                     }
@@ -116,12 +116,12 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
                     try {
-                        String lockID = LockClient.acquireLock(storeID);
+                        String lockID = LockClient.acquireStoreLock(storeID);
                         if (lockID == null)
                             return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
                         TriplestoreClient.upload(storeID, p.getEncryptedT());
                         SecretsClient.saveProtocolSecrets(p);
-                        LockClient.releaseLock(storeID, lockID);
+                        LockClient.releaseStoreLock(storeID, lockID);
                     } catch (TriplestoreClientException e) {
                         return Response.ok(String.format(UPLOAD_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
                     }

@@ -3,9 +3,12 @@ package pt.fct.nova.id.srv.application.clients.iam;
 import com.google.gson.Gson;
 import jakarta.ws.rs.core.NewCookie;
 import pt.fct.nova.id.srv.application.clients.redis.Redis;
+import pt.fct.nova.id.srv.presentation.api.dtos.AccessPolicyForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.RoleForm;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 
+import java.util.List;
 import java.util.UUID;
 
 public class IAMStore {
@@ -127,4 +130,17 @@ public class IAMStore {
     }
 
 
+    public static void enqueueAccessRequest(AccessPolicyForm accessPolicyForm) {
+    }
+
+    public static void enqueueRoleRequest(RoleForm roleForm) {
+    }
+
+    public static List<AccessPolicyForm> getPendingAccessRequests() {
+        return null;
+    }
+
+    public static List<RoleForm> getPendingRoleRequests() {
+        return null;
+    }
 }
