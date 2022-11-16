@@ -120,13 +120,19 @@ public class IAMStore {
 
     public static AccessRequest getPendingAccessRequest(String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return gson.fromJson(jedis.hget(String.format(PENDING_ACCESS_REQUESTS), requestID), AccessRequest.class);
+            String res = jedis.hget(String.format(PENDING_ACCESS_REQUESTS), requestID);
+            if (res == null)
+                return null;
+            else return gson.fromJson(res, AccessRequest.class);
         }
     }
 
     public static RoleRequest getPendingRoleRequest(String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return gson.fromJson(jedis.hget(String.format(PENDING_ROLE_REQUESTS), requestID), RoleRequest.class);
+            String res = jedis.hget(String.format(PENDING_ROLE_REQUESTS), requestID);
+            if (res == null)
+                return null;
+            else return gson.fromJson(res, RoleRequest.class);
         }
     }
 
@@ -139,6 +145,18 @@ public class IAMStore {
     public static Set<String> getPendingRoleRequests() {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.hkeys(String.format(PENDING_ROLE_REQUESTS));
+        }
+    }
+
+    public static void deleteAccessRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.hdel(PENDING_ACCESS_REQUESTS, requestID);
+        }
+    }
+
+    public static void deleteRoleRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.hdel(PENDING_ROLE_REQUESTS, requestID);
         }
     }
 }

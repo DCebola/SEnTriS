@@ -42,6 +42,8 @@ public class IAMController implements IdentityAndAccessManagementAPI {
 
     private static final String SUCCESSFUL_ROLE_REQUEST_ISSUED = "Successful issued role request.";
     private static final String SUCCESSFUL_ROLE_GRANT = "Successful role grant.";
+    private static final String REQUEST_NOT_FOUND = "Request not found.";
+    private static final String SUCCESSFUL_REQUEST_PROCESSING = "Successful request processing.";
 
     @Override
     public Response auth(AuthForm credentials) {
@@ -227,6 +229,10 @@ public class IAMController implements IdentityAndAccessManagementAPI {
                     LockClient.releaseUserLock(username, lockID);
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
                 }
+            } else if (!issuerRole.equals(ADMIN) && roleForm.getRole().equals(ADMIN)) {
+                IAMStore.saveRoleRequest(new RoleRequest(username, roleForm.getRole()));
+                LockClient.releaseUserLock(username, lockID);
+                return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
             }
             user.setRole(roleForm.getRole());
             IAMStore.saveUser(username, user);
@@ -269,22 +275,105 @@ public class IAMController implements IdentityAndAccessManagementAPI {
 
     @Override
     public Response getPendingAccessRequest(Cookie cookie, String username, String requestID) {
-        return null;
+        try {
+            Utils.authCheck(cookie, username);
+            Role role = Objects.requireNonNull(IAMStore.getUserData(username)).getRole();
+            if (!role.equals(ADMIN) && !role.equals(MANAGER))
+                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            return Response.ok(IAMStore.getPendingAccessRequest(requestID)).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        }
     }
 
     @Override
-    public Response getPendingRoleRequests(Cookie cookie, String username, String requestID) {
-        return null;
+    public Response getPendingRoleRequest(Cookie cookie, String username, String requestID) {
+        try {
+            Utils.authCheck(cookie, username);
+            Role role = Objects.requireNonNull(IAMStore.getUserData(username)).getRole();
+            if (!role.equals(ADMIN) && !role.equals(MANAGER))
+                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            return Response.ok(IAMStore.getPendingRoleRequest(requestID)).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        }
     }
 
     @Override
     public Response processAccessRequest(Cookie cookie, String requestID, RequestDecisionForm requestDecisionForm) {
-        return null;
+        try {
+            Utils.authCheck(cookie, requestDecisionForm.getIssuer());
+            Role role = Objects.requireNonNull(IAMStore.getUserData(requestDecisionForm.getIssuer())).getRole();
+            if (!role.equals(ADMIN) && !role.equals(MANAGER))
+                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            AccessRequest req = IAMStore.getPendingAccessRequest(requestID);
+            if (req == null)
+                return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
+            String lockID = LockClient.acquireStoreAccessPolicyLock(req.storeID());
+            StoreAccessPolicy storeAccessPolicy = IAMStore.getStoreAccessPolicy(req.storeID());
+            if (storeAccessPolicy == null) {
+                LockClient.releaseStoreAccessPolicyLock(req.storeID(), lockID);
+                return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
+            }
+            if (requestDecisionForm.isAccept()) {
+                if (req.read())
+                    storeAccessPolicy.getRead().add(req.target());
+                if (req.write())
+                    storeAccessPolicy.getWrite().add(req.target());
+            } else {
+                if (req.read())
+                    storeAccessPolicy.getRead().remove(req.target());
+                if (req.write())
+                    storeAccessPolicy.getWrite().remove(req.target());
+            }
+            IAMStore.deleteAccessRequest(requestID);
+            IAMStore.saveStoreAccessPolicy(req.storeID(), storeAccessPolicy);
+            LockClient.releaseStoreAccessPolicyLock(req.storeID(), lockID);
+            return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        } catch (TooManyLockRetriesException e) {
+            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
+        } catch (InterruptedException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override
     public Response processRoleRequest(Cookie cookie, String requestID, RequestDecisionForm requestDecisionForm) {
-        return null;
+        try {
+            Utils.authCheck(cookie, requestDecisionForm.getIssuer());
+            Role issuerRole = Objects.requireNonNull(IAMStore.getUserData(requestDecisionForm.getIssuer())).getRole();
+            if (!issuerRole.equals(ADMIN) && !issuerRole.equals(MANAGER))
+                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+
+            RoleRequest req = IAMStore.getPendingRoleRequest(requestID);
+            if (req == null)
+                return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
+
+            if (!issuerRole.equals(ADMIN) && req.role().equals(ADMIN))
+                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+
+            String lockID = LockClient.acquireUserLock(req.target());
+            UserData userData = IAMStore.getUserData(req.target());
+            if (userData == null) {
+                LockClient.releaseUserLock(req.target(), lockID);
+                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+            }
+            if (requestDecisionForm.isAccept()) {
+                userData.setRole(req.role());
+                IAMStore.saveUser(req.target(), userData);
+            }
+            IAMStore.deleteAccessRequest(requestID);
+            LockClient.releaseUserLock(req.target(), lockID);
+            return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        } catch (TooManyLockRetriesException e) {
+            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
+        } catch (InterruptedException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override

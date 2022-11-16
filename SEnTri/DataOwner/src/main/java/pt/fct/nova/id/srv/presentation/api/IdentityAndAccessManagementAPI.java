@@ -75,7 +75,7 @@ public interface IdentityAndAccessManagementAPI {
     @GET
     @Path("{username}/role-requests/{requestID}")
     @Produces(APPLICATION_JSON)
-    Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response getPendingRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("username") String username,
                                     @PathParam("requestID") String requestID);
 
