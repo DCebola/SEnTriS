@@ -82,7 +82,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
                 return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordUtils.hash(credentials.getPassword()));
-            IAMStore.saveUser(username, passwordHash, BASIC, new HashSet<>());
+            IAMStore.saveUser(username, passwordHash, BASIC);
             LockClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {

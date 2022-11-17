@@ -67,13 +67,11 @@ public class IAMStore {
         }
     }
 
-    public static void saveUser(String username, String password, Role role, Set<String> owned) {
+    public static void saveUser(String username, String password, Role role) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(USER_PASSWORD, username), password);
-            for (String storeID : owned)
-                t.sadd(String.format(USER_OWNED, username), storeID);
-            t.sadd(String.format(USER_ROLE, username), role.toString());
+            t.set(String.format(USER_ROLE, username), role.toString());
             t.exec();
         }
     }
@@ -83,7 +81,6 @@ public class IAMStore {
             Transaction t = jedis.multi();
             t.del(String.format(USER_PASSWORD, username));
             t.del(String.format(USER_ROLE, username));
-            t.del(String.format(USER_OWNED, username));
             t.del(String.format(SESSION, username));
             t.exec();
         }
