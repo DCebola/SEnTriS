@@ -76,8 +76,8 @@ public interface IdentityAndAccessManagementAPI {
     @Path("{username}/role-requests/{requestID}")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                    @PathParam("username") String username,
-                                    @PathParam("requestID") String requestID);
+                                   @PathParam("username") String username,
+                                   @PathParam("requestID") String requestID);
 
     @DELETE
     @Path("access-requests/{requestID}")
@@ -95,25 +95,16 @@ public interface IdentityAndAccessManagementAPI {
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
 
-
-    @GET
-    @Path("{username}/store-access-policies/{storeID}")
-    @Produces(APPLICATION_JSON)
-    Response getStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                  @PathParam("username") String username,
-                                  @PathParam("storeID") String storeID);
-
     @POST
     @Path("{username}/store-access-policies/{storeID}")
-    @Produces(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
     Response createStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
-                                     @PathParam("storeID") String storeID,
-                                     @Form AccessPolicyForm accessPolicy);
+                                     @PathParam("storeID") String storeID);
 
     @DELETE
     @Path("{username}/store-access-policies/{storeID}")
-    @Produces(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
     Response deleteStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("storeID") String storeID);
