@@ -38,7 +38,10 @@ DELETE IAMProvider/api/pending/role/{requestID}                    #Process pend
 
 POST   IAMProvider/api/{username}/stores/{storeID}                 #Create store.
 DELETE IAMProvider/api/{username}/stores/{storeID}                 #Delete store.
-GET    IAMProvider/api/stores/{storeID}/access/{username}          #Get store access policy for the specified user.
+GET    IAMProvider/api/stores/{storeID}/access/read/{username}     #Check if user has read access 
+GET    IAMProvider/api/stores/{storeID}/access/write/{username}    #Check if user has write access
+GET    IAMProvider/api/stores/{storeID}/access/owner/{username}    #Check if user has owner access
+
 
 GET    IAMProvider/api/locks/{username}/stores/{storeID}           #Acquire lock on store.
 DELETE IAMProvider/api/locks/{lockID}/{username}/stores/{storeID}  #Release lock on store.
@@ -47,9 +50,9 @@ DELETE IAMProvider/api/locks/{lockID}/{username}/stores/{storeID}  #Release lock
 ```perl
 GET    vault/api/ctrl/version                                      #Get service version.
 
-POST   vault/api/secrets                                           #Create triplestore secrets.
-GET    vault/api/secrets/{storeID}                                 #Get triplestore secrets.
-DELETE vault/api/secrets                                           #Delete triplestore secrets.
+POST   vault/api/secrets/{username}                                #Create triplestore secrets.
+GET    vault/api/secrets/{username}/{storeID}                      #Get triplestore secrets.
+DELETE vault/api/secrets/{username}/{storeID}                      #Delete triplestore secrets.
 ```
 ### Triplestore
 ```perl

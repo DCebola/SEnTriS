@@ -87,7 +87,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
         } catch (TooManyLockRetriesException e) {
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -104,7 +104,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
         } catch (TooManyLockRetriesException e) {
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
         } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -380,17 +380,45 @@ public class IAMController implements IdentityAndAccessManagementAPI {
     }
 
     @Override
-    public Response getAccessPolicy(Cookie cookie, String username, String storeID) {
+    public Response getReadAccess(Cookie cookie, String username, String storeID) {
         try {
             Utils.authCheck(cookie, username);
-            if (IAMStore.checkIfOwns(username, storeID))
-                return Response.ok(new AccessResponse(true, true)).build();
-            boolean read = IAMStore.checkIfUserHasReadAccess(username, storeID);
-            boolean write = IAMStore.checkIfUserHasWriteAccess(username, storeID);
-            return Response.ok(new AccessResponse(read, write)).build();
+            if (!IAMStore.storeAccessPolicyExists(storeID))
+                return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
+            boolean response = IAMStore.checkIfUserHasReadAccess(username, storeID) ||
+                    IAMStore.checkIfUserHasWriteAccess(username, storeID) ||
+                    IAMStore.getRole(username).equals(ADMIN);
+            return Response.ok(response).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         }
     }
+
+    @Override
+    public Response getWriteAccess(Cookie cookie, String username, String storeID) {
+        try {
+            Utils.authCheck(cookie, username);
+            if (!IAMStore.storeAccessPolicyExists(storeID))
+                return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
+            boolean response = IAMStore.checkIfUserHasWriteAccess(username, storeID) || IAMStore.getRole(username).equals(ADMIN);
+            return Response.ok(response).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        }
+    }
+
+    @Override
+    public Response getOwnerAccess(Cookie cookie, String username, String storeID) {
+        try {
+            Utils.authCheck(cookie, username);
+            if (!IAMStore.storeAccessPolicyExists(storeID))
+                return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
+            boolean response = IAMStore.checkIfOwns(username, storeID) || IAMStore.getRole(username).equals(ADMIN);
+            return Response.ok(response).build();
+        } catch (SessionException e) {
+            return handleSessionException(e);
+        }
+    }
+
 
 }

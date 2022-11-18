@@ -8,12 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class LockClient {
+public class LocksClient {
 
-    private final static String STORE_LOCK = "LS".concat(System.getenv("BASIC_SEPARATOR")).concat("%s");
-    private final static String STORE_ACCESS_POLICY_LOCK = "LSA".concat(System.getenv("BASIC_SEPARATOR")).concat("%s");
-    private final static String USER_LOCK = "LU".concat(System.getenv("BASIC_SEPARATOR")).concat("%s");
-
+    private final static String LOCK = "L".concat(System.getenv("BASIC_SEPARATOR")).concat("%s");
     private final static String LOCK_TIMEOUT = System.getenv("LOCK_TIMEOUT");
     private static final int LOCK_TRIES = Integer.parseInt(System.getenv("LOCK_TRIES"));
     private static final long LOCK_SLEEP = Long.parseLong(System.getenv("LOCK_SLEEP"));
@@ -32,36 +29,12 @@ public class LockClient {
             end
             """;
 
-    public static synchronized String acquireUserLock(String username) throws InterruptedException, TooManyLockRetriesException {
-        return acquireLock(String.format(USER_LOCK, username));
-    }
 
-    public static synchronized String acquireStoreLock(String storeID) throws InterruptedException, TooManyLockRetriesException {
-        return acquireLock(String.format(STORE_LOCK, storeID));
-    }
-
-    public static synchronized String acquireStoreAccessPolicyLock(String storeID) throws InterruptedException, TooManyLockRetriesException {
-        return acquireLock(String.format(STORE_ACCESS_POLICY_LOCK, storeID));
-    }
-
-    public static synchronized void releaseUserLock(String username, String lockID) {
-        releaseLock(String.format(USER_LOCK, username), lockID);
-    }
-
-    public static synchronized void releaseStoreLock(String storeID, String lockID) {
-        releaseLock(String.format(STORE_LOCK, storeID), lockID);
-    }
-
-    public static synchronized void releaseStoreAccessPolicyLock(String storeID, String lockID) {
-        releaseLock(String.format(STORE_ACCESS_POLICY_LOCK, storeID), lockID);
-    }
-
-
-    private static synchronized String acquireLock(String key) throws InterruptedException, TooManyLockRetriesException {
+    public static synchronized String acquireLock(String key) throws InterruptedException, TooManyLockRetriesException {
         String uuid = UUID.randomUUID().toString();
         int tries = LOCK_TRIES;
         while (tries > 0) {
-            if (tryToAcquireLock(key, uuid) != 1L)
+            if (tryToAcquireLock(String.format(LOCK, key), uuid) != 1L)
                 return uuid;
             tries--;
             Thread.sleep(LOCK_SLEEP);
@@ -80,11 +53,11 @@ public class LockClient {
         }
     }
 
-    private static synchronized void releaseLock(String key, String lockID) {
+    public static synchronized void releaseLock(String key, String lockID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             List<String> keys = new ArrayList<>(1);
             List<String> args = new ArrayList<>(1);
-            keys.add(key);
+            keys.add(String.format(LOCK, key));
             args.add(lockID);
             jedis.eval(UNLOCK_SCRIPT, keys, args);
         }

@@ -9,7 +9,6 @@ import org.apache.http.impl.client.HttpClients;
 
 
 public class HTTPSClient {
-
     private static HttpClientBuilder httpClientBuilder;
 
     private static void createHttpClientBuilder() {

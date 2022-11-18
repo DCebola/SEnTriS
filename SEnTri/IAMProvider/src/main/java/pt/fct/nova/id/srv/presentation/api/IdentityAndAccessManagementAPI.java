@@ -112,7 +112,19 @@ public interface IdentityAndAccessManagementAPI {
     @GET
     @Path("stores/{storeID}/access/{username}")
     @Produces(APPLICATION_JSON)
-    Response getAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response getReadAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                             @PathParam("username") String username,
+                             @PathParam("storeID") String storeID);
+    @GET
+    @Path("stores/{storeID}/access/write/{username}")
+    @Produces(APPLICATION_JSON)
+    Response getWriteAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                             @PathParam("username") String username,
+                             @PathParam("storeID") String storeID);
+    @GET
+    @Path("stores/{storeID}/access/owner/{username}")
+    @Produces(APPLICATION_JSON)
+    Response getOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("storeID") String storeID);
 
