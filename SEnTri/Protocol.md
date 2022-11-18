@@ -1,4 +1,4 @@
-# Data Owner
+# Encryption Protocols
 
 **Option 1:** Deterministic encryption of values, under a random encryption layer.
 

@@ -53,7 +53,7 @@ DELETE SecretsStore/api/secrets                               #Delete triplestor
 ```
 ### Triplestore
 ```perl
-GET /version                                                  #Get service version
+GET    Triplestore/api/ctrl/version                           #Get service version
 
 POST   /Triplestore/api/                                      #Create triplestore.
 POST   /Triplestore/api/{storeID}                             #Upload data to triplestore.

@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pt.fct.nova.id</groupId>
-    <artifactId>SecretsStore</artifactId>
+    <artifactId>Vault</artifactId>
     <version>1.0</version>
-    <name>SecretsStore</name>
+    <name>Vault</name>
     <packaging>war</packaging>
 
     <properties>
