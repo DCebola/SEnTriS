@@ -1,4 +1,6 @@
-# Privacy-Enhanced Ontologies
+# SEnTri: Searchable Encrypted Triplestore
+
+A searchable encrypted triplestore solution with (limited) support for SPARQL queries.
 
 ## **Endpoints**
 
@@ -43,28 +45,28 @@ DELETE IAMProvider/api/locks/{lockID}/users/{username}       #Release lock on us
 GET    IAMProvider/api/locks/stores/{storeID}                #Acquire lock on store.
 DELETE IAMProvider/api/locks/{lockID}/stores/{storeID}       #Release lock on store.
 ```
-### Secrets' Store
+### Secrets' Vault
 ```perl
-GET    SecretsStore/api/ctrl/version                          #Get service version.
+GET    vault/api/ctrl/version                                #Get service version.
 
-POST   SecretsStore/api/secrets                               #Create triplestore secrets.
-GET    SecretsStore/api/secrets/{storeID}                     #Get triplestore secrets.
-DELETE SecretsStore/api/secrets                               #Delete triplestore secrets.
+POST   vault/api/secrets                                     #Create triplestore secrets.
+GET    vault/api/secrets/{storeID}                           #Get triplestore secrets.
+DELETE vault/api/secrets                                     #Delete triplestore secrets.
 ```
 ### Triplestore
 ```perl
 GET    Triplestore/api/ctrl/version                           #Get service version
 
-POST   /Triplestore/api/                                      #Create triplestore.
-POST   /Triplestore/api/{storeID}                             #Upload data to triplestore.
-DELETE /Triplestore/api/{storeID}                             #Delete triplestore.
-POST   /Triplestore/api/query/{storeID}                       #Execute SPARQL query over triplestore.
+POST   Triplestore/api/                                       #Create triplestore.
+POST   Triplestore/api/{storeID}                              #Upload data to triplestore.
+DELETE Triplestore/api/{storeID}                              #Delete triplestore.
+POST   Triplestore/api/query/{storeID}                        #Execute SPARQL query over triplestore.
 
-POST   /Triplestore/api/secure                                #Create encrypted triplestore.
-POST   /Triplestore/api/secure/{storeID}                      #Upload data to encrypted triplestore.
-POST   /Triplestore/api/secure/{storeID}/delete               #Delete data from encrypted triplestore.
-POST   /Triplestore/api/secure/{storeID}/search               #Search data from encrypted triplestore.
-DELETE /Triplestore/api/secure/{storeID}                      #Delete encrypted triplestore. 
-POST   /Triplestore/api/secure/query/{storeID}                #Execute SPARQL query over encrypted triplestore.
+POST   Triplestore/api/secure                                 #Create encrypted triplestore.
+POST   Triplestore/api/secure/{storeID}                       #Upload data to encrypted triplestore.
+POST   Triplestore/api/secure/{storeID}/delete                #Delete data from encrypted triplestore.
+POST   Triplestore/api/secure/{storeID}/search                #Search data from encrypted triplestore.
+DELETE Triplestore/api/secure/{storeID}                       #Delete encrypted triplestore. 
+POST   Triplestore/api/secure/query/{storeID}                 #Execute SPARQL query over encrypted triplestore.
 
 ```
