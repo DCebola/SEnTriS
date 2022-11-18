@@ -9,7 +9,6 @@ import pt.fct.nova.id.srv.application.AccessRequest;
 import pt.fct.nova.id.srv.application.IAMStore;
 import pt.fct.nova.id.srv.application.RoleRequest;
 import pt.fct.nova.id.srv.application.clients.LockClient;
-import pt.fct.nova.id.srv.application.clients.SecretsClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 import pt.fct.nova.id.srv.presentation.Utils;
@@ -24,7 +23,6 @@ import java.util.HashSet;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.api.dtos.Role.*;
 
-@Path("/iam")
 public class IAMController implements IdentityAndAccessManagementAPI {
     private static final String SUCCESSFUL_AUTH = "Successful authentication.";
     private static final String UNKNOWN_USER = "User not found.";
@@ -344,7 +342,7 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             if (role.equals(BASIC))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             String lockID = LockClient.acquireStoreLock(storeID);
-            if (SecretsClient.exists(storeID)) {
+            if (IAMStore.storeAccessPolicyExists(storeID)) {
                 LockClient.releaseStoreLock(storeID, lockID);
                 return Response.ok(STORE_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }

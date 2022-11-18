@@ -2,7 +2,9 @@ package pt.fct.nova.id.srv.application;
 
 import com.google.gson.Gson;
 import jakarta.ws.rs.core.NewCookie;
+
 import pt.fct.nova.id.srv.application.redis.Redis;
+
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;

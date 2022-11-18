@@ -27,18 +27,6 @@ public interface TriplestoreAPI {
             @PathParam("storeID") String storeID,
             @MultipartForm UploadForm form);
 
-    @GET
-    @Path("/download/{storeID}")
-    @Produces({TEXT_TURTLE,
-            RDF_XML,
-            N_TRIPLES,
-            TRIG,
-            N_QUADS,
-            TRIX_XML,
-            RDF_THRIFT,
-            RDF_PROTOBUF})
-    Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
-
     @POST
     @Path("/query/{storeID}")
     @Consumes(SPARQL_QUERY)

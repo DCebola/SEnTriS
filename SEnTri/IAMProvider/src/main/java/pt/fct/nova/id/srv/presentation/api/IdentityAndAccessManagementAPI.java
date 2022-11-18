@@ -11,8 +11,6 @@ import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
 
 public interface IdentityAndAccessManagementAPI {
 
-    //TODO: Separate user, iam management, check for Write/Read access to store
-
     @POST
     @Path("auth")
     @Consumes(APPLICATION_FORM_URLENCODED)
@@ -20,19 +18,19 @@ public interface IdentityAndAccessManagementAPI {
     Response auth(@Form AuthForm credentialsForm);
 
     @POST
-    @Path("")
+    @Path("users")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response registerUser(@Form AuthForm credentialsForm);
 
     @DELETE
-    @Path("{username}")
+    @Path("users/{username}")
     @Produces(TEXT_PLAIN)
     Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie,
                         @PathParam("username") String username);
 
     @DELETE
-    @Path("{username}/access")
+    @Path("users/{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -40,7 +38,7 @@ public interface IdentityAndAccessManagementAPI {
                           @Form AccessPolicyForm accessPolicyForm);
 
     @POST
-    @Path("{username}/access")
+    @Path("users/{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -48,7 +46,7 @@ public interface IdentityAndAccessManagementAPI {
                                      @Form AccessPolicyForm accessPolicyForm);
 
     @POST
-    @Path("{username}/role")
+    @Path("users/{username}/role")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueGrantRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -56,33 +54,33 @@ public interface IdentityAndAccessManagementAPI {
                                    @Form RoleForm roleForm);
 
     @GET
-    @Path("{username}/access-requests")
+    @Path("pending/{username}/access")
     @Produces(APPLICATION_JSON)
     Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                       @PathParam("username") String username);
 
     @GET
-    @Path("{username}/role-requests")
+    @Path("pending/{username}/role")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("username") String username);
 
     @GET
-    @Path("{username}/access-requests/{requestID}")
+    @Path("pending/{username}/access/{requestID}")
     @Produces(APPLICATION_JSON)
     Response getPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("requestID") String requestID);
 
     @GET
-    @Path("{username}/role-requests/{requestID}")
+    @Path("pending/{username}/role/{requestID}")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID);
 
     @DELETE
-    @Path("access-requests/{requestID}")
+    @Path("pending/access/{requestID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -90,7 +88,7 @@ public interface IdentityAndAccessManagementAPI {
                                   @Form RequestDecisionForm requestDecisionForm);
 
     @DELETE
-    @Path("role-requests/{requestID}")
+    @Path("pending/role/{requestID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -98,21 +96,21 @@ public interface IdentityAndAccessManagementAPI {
                                 @Form RequestDecisionForm requestDecisionForm);
 
     @POST
-    @Path("{username}/store-access-policies/{storeID}")
+    @Path("{username}/stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response createStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("storeID") String storeID);
 
     @DELETE
-    @Path("{username}/store-access-policies/{storeID}")
+    @Path("{username}/stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response deleteStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("storeID") String storeID);
 
     @GET
-    @Path("{storeID}/access-policy/{username}")
+    @Path("stores/{storeID}/access/{username}")
     @Produces(APPLICATION_JSON)
     Response getAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,

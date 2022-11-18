@@ -22,7 +22,7 @@ import java.util.*;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 
 
-@Path("secure-triplestore")
+@Path("secure")
 public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     private static final String SAVE_ERROR_MSG = "Error saving encrypted contents.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";

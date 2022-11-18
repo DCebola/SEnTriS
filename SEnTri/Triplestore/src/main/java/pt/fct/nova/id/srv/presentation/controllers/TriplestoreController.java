@@ -1,15 +1,12 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
@@ -29,7 +26,6 @@ import java.io.InputStream;
 import java.util.List;
 
 
-@Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
@@ -95,22 +91,6 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
         } catch (Exception e) {
             return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @Override
-    public Response download(String storeID, String syntax) {
-        try {
-            Model m = triplestore.getDatasetModel(storeID);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            RDFDataMgr.write(out, m, parseRDFLanguage(syntax));
-            return Response.ok(out.toByteArray()).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
-        } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, syntax)).status(Status.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return Response.ok(DOWNLOAD_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 

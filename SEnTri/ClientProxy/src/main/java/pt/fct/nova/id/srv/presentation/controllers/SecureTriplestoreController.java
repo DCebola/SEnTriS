@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import com.google.gson.Gson;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
@@ -31,7 +32,7 @@ import java.util.Map;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.application.clients.SecretsClient.*;
-
+@Path("secure-triplestore")
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
     private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
