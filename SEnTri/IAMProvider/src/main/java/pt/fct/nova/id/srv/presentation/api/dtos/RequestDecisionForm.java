@@ -1,0 +1,25 @@
+package pt.fct.nova.id.srv.presentation.api.dtos;
+
+import org.jboss.resteasy.annotations.jaxrs.FormParam;
+
+public class RequestDecisionForm {
+
+    @FormParam("issuer")
+    private final String issuer;
+
+    @FormParam("accept")
+    private final boolean accept;
+
+    public RequestDecisionForm(String issuer, boolean accept) {
+        this.issuer = issuer;
+        this.accept = accept;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public boolean isAccept() {
+        return accept;
+    }
+}
