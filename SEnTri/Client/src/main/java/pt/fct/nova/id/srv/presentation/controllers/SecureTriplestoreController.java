@@ -9,7 +9,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import pt.fct.nova.id.srv.application.clients.LockClient;
+import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.SecretsClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.clients.exception.*;
@@ -61,12 +61,12 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
                     try {
-                        String lockID = LockClient.acquireStoreLock(storeID);
+                        String lockID = LocksClient.acquireStoreLock(storeID);
                         if (lockID == null)
                             return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
                         TriplestoreClient.create(storeID, p.getEncryptedT());
                         SecretsClient.saveProtocolSecrets(p);
-                        LockClient.releaseStoreLock(storeID, lockID);
+                        LocksClient.releaseStoreLock(storeID, lockID);
                     } catch (TriplestoreClientException e) {
                         return Response.ok(String.format(CREATE_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
                     }
@@ -117,12 +117,12 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
                     try {
-                        String lockID = LockClient.acquireStoreLock(storeID);
+                        String lockID = LocksClient.acquireStoreLock(storeID);
                         if (lockID == null)
                             return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
                         TriplestoreClient.upload(storeID, p.getEncryptedT());
                         SecretsClient.saveProtocolSecrets(p);
-                        LockClient.releaseStoreLock(storeID, lockID);
+                        LocksClient.releaseStoreLock(storeID, lockID);
                     } catch (TriplestoreClientException e) {
                         return Response.ok(String.format(UPLOAD_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
                     }

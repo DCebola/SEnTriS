@@ -4,18 +4,18 @@ A searchable encrypted triplestore solution with (limited) support for SPARQL qu
 
 ## **Endpoints**
 
-### ClientProxy
+### Client
 
 ```perl
-GET  /ClientProxy/api/ctrl/version                                 #Get service version.
+GET  /Client/api/ctrl/version                                      #Get service version.
 
-POST /ClientProxy/api/secure-triplestores/                         #Create encrypted triplestore.
-POST /ClientProxy/api/secure-triplestores/{storeID}                #Upload data to encrypted triplestore.
-POST /ClientProxy/api/secure-triplestores/query/{storeID}          #Execute SPARQL query over encrypted triplestore.
+POST /Client/api/secure-triplestores/                              #Create encrypted triplestore.
+POST /Client/api/secure-triplestores/{storeID}                     #Upload data to encrypted triplestore.
+POST /Client/api/secure-triplestores/query/{storeID}               #Execute SPARQL query over encrypted triplestore.
 
-POST /ClientProxy/api/triplestores/                                #Create triplestore.
-POST /ClientProxy/api/triplestores/{storeID}                       #Upload data to triplestore.
-POST /ClientProxy/api/triplestore/query/{storeID}                  #Execute SPARQL query.
+POST /Client/api/triplestores/                                     #Create triplestore.
+POST /Client/api/triplestores/{storeID}                            #Upload data to triplestore.
+POST /Client/api/triplestore/query/{storeID}                       #Execute SPARQL query.
 ```
 ### IAM Provider
 ```perl
