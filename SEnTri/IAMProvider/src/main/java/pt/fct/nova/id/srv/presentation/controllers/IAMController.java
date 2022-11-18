@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
@@ -8,7 +7,7 @@ import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.AccessRequest;
 import pt.fct.nova.id.srv.application.IAMStore;
 import pt.fct.nova.id.srv.application.RoleRequest;
-import pt.fct.nova.id.srv.application.clients.LockClient;
+import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 import pt.fct.nova.id.srv.presentation.Utils;
@@ -76,14 +75,14 @@ public class IAMController implements IdentityAndAccessManagementAPI {
     public Response registerUser(AuthForm credentials) {
         try {
             String username = credentials.getUsername();
-            String lockID = LockClient.acquireUserLock(username);
+            String lockID = LocksClient.acquireUserLock(username);
             if (IAMStore.userExists(username)) {
-                LockClient.releaseUserLock(username, lockID);
+                LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordUtils.hash(credentials.getPassword()));
             IAMStore.saveUser(username, passwordHash, BASIC);
-            LockClient.releaseUserLock(username, lockID);
+            LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
@@ -96,9 +95,9 @@ public class IAMController implements IdentityAndAccessManagementAPI {
     public Response deleteUser(Cookie cookie, String username) {
         try {
             Utils.authCheck(cookie, username);
-            String lockID = LockClient.acquireUserLock(username);
+            String lockID = LocksClient.acquireUserLock(username);
             IAMStore.deleteUser(username);
-            LockClient.releaseUserLock(username, lockID);
+            LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_DELETE).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -129,14 +128,14 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             if (IAMStore.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
-            String lockID = LockClient.acquireStoreAccessPolicyLock(storeID);
+            String lockID = LocksClient.acquireStoreLock(storeID);
             Role issuerRole = IAMStore.getRole(issuerUsername);
             if (!issuerUsername.equals(username) && (issuerRole.equals(PRIVILEGED) || issuerRole.equals(BASIC))) {
-                LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
+                LocksClient.releaseStoreLock(storeID, lockID);
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
             IAMStore.revokeAccess(storeID, username, accessPolicyForm.getRead(), accessPolicyForm.getWrite());
-            LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
+            LocksClient.releaseStoreLock(storeID, lockID);
             return Response.ok(SUCCESSFUL_ACCESS_REVOCATION).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -157,21 +156,21 @@ public class IAMController implements IdentityAndAccessManagementAPI {
                 return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
             if (IAMStore.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-            String lockID = LockClient.acquireStoreAccessPolicyLock(storeID);
+            String lockID = LocksClient.acquireStoreLock(storeID);
             Role issuerRole = IAMStore.getRole(issuerUsername);
 
             if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStore.checkIfOwns(issuerUsername, storeID))) {
                 if (username.equals(issuerUsername)) {
                     IAMStore.saveAccessRequest(new AccessRequest(username, storeID, accessPolicyForm.getRead(), accessPolicyForm.getWrite()));
-                    LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
+                    LocksClient.releaseStoreLock(storeID, lockID);
                     return Response.ok(SUCCESSFUL_ACCESS_REQUEST_ISSUED).build();
                 } else {
-                    LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
+                    LocksClient.releaseStoreLock(storeID, lockID);
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
                 }
             } else {
                 IAMStore.grantAccess(storeID, username, accessPolicyForm.getRead(), accessPolicyForm.getWrite());
-                LockClient.releaseStoreAccessPolicyLock(storeID, lockID);
+                LocksClient.releaseStoreLock(storeID, lockID);
                 return Response.ok(SUCCESSFUL_ACCESS_GRANT).build();
             }
         } catch (SessionException e) {
@@ -190,24 +189,24 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             Utils.authCheck(cookie, issuerUsername);
             if (IAMStore.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-            String lockID = LockClient.acquireUserLock(username);
+            String lockID = LocksClient.acquireUserLock(username);
             Role issuerRole = IAMStore.getRole(issuerUsername);
             if (issuerRole.equals(BASIC) || issuerRole.equals(PRIVILEGED)) {
                 if (username.equals(issuerUsername)) {
                     IAMStore.saveRoleRequest(new RoleRequest(username, roleForm.getRole()));
-                    LockClient.releaseUserLock(username, lockID);
+                    LocksClient.releaseUserLock(username, lockID);
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else {
-                    LockClient.releaseUserLock(username, lockID);
+                    LocksClient.releaseUserLock(username, lockID);
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
                 }
             } else if (!issuerRole.equals(ADMIN) && roleForm.getRole().equals(ADMIN)) {
                 IAMStore.saveRoleRequest(new RoleRequest(username, roleForm.getRole()));
-                LockClient.releaseUserLock(username, lockID);
+                LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
             }
             IAMStore.setRole(username, roleForm.getRole());
-            LockClient.releaseUserLock(username, lockID);
+            LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -286,14 +285,14 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             if (IAMStore.userExists(req.target()))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
-            String lockID = LockClient.acquireStoreAccessPolicyLock(req.storeID());
+            String lockID = LocksClient.acquireStoreLock(req.storeID());
 
             if (requestDecisionForm.isAccept())
                 IAMStore.grantAccess(req.storeID(), req.target(), req.read(), req.write());
             else
                 IAMStore.revokeAccess(req.storeID(), req.target(), req.read(), req.write());
             IAMStore.deleteAccessRequest(requestID);
-            LockClient.releaseStoreAccessPolicyLock(req.storeID(), lockID);
+            LocksClient.releaseStoreLock(req.storeID(), lockID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -318,12 +317,12 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             if (IAMStore.userExists(req.target()))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
-            String lockID = LockClient.acquireUserLock(req.target());
+            String lockID = LocksClient.acquireUserLock(req.target());
 
             if (requestDecisionForm.isAccept())
                 IAMStore.setRole(req.target(), req.role());
             IAMStore.deleteAccessRequest(requestID);
-            LockClient.releaseUserLock(req.target(), lockID);
+            LocksClient.releaseUserLock(req.target(), lockID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -341,13 +340,13 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             Role role = IAMStore.getRole(username);
             if (role.equals(BASIC))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
-            String lockID = LockClient.acquireStoreLock(storeID);
+            String lockID = LocksClient.acquireStoreLock(storeID);
             if (IAMStore.storeAccessPolicyExists(storeID)) {
-                LockClient.releaseStoreLock(storeID, lockID);
+                LocksClient.releaseStoreLock(storeID, lockID);
                 return Response.ok(STORE_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
             IAMStore.saveStoreAccessPolicy(storeID, username, new HashSet<>(), new HashSet<>());
-            LockClient.releaseStoreLock(storeID, lockID);
+            LocksClient.releaseStoreLock(storeID, lockID);
             return Response.ok(SUCCESSFUL_STORE_ACCESS_POLICY_CREATION).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -367,9 +366,9 @@ public class IAMController implements IdentityAndAccessManagementAPI {
                 return Response.ok(UNKNOWN_STORE).status(BAD_REQUEST).build();
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !IAMStore.checkIfOwns(username, storeID)))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
-            String lockID = LockClient.acquireStoreLock(storeID);
+            String lockID = LocksClient.acquireStoreLock(storeID);
             IAMStore.deleteStoreAccessPolicy(storeID);
-            LockClient.releaseStoreLock(storeID, lockID);
+            LocksClient.releaseStoreLock(storeID, lockID);
             return Response.ok(SUCCESSFUL_STORE_ACCESS_POLICY_DELETION).build();
         } catch (SessionException e) {
             return handleSessionException(e);

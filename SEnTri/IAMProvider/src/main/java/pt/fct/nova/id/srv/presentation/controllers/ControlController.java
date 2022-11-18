@@ -12,7 +12,6 @@ import jakarta.ws.rs.core.Response;
  */
 @Path("/ctrl")
 public class ControlController implements ControlAPI {
-
     public Response version() {
         return Response.ok(System.getenv("VERSION")).build();
     }

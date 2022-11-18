@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application;
 
 
-public class SecretsStore {
+public class Vault {
 
     /*
     private static final Gson gson = new Gson();

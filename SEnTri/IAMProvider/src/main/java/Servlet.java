@@ -2,7 +2,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.apache.commons.codec.binary.Base64;
-import pt.fct.nova.id.srv.application.clients.LockClient;
+import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.IAMStore;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 
@@ -16,9 +16,9 @@ public class Servlet implements ServletContextListener {
             try {
                 String defaultAdminUsername = System.getenv("DEFAULT_ADMIN_USERNAME");
                 String defaultAdminPassword = Base64.encodeBase64URLSafeString(PasswordUtils.hash(System.getenv("DEFAULT_ADMIN_PASSWORD")));
-                String lockID = LockClient.acquireUserLock(defaultAdminUsername);
+                String lockID = LocksClient.acquireUserLock(defaultAdminUsername);
                 IAMStore.init(defaultAdminUsername, defaultAdminPassword);
-                LockClient.releaseUserLock(defaultAdminUsername, lockID);
+                LocksClient.releaseUserLock(defaultAdminUsername, lockID);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
