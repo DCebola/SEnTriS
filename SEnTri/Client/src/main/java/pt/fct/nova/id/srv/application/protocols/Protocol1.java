@@ -6,8 +6,6 @@ import org.apache.jena.graph.Triple;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 
-import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.exception.TriplestoreSearchException;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
@@ -15,6 +13,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -23,7 +22,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Protocol1 implements EncryptionProtocol {
-
     private final String storeID;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
@@ -78,6 +76,7 @@ public class Protocol1 implements EncryptionProtocol {
     public Map<String, String> getEncryptedT() {
         return encryptedT;
     }
+
     @Override
     public void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException,
@@ -85,6 +84,7 @@ public class Protocol1 implements EncryptionProtocol {
         encryptTriples(triples);
         encryptKeywordInfo();
     }
+
 
     private void encryptTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String s, p, o;
@@ -118,8 +118,8 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    public Map<String, Pair<Integer, byte[]>> fetchKeywords(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
-        HashMap<String, String> trapdoors = new HashMap<>();
+    public Map<String, String> generateKeywordTrapdoorMap(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        HashMap<String, String> res = new HashMap<>();
         Set<String> skip = new HashSet<>();
         String s, p, o, po, so, sp;
         for (Triple t : triples) {
@@ -129,14 +129,14 @@ public class Protocol1 implements EncryptionProtocol {
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);
-            generateKeywordTrapdoor(trapdoors, skip, s);
-            generateKeywordTrapdoor(trapdoors, skip, p);
-            generateKeywordTrapdoor(trapdoors, skip, o);
-            generateKeywordTrapdoor(trapdoors, skip, po);
-            generateKeywordTrapdoor(trapdoors, skip, so);
-            generateKeywordTrapdoor(trapdoors, skip, sp);
+            generateKeywordTrapdoor(res, skip, s);
+            generateKeywordTrapdoor(res, skip, p);
+            generateKeywordTrapdoor(res, skip, o);
+            generateKeywordTrapdoor(res, skip, po);
+            generateKeywordTrapdoor(res, skip, so);
+            generateKeywordTrapdoor(res, skip, sp);
         }
-        return generateKeywordsIV(trapdoors);
+        return res;
     }
 
     private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword)
@@ -169,29 +169,20 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
-    private void generateKeywordTrapdoor(HashMap<String, String> trapdoors, Set<String> skip, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private void generateKeywordTrapdoor(Map<String, String> trapdoors, Set<String> skip, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         if (!skip.contains(keyword)) {
             trapdoors.put(keyword, generateTrapdoor(keyword));
             skip.add(keyword);
         }
     }
 
-    private Map<String, Pair<Integer, byte[]>> generateKeywordsIV(HashMap<String, String> keywordsAndTrapdoors) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, TriplestoreSearchException {
-        List<String> trapdoors = new ArrayList<>(keywordsAndTrapdoors.size());
-        String[] keywords = new String[keywordsAndTrapdoors.size()];
-        int i = 0;
-        for (Map.Entry<String, String> entry : keywordsAndTrapdoors.entrySet()) {
-            trapdoors.add(entry.getKey());
-            keywords[i] = entry.getValue();
-            i++;
-        }
-        List<String> keywordsTotals = TriplestoreClient.search(storeID, trapdoors);
+    public Map<String, Pair<Integer, byte[]>> generateKeywordIVMap(List<String> keywords, List<String> keywordsTotals) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         int max = -1;
         int total;
         Map<Integer, byte[]> generatedIvs = new HashMap<>();
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         Map<String, Pair<Integer, byte[]>> res = new HashMap<>();
-        i = 0;
+        int i = 0;
         for (String encTotal : keywordsTotals) {
             total = buffer.put(SymmetricCipher.decrypt(k2, decodeBase64(encTotal))).rewind().getInt();
             buffer.reset();
@@ -200,7 +191,7 @@ public class Protocol1 implements EncryptionProtocol {
                     generatedIvs.put(total - j, SymmetricCipher.incrementIV(iv));
                 max = total;
             }
-            res.put(keywords[i], new Pair<>(total, generatedIvs.get(total)));
+            res.put(keywords.get(i), new Pair<>(total, generatedIvs.get(total)));
             i++;
         }
         return res;

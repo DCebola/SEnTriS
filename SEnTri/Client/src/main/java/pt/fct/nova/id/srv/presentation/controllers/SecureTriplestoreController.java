@@ -1,75 +1,95 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import com.google.gson.Gson;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.atlas.lib.Pair;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import pt.fct.nova.id.srv.application.clients.LocksClient;
-import pt.fct.nova.id.srv.application.clients.SecretsClient;
+import pt.fct.nova.id.srv.application.clients.HttpUtils;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.clients.VaultClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.exception.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.presentation.api.SecureTriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.api.dtos.SecureCreateForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.SecureQueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
+import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.io.InputStream;
-import java.security.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static pt.fct.nova.id.srv.application.clients.SecretsClient.*;
+import static jakarta.ws.rs.core.Response.Status.OK;
+
 @Path("secure-triplestore")
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
+    public static final String SECRETS_VERSION_KEY = System.getenv("PROTOCOL_VERSION_KEY");
+    public static final String SECRETS_NTH_KEY = System.getenv("PROTOCOL_KEY").concat("_%s");
+    public static final String SECRETS_IV = System.getenv("PROTOCOL_KEY");
     private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
-    private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
-    private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
-    private static final String STORE_NOT_FOUND = "Store %s not found.";
+    private static final String INTERNAL_ERROR = "Internal error.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
     private static final String SUCCESS_CREATE = "Successful create.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private static final String CREATE_ERROR = "Error during protocol execution while trying to create triplestore %s: %s";
-    private static final String UPLOAD_ERROR = "Error during protocol execution while trying to upload to triplestore %s: %s";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
-    private static final String OPERATION_TIMEOUT = "Operation timeout.";
-    private static final Gson gson = new Gson();
-
+    private static final String NO_SECRETS = "No secrets provided.";
+    private static final String MALFORMED_SECRETS = "Secrets malformed.";
 
     @Override
-    public Response create(ProtocolVersion protocolVersion, String storeID, SecureUploadForm form) {
-        //TODO: check session and access
-        if (SecretsClient.exists(storeID))
-            return Response.ok(String.format(STORE_ALREADY_EXISTS, storeID)).status(Response.Status.BAD_REQUEST).build();
+    public Response create(Cookie cookie, SecureCreateForm form) {
         try {
+            String storeID = form.getStoreID();
+            String issuer = form.getIssuer();
+            try (CloseableHttpResponse response = IAMClient.createStore(cookie, issuer, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+
+            String lockID;
+            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, issuer, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                lockID = response.getEntity().toString();
+            }
+
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
-            switch (protocolVersion) {
+            switch (form.getProtocolVersion()) {
                 case V1 -> {
                     Protocol1 p = new Protocol1(storeID);
+                    try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, issuer, storeID, ClientUtils.generateSecretsMap(p))) {
+                        if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                            IAMClient.deleteStore(cookie, issuer, storeID);
+                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                            return HttpUtils.buildResponse(response);
+                        }
+                    }
+
                     Collections.shuffle(triples);
                     p.exec(triples);
-                    try {
-                        String lockID = LocksClient.acquireStoreLock(storeID);
-                        if (lockID == null)
-                            return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-                        TriplestoreClient.create(storeID, p.getEncryptedT());
-                        SecretsClient.saveProtocolSecrets(p);
-                        LocksClient.releaseStoreLock(storeID, lockID);
-                    } catch (TriplestoreClientException e) {
-                        return Response.ok(String.format(CREATE_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
+
+                    try (CloseableHttpResponse response = TriplestoreClient.create(storeID, p.getEncryptedT())) {
+                        if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                            return HttpUtils.buildResponse(response);
+                        }
                     }
+
+                    IAMClient.releaseLock(cookie, issuer, storeID, lockID);
                 }
                 case V2 -> {
                     //TODO: Create protocol v2
@@ -81,10 +101,62 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok(PARSING_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
 
+    @Override
+    public Response upload(Cookie cookie, String storeID, SecureUploadForm form) {
+        try {
+            String issuer = form.getIssuer();
+            Map<String, String> secrets = ClientUtils.sanitizeSecrets(form.getSecrets());
+            if (secrets.isEmpty())
+                return Response.ok(NO_SECRETS).status(Response.Status.BAD_REQUEST).build();
+
+            String lockID;
+            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, issuer, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                lockID = response.getEntity().toString();
+            }
+            List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
+            switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION_KEY))) {
+                case V1 -> {
+                    Protocol1 p = ClientUtils.initProtocol1(storeID, secrets);
+                    Collections.shuffle(triples);
+                    try (Response response = fetchAndUpdateKeywords(storeID, p.generateKeywordTrapdoorMap(triples), p)) {
+                        if (response != null)
+                            return response;
+                    }
+                    Collections.shuffle(triples);
+                    p.exec(triples);
+                    try (CloseableHttpResponse response = TriplestoreClient.upload(storeID, p.getEncryptedT())) {
+                        if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                            return HttpUtils.buildResponse(response);
+                        }
+                    }
+                    IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                }
+                case V2 -> {
+                    //TODO: Upload protocol v2
+                }
+            }
+            return Response.ok(SUCCESS_UPLOAD).build();
+        } catch (MalformedSecretsException e) {
+            return Response.ok(MALFORMED_SECRETS, storeID).status(Response.Status.BAD_REQUEST).build();
+        } catch (UnknownRDFLanguageException e) {
+            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
+        } catch (InvalidNodeException e) {
+            return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response answerSPARQLQuery(Cookie cookie, String storeID, SecureQueryForm form) {
+        return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     private List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException {
@@ -100,60 +172,24 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         return l;
     }
 
-    @Override
-    public Response upload(String storeID, SecureUploadForm form) {
-        //TODO: check password && access
-        try {
-            List<String> secrets = SecretsClient.getProtocolSecrets(storeID);
-            if (secrets.isEmpty())
-                return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
-            List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
-            switch (ProtocolVersion.fromString(secrets.get(PROTOCOL_VERSION))) {
-                case V1 -> {
-                    Protocol1 p = initProtocol1(storeID, secrets);
-                    Collections.shuffle(triples);
-                    Map<String, Pair<Integer, byte[]>> keywords = p.fetchKeywords(triples);
-                    p.updateKeywords(keywords);
-                    Collections.shuffle(triples);
-                    p.exec(triples);
-                    try {
-                        String lockID = LocksClient.acquireStoreLock(storeID);
-                        if (lockID == null)
-                            return Response.ok(OPERATION_TIMEOUT).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-                        TriplestoreClient.upload(storeID, p.getEncryptedT());
-                        SecretsClient.saveProtocolSecrets(p);
-                        LocksClient.releaseStoreLock(storeID, lockID);
-                    } catch (TriplestoreClientException e) {
-                        return Response.ok(String.format(UPLOAD_ERROR, storeID, e.getMessage())).status(Response.Status.BAD_REQUEST).build();
-                    }
-                }
-                case V2 -> {
-                    //TODO: Upload protocol v2
-                }
-            }
-            return Response.ok(SUCCESS_UPLOAD).build();
-        } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
-        } catch (InvalidNodeException e) {
-            return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok(PARSING_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    private Response fetchAndUpdateKeywords(String storeID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
+        List<String> trapdoors = new ArrayList<>(keywordTrapdoorMap.size());
+        List<String> keywords = new ArrayList<>(keywordTrapdoorMap.size());
+        int i = 0;
+        for (Map.Entry<String, String> entry : keywordTrapdoorMap.entrySet()) {
+            trapdoors.add(entry.getKey());
+            keywords.add(i, entry.getValue());
+            i++;
         }
-    }
 
-    private static Protocol1 initProtocol1(String storeID, List<String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        SecretKey k1 = gson.fromJson(secrets.get(P1_KEY_1), SecretKey.class);
-        SecretKey k2 = gson.fromJson(secrets.get(P1_KEY_2), SecretKey.class);
-        SecretKey k3 = gson.fromJson(secrets.get(P1_KEY_3), SecretKey.class);
-        byte[] iv = decodeBase64(secrets.get(P1_IV));
-        return new Protocol1(storeID, k1, k2, k3, iv);
-    }
-
-
-    @Override
-    public Response answerSPARQLQuery(ProtocolVersion protocolVersion, String storeID, String query) {
-        return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
+        List<String> keywordsTotals;
+        try (CloseableHttpResponse response = TriplestoreClient.search(storeID, trapdoors)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HttpUtils.buildResponse(response);
+            keywordsTotals = ClientUtils.parseSearchResults(EntityUtils.toString(response.getEntity()));
+        }
+        protocol.updateKeywords(protocol.generateKeywordIVMap(keywords, keywordsTotals));
+        return null;
     }
 
 }

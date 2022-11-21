@@ -3,25 +3,23 @@ package pt.fct.nova.id.srv.presentation.api;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.annotations.Form;
+import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
-import java.util.List;
-
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
+import static jakarta.ws.rs.core.MediaType.*;
+import static pt.fct.nova.id.srv.presentation.Utils.COOKIE_PARAM;
 
 public interface SecretsAPI {
-    String COOKIE_PARAM = "session";
 
     @POST
-    @Path("{username}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(TEXT_PLAIN)
+    @Path("")
+    @Consumes(MULTIPART_FORM_DATA)
+    @Produces(APPLICATION_JSON)
     Response createSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                           @PathParam("username") String username,
-                           List<String> secrets);
+                           @Form SecretsForm secrets);
     @GET
     @Path("{username}/{storeID}")
-    @Produces(TEXT_PLAIN)
+    @Produces(APPLICATION_JSON)
     Response getSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
                               @PathParam("username") String username,
                               @PathParam("storeID") String storeID);

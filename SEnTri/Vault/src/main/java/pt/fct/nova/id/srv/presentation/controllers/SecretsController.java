@@ -10,12 +10,11 @@ import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.api.SecretsAPI;
+import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
 import java.io.IOException;
-import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.application.Vault.STORE_ID;
 
 @Path("secrets")
 public class SecretsController implements SecretsAPI {
@@ -28,21 +27,21 @@ public class SecretsController implements SecretsAPI {
     private static final String OPERATION_TIMEOUT = "Operation timeout.";
 
     @Override
-    public Response createSecrets(Cookie cookie, String username, List<String> secrets) {
+    public Response createSecrets(Cookie cookie, SecretsForm form) {
         try {
-            String storeID = secrets.get(STORE_ID);
-            CloseableHttpResponse response = IAMClient.hasOwnerAccess(username, storeID);
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                return Utils.buildResponse(response);
-            if (!Boolean.parseBoolean(response.getEntity().toString()))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
-
+            String storeID = form.getStoreID();
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, form.getIssuer(), storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return Utils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
             String lockID = LocksClient.acquireLock(storeID);
             if (Vault.exists(storeID)) {
                 LocksClient.releaseLock(storeID, lockID);
                 return Response.ok(STORE_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
-            Vault.saveSecrets(secrets);
+            Vault.saveSecrets(storeID, form.getSecrets());
             LocksClient.releaseLock(storeID, lockID);
             return Response.ok(SUCCESSFUL_SECRETS_CREATION).build();
         } catch (TooManyLockRetriesException e) {
@@ -55,11 +54,12 @@ public class SecretsController implements SecretsAPI {
     @Override
     public Response getSecrets(Cookie cookie, String username, String storeID) {
         try {
-            CloseableHttpResponse response = IAMClient.hasReadAccess(username, storeID);
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                return Utils.buildResponse(response);
-            if (!Boolean.parseBoolean(response.getEntity().toString()))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return Utils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
             if (!Vault.exists(storeID))
                 return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
             return Response.ok(Vault.getSecrets(storeID)).build();
@@ -71,11 +71,12 @@ public class SecretsController implements SecretsAPI {
     @Override
     public Response deleteSecrets(Cookie cookie, String username, String storeID) {
         try {
-            CloseableHttpResponse response = IAMClient.hasOwnerAccess(username, storeID);
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                return Utils.buildResponse(response);
-            if (!Boolean.parseBoolean(response.getEntity().toString()))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return Utils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
             if (!Vault.exists(storeID))
                 return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
             String lockID = LocksClient.acquireLock(storeID);

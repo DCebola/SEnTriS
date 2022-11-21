@@ -50,7 +50,7 @@ DELETE IAMProvider/api/locks/{lockID}/{username}/stores/{storeID}  #Release lock
 ```perl
 GET    vault/api/ctrl/version                                      #Get service version.
 
-POST   vault/api/secrets/{username}                                #Create triplestore secrets.
+POST   vault/api/secrets/                                          #Create triplestore secrets.
 GET    vault/api/secrets/{username}/{storeID}                      #Get triplestore secrets.
 DELETE vault/api/secrets/{username}/{storeID}                      #Delete triplestore secrets.
 ```

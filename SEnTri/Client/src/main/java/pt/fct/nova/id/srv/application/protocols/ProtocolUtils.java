@@ -5,10 +5,9 @@ import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
 public class ProtocolUtils {
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-    private static final String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
+    private static final String BLANK_IRI = "BLANK";
     private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
     private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
-    private static final String PROTOCOL = System.getenv("PROTOCOL");
 
     public static String parseNodeIRI(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
@@ -18,6 +17,6 @@ public class ProtocolUtils {
         else if (node.isLiteral())
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return String.format(BLANK_IRI, node.getBlankNodeId());
+            return BLANK_IRI;
     }
 }

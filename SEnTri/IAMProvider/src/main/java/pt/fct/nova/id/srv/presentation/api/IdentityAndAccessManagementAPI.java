@@ -81,7 +81,7 @@ public interface IdentityAndAccessManagementAPI {
 
     @DELETE
     @Path("pending/access/{requestID}")
-    @Consumes(APPLICATION_JSON)
+    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                   @PathParam("requestID") String requestID,
@@ -89,21 +89,21 @@ public interface IdentityAndAccessManagementAPI {
 
     @DELETE
     @Path("pending/role/{requestID}")
-    @Consumes(APPLICATION_JSON)
+    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
 
     @POST
-    @Path("{username}/stores/{storeID}")
+    @Path("/{username}/stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response createStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("storeID") String storeID);
 
     @DELETE
-    @Path("{username}/stores/{storeID}")
+    @Path("/{username}/stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response deleteStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
