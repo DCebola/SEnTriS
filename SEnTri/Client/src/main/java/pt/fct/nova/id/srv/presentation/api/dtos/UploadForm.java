@@ -25,7 +25,6 @@ public class UploadForm {
         this.namespaces = namespaces;
         this.contents = contents;
     }
-
     public UploadForm() {
         this.syntax = null;
         this.namespaces = null;

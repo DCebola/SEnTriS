@@ -4,23 +4,25 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
 
 public interface LocksAPI {
 
     @GET
-    @Path("{username}/stores/{storeID}")
+    @Path("stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response acquireStoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("username") String username,
-                              @PathParam("storeID") String storeID);
+                              @PathParam("storeID") String storeID,
+                              @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("{lockID}/{username}/store/{storeID}")
+    @Path("store/{storeID}")
     @Produces(TEXT_PLAIN)
     Response releaseStoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("lockID") String lockID,
-                              @PathParam("username") String username,
-                              @PathParam("storeID") String storeID);
+                              @PathParam("storeID") String storeID,
+                              @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

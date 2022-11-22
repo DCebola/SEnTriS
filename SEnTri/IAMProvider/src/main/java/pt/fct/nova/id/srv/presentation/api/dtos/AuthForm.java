@@ -14,6 +14,11 @@ public class AuthForm {
         this.password = password;
     }
 
+    public AuthForm() {
+        username = null;
+        password = null;
+    }
+
     public String getUsername() {
         return username;
     }

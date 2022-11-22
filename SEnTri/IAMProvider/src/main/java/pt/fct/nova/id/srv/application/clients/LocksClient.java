@@ -22,7 +22,8 @@ public class LocksClient {
                 return 0
             end
             redis.call('expire', KEYS[1], ARGV[2])
-            return 1""";
+            return 1
+            """;
     private final static String UNLOCK_SCRIPT = """
             if redis.call("get",KEYS[1]) == ARGV[1] then
                 return redis.call("del",KEYS[1])
@@ -41,6 +42,12 @@ public class LocksClient {
 
     public static synchronized void releaseUserLock(String username, String lockID) {
         releaseLock(String.format(USER_LOCK, username), lockID);
+    }
+
+    public static boolean checkIfStoreLockExists(String storeID, String lockID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.get(String.format(STORE_LOCK, storeID)).equals(lockID);
+        }
     }
 
     public static synchronized void releaseStoreLock(String storeID, String lockID) {

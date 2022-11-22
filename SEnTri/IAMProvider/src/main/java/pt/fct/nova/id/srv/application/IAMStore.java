@@ -20,6 +20,7 @@ public class IAMStore {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
+
     private static final String SESSION = "S".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_ROLE = "UR".concat(BASIC_SEPARATOR).concat("%s");
@@ -27,9 +28,15 @@ public class IAMStore {
     private static final String STORE_WRITE_ACCESS = "SWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_OWNER = "SO".concat(BASIC_SEPARATOR).concat("%s");
 
+    private static final String STORE_TYPE = "ST".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ACCESS_REQUESTS = "PA";
     private static final String PENDING_ROLE_REQUESTS = "PR";
-    private static final String STORE_STATE = "STORE_STATE";
+    private static final String STATUS = "STATUS";
+    private static final String ACCESS_TOKEN = "AT".concat(BASIC_SEPARATOR).concat("%s");
+    private static final long ACCESS_TOKEN_LIFETIME = Integer.toUnsignedLong(Integer.parseInt(System.getenv("ACCESS_TOKEN_LIFETIME")));
+    public static final String TOKEN_USER_FIELD = "USER";
+    public static final String TOKEN_STORE_FIELD = "STORE";
+    public static final String TOKEN_LOCK_FIELD = "LOCK";
 
     public static NewCookie cacheSession(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -38,7 +45,7 @@ public class IAMStore {
             Transaction t = jedis.multi();
             t.del(key);
             t.set(key, uuid);
-            t.expire(key, Integer.toUnsignedLong(COOKIE_LIFETIME));
+            t.expire(key, COOKIE_LIFETIME);
             t.exec();
             return buildCookie(uuid);
         }
@@ -112,7 +119,6 @@ public class IAMStore {
         }
     }
 
-
     public static boolean checkIfUserHasReadAccess(String username, String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.sismember(String.format(STORE_READ_ACCESS, storeID), username);
@@ -130,15 +136,17 @@ public class IAMStore {
             Pipeline p = jedis.pipelined();
             Response<Boolean> r1 = p.exists(String.format(STORE_READ_ACCESS, storeID));
             Response<Boolean> r2 = p.exists(String.format(STORE_WRITE_ACCESS, storeID));
+            Response<Boolean> r3 = p.exists(String.format(STORE_TYPE, storeID));
             p.sync();
-            return r1.get() && r2.get();
+            return r1.get() && r2.get() && r3.get();
         }
     }
 
-    public static void saveStoreAccessPolicy(String storeID, String owner, Set<String> read, Set<String> write) {
+    public static void saveStoreAccessPolicy(String storeID, String owner, boolean isSecure, Set<String> read, Set<String> write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(STORE_OWNER, storeID), owner);
+            t.set(String.format(STORE_TYPE, storeID), String.valueOf(isSecure));
             for (String username : read)
                 t.sadd(String.format(STORE_READ_ACCESS, storeID), username);
             for (String username : write)
@@ -227,9 +235,29 @@ public class IAMStore {
         }
     }
 
-    public static void deleteRoleRequest(String requestID) {
+    public static String saveToken(String username, String store) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.hdel(PENDING_ROLE_REQUESTS, requestID);
+            String uuid = UUID.randomUUID().toString();
+            String key = String.format(ACCESS_TOKEN, uuid);
+            Transaction t = jedis.multi();
+            t.del(key);
+            t.hset(key, TOKEN_USER_FIELD, username);
+            t.hset(key, TOKEN_STORE_FIELD, store);
+            t.expire(key, ACCESS_TOKEN_LIFETIME);
+            t.exec();
+            return uuid;
+        }
+    }
+
+    public static Map<String, String> getToken(String tokenID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.hgetAll(String.format(ACCESS_TOKEN, tokenID));
+        }
+    }
+
+    public static void deleteAccessToken(String tokenID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.del(String.format(ACCESS_TOKEN, tokenID));
         }
     }
 
@@ -238,14 +266,20 @@ public class IAMStore {
             Transaction t = jedis.multi();
             t.set(String.format(USER_PASSWORD, defaultUsername), defaultPass);
             t.sadd(String.format(USER_ROLE, defaultUsername), ADMIN.toString());
-            t.sadd(STORE_STATE, String.valueOf(true));
+            t.sadd(STATUS, String.valueOf(true));
             t.exec();
         }
     }
 
     public static boolean isInit() {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.exists(STORE_STATE);
+            return jedis.exists(STATUS);
+        }
+    }
+
+    public static boolean isSecureStore(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return Boolean.parseBoolean(jedis.get(String.format(STORE_TYPE, storeID)));
         }
     }
 }

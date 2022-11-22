@@ -6,6 +6,8 @@ import pt.fct.nova.id.srv.presentation.exceptions.InvalidCookieException;
 import pt.fct.nova.id.srv.presentation.exceptions.InvalidSessionException;
 import pt.fct.nova.id.srv.presentation.exceptions.NoSessionFoundException;
 
+import java.util.List;
+
 public class Utils {
 
     public static void authCheck(Cookie cookie, String username) throws InvalidCookieException, NoSessionFoundException, InvalidSessionException {
@@ -16,6 +18,15 @@ public class Utils {
             throw new NoSessionFoundException();
         if (!s.equals(cookie.getValue()))
             throw new InvalidSessionException();
+    }
+
+    public static String extractAccessToken(List<String> authorizationHeaders) {
+        for (String val : authorizationHeaders) {
+            System.out.println(val);
+            if (val.contains("Bearer"))
+                return val;
+        }
+        return null;
     }
 
 }

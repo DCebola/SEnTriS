@@ -26,7 +26,6 @@ public class SecureQueryForm {
         this.secrets = secrets;
 
     }
-
     public SecureQueryForm() {
         this.issuer = null;
         this.secrets = null;

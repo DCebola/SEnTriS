@@ -16,6 +16,12 @@ public class RoleForm {
         this.role = role;
     }
 
+    public RoleForm() {
+        this.issuer = null;
+        this.role = null;
+    }
+
+
     public String getIssuer() {
         return issuer;
     }

@@ -2,7 +2,7 @@ package pt.fct.nova.id.srv.presentation.api.dtos;
 
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
-public class AccessPolicyForm {
+public class AccessForm {
 
     @FormParam("issuer")
     private final String issuer;
@@ -16,11 +16,18 @@ public class AccessPolicyForm {
     @FormParam("read")
     private final boolean read;
 
-    public AccessPolicyForm(String issuer, String storeID, boolean write, boolean read) {
+    public AccessForm(String issuer, String storeID, boolean write, boolean read) {
         this.issuer = issuer;
         this.storeID = storeID;
         this.write = write;
         this.read = read;
+    }
+
+    public AccessForm() {
+        this.issuer = null;
+        this.storeID = null;
+        this.write = false;
+        this.read = false;
     }
 
     public boolean getWrite() {

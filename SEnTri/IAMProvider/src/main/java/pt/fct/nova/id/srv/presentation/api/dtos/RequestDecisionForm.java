@@ -15,6 +15,11 @@ public class RequestDecisionForm {
         this.accept = accept;
     }
 
+    public RequestDecisionForm() {
+        issuer = null;
+        accept = false;
+    }
+
     public String getIssuer() {
         return issuer;
     }

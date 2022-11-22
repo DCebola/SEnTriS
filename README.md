@@ -38,30 +38,30 @@ DELETE IAMProvider/api/pending/role/{requestID}                    #Process pend
 
 POST   IAMProvider/api/{username}/stores/{storeID}                 #Create store.
 DELETE IAMProvider/api/{username}/stores/{storeID}                 #Delete store.
-GET    IAMProvider/api/stores/{storeID}/access/read/{username}     #Check if user has read access 
-GET    IAMProvider/api/stores/{storeID}/access/write/{username}    #Check if user has write access
-GET    IAMProvider/api/stores/{storeID}/access/owner/{username}    #Check if user has owner access
 
+GET    IAMProvider/api/stores/{storeID}/access/read                #Check if has read access 
+GET    IAMProvider/api/stores/{storeID}/access/write               #Check if has write access  
+GET    IAMProvider/api/stores/{storeID}/access/owner               #Check if has owner access 
 
-GET    IAMProvider/api/locks/{username}/stores/{storeID}           #Acquire lock on store.
-DELETE IAMProvider/api/locks/{lockID}/{username}/stores/{storeID}  #Release lock on store.
+POST   IAMProvider/api/access-tokens/{username}                    #Create access token for user.
+DELETE IAMProvider/api/access-tokens/{username}                    #Delete access token.
 ```
 ### Secrets' Vault
 ```perl
 GET    vault/api/ctrl/version                                      #Get service version.
 
 POST   vault/api/secrets/                                          #Create triplestore secrets.
-GET    vault/api/secrets/{username}/{storeID}                      #Get triplestore secrets.
-DELETE vault/api/secrets/{username}/{storeID}                      #Delete triplestore secrets.
+GET    vault/api/secrets/{storeID}                                 #Get triplestore secrets.
+DELETE vault/api/secrets/{storeID}                                 #Delete triplestore secrets.
 ```
 ### Triplestore
 ```perl
 GET    Triplestore/api/ctrl/version                                 #Get service version
 
 POST   Triplestore/api/                                             #Create triplestore.
-POST   Triplestore/api/{storeID}                                    #Upload data to triplestore.
-DELETE Triplestore/api/{storeID}                                    #Delete triplestore.
-POST   Triplestore/api/query/{storeID}                              #Execute SPARQL query over triplestore.
+POST   Triplestore/api/{tokenID}/{storeID}                                    #Upload data to triplestore.
+DELETE Triplestore/api/{tokenID}/{storeID}                                    #Delete triplestore.
+POST   Triplestore/api/{tokenID}/query/{storeID}                              #Execute SPARQL query over triplestore.
 
 POST   Triplestore/api/secure                                       #Create encrypted triplestore.
 POST   Triplestore/api/secure/{storeID}                             #Upload data to encrypted triplestore.

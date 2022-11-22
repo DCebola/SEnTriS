@@ -6,6 +6,9 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.*;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
 
@@ -35,7 +38,7 @@ public interface IdentityAndAccessManagementAPI {
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                           @PathParam("username") String username,
-                          @Form AccessPolicyForm accessPolicyForm);
+                          @Form AccessForm accessForm);
 
     @POST
     @Path("users/{username}/access")
@@ -43,7 +46,7 @@ public interface IdentityAndAccessManagementAPI {
     @Produces(TEXT_PLAIN)
     Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
-                                     @Form AccessPolicyForm accessPolicyForm);
+                                     @Form AccessForm accessForm);
 
     @POST
     @Path("users/{username}/role")
@@ -110,22 +113,39 @@ public interface IdentityAndAccessManagementAPI {
                                      @PathParam("storeID") String storeID);
 
     @GET
-    @Path("stores/{storeID}/access/{username}")
-    @Produces(APPLICATION_JSON)
+    @Path("stores/{storeID}/access/read")
+    @Produces(TEXT_PLAIN)
     Response getReadAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                             @PathParam("username") String username,
-                             @PathParam("storeID") String storeID);
+                           @PathParam("storeID") String storeID,
+                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
     @GET
-    @Path("stores/{storeID}/access/write/{username}")
-    @Produces(APPLICATION_JSON)
+    @Path("stores/{storeID}/access/write")
+    @Produces(TEXT_PLAIN)
     Response getWriteAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                             @PathParam("username") String username,
-                             @PathParam("storeID") String storeID);
+                            @PathParam("storeID") String storeID,
+                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
     @GET
-    @Path("stores/{storeID}/access/owner/{username}")
-    @Produces(APPLICATION_JSON)
+    @Path("stores/{storeID}/access/owner")
+    @Produces(TEXT_PLAIN)
     Response getOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("username") String username,
-                                     @PathParam("storeID") String storeID);
+                            @PathParam("storeID") String storeID,
+                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("access-tokens/{username}")
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_PLAIN)
+    Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                               @PathParam("username") String username,
+                               @Form AccessForm form);
+
+    @DELETE
+    @Path("access-tokens/{username}")
+    @Produces(TEXT_PLAIN)
+    Response deleteAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                               @PathParam("username") String username,
+                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }
