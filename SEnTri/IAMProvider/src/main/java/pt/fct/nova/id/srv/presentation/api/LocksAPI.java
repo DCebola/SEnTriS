@@ -13,16 +13,14 @@ import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
 public interface LocksAPI {
 
     @GET
-    @Path("stores/{storeID}")
+    @Path("")
     @Produces(TEXT_PLAIN)
     Response acquireStoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("storeID") String storeID,
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("store/{storeID}")
+    @Path("")
     @Produces(TEXT_PLAIN)
     Response releaseStoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("storeID") String storeID,
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

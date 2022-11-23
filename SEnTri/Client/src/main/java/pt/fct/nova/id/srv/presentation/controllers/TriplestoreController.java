@@ -20,6 +20,8 @@ import static jakarta.ws.rs.core.Response.Status.OK;
 @Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
     private static final String INTERNAL_ERROR = "Internal error.";
+
+    private static final String SUCCESSFUL_UPLOAD = "Successful upload.";
     private static final String TRIPLESTORE_URI = System.getenv("TRIPLESTORE_URI");
     private static final String CREATE_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("CREATE_TRIPLESTORE_PATH"));
     private static final String UPLOAD_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("UPLOAD_TRIPLESTORE_PATH"));
@@ -35,15 +37,18 @@ public class TriplestoreController implements TriplestoreAPI {
                 return HttpUtils.buildResponse(response);
         }
          */
-        try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
-                String.format(CREATE_TRIPLESTORE_PATH, storeID), ClientUtils.uploadFormToHttpEntity(form))) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                //DELETE Store
+        if (form.getSyntax() != null && form.getContents() != null) {
+            try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
+                    String.format(CREATE_TRIPLESTORE_PATH, storeID), ClientUtils.uploadFormToHttpEntity(form))) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    //DELETE Store
+                }
+                return HttpUtils.buildResponse(response);
+            } catch (IOException e) {
+                return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
-            return HttpUtils.buildResponse(response);
-        } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+        return Response.ok(SUCCESSFUL_UPLOAD).build();
     }
 
     @Override

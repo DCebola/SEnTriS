@@ -31,12 +31,12 @@ POST   IAMProvider/api/users/{username}/role                       #Grant user r
 
 GET    IAMProvider/api/pending/{username}/access                   #List pending access requests.
 GET    IAMProvider/api/pending/{username}/access/{requestID}       #Get pending access request.
-DELETE IAMProvider/api/pending/access/{requestID}                  #Process pending access request.
+POST   IAMProvider/api/pending/{storeID}/access/{requestID}        #Process pending access request.
 GET    IAMProvider/api/pending/{username}/role                     #List pending role requests.
 GET    IAMProvider/api/pending/{username}/role/{requestID}         #Get pending role request.
-DELETE IAMProvider/api/pending/role/{requestID}                    #Process pending role request.
+POST   IAMProvider/api/pending/{username}/role/{requestID}         #Process pending role request.
 
-POST   IAMProvider/api/{username}/stores/{storeID}                 #Create store.
+POST   IAMProvider/api/{username}/stores                           #Create store.
 DELETE IAMProvider/api/{username}/stores/{storeID}                 #Delete store.
 
 GET    IAMProvider/api/stores/{storeID}/access/read                #Check if has read access 
@@ -45,6 +45,9 @@ GET    IAMProvider/api/stores/{storeID}/access/owner               #Check if has
 
 POST   IAMProvider/api/access-tokens/{username}                    #Create access token for user.
 DELETE IAMProvider/api/access-tokens/{username}                    #Delete access token.
+
+GET   IAMProvider/api/lock-access                                  #Lock access to store.
+DELETE IAMProvider/api/unlock-access                               #Unlock access to store.
 ```
 ### Secrets' Vault
 ```perl

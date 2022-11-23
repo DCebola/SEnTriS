@@ -82,28 +82,30 @@ public interface IdentityAndAccessManagementAPI {
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID);
 
-    @DELETE
-    @Path("pending/access/{requestID}")
+    @POST
+    @Path("pending/{storeID}/access/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                  @PathParam("storeID") String storeID,
                                   @PathParam("requestID") String requestID,
                                   @Form RequestDecisionForm requestDecisionForm);
 
-    @DELETE
-    @Path("pending/role/{requestID}")
+    @POST
+    @Path("pending/{username}/role/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                @PathParam("username") String username,
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
 
     @POST
-    @Path("/{username}/stores/{storeID}")
+    @Path("/{username}/stores")
     @Produces(TEXT_PLAIN)
     Response createStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
-                                     @PathParam("storeID") String storeID);
+                                     @Form StoreForm form);
 
     @DELETE
     @Path("/{username}/stores/{storeID}")
@@ -139,7 +141,7 @@ public interface IdentityAndAccessManagementAPI {
     @Produces(TEXT_PLAIN)
     Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @PathParam("username") String username,
-                               @Form AccessForm form);
+                               @Form StoreForm form);
 
     @DELETE
     @Path("access-tokens/{username}")

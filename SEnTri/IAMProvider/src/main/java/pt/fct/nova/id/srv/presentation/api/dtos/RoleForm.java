@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.api.dtos;
 
+import jakarta.ws.rs.DefaultValue;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
 
@@ -9,6 +10,7 @@ public class RoleForm {
     private final String issuer;
 
     @FormParam("role")
+    @DefaultValue("PRIVILEGED")
     private final Role role;
 
     public RoleForm(String issuer, Role role) {

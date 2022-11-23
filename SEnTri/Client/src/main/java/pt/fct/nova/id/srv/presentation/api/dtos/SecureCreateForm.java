@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.api.dtos;
 
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
@@ -18,6 +19,7 @@ public class SecureCreateForm {
     private final String storeID;
 
     @FormParam("version")
+    @DefaultValue("V1")
     @PartType(MediaType.TEXT_PLAIN)
     private final ProtocolVersion protocolVersion;
 
