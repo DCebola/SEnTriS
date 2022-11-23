@@ -116,7 +116,6 @@ public class IAMController implements IdentityAndAccessManagementAPI {
     }
 
 
-
     @Override
     public Response revokeAccess(Cookie cookie, String username, AccessForm accessForm) {
         try {
@@ -128,8 +127,9 @@ public class IAMController implements IdentityAndAccessManagementAPI {
             if (!IAMStore.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
             Role issuerRole = IAMStore.getRole(issuerUsername);
-            if (!issuerUsername.equals(username) && (issuerRole.equals(PRIVILEGED) || issuerRole.equals(BASIC))) {
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+            if (!issuerUsername.equals(username)) {
+                if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStore.checkIfOwns(issuerUsername, storeID)))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
             }
             LocksClient.deleteUserStoreLock(username, storeID);
             String lockID = LocksClient.acquireStoreLock(issuerUsername, storeID);
