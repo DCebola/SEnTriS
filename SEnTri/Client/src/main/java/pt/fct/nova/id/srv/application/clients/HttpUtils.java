@@ -1,6 +1,8 @@
 package pt.fct.nova.id.srv.application.clients;
 
+import com.github.jsonldjava.shaded.com.google.common.io.ByteSource;
 import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,6 +22,7 @@ public class HttpUtils {
 
     public static final String COOKIE_PARAM = "session";
     private static final String COOKIE_LIFETIME = System.getenv("COOKIE_LIFETIME");
+    private static final String BEARER = "Bearer ";
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
         HttpGet request = new HttpGet(uri);
@@ -42,13 +45,31 @@ public class HttpUtils {
             return client.execute(request, generateContext(cookie.getValue()));
         }
     }
-
-    public static CloseableHttpResponse sendEmptyPOSTRequest(Cookie cookie, String uri) throws IOException {
-        HttpPost request = new HttpPost(uri);
+    public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request, generateContext(cookie.getValue()));
         }
     }
+
+    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri, String accessToken) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        request.setEntity(body);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
 
     public static Response buildResponse(CloseableHttpResponse response) {
         try {

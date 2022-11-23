@@ -376,24 +376,46 @@ public class IAMController implements IdentityAndAccessManagementAPI {
     }
 
     @Override
-    public Response deleteStoreAccessPolicy(Cookie cookie, String username, String storeID) {
+    public Response deleteStoreAccessPolicy(Cookie cookie, String storeID, List<String> authorizationHeaders) {
         try {
+            String tokenID = extractAccessToken(authorizationHeaders);
+            if (tokenID == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            Map<String, String> token = IAMStore.getToken(tokenID);
+            if (token == null || token.isEmpty())
+                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+
+            String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
+
+            String tokenStoreID = Objects.requireNonNull(token.get(TOKEN_STORE_FIELD));
+
+            if (!IAMStore.storeAccessPolicyExists(storeID)) {
+                if (storeID.equals(tokenStoreID))
+                    IAMStore.deleteAccessToken(tokenID, token);
+                return Response.ok(UNKNOWN_STORE).status(NOT_FOUND).build();
+            }
+
+            if (!tokenStoreID.equals(storeID))
+                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+
             Role role = IAMStore.getRole(username);
-            if (!IAMStore.storeAccessPolicyExists(storeID))
-                return Response.ok(UNKNOWN_STORE).status(BAD_REQUEST).build();
+
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !IAMStore.checkIfOwns(username, storeID)))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            String lockID = LocksClient.acquireStoreLock(username, storeID);
+
+            String lockID = token.get(TOKEN_LOCK_FIELD);
+            if (lockID == null)
+                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            else if (!LocksClient.checkIfStoreLockExists(storeID, lockID))
+                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+
             IAMStore.deleteStoreAccessPolicy(storeID);
             LocksClient.releaseStoreLock(username, storeID, lockID);
             return Response.ok(SUCCESSFUL_STORE_ACCESS_POLICY_DELETION).build();
         } catch (SessionException e) {
             return handleSessionException(e);
-        } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
-        } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 

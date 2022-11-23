@@ -11,7 +11,6 @@ public class SecureUploadForm {
     @FormParam("issuer")
     @PartType(MediaType.TEXT_PLAIN)
     private final String issuer;
-
     @FormParam("syntax")
     @PartType(MediaType.TEXT_PLAIN)
     private final String syntax;

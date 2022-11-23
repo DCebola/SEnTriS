@@ -108,11 +108,11 @@ public interface IdentityAndAccessManagementAPI {
                                      @Form StoreForm form);
 
     @DELETE
-    @Path("/{username}/stores/{storeID}")
+    @Path("/stores/{storeID}")
     @Produces(TEXT_PLAIN)
     Response deleteStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("username") String username,
-                                     @PathParam("storeID") String storeID);
+                                     @PathParam("storeID") String storeID,
+                                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
     @Path("stores/{storeID}/access/read")

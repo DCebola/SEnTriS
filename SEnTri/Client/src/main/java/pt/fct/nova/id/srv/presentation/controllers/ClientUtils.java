@@ -5,8 +5,12 @@ import com.google.gson.reflect.TypeToken;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
@@ -17,12 +21,11 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController.*;
@@ -30,6 +33,12 @@ import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreContr
 public class ClientUtils {
     private static final Gson gson = new Gson();
 
+    public static HttpEntity generateStoreForm(String username, String storeID) {
+        List<NameValuePair> pairs = new ArrayList<>(2);
+        pairs.add(new BasicNameValuePair("issuer", username));
+        pairs.add(new BasicNameValuePair("store", storeID));
+        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+    }
     public static HttpEntity uploadFormToHttpEntity(UploadForm form) {
         return MultipartEntityBuilder
                 .create()
@@ -39,15 +48,9 @@ public class ClientUtils {
                 .build();
     }
 
-    public static HttpEntity secretsToHttpEntity(String issuer, String storeID, Map<String, String> secrets) {
-        return MultipartEntityBuilder
-                .create()
-                .addTextBody("issuer", issuer, ContentType.create(MediaType.TEXT_PLAIN))
-                .addTextBody("storeID", storeID, ContentType.create(MediaType.TEXT_PLAIN))
-                .addTextBody("secrets", gson.toJson(secrets), ContentType.create(MediaType.APPLICATION_JSON))
-                .build();
+    public static HttpEntity objectToHttpEntity(Object obj) {
+        return new StringEntity(gson.toJson(obj), StandardCharsets.UTF_8);
     }
-
     public static Protocol1 initProtocol1(String storeID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         SecretKey k1 = gson.fromJson(secrets.get(String.format(SECRETS_NTH_KEY, 1)), SecretKey.class);
         SecretKey k2 = gson.fromJson(secrets.get(String.format(SECRETS_NTH_KEY, 2)), SecretKey.class);
@@ -105,4 +108,7 @@ public class ClientUtils {
     public static List<String> parseSearchResults(String results) {
         return gson.fromJson(results, new TypeToken<List<String>>(){}.getType());
     }
+
+
+
 }

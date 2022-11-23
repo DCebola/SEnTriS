@@ -11,11 +11,9 @@ public class UploadForm {
     @FormParam("syntax")
     @PartType(MediaType.TEXT_PLAIN)
     private final String syntax;
-
     @FormParam("namespaces")
     @PartType(MediaType.APPLICATION_JSON)
     private final Map<String, String> namespaces;
-
     @FormParam("contents")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final InputStream contents;

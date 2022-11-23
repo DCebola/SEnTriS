@@ -60,21 +60,23 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     return HttpUtils.buildResponse(response);
             }
 
-            String lockID;
-            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, issuer, storeID)) {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, storeID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
-                lockID = response.getEntity().toString();
+                accessToken = response.getEntity().toString();
             }
-
+            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (form.getProtocolVersion()) {
                 case V1 -> {
                     Protocol1 p = new Protocol1(storeID);
-                    try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, issuer, storeID, ClientUtils.generateSecretsMap(p))) {
+                    try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, ClientUtils.generateSecretsMap(p), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                             IAMClient.deleteStore(cookie, issuer, storeID);
-                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
                             return HttpUtils.buildResponse(response);
                         }
                     }
@@ -82,14 +84,13 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
 
-                    try (CloseableHttpResponse response = TriplestoreClient.create(storeID, p.getEncryptedT())) {
+                    try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                            IAMClient.releaseLock(cookie, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
-
-                    IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                    IAMClient.releaseLock(cookie, accessToken);
                 }
                 case V2 -> {
                     //TODO: Create protocol v2
@@ -113,11 +114,11 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             if (secrets.isEmpty())
                 return Response.ok(NO_SECRETS).status(Response.Status.BAD_REQUEST).build();
 
-            String lockID;
-            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, issuer, storeID)) {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, storeID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
-                lockID = response.getEntity().toString();
+                accessToken = response.getEntity().toString();
             }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION_KEY))) {
@@ -130,13 +131,13 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     }
                     Collections.shuffle(triples);
                     p.exec(triples);
-                    try (CloseableHttpResponse response = TriplestoreClient.upload(storeID, p.getEncryptedT())) {
+                    try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                            IAMClient.releaseLock(cookie, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
-                    IAMClient.releaseLock(cookie, issuer, storeID, lockID);
+                    IAMClient.releaseLock(cookie, accessToken);
                 }
                 case V2 -> {
                     //TODO: Upload protocol v2
