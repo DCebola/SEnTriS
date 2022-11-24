@@ -5,25 +5,25 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
 public class RequestDecisionForm {
 
-    @FormParam("issuer")
-    private final String issuer;
+    @FormParam("target")
+    private final String target;
 
     @FormParam("accept")
     @DefaultValue("false")
     private final boolean accept;
 
-    public RequestDecisionForm(String issuer, boolean accept) {
-        this.issuer = issuer;
+    public RequestDecisionForm(String target, boolean accept) {
+        this.target = target;
         this.accept = accept;
     }
 
     public RequestDecisionForm() {
-        issuer = null;
+        target = null;
         accept = false;
     }
 
     public String getIssuer() {
-        return issuer;
+        return target;
     }
 
     public boolean isAccept() {

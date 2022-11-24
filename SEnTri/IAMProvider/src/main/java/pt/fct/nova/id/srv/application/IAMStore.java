@@ -21,10 +21,10 @@ public class IAMStore {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
-
     private static final String SESSION = "S".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_ROLE = "UR".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String USER_OWNED_STORES = "UOS".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_READ_ACCESS = "SRA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_WRITE_ACCESS = "SWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_OWNER = "SO".concat(BASIC_SEPARATOR).concat("%s");
@@ -36,6 +36,7 @@ public class IAMStore {
     public static final String TOKEN_USER_FIELD = "USER";
     public static final String TOKEN_STORE_FIELD = "STORE";
     public static final String TOKEN_LOCK_FIELD = "LOCK";
+
 
     public static NewCookie cacheSession(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -84,11 +85,19 @@ public class IAMStore {
         }
     }
 
+    public static boolean checkIfOwnsAny(String username) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.exists(String.format(USER_OWNED_STORES, username));
+        }
+    }
+
+
     public static void deleteUser(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.del(String.format(USER_PASSWORD, username));
             t.del(String.format(USER_ROLE, username));
+            t.del(String.format(USER_OWNED_STORES, username));
             t.del(String.format(SESSION, username));
             t.exec();
         }
@@ -114,7 +123,13 @@ public class IAMStore {
 
     public static boolean checkIfOwns(String username, String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.get(String.format(STORE_OWNER, storeID)).equals(username);
+            return jedis.sismember(String.format(USER_OWNED_STORES, username), storeID);
+        }
+    }
+
+    public static String getOwner(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.get(String.format(STORE_OWNER, storeID));
         }
     }
 
@@ -143,11 +158,22 @@ public class IAMStore {
     public static void saveStoreAccessPolicy(String storeID, String owner, Set<String> read, Set<String> write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
+            t.sadd(String.format(USER_OWNED_STORES, owner), storeID);
             t.set(String.format(STORE_OWNER, storeID), owner);
             for (String username : read)
                 t.sadd(String.format(STORE_READ_ACCESS, storeID), username);
             for (String username : write)
                 t.sadd(String.format(STORE_WRITE_ACCESS, storeID), username);
+            t.exec();
+        }
+    }
+
+    public static void updateStoreOwner(String storeID, String currentOwner, String newOwner) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            t.set(String.format(STORE_OWNER, storeID), newOwner);
+            t.srem(String.format(USER_OWNED_STORES, currentOwner), storeID);
+            t.sadd(String.format(USER_OWNED_STORES, newOwner), storeID);
             t.exec();
         }
     }
@@ -293,4 +319,7 @@ public class IAMStore {
             return jedis.exists(STATUS);
         }
     }
+
+
+
 }

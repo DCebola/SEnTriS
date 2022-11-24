@@ -6,34 +6,31 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.*;
 
-import java.util.List;
-
-import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
 
-public interface IdentityAndAccessManagementAPI {
+public interface UsersAPI {
 
     @POST
-    @Path("auth")
+    @Path("/auth")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response auth(@Form AuthForm credentialsForm);
 
     @POST
-    @Path("users")
+    @Path("")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response registerUser(@Form AuthForm credentialsForm);
 
     @DELETE
-    @Path("users/{username}")
+    @Path("/{username}")
     @Produces(TEXT_PLAIN)
     Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie,
                         @PathParam("username") String username);
 
     @DELETE
-    @Path("users/{username}/access")
+    @Path("/{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -41,7 +38,7 @@ public interface IdentityAndAccessManagementAPI {
                           @Form AccessForm accessForm);
 
     @POST
-    @Path("users/{username}/access")
+    @Path("/{username}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -49,7 +46,7 @@ public interface IdentityAndAccessManagementAPI {
                                      @Form AccessForm accessForm);
 
     @POST
-    @Path("users/{username}/role")
+    @Path("/{username}/role")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueGrantRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -57,97 +54,46 @@ public interface IdentityAndAccessManagementAPI {
                                    @Form RoleForm roleForm);
 
     @GET
-    @Path("pending/{username}/access")
+    @Path("/{username}/requests/access")
     @Produces(APPLICATION_JSON)
     Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                       @PathParam("username") String username);
 
     @GET
-    @Path("pending/{username}/role")
+    @Path("/{username}/requests/role")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("username") String username);
 
     @GET
-    @Path("pending/{username}/access/{requestID}")
+    @Path("/{username}/requests/access/{requestID}")
     @Produces(APPLICATION_JSON)
     Response getPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                      @PathParam("username") String username,
                                      @PathParam("requestID") String requestID);
 
     @GET
-    @Path("pending/{username}/role/{requestID}")
+    @Path("/{username}/requests/role/{requestID}")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID);
 
     @POST
-    @Path("pending/{storeID}/access/{requestID}")
+    @Path("/{username}/requests/access/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                  @PathParam("storeID") String storeID,
+                                  @PathParam("username") String username,
                                   @PathParam("requestID") String requestID,
                                   @Form RequestDecisionForm requestDecisionForm);
 
     @POST
-    @Path("pending/{username}/role/{requestID}")
+    @Path("/{username}/requests/role/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                 @PathParam("username") String username,
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
-
-    @POST
-    @Path("/{username}/stores")
-    @Produces(TEXT_PLAIN)
-    Response createStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("username") String username,
-                                     @Form StoreForm form);
-
-    @DELETE
-    @Path("/stores/{storeID}")
-    @Produces(TEXT_PLAIN)
-    Response deleteStoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("storeID") String storeID,
-                                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @GET
-    @Path("stores/{storeID}/access/read")
-    @Produces(TEXT_PLAIN)
-    Response getReadAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                           @PathParam("storeID") String storeID,
-                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @GET
-    @Path("stores/{storeID}/access/write")
-    @Produces(TEXT_PLAIN)
-    Response getWriteAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                            @PathParam("storeID") String storeID,
-                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @GET
-    @Path("stores/{storeID}/access/owner")
-    @Produces(TEXT_PLAIN)
-    Response getOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                            @PathParam("storeID") String storeID,
-                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @POST
-    @Path("access-tokens/{username}")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
-    Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("username") String username,
-                               @Form StoreForm form);
-
-    @DELETE
-    @Path("access-tokens/{username}")
-    @Produces(TEXT_PLAIN)
-    Response deleteAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("username") String username,
-                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
 }
