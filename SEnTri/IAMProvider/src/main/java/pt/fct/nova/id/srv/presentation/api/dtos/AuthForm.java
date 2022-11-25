@@ -9,8 +9,8 @@ public class AuthForm {
     @FormParam("password")
     private final String password;
 
-    public AuthForm(String syntax, String password) {
-        this.username = syntax;
+    public AuthForm(String username, String password) {
+        this.username = username;
         this.password = password;
     }
 

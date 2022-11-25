@@ -15,7 +15,9 @@ import static jakarta.ws.rs.core.Response.Status.*;
 
 public class Utils {
     public static final String INTERNAL_ERROR = "Internal error.";
-
+    public static final String SUCCESSFUL_REQUEST_PROCESSING = "Successful request processing.";
+    public static final String REQUEST_NOT_FOUND = "Request not found.";
+    public static final String INSUFFICIENT_PERMISSIONS = "Insufficient permissions to execute request.";
     public static final String OPERATION_TIMEOUT = "Operation timeout.";
     private static final String INVALID_COOKIE = "Malformed cookie.";
     private static final String NO_SESSION_OR_EXPIRED = "User not authenticated or session has expired.";

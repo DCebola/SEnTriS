@@ -33,4 +33,5 @@ public class Redis {
     public synchronized static JedisPool getCachePool() {
         return getInstance();
     }
+
 }

@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.NewCookie;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.redis.Redis;
 
+import pt.fct.nova.id.srv.application.redis.Utils;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -13,11 +14,11 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
 
 public class IAMStore {
-    private static final Gson gson = new Gson();
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
@@ -28,14 +29,20 @@ public class IAMStore {
     private static final String STORE_READ_ACCESS = "SRA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_WRITE_ACCESS = "SWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_OWNER = "SO".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String PENDING_ACCESS_REQUESTS = "PA";
-    private static final String PENDING_ROLE_REQUESTS = "PR";
+    private static final String STORES_PATTERN = "SO".concat(BASIC_SEPARATOR).concat("*");;
+    private static final String STORE_PENDING_ACCESS_REQUESTS = "SPA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String PENDING_ACCESS_REQUEST = "PA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String PENDING_ROLE_REQUESTS = "PRR";
+    private static final String PENDING_ROLE_REQUEST = "PR".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STATUS = "STATUS";
     private static final String ACCESS_TOKEN = "AT".concat(BASIC_SEPARATOR).concat("%s");
     private static final long ACCESS_TOKEN_LIFETIME = Integer.toUnsignedLong(Integer.parseInt(System.getenv("ACCESS_TOKEN_LIFETIME")));
     public static final String TOKEN_USER_FIELD = "USER";
     public static final String TOKEN_STORE_FIELD = "STORE";
     public static final String TOKEN_LOCK_FIELD = "LOCK";
+    private static final int PENDING_REQUEST_USER_IDX = 0;
+    private static final int PENDING_REQUEST_VALUE_IDX = 1;
+
 
 
     public static NewCookie cacheSession(String username) {
@@ -121,6 +128,57 @@ public class IAMStore {
         }
     }
 
+    public static void saveRoleRequest(String username, Role role) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            String requestID = UUID.randomUUID().toString();
+            t.lpush(PENDING_ROLE_REQUESTS, requestID);
+            t.lpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.toString());
+            t.exec();
+        }
+    }
+
+    public static RoleRequest getPendingRoleRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            List<String> requestData = jedis.lrange(String.format(PENDING_ROLE_REQUEST, requestID), 0, -1);
+            if (requestData == null || requestData.isEmpty())
+                return null;
+            else return parseRoleRequestData(requestData);
+        }
+    }
+
+    private static RoleRequest parseRoleRequestData(List<String> requestData) {
+        return new RoleRequest(requestData.get(PENDING_REQUEST_USER_IDX), Role.fromString(requestData.get(PENDING_REQUEST_VALUE_IDX)));
+    }
+
+    public static List<RoleRequest> getPendingRoleRequests() {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            List<String> requestIDs = jedis.lrange(String.format(PENDING_ROLE_REQUESTS), 0, -1);
+            List<Response<List<String>>> roleRequestsResponses = new ArrayList<>(requestIDs.size());
+            List<RoleRequest> pendingRequests = new ArrayList<>(requestIDs.size());
+            for (String requestID : requestIDs)
+                roleRequestsResponses.add(p.lrange(String.format(PENDING_ROLE_REQUEST, requestID), 0, -1));
+            p.sync();
+            List<String> requestData;
+            for(Response<List<String>> response: roleRequestsResponses){
+                requestData = response.get();
+                if (requestData != null && !requestData.isEmpty())
+                    pendingRequests.add(parseRoleRequestData(requestData));
+            }
+            return pendingRequests;
+        }
+    }
+
+    public static void deleteRoleRequest(String requestID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            t.lrem(PENDING_ROLE_REQUESTS,1, requestID);
+            t.del(String.format(PENDING_ROLE_REQUEST, requestID));
+            t.exec();
+        }
+    }
+
     public static boolean checkIfOwns(String username, String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.sismember(String.format(USER_OWNED_STORES, username), storeID);
@@ -180,11 +238,21 @@ public class IAMStore {
 
     public static void deleteStoreAccessPolicy(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            List<String> pendingRequests = jedis.lrange(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 0, -1);
             Transaction t = jedis.multi();
             t.del(String.format(STORE_OWNER, storeID));
             t.del(String.format(STORE_READ_ACCESS, storeID));
             t.del(String.format(STORE_WRITE_ACCESS, storeID));
+            t.del(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID));
+            for (String requestID : pendingRequests)
+                t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
             t.exec();
+        }
+    }
+
+    public static Set<String> getStores() {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return Utils.scan(jedis, STORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
         }
     }
 
@@ -212,53 +280,59 @@ public class IAMStore {
         }
     }
 
-    public static void saveAccessRequest(AccessRequest accessRequest) {
+    public static void saveAccessRequest(String storeID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.hset(PENDING_ACCESS_REQUESTS, UUID.randomUUID().toString(), gson.toJson(accessRequest, AccessRequest.class));
-        }
-    }
-
-    public static void saveRoleRequest(RoleRequest roleRequest) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.hset(PENDING_ROLE_REQUESTS, UUID.randomUUID().toString(), gson.toJson(roleRequest, RoleRequest.class));
+            Transaction t = jedis.multi();
+            String requestID = UUID.randomUUID().toString();
+            t.lpush(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), requestID);
+            t.lpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
+            t.exec();
         }
     }
 
     public static AccessRequest getPendingAccessRequest(String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            String res = jedis.hget(String.format(PENDING_ACCESS_REQUESTS), requestID);
-            if (res == null)
+            List<String> requestData = jedis.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1);
+            if (requestData == null || requestData.isEmpty())
                 return null;
-            else return gson.fromJson(res, AccessRequest.class);
+            else return parseAccessRequestData(requestData);
+        }
+
+    }
+
+    private static AccessRequest parseAccessRequestData(List<String> requestData) {
+        return new AccessRequest(requestData.get(PENDING_REQUEST_USER_IDX),
+                Boolean.parseBoolean(requestData.get(PENDING_REQUEST_VALUE_IDX)));
+    }
+
+    public static List<AccessRequest> getPendingAccessRequests(String storeID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            List<String> requestIDs = jedis.lrange(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 0, -1);
+            List<Response<List<String>>> storeRequestsResponses = new ArrayList<>(requestIDs.size());
+            List<AccessRequest> pendingRequests = new ArrayList<>(requestIDs.size());
+            for (String requestID : requestIDs)
+                storeRequestsResponses.add(p.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1));
+            p.sync();
+            List<String> requestData;
+            for(Response<List<String>> response: storeRequestsResponses){
+                requestData = response.get();
+                if (requestData != null && !requestData.isEmpty())
+                    pendingRequests.add(parseAccessRequestData(requestData));
+            }
+            return pendingRequests;
         }
     }
 
-    public static RoleRequest getPendingRoleRequest(String requestID) {
+    public static void deleteAccessRequest(String storeID, String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            String res = jedis.hget(String.format(PENDING_ROLE_REQUESTS), requestID);
-            if (res == null)
-                return null;
-            else return gson.fromJson(res, RoleRequest.class);
+            Transaction t = jedis.multi();
+            t.lrem(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID),1, requestID);
+            t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
+            t.exec();
         }
     }
 
-    public static Set<String> getPendingAccessRequests() {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.hkeys(String.format(PENDING_ACCESS_REQUESTS));
-        }
-    }
-
-    public static Set<String> getPendingRoleRequests() {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.hkeys(String.format(PENDING_ROLE_REQUESTS));
-        }
-    }
-
-    public static void deleteAccessRequest(String requestID) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.hdel(PENDING_ACCESS_REQUESTS, requestID);
-        }
-    }
 
     public static String saveToken(String username, String store) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -319,7 +393,6 @@ public class IAMStore {
             return jedis.exists(STATUS);
         }
     }
-
 
 
 }

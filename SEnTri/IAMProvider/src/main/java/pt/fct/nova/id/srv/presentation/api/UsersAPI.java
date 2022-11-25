@@ -29,24 +29,8 @@ public interface UsersAPI {
     Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie,
                         @PathParam("username") String username);
 
-    @DELETE
-    @Path("/{username}/access")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
-    Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                          @PathParam("username") String username,
-                          @Form AccessForm accessForm);
-
     @POST
-    @Path("/{username}/access")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
-    Response issueGrantAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("username") String username,
-                                     @Form AccessForm accessForm);
-
-    @POST
-    @Path("/{username}/role")
+    @Path("/{username}/role/requests")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueGrantRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -54,42 +38,13 @@ public interface UsersAPI {
                                    @Form RoleForm roleForm);
 
     @GET
-    @Path("/{username}/requests/access")
-    @Produces(APPLICATION_JSON)
-    Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                      @PathParam("username") String username);
-
-    @GET
-    @Path("/{username}/requests/role")
+    @Path("/{username}/role/requests")
     @Produces(APPLICATION_JSON)
     Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("username") String username);
 
-    @GET
-    @Path("/{username}/requests/access/{requestID}")
-    @Produces(APPLICATION_JSON)
-    Response getPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                     @PathParam("username") String username,
-                                     @PathParam("requestID") String requestID);
-
-    @GET
-    @Path("/{username}/requests/role/{requestID}")
-    @Produces(APPLICATION_JSON)
-    Response getPendingRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                   @PathParam("username") String username,
-                                   @PathParam("requestID") String requestID);
-
     @POST
-    @Path("/{username}/requests/access/{requestID}")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
-    Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                  @PathParam("username") String username,
-                                  @PathParam("requestID") String requestID,
-                                  @Form RequestDecisionForm requestDecisionForm);
-
-    @POST
-    @Path("/{username}/requests/role/{requestID}")
+    @Path("/{username}/role/requests/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response processRoleRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,

@@ -2,23 +2,17 @@ package pt.fct.nova.id.srv.application.clients;
 
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.redis.Redis;
+import pt.fct.nova.id.srv.application.redis.Utils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
-
 import java.util.*;
 
-import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
-
 public class LocksClient {
-
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private final static String STORE_LOCK = "LS".concat(BASIC_SEPARATOR).concat("%s");
     private final static String USER_LOCK = "LU".concat(BASIC_SEPARATOR).concat("%s");
     private final static String USER_STORE_LOCK = "USL".concat(BASIC_SEPARATOR).concat("%s")
             .concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
-
     private static final String USER_ALL_LOCKS_PATTERN = "USL".concat(BASIC_SEPARATOR)
             .concat("%s").concat(BASIC_SEPARATOR).concat("*");
     private static final String USER_STORE_LOCK_PATTERN = "USL".concat(BASIC_SEPARATOR)
@@ -115,33 +109,21 @@ public class LocksClient {
 
     public static synchronized void deleteUserStoreLock(String username, String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            ScanParams params = new ScanParams();
-            params.match(String.format(USER_STORE_LOCK_PATTERN, username, storeID));
-            deleteUserLocks(jedis, params);
+            deleteUserLocks(jedis, Utils.scan(jedis, String.format(USER_STORE_LOCK_PATTERN, username, storeID)));
         }
     }
 
     public static synchronized void deleteAllUserLocks(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            ScanParams params = new ScanParams();
-            params.match(String.format(USER_ALL_LOCKS_PATTERN, username));
-            deleteUserLocks(jedis, params);
+            deleteUserLocks(jedis, Utils.scan(jedis, String.format(USER_ALL_LOCKS_PATTERN, username)));
         }
     }
 
-    private static void deleteUserLocks(Jedis jedis, ScanParams params) {
-        String cursor = SCAN_POINTER_START;
-        Set<String> userLocks = new HashSet<>();
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, params);
-            List<String> res = scanResult.getResult();
-            userLocks.addAll(res);
-            cursor = scanResult.getCursor();
-        } while (!cursor.equals(SCAN_POINTER_START));
-        if (!userLocks.isEmpty()) {
+    private static void deleteUserLocks(Jedis jedis, Set<String> lockIDs) {
+        if (!lockIDs.isEmpty()) {
             Transaction t = jedis.multi();
             String[] values;
-            for (String s : userLocks) {
+            for (String s : lockIDs) {
                 values = s.split(BASIC_SEPARATOR);
                 releaseStoreLock(t, values[USL_STORE_POS], values[USL_LOCK_POS]);
                 t.del(s);

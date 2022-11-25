@@ -1,5 +1,5 @@
 package pt.fct.nova.id.srv.application;
 
-public record AccessRequest(String target, String storeID, boolean write) {
+public record AccessRequest(String user, boolean write) {
 
 }

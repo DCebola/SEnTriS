@@ -3,24 +3,24 @@ package pt.fct.nova.id.srv.presentation.api.dtos;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
 public class StoreForm {
-    @FormParam("issuer")
-    private final String issuer;
+    @FormParam("owner")
+    private final String owner;
 
-    @FormParam("store")
+    @FormParam("storeID")
     private final String storeID;
 
-    public StoreForm(String issuer, String storeID) {
-        this.issuer = issuer;
+    public StoreForm(String owner, String storeID) {
+        this.owner = owner;
         this.storeID = storeID;
     }
 
     public StoreForm() {
-        this.issuer = null;
-        this.storeID = null;
+        owner = null;
+        storeID = null;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public String getOwner() {
+        return owner;
     }
 
     public String getStoreID() {
