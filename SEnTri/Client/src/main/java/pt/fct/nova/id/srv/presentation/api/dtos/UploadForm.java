@@ -7,7 +7,7 @@ import org.jboss.resteasy.annotations.providers.multipart.PartType;
 import java.io.InputStream;
 import java.util.Map;
 
-public class UploadForm {
+public class UploadForm extends StoreForm{
     @FormParam("syntax")
     @PartType(MediaType.TEXT_PLAIN)
     private final String syntax;
@@ -18,12 +18,14 @@ public class UploadForm {
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final InputStream contents;
 
-    public UploadForm(String syntax, Map<String, String> namespaces, InputStream contents) {
+    public UploadForm(String issuer, String storeID, String syntax, Map<String, String> namespaces, InputStream contents) {
+        super(issuer, storeID);
         this.syntax = syntax;
         this.namespaces = namespaces;
         this.contents = contents;
     }
     public UploadForm() {
+        super();
         this.syntax = null;
         this.namespaces = null;
         this.contents = null;

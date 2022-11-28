@@ -7,41 +7,33 @@ import pt.fct.nova.id.srv.presentation.api.RDFMediaType;
 
 import java.util.Map;
 
-public class SecureQueryForm {
-
-    @FormParam("issuer")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final String issuer;
-    @FormParam("query")
-    @PartType(RDFMediaType.SPARQL_QUERY)
-    private final String query;
-
+public class SecureQueryForm extends StoreForm{
     @FormParam("secrets")
     @PartType(MediaType.APPLICATION_JSON)
     private final Map<String, String> secrets;
 
-    public SecureQueryForm(String issuer, String query, Map<String, String> secrets) {
-        this.issuer = issuer;
+    @FormParam("query")
+    @PartType(RDFMediaType.SPARQL_QUERY)
+    private final String query;
+
+    public SecureQueryForm(String issuer, String storeID, Map<String, String> secrets, String query) {
+        super(issuer, storeID);
         this.query = query;
         this.secrets = secrets;
 
     }
     public SecureQueryForm() {
-        this.issuer = null;
+        super();
         this.secrets = null;
         this.query = null;
-    }
-
-
-    public String getQuery() {
-        return query;
     }
 
     public Map<String, String> getSecrets() {
         return secrets;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public String getQuery() {
+        return query;
     }
+
 }

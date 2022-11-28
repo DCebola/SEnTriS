@@ -381,7 +381,7 @@ public class StoresController implements StoresAPI {
     }
 
     @Override
-    public Response createAccessToken(Cookie cookie, String storeID, String username) {
+    public Response getAccessToken(Cookie cookie, String storeID, String username) {
         try {
             Utils.authCheck(cookie, username);
 

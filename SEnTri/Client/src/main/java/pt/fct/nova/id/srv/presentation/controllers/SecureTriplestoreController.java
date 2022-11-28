@@ -36,18 +36,17 @@ import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.OK;
 
-@Path("secure-triplestore")
+@Path("triplestore/secure")
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public static final String SECRETS_VERSION_KEY = System.getenv("PROTOCOL_VERSION_KEY");
     public static final String SECRETS_NTH_KEY = System.getenv("PROTOCOL_KEY").concat("_%s");
     public static final String SECRETS_IV = System.getenv("PROTOCOL_KEY");
-    private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
+    private static final String INVALID_SYNTAX = "Invalid syntax.";
     private static final String INTERNAL_ERROR = "Internal error.";
     private static final String SUCCESS_UPLOAD = "Successful upload.";
     private static final String SUCCESS_CREATE = "Successful create.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
-    private static final String NO_SECRETS = "No secrets provided.";
     private static final String MALFORMED_SECRETS = "Secrets malformed.";
 
     @Override
@@ -55,18 +54,18 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         try {
             String storeID = form.getStoreID();
             String issuer = form.getIssuer();
-            try (CloseableHttpResponse response = IAMClient.createStore(cookie, issuer, storeID)) {
+            try (CloseableHttpResponse response = IAMClient.createStore(cookie, storeID, issuer)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
 
             String accessToken;
-            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, storeID)) {
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, issuer, storeID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
                 accessToken = response.getEntity().toString();
             }
-            try (CloseableHttpResponse response = IAMClient.acquireLock(cookie, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
@@ -74,9 +73,9 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             switch (form.getProtocolVersion()) {
                 case V1 -> {
                     Protocol1 p = new Protocol1(storeID);
-                    try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, ClientUtils.generateSecretsMap(p), accessToken)) {
+                    try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, storeID, ClientUtils.generateSecretsMap(p), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.deleteStore(cookie, issuer, storeID);
+                            IAMClient.deleteStore(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
@@ -86,11 +85,11 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
 
                     try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.releaseLock(cookie, accessToken);
+                            IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
-                    IAMClient.releaseLock(cookie, accessToken);
+                    IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                 }
                 case V2 -> {
                     //TODO: Create protocol v2
@@ -98,7 +97,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
             }
             return Response.ok(SUCCESS_CREATE).build();
         } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
@@ -111,33 +110,45 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         try {
             String issuer = form.getIssuer();
             Map<String, String> secrets = ClientUtils.sanitizeSecrets(form.getSecrets());
-            if (secrets.isEmpty())
-                return Response.ok(NO_SECRETS).status(Response.Status.BAD_REQUEST).build();
 
             String accessToken;
-            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, storeID)) {
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, issuer, storeID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
                 accessToken = response.getEntity().toString();
+            }
+
+            if (secrets.isEmpty()) {
+                try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(cookie, storeID, accessToken)) {
+                    if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                        return HttpUtils.buildResponse(response);
+                    secrets = ClientUtils.parseSecrets(response.getEntity().toString());
+                }
+            }
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
             }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION_KEY))) {
                 case V1 -> {
                     Protocol1 p = ClientUtils.initProtocol1(storeID, secrets);
                     Collections.shuffle(triples);
-                    try (Response response = fetchAndUpdateKeywords(storeID, p.generateKeywordTrapdoorMap(triples), p)) {
-                        if (response != null)
+                    try (Response response = fetchAndUpdateKeywords(cookie, storeID, p.generateKeywordTrapdoorMap(triples), p, accessToken)) {
+                        if (response != null) {
+                            IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return response;
+                        }
                     }
                     Collections.shuffle(triples);
                     p.exec(triples);
                     try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.releaseLock(cookie, accessToken);
+                            IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
-                    IAMClient.releaseLock(cookie, accessToken);
+                    IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                 }
                 case V2 -> {
                     //TODO: Upload protocol v2
@@ -147,7 +158,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         } catch (MalformedSecretsException e) {
             return Response.ok(MALFORMED_SECRETS, storeID).status(Response.Status.BAD_REQUEST).build();
         } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(String.format(INVALID_SYNTAX, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
@@ -173,7 +184,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         return l;
     }
 
-    private Response fetchAndUpdateKeywords(String storeID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
+    private Response fetchAndUpdateKeywords(Cookie cookie, String storeID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
         List<String> trapdoors = new ArrayList<>(keywordTrapdoorMap.size());
         List<String> keywords = new ArrayList<>(keywordTrapdoorMap.size());
         int i = 0;
@@ -184,7 +195,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         }
 
         List<String> keywordsTotals;
-        try (CloseableHttpResponse response = TriplestoreClient.search(storeID, trapdoors)) {
+        try (CloseableHttpResponse response = TriplestoreClient.search(cookie, storeID, trapdoors, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HttpUtils.buildResponse(response);
             keywordsTotals = ClientUtils.parseSearchResults(EntityUtils.toString(response.getEntity()));

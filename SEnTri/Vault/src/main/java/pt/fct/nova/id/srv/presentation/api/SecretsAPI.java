@@ -6,8 +6,11 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.presentation.Utils.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.application.clients.HttpUtils.COOKIE_PARAM;
 
 public interface SecretsAPI {
 
@@ -16,18 +19,20 @@ public interface SecretsAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response createSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                           @Form SecretsForm secrets);
+                           @Form SecretsForm secrets,
+                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
     @GET
-    @Path("{username}/{storeID}")
+    @Path("/{storeID}")
     @Produces(APPLICATION_JSON)
     Response getSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("username") String username,
-                              @PathParam("storeID") String storeID);
+                        @PathParam("storeID") String storeID,
+                        @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("{username}/{storeID}")
+    @Path("/{storeID}")
     @Produces(TEXT_PLAIN)
     Response deleteSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("username") String username,
-                              @PathParam("storeID") String storeID);
+                           @PathParam("storeID") String storeID,
+                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

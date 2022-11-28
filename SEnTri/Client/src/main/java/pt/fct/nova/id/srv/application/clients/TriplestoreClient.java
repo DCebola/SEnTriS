@@ -16,8 +16,6 @@ import java.util.Map;
 
 
 public class TriplestoreClient {
-
-    private static final Gson gson = new Gson();
     private static final String SECURE_TRIPLESTORE_URI = System.getenv("SECURE_TRIPLESTORE_URI");
     private static final String UPLOAD_PATH = SECURE_TRIPLESTORE_URI.concat(System.getenv("SECURE_UPLOAD_TRIPLESTORE_PATH"));
     private static final String DELETE_PATH = SECURE_TRIPLESTORE_URI.concat(System.getenv("SECURE_DELETE_TRIPLESTORE_PATH"));
@@ -38,7 +36,5 @@ public class TriplestoreClient {
     public static CloseableHttpResponse delete(Cookie cookie, String storeID, String accessToken) throws IOException {
         return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_PATH, storeID), accessToken);
     }
-
-
 
 }

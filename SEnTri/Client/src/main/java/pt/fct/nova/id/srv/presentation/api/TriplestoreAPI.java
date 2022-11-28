@@ -15,15 +15,14 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_QUERY;
 public interface TriplestoreAPI {
 
     @POST
-    @Path("create/{storeID}")
+    @Path("")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response create(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("storeID") String storeID,
                     @MultipartForm UploadForm form);
 
     @POST
-    @Path("upload/{storeID}")
+    @Path("/{storeID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,

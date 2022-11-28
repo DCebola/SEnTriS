@@ -5,14 +5,15 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import pt.fct.nova.id.srv.application.Vault;
+import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
-import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.api.SecretsAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
 import java.io.IOException;
+import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 
@@ -25,14 +26,19 @@ public class SecretsController implements SecretsAPI {
     private static final String SUCCESSFUL_SECRETS_DELETION = "Successful secrets deletion.";
     private static final String UNKNOWN_STORE = "Store not found.";
     private static final String OPERATION_TIMEOUT = "Operation timeout.";
+    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
 
     @Override
-    public Response createSecrets(Cookie cookie, SecretsForm form) {
+    public Response createSecrets(Cookie cookie, SecretsForm form, List<String> authorizationHeaders) {
         try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
             String storeID = form.getStoreID();
-            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, form.getIssuer(), storeID)) {
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return Utils.buildResponse(response);
+                    return HttpUtils.buildResponse(response);
                 if (!Boolean.parseBoolean(response.getEntity().toString()))
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
@@ -52,11 +58,15 @@ public class SecretsController implements SecretsAPI {
     }
 
     @Override
-    public Response getSecrets(Cookie cookie, String username, String storeID) {
+    public Response getSecrets(Cookie cookie, String storeID, List<String> authorizationHeaders) {
         try {
-            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, username, storeID)) {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return Utils.buildResponse(response);
+                    return HttpUtils.buildResponse(response);
                 if (!Boolean.parseBoolean(response.getEntity().toString()))
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
@@ -69,11 +79,14 @@ public class SecretsController implements SecretsAPI {
     }
 
     @Override
-    public Response deleteSecrets(Cookie cookie, String username, String storeID) {
+    public Response deleteSecrets(Cookie cookie, String storeID, List<String> authorizationHeaders) {
         try {
-            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, username, storeID)) {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return Utils.buildResponse(response);
+                    return HttpUtils.buildResponse(response);
                 if (!Boolean.parseBoolean(response.getEntity().toString()))
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
@@ -88,5 +101,13 @@ public class SecretsController implements SecretsAPI {
         } catch (IOException | InterruptedException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private String extractAccessToken(List<String> authorizationHeaders) {
+        for (String val : authorizationHeaders) {
+            if (val.contains("Bearer"))
+                return val;
+        }
+        return null;
     }
 }

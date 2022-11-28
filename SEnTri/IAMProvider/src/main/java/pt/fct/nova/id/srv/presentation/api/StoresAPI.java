@@ -84,9 +84,9 @@ public interface StoresAPI {
     @GET
     @Path("/{storeID}/access/tokens/{username}")
     @Produces(TEXT_PLAIN)
-    Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("storeID") String storeID,
-                               @PathParam("username") String username);
+    Response getAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                            @PathParam("storeID") String storeID,
+                            @PathParam("username") String username);
 
     @DELETE
     @Path("/{storeID}/tokens")

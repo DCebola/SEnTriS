@@ -1,21 +1,32 @@
 # SEnTri: Searchable Encrypted Triplestore
 
-A searchable encrypted triplestore solution with (limited) support for SPARQL queries.
+A searchable encrypted triplestore solution with (limited) support for SPARQL queries. privileged
 
 ## **Endpoints**
 
 ### Client
 
 ```perl
-GET  /Client/api/ctrl/version                        #Get service version.
+GET  /Client/api/ctrl/version                                #Get service version.                             (Any)
 
-POST /Client/api/secure-triplestores/                #Create encrypted triplestore.
-POST /Client/api/secure-triplestores/{storeID}       #Upload data to encrypted triplestore.
-POST /Client/api/secure-triplestores/query/{storeID} #Execute SPARQL query over encrypted triplestore.
+GET    /Client/api/users/auth                                #Authenticate user.                               (Any)
+POST   /Client/api/users/                                    #Register user.                                   (Any)
+DELETE /Client/api/users/{username}                          #Delete user.                                     (Any)
+GET    /Client/api/users/{username}/upgrade                  #Ask for privileged rights.                       (Any)
 
-POST /Client/api/triplestores/                       #Create triplestore.
-POST /Client/api/triplestores/{storeID}              #Upload data to triplestore.
-POST /Client/api/triplestore/query/{storeID}         #Execute SPARQL query.
+GET    /Client/api/triplestores/                             #List triplestores.                               (Any)
+GET    /Client/api/triplestores/{storeID}/access/{username}  #Ask for access to triplestore.                   (Any)
+POST   /Client/api/triplestores/{storeID}/access/{username}  #Grant access to triplestore.                     (Store Owner)
+DELETE /Client/api/triplestores/{storeID}/access/{username}  #Revoke access to triplestore.                    (Store Owner)
+
+POST   /Client/api/triplestores/                             #Create triplestore.                              (Privileged)
+POST   /Client/api/triplestores/secure                       #Create encrypted triplestore.                    (Privileged)
+
+POST   /Client/api/triplestores/{storeID}                    #Upload data to triplestore.                      (Any Access)
+POST   /Client/api/triplestores/secure/{storeID}             #Upload data to encrypted triplestore.            (Any Access)
+
+POST   /Client/api/triplestore/query/{storeID}               #Execute SPARQL query.                            (Any Access)
+POST   /Client/api/triplestores/secure/query/{storeID}       #Execute SPARQL query over encrypted triplestore. (Any Access)
 ```
 ### IAM Provider
 ```perl
@@ -29,7 +40,7 @@ GET    IAMProvider/api/users/{username}/role/requests               #List pendin
 POST   IAMProvider/api/users/{username}/role/requests/{requestID}   #Process pending role request.       (Admin)
 
 
-POST   IAMProvider/api/stores                                       #Create store.                       (Admin/Priviledged)
+POST   IAMProvider/api/stores                                       #Create store.                       (Admin/Privileged)
 GET    IAMProvider/api/stores/{username}                            #List stores                         (Any)
 PUT    IAMProvider/api/stores/{username}                            #Change store owner.                 (Admin/Store Owner)
 DELETE IAMProvider/api/stores/{storeID}                             #Delete store.                       (Admin/Store Owner)
@@ -50,8 +61,8 @@ DELETE IAMProvider/api/stores/{storeID}/access/locks                #Unlock acce
 ```perl
 GET    vault/api/ctrl/version       #Get service version.            (Any)
 
-POST   vault/api/secrets/           #Create triplestore secrets.     (Admin/Store Owner)
-GET    vault/api/secrets/{storeID}  #Get triplestore secrets.        (Read/Write Access)
+POST   vault/api/secrets/{storeID}  #Create triplestore secrets.     (Admin/Store Owner)
+GET    vault/api/secrets/{storeID}  #Get triplestore secrets.        (Any Access)
 DELETE vault/api/secrets/{storeID}  #Delete triplestore secrets.     (Admin/Store Owner)
 ```
 ### Triplestore
@@ -59,13 +70,13 @@ DELETE vault/api/secrets/{storeID}  #Delete triplestore secrets.     (Admin/Stor
 GET    Triplestore/api/ctrl/version             #Get service version                              (Any)
 
 POST   Triplestore/api/{storeID}                #Upload data to triplestore.                      (Write Access)
-DELETE Triplestore/api/{storeID}                #Delete triplestore.                              (Read/Write Access)
-POST   Triplestore/api/query/{storeID}          #Execute SPARQL query over triplestore.           (Read/Write Access)
+DELETE Triplestore/api/{storeID}                #Delete triplestore.                              (Store Owner)
+POST   Triplestore/api/query/{storeID}          #Execute SPARQL query over triplestore.           (Any Access)
 
 POST   Triplestore/api/secure/{storeID}         #Upload data to encrypted triplestore.            (Write Access)
 POST   Triplestore/api/secure/{storeID}/delete  #Delete data from encrypted triplestore.          (Write Access)
-POST   Triplestore/api/secure/{storeID}/search  #Search data from encrypted triplestore.          (Read/Write Access)
+POST   Triplestore/api/secure/{storeID}/search  #Search data from encrypted triplestore.          (Any Access)
 DELETE Triplestore/api/secure/{storeID}         #Delete encrypted triplestore.                    (Store Owner)
-POST   Triplestore/api/secure/query/{storeID}   #Execute SPARQL query over encrypted triplestore. (Read/Write Access)
+POST   Triplestore/api/secure/query/{storeID}   #Execute SPARQL query over encrypted triplestore. (Any Access)
 
 ```

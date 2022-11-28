@@ -39,6 +39,14 @@ public class ClientUtils {
         pairs.add(new BasicNameValuePair("store", storeID));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
+
+    public static HttpEntity generateSecretsForm(String storeID, Map<String,String> secrets) {
+        return MultipartEntityBuilder
+                .create()
+                .addTextBody("storeID", storeID, ContentType.create(MediaType.TEXT_PLAIN))
+                .addTextBody("secrets", gson.toJson(secrets), ContentType.create(MediaType.APPLICATION_JSON))
+                .build();
+    }
     public static HttpEntity uploadFormToHttpEntity(UploadForm form) {
         return MultipartEntityBuilder
                 .create()
@@ -73,6 +81,8 @@ public class ClientUtils {
 
     public static Map<String, String> sanitizeSecrets(Map<String, String> secrets) throws MalformedSecretsException {
         Map<String, String> sanitizedSecrets = new HashMap<>();
+        if (secrets == null)
+            return sanitizedSecrets;
         ProtocolVersion version;
         try {
             version = ProtocolVersion.valueOf(secrets.get(SECRETS_VERSION_KEY));
@@ -103,6 +113,10 @@ public class ClientUtils {
             sanitizedSecrets.put(key, val);
         else
             throw new MalformedSecretsException();
+    }
+
+    public static Map<String, String> parseSecrets(String secrets) {
+        return gson.fromJson(secrets, new TypeToken<Map<String, String>>(){}.getType());
     }
 
     public static List<String> parseSearchResults(String results) {

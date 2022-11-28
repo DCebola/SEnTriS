@@ -8,15 +8,7 @@ import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 
 import java.io.InputStream;
 
-public class SecureCreateForm {
-
-    @FormParam("issuer")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final String issuer;
-
-    @FormParam("storeID")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final String storeID;
+public class SecureCreateForm extends StoreForm {
 
     @FormParam("version")
     @DefaultValue("V1")
@@ -32,40 +24,30 @@ public class SecureCreateForm {
     private final InputStream contents;
 
     public SecureCreateForm(String issuer, String storeID, String protocolVersion, String syntax, InputStream contents) {
-        this.issuer = issuer;
-        this.storeID = storeID;
-        this.protocolVersion = ProtocolVersion.fromString(protocolVersion);
+        super(issuer, storeID);
         this.syntax = syntax;
         this.contents = contents;
+        this.protocolVersion = ProtocolVersion.fromString(protocolVersion);
     }
 
     public SecureCreateForm() {
-        this.issuer = null;
-        this.storeID = null;
-        this.protocolVersion = null;
+        super();
         this.syntax = null;
         this.contents = null;
-    }
+        this.protocolVersion = null;
 
-
-    public String getSyntax() {
-        return syntax;
-    }
-
-
-    public InputStream getContents() {
-        return contents;
     }
 
     public ProtocolVersion getProtocolVersion() {
         return protocolVersion;
     }
 
-    public String getStoreID() {
-        return storeID;
+    public String getSyntax() {
+        return syntax;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public InputStream getContents() {
+        return contents;
     }
+
 }
