@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -13,7 +14,7 @@ import java.io.IOException;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.INTERNAL_ERROR;
 
-
+@Path("users")
 public class UsersController implements UsersAPI {
     @Override
     public Response auth(AuthForm credentialsForm) {
