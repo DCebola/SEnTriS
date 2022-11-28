@@ -1,13 +1,7 @@
 package pt.fct.nova.id.srv.application.clients;
 
-import com.google.gson.Gson;
 import jakarta.ws.rs.core.Cookie;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.controllers.ClientUtils;
 
 import java.io.IOException;

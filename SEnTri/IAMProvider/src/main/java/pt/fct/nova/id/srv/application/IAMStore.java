@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application;
 
-import com.google.gson.Gson;
 import jakarta.ws.rs.core.NewCookie;
 
 import pt.fct.nova.id.srv.application.clients.LocksClient;
@@ -29,7 +28,8 @@ public class IAMStore {
     private static final String STORE_READ_ACCESS = "SRA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_WRITE_ACCESS = "SWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_OWNER = "SO".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORES_PATTERN = "SO".concat(BASIC_SEPARATOR).concat("*");;
+    private static final String STORES_PATTERN = "SO".concat(BASIC_SEPARATOR).concat("*");
+    ;
     private static final String STORE_PENDING_ACCESS_REQUESTS = "SPA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ACCESS_REQUEST = "PA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ROLE_REQUESTS = "PRR";
@@ -42,7 +42,6 @@ public class IAMStore {
     public static final String TOKEN_LOCK_FIELD = "LOCK";
     private static final int PENDING_REQUEST_USER_IDX = 0;
     private static final int PENDING_REQUEST_VALUE_IDX = 1;
-
 
 
     public static NewCookie cacheSession(String username) {
@@ -161,7 +160,7 @@ public class IAMStore {
                 roleRequestsResponses.add(p.lrange(String.format(PENDING_ROLE_REQUEST, requestID), 0, -1));
             p.sync();
             List<String> requestData;
-            for(Response<List<String>> response: roleRequestsResponses){
+            for (Response<List<String>> response : roleRequestsResponses) {
                 requestData = response.get();
                 if (requestData != null && !requestData.isEmpty())
                     pendingRequests.add(parseRoleRequestData(requestData));
@@ -173,7 +172,7 @@ public class IAMStore {
     public static void deleteRoleRequest(String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.lrem(PENDING_ROLE_REQUESTS,1, requestID);
+            t.lrem(PENDING_ROLE_REQUESTS, 1, requestID);
             t.del(String.format(PENDING_ROLE_REQUEST, requestID));
             t.exec();
         }
@@ -250,20 +249,55 @@ public class IAMStore {
         }
     }
 
-    public static Set<String> getStores() {
+    public static Set<String> getStores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return Utils.scan(jedis, STORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
+            Set<String> storeIDs = Utils.scan(jedis, STORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
+            if (!write && !read && !owns)
+                return storeIDs;
+            Pipeline p = jedis.pipelined();
+            Set<String> filteredStoreIDs = new HashSet<>();
+            if (owns) {
+                List<Response<String>> owners = new ArrayList<>(storeIDs.size());
+                for (String storeID : storeIDs)
+                    owners.add(p.get(String.format(STORE_OWNER, storeID)));
+                p.sync();
+                int i = 0;
+                for (String storeID : storeIDs) {
+                    if (username.equals(owners.get(i).get()))
+                        filteredStoreIDs.add(storeID);
+                    i++;
+                }
+                return filteredStoreIDs;
+            }
+            String accessCheckKey;
+            if (write)
+                accessCheckKey = STORE_WRITE_ACCESS;
+            else
+                accessCheckKey = STORE_READ_ACCESS;
+
+            List<Response<Boolean>> accessCheck = new ArrayList<>(storeIDs.size());
+            for (String storeID : storeIDs)
+                accessCheck.add(p.sismember(String.format(accessCheckKey, storeID), username));
+            p.sync();
+            int i = 0;
+            for (String storeID : storeIDs) {
+                if (accessCheck.get(i).get())
+                    filteredStoreIDs.add(storeID);
+                i++;
+            }
+            return filteredStoreIDs;
         }
+
     }
 
     public static void revokeAccess(String storeID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             if (!write) {
-                t.srem(String.format(STORE_READ_ACCESS, username), storeID);
-                t.srem(String.format(STORE_WRITE_ACCESS, username), storeID);
+                t.srem(String.format(STORE_READ_ACCESS, storeID), username);
+                t.srem(String.format(STORE_WRITE_ACCESS, storeID), username);
             } else
-                t.srem(String.format(STORE_WRITE_ACCESS, username), storeID);
+                t.srem(String.format(STORE_WRITE_ACCESS, storeID), username);
             t.exec();
         }
     }
@@ -315,7 +349,7 @@ public class IAMStore {
                 storeRequestsResponses.add(p.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1));
             p.sync();
             List<String> requestData;
-            for(Response<List<String>> response: storeRequestsResponses){
+            for (Response<List<String>> response : storeRequestsResponses) {
                 requestData = response.get();
                 if (requestData != null && !requestData.isEmpty())
                     pendingRequests.add(parseAccessRequestData(requestData));
@@ -327,7 +361,7 @@ public class IAMStore {
     public static void deleteAccessRequest(String storeID, String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.lrem(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID),1, requestID);
+            t.lrem(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 1, requestID);
             t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
             t.exec();
         }

@@ -16,6 +16,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
@@ -24,6 +25,13 @@ public class HttpUtils {
     private static final String BEARER = "Bearer ";
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri) throws IOException {
         HttpGet request = new HttpGet(uri);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request, generateContext(cookie.getValue()));
@@ -78,6 +86,26 @@ public class HttpUtils {
         }
     }
 
+    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static Response buildResponse(String prefix, CloseableHttpResponse response) throws IOException {
+        return Response.ok(prefix.concat(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)))
+                .status(response.getStatusLine().getStatusCode()).build();
+    }
 
     public static Response buildResponse(CloseableHttpResponse response) throws IOException {
         return Response.ok(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8))

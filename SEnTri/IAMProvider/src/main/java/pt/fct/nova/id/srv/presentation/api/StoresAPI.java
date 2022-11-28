@@ -23,7 +23,11 @@ public interface StoresAPI {
     @GET
     @Path("/{username}")
     @Produces(TEXT_PLAIN)
-    Response listStores(@CookieParam(COOKIE_PARAM) Cookie cookie, @PathParam("username") String username);
+    Response listStores(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                        @PathParam("username") String username,
+                        @DefaultValue("false") @QueryParam("write") boolean write,
+                        @DefaultValue("false") @QueryParam("read") boolean read,
+                        @DefaultValue("false") @QueryParam("owns") boolean owns);
 
     @PUT
     @Path("/{username}")

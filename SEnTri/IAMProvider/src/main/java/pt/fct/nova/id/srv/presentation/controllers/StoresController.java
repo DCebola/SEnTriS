@@ -77,10 +77,10 @@ public class StoresController implements StoresAPI {
     }
 
     @Override
-    public Response listStores(Cookie cookie, String username) {
+    public Response listStores(Cookie cookie, String username, boolean write, boolean read, boolean owns) {
         try {
             Utils.authCheck(cookie, username);
-            return Response.ok(IAMStore.getStores()).build();
+            return Response.ok(IAMStore.getStores(username, write, read, owns)).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         }

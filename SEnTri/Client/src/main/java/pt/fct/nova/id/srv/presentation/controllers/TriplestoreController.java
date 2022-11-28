@@ -7,15 +7,19 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.INTERNAL_ERROR;
+import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController.SUCCESSFUL_DELETION;
 
 
 @Path("triplestore")
@@ -25,6 +29,9 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String CREATE_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("CREATE_TRIPLESTORE_PATH"));
     private static final String UPLOAD_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("UPLOAD_TRIPLESTORE_PATH"));
     private static final String QUERY_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("QUERY_TRIPLESTORE_PATH"));
+    private static final String SUCCESSFUL_ACCESS_REQUEST = "Access request issued.";
+    private static final String SUCCESSFUL_ACCESS_GRANT = "Access granted.";
+    private static final String SUCCESSFUL_ACCESS_REVOCATION = "Access revoked.";
 
 
     @Override
@@ -45,6 +52,15 @@ public class TriplestoreController implements TriplestoreAPI {
             }
             return upload(cookie, storeID, form, accessToken, CREATE_TRIPLESTORE_PATH);
         } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response listStores(Cookie cookie, String username, boolean write, boolean read, boolean owns) {
+        try (CloseableHttpResponse response = IAMClient.listStores(cookie, username, write, read, owns)) {
+            return HttpUtils.buildResponse(response);
+        } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -82,6 +98,39 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
+    public Response delete(Cookie cookie, String storeID, String username) {
+        try {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+
+            try (CloseableHttpResponse response = TriplestoreClient.delete(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            try (CloseableHttpResponse response = IAMClient.deleteStore(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            return Response.ok(SUCCESSFUL_DELETION).build();
+        } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
     public Response answerSPARQLQuery(Cookie cookie, String storeID, String query) {
         //TODO: Migrate query planner to client. Send query execution.
         try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
@@ -91,6 +140,75 @@ public class TriplestoreController implements TriplestoreAPI {
             return HttpUtils.buildResponse(response);
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response requestAccess(Cookie cookie, String storeID, AccessForm form) {
+        try {
+            try (CloseableHttpResponse response = IAMClient.requestAccess(cookie, storeID, form)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+            return Response.ok(SUCCESSFUL_ACCESS_REQUEST).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response grantAccess(Cookie cookie, String storeID, String username, boolean write) {
+        try {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+
+            try (CloseableHttpResponse response = IAMClient.grantAccess(cookie, storeID, write, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            IAMClient.releaseStoreLock(cookie, username, storeID);
+            return Response.ok(SUCCESSFUL_ACCESS_GRANT).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response revokeAccess(Cookie cookie, String storeID, String username, boolean write) {
+        try {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+
+            try (CloseableHttpResponse response = IAMClient.revokeAccess(cookie, storeID, write, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            IAMClient.releaseStoreLock(cookie, username, storeID);
+            return Response.ok(SUCCESSFUL_ACCESS_REVOCATION).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 

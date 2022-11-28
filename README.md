@@ -9,13 +9,13 @@ A searchable encrypted triplestore solution with (limited) support for SPARQL qu
 ```perl
 GET  /Client/api/ctrl/version                                #Get service version.                             (Any)
 
-GET    /Client/api/users/auth                                #Authenticate user.                               (Any)
+POST   /Client/api/users/auth                                #Authenticate user.                               (Any)
 POST   /Client/api/users/                                    #Register user.                                   (Any)
 DELETE /Client/api/users/{username}                          #Delete user.                                     (Any)
 GET    /Client/api/users/{username}/upgrade                  #Ask for privileged rights.                       (Any)
 
 GET    /Client/api/triplestores/                             #List triplestores.                               (Any)
-GET    /Client/api/triplestores/{storeID}/access/{username}  #Ask for access to triplestore.                   (Any)
+POST   /Client/api/triplestores/{storeID}/access/requests    #Request access to triplestore.                   (Any)
 POST   /Client/api/triplestores/{storeID}/access/{username}  #Grant access to triplestore.                     (Store Owner)
 DELETE /Client/api/triplestores/{storeID}/access/{username}  #Revoke access to triplestore.                    (Store Owner)
 
@@ -27,6 +27,9 @@ POST   /Client/api/triplestores/secure/{storeID}             #Upload data to enc
 
 POST   /Client/api/triplestore/query/{storeID}               #Execute SPARQL query.                            (Any Access)
 POST   /Client/api/triplestores/secure/query/{storeID}       #Execute SPARQL query over encrypted triplestore. (Any Access)
+
+DELETE /Client/api/triplestores/secure/{storeID}/{username}  #Delete encrypted triplestore.                    (Store Owner)
+DELETE /Client/api/triplestores/{storeID}/{username}         #Delete triplestore.                              (Store Owner)
 ```
 ### IAM Provider
 ```perl

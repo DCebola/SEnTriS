@@ -43,11 +43,13 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public static final String SECRETS_IV = System.getenv("PROTOCOL_KEY");
     private static final String INVALID_SYNTAX = "Invalid syntax.";
     private static final String INTERNAL_ERROR = "Internal error.";
-    private static final String SUCCESS_UPLOAD = "Successful upload.";
-    private static final String SUCCESS_CREATE = "Successful create.";
+    private static final String SUCCESSFUL_UPLOAD = "Successful upload.";
+    private static final String SUCCESSFUL_CREATE = "Successful create.";
+    public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
     private static final String MALFORMED_SECRETS = "Secrets malformed.";
+
 
     @Override
     public Response create(Cookie cookie, SecureCreateForm form) {
@@ -75,7 +77,13 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Protocol1 p = new Protocol1(storeID);
                     try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(cookie, storeID, ClientUtils.generateSecretsMap(p), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                            IAMClient.deleteStore(cookie, storeID, accessToken);
+                            try (CloseableHttpResponse response2 = IAMClient.deleteStore(cookie, storeID, accessToken)) {
+                                if (response2.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                                    IAMClient.releaseStoreLock(cookie, storeID, accessToken);
+                                    return HttpUtils.buildResponse("Failure to delete triplestore. Error occurred while saving secrets: ", response2);
+                                }
+                            }
+                            IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
                         }
                     }
@@ -95,12 +103,51 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     //TODO: Create protocol v2
                 }
             }
-            return Response.ok(SUCCESS_CREATE).build();
+            return Response.ok(SUCCESSFUL_CREATE).build();
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response delete(Cookie cookie, String storeID, String username) {
+        try {
+            String accessToken;
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, username, storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+
+            try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+            }
+
+            try (CloseableHttpResponse response = TriplestoreClient.delete(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            try (CloseableHttpResponse response = IAMClient.deleteStore(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                    IAMClient.releaseStoreLock(cookie, username, storeID);
+                    return HttpUtils.buildResponse(response);
+                }
+            }
+            return Response.ok(SUCCESSFUL_DELETION).build();
+        }  catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -154,7 +201,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     //TODO: Upload protocol v2
                 }
             }
-            return Response.ok(SUCCESS_UPLOAD).build();
+            return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (MalformedSecretsException e) {
             return Response.ok(MALFORMED_SECRETS, storeID).status(Response.Status.BAD_REQUEST).build();
         } catch (UnknownRDFLanguageException e) {

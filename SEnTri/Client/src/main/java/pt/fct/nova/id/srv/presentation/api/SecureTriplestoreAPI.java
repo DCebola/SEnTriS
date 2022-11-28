@@ -8,8 +8,10 @@ import pt.fct.nova.id.srv.presentation.api.dtos.SecureCreateForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureQueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;
 
@@ -20,6 +22,13 @@ public interface SecureTriplestoreAPI {
     @Produces(APPLICATION_JSON)
     Response create(@CookieParam(COOKIE_PARAM) Cookie cookie,
                     @MultipartForm SecureCreateForm form);
+
+    @DELETE
+    @Path("/{storeID}/{username}")
+    @Produces(TEXT_PLAIN)
+    Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                    @PathParam("username") String username,
+                    @PathParam("storeID") String storeID);
 
     @POST
     @Path("{storeID}")

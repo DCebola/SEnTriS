@@ -14,6 +14,7 @@ import org.apache.http.message.BasicNameValuePair;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
+import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
@@ -46,13 +47,14 @@ public class ClientUtils {
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
-    public static HttpEntity generateSecretsForm(String storeID, Map<String,String> secrets) {
+    public static HttpEntity generateSecretsForm(String storeID, Map<String, String> secrets) {
         return MultipartEntityBuilder
                 .create()
                 .addTextBody("storeID", storeID, ContentType.create(MediaType.TEXT_PLAIN))
                 .addTextBody("secrets", gson.toJson(secrets), ContentType.create(MediaType.APPLICATION_JSON))
                 .build();
     }
+
     public static HttpEntity uploadFormToHttpEntity(UploadForm form) {
         return MultipartEntityBuilder
                 .create()
@@ -69,16 +71,24 @@ public class ClientUtils {
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
+    public static HttpEntity accessFormToHttpEntity(AccessForm accessForm) {
+        List<NameValuePair> pairs = new ArrayList<>(2);
+        pairs.add(new BasicNameValuePair("user", accessForm.getUser()));
+        pairs.add(new BasicNameValuePair("write", String.valueOf(accessForm.getWrite())));
+        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+    }
+
     public static HttpEntity generatePrivilegeRoleRequest(String issuer) {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("issuer", issuer));
-        pairs.add(new BasicNameValuePair("role","PRIVILEGED"));
+        pairs.add(new BasicNameValuePair("role", "PRIVILEGED"));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
     public static HttpEntity objectToHttpEntity(Object obj) {
         return new StringEntity(gson.toJson(obj), StandardCharsets.UTF_8);
     }
+
     public static Protocol1 initProtocol1(String storeID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         SecretKey k1 = gson.fromJson(secrets.get(String.format(SECRETS_NTH_KEY, 1)), SecretKey.class);
         SecretKey k2 = gson.fromJson(secrets.get(String.format(SECRETS_NTH_KEY, 2)), SecretKey.class);
@@ -136,10 +146,14 @@ public class ClientUtils {
     }
 
     public static Map<String, String> parseSecrets(String secrets) {
-        return gson.fromJson(secrets, new TypeToken<Map<String, String>>(){}.getType());
+        return gson.fromJson(secrets, new TypeToken<Map<String, String>>() {
+        }.getType());
     }
 
     public static List<String> parseSearchResults(String results) {
-        return gson.fromJson(results, new TypeToken<List<String>>(){}.getType());
+        return gson.fromJson(results, new TypeToken<List<String>>() {
+        }.getType());
     }
+
+
 }
