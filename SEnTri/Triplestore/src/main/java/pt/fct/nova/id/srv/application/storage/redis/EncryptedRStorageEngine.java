@@ -22,27 +22,27 @@ import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 public class EncryptedRStorageEngine implements EncryptedStorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
-
     private final static String STORE_STATE = "%s".concat(BASIC_SEPARATOR).concat("STATE");
-
     private final static String KEY_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
     @Override
-    public void setup(String storeID) throws StorageEngineException {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Transaction t = jedis.multi();
-            t.set(String.format(STORE_STATE, storeID), String.valueOf(false));
-            t.exec();
-        } catch (Exception ignored) {
-        }
-    }
-
-    @Override
     public void delete(String storeID) throws StorageEngineException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
-            deleteStoreData(jedis, storeID);
+            ScanParams params = new ScanParams();
+            params.match(String.format(STORE_DATA_PATTERN, storeID));
+            String cursor = SCAN_POINTER_START;
+            Set<String> collector = new HashSet<>();
+            do {
+                ScanResult<String> scanResult = jedis.scan(cursor, params);
+                List<String> res = scanResult.getResult();
+                collector.addAll(res);
+                cursor = scanResult.getCursor();
+            } while (!cursor.equals(SCAN_POINTER_START));
+            Transaction t = jedis.multi();
+            collector.forEach(t::del);
+            t.del(String.format(STORE_STATE, storeID));
+            t.exec();
         } catch (Exception e) {
             throw new StorageEngineException();
         }
@@ -59,56 +59,19 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
         }
     }
 
-    private void deleteStoreData(Jedis jedis, String storeID) {
-        ScanParams params = new ScanParams();
-        params.match(String.format(STORE_DATA_PATTERN, storeID));
-        String cursor = SCAN_POINTER_START;
-        Set<String> collector = new HashSet<>();
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, params);
-            List<String> res = scanResult.getResult();
-            collector.addAll(res);
-            cursor = scanResult.getCursor();
-        } while (!cursor.equals(SCAN_POINTER_START));
-        Transaction t = jedis.multi();
-        collector.forEach(t::del);
-        t.del(String.format(STORE_STATE, storeID));
-        t.exec();
-    }
-
     @Override
     public void save(String storeID, Map<String, String> encryptedNodes) throws StorageEngineException {
-        String storeState = String.format(STORE_STATE, storeID);
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            boolean isDeleted = Boolean.parseBoolean(jedis.get(storeState));
-            if (!isDeleted) {
-                Transaction t = jedis.multi();
-                t.watch(storeState);
-                for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
-                    String key = entry.getKey();
-                    String value = entry.getValue();
-                    t.set(String.format(KEY_FORMAT, storeID, key), value);
-                }
-                t.exec();
-            } else
-                delete(storeID);
+            Transaction t = jedis.multi();
+            for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                t.set(String.format(KEY_FORMAT, storeID, key), value);
+            }
+            t.exec();
         } catch (Exception e) {
             throw new StorageEngineException();
         }
-    }
-
-    @Override
-    public void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            if (jedis.get(String.format(STORE_STATE, storeID)) != null)
-                throw new StoreAlreadyExistsException();
-            else
-                throw new StoreNotFoundException();
-        } catch (StoreAlreadyExistsException | StoreNotFoundException e) {
-            throw e;
-        } catch (Exception ignored) {
-        }
-
     }
 
     @Override

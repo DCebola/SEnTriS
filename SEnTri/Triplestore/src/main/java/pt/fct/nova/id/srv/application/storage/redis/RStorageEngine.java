@@ -8,8 +8,6 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -28,8 +26,6 @@ public class RStorageEngine implements StorageEngine {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-
-    private final static String STORE_STATE = "%s".concat(BASIC_SEPARATOR).concat("STATE");
     private final static String NAMESPACES = "%s".concat(BASIC_SEPARATOR).concat("NS");
 
     private final static String S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("IRIS");
@@ -58,19 +54,6 @@ public class RStorageEngine implements StorageEngine {
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
     private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
-
-    @Override
-    public void setupStore(String storeID, Map<String, String> namespaces) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Transaction t = jedis.multi();
-            t.set(String.format(STORE_STATE, storeID), String.valueOf(false));
-            if (namespaces != null)
-                namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
-            t.exec();
-        } catch (Exception ignored) {
-        }
-    }
-
     @Override
     public void saveNamespaces(String storeID, Map<String, String> namespaces) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -91,83 +74,69 @@ public class RStorageEngine implements StorageEngine {
     @Override
     public void deleteStore(String storeID) throws StorageEngineException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.set(String.format(STORE_STATE, storeID), String.valueOf(true));
-            deleteStoreData(jedis, storeID);
+            ScanParams params = new ScanParams();
+            params.match(String.format(STORE_DATA_PATTERN, storeID));
+            String cursor = SCAN_POINTER_START;
+            Set<String> collector = new HashSet<>();
+            do {
+                ScanResult<String> scanResult = jedis.scan(cursor, params);
+                List<String> res = scanResult.getResult();
+                collector.addAll(res);
+                cursor = scanResult.getCursor();
+            } while (!cursor.equals(SCAN_POINTER_START));
+            Transaction t = jedis.multi();
+            collector.forEach(t::del);
+            t.exec();
         } catch (Exception e) {
             throw new StorageEngineException();
         }
     }
 
-    private void deleteStoreData(Jedis jedis, String storeID) {
-        ScanParams params = new ScanParams();
-        params.match(String.format(STORE_DATA_PATTERN, storeID));
-        String cursor = SCAN_POINTER_START;
-        Set<String> collector = new HashSet<>();
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, params);
-            List<String> res = scanResult.getResult();
-            collector.addAll(res);
-            cursor = scanResult.getCursor();
-        } while (!cursor.equals(SCAN_POINTER_START));
-        Transaction t = jedis.multi();
-        collector.forEach(t::del);
-        t.del(String.format(STORE_STATE, storeID));
-        t.exec();
-    }
-
-    public void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            if (jedis.get(String.format(STORE_STATE, storeID)) != null)
-                throw new StoreAlreadyExistsException();
-            else
-                throw new StoreNotFoundException();
-        } catch (StoreAlreadyExistsException | StoreNotFoundException e) {
-            throw e;
-        } catch (Exception ignored) {
-        }
-    }
-
-
     @Override
-    public void saveTriple(String storeID, Triple triple) throws InvalidNodeException, StorageEngineException {
-        String storeState = String.format(STORE_STATE, storeID);
-        Node subject = triple.getSubject();
-        Node predicate = triple.getPredicate();
-        Node object = triple.getObject();
-
+    public void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException, StorageEngineException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            String s_iri = parseNodeIRI(subject);
-            String p_iri = parseNodeIRI(predicate);
-            String o_iri = parseNodeIRI(object);
+            List<Response<String>> s_idxs = new ArrayList<>(triples.size());
+            List<Response<String>> p_idxs = new ArrayList<>(triples.size());
+            List<Response<String>> o_idxs = new ArrayList<>(triples.size());
+            List<String> s_iris = new ArrayList<>(triples.size());
+            List<String> p_iris = new ArrayList<>(triples.size());
+            List<String> o_iris = new ArrayList<>(triples.size());
+            String s_iri, p_iri, o_iri;
+            Pipeline p = jedis.pipelined();
+            for (Triple triple : triples) {
+                Node subject = triple.getSubject();
+                Node predicate = triple.getPredicate();
+                Node object = triple.getObject();
 
-            boolean isDeleted = Boolean.parseBoolean(jedis.get(storeState));
+                s_iri = parseNodeIRI(subject);
+                s_iris.add(s_iri);
+                p_iri = parseNodeIRI(predicate);
+                p_iris.add(p_iri);
+                o_iri = parseNodeIRI(object);
+                o_iris.add(o_iri);
 
-            if (!isDeleted) {
-                Pipeline p = jedis.pipelined();
-                Response<String> resp_s = getIndexFromIRI(p, S_IRIS, storeID, s_iri);
-                Response<String> resp_p = getIndexFromIRI(p, P_IRIS, storeID, p_iri);
-                Response<String> resp_o = getIndexFromIRI(p, O_IRIS, storeID, o_iri);
-                p.sync();
-
-                String s_idx = resp_s.get();
-                String p_idx = resp_p.get();
-                String o_idx = resp_o.get();
-
-                Transaction t = jedis.multi();
-                t.watch(storeState);
-
-
+                s_idxs.add(getIndexFromIRI(p, S_IRIS, storeID, s_iri));
+                p_idxs.add(getIndexFromIRI(p, P_IRIS, storeID, p_iri));
+                o_idxs.add(getIndexFromIRI(p, O_IRIS, storeID, o_iri));
+            }
+            p.sync();
+            String s_idx, p_idx, o_idx;
+            Transaction t = jedis.multi();
+            for (int i = 0; i < triples.size(); i++) {
+                s_idx = s_idxs.get(i).get();
+                p_idx = p_idxs.get(i).get();
+                o_idx = o_idxs.get(i).get();
                 if (s_idx == null) {
                     s_idx = generateID();
-                    putIRI(t, S_IRIS, storeID, s_iri, s_idx);
+                    putIRI(t, S_IRIS, storeID, s_iris.get(i), s_idx);
                 }
                 if (p_idx == null) {
                     p_idx = generateID();
-                    putIRI(t, P_IRIS, storeID, p_iri, p_idx);
+                    putIRI(t, P_IRIS, storeID, p_iris.get(i), p_idx);
                 }
                 if (o_idx == null) {
                     o_idx = generateID();
-                    putIRI(t, O_IRIS, storeID, o_iri, o_idx);
+                    putIRI(t, O_IRIS, storeID, o_iris.get(i), o_idx);
                 }
 
                 String sp_idx = generateComplementIndex(s_idx, p_idx);
@@ -181,10 +150,9 @@ public class RStorageEngine implements StorageEngine {
                 putCompoundIndex(t, SINGLE_SP, storeID, sp_idx, o_idx);
                 putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
                 putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
+            }
 
-                t.exec();
-            } else
-                deleteStore(storeID);
+            t.exec();
         } catch (InvalidNodeException e) {
             throw e;
         } catch (Exception e) {

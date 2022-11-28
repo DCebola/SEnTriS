@@ -14,13 +14,6 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 public interface EncryptedTriplestoreAPI {
 
     @POST
-    @Path("create/{storeID}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(TEXT_PLAIN)
-    Response create(@PathParam("storeID") String storeID,
-                    Map<String, String> encryptedNodes);
-
-    @POST
     @Path("upload/{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)

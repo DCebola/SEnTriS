@@ -8,9 +8,6 @@ import pt.fct.nova.id.srv.presentation.api.dtos.SecureCreateForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureQueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
 
-import java.util.List;
-
-import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;

@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.query;
+package pt.fct.nova.id.srv.application;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;

@@ -15,13 +15,11 @@ import java.util.Map;
 
 public interface StorageEngine {
 
-    void setupStore(String storeID, Map<String, String> namespaces) throws StorageEngineException;
-
     void saveNamespaces(String storeID, Map<String, String> namespaces);
 
     void deleteStore(String storeID) throws StorageEngineException;
 
-    void saveTriple(String storeID, Triple triple) throws InvalidNodeException, StorageEngineException;
+    void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException, StorageEngineException;
 
     List<Triple> getTriples(String storeID);
 
@@ -44,7 +42,5 @@ public interface StorageEngine {
     String parseNodeIRI(Node node) throws InvalidNodeException;
 
     Node generateNode(String iri);
-
-    void checkID(String storeID) throws StoreAlreadyExistsException, StoreNotFoundException;
 
 }
