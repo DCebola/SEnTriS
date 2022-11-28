@@ -1,6 +1,6 @@
 # SEnTri: Searchable Encrypted Triplestore
 
-A searchable encrypted triplestore solution with (limited) support for SPARQL queries. privileged
+A searchable encrypted triplestore solution with (limited) support for SPARQL queries.
 
 ## **Endpoints**
 
