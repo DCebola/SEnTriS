@@ -10,8 +10,8 @@ import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
-import static pt.fct.nova.id.srv.application.clients.HttpUtils.COOKIE_PARAM;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;
 
 public interface SecureTriplestoreAPI {
     @POST

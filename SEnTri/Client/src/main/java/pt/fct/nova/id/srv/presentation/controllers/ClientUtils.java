@@ -14,6 +14,7 @@ import org.apache.http.message.BasicNameValuePair;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
+import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 
@@ -31,6 +32,11 @@ import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController.*;
 
 public class ClientUtils {
+
+    public static final String COOKIE_PARAM = "session";
+    public static final String COOKIE_LIFETIME = System.getenv("COOKIE_LIFETIME");
+
+    public static final String INTERNAL_ERROR = "Internal error.";
     private static final Gson gson = new Gson();
 
     public static HttpEntity generateStoreForm(String username, String storeID) {
@@ -54,6 +60,20 @@ public class ClientUtils {
                 .addTextBody("namespaces", gson.toJson(form.getNamespaces()), ContentType.create(MediaType.APPLICATION_JSON))
                 .addBinaryBody("contents", form.getContents())
                 .build();
+    }
+
+    public static HttpEntity credentialsFormToHttpEntity(AuthForm credentialsForm) {
+        List<NameValuePair> pairs = new ArrayList<>(2);
+        pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));
+        pairs.add(new BasicNameValuePair("password", credentialsForm.getPassword()));
+        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+    }
+
+    public static HttpEntity generatePrivilegeRoleRequest(String issuer) {
+        List<NameValuePair> pairs = new ArrayList<>(2);
+        pairs.add(new BasicNameValuePair("issuer", issuer));
+        pairs.add(new BasicNameValuePair("role","PRIVILEGED"));
+        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
     public static HttpEntity objectToHttpEntity(Object obj) {
@@ -122,7 +142,4 @@ public class ClientUtils {
     public static List<String> parseSearchResults(String results) {
         return gson.fromJson(results, new TypeToken<List<String>>(){}.getType());
     }
-
-
-
 }

@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.clients;
 
-import com.github.jsonldjava.shaded.com.google.common.io.ByteSource;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -19,10 +18,9 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class HttpUtils {
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
 
-    public static final String COOKIE_PARAM = "session";
-    private static final String COOKIE_LIFETIME = System.getenv("COOKIE_LIFETIME");
+public class HttpUtils {
     private static final String BEARER = "Bearer ";
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
@@ -36,6 +34,14 @@ public class HttpUtils {
         HttpGet request = new HttpGet(uri);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendPOSTRequest(String uri, HttpEntity body) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setEntity(body);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request);
         }
     }
 

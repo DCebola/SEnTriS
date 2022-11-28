@@ -15,11 +15,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.INTERNAL_ERROR;
 
 
 @Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
-    private static final String INTERNAL_ERROR = "Internal error.";
     private static final String MALFORMED_FORM = "Malformed form.";
     private static final String TRIPLESTORE_URI = System.getenv("TRIPLESTORE_URI");
     private static final String CREATE_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("CREATE_TRIPLESTORE_PATH"));
