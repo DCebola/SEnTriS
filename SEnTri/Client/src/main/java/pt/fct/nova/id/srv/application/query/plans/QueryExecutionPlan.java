@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Queue;
 
 public interface QueryExecutionPlan {
-
     Map<String, Job> getJobs();
 
     Queue<String> getExecutionOrder();

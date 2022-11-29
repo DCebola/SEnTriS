@@ -18,7 +18,8 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.Utils.*;
+import static pt.fct.nova.id.srv.application.query.Utils.extractVariablesPattern;
+import static pt.fct.nova.id.srv.application.query.Utils.generateID;
 
 public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 

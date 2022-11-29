@@ -1,10 +1,14 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
+import pt.fct.nova.id.srv.application.clients.HttpUtils;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorker;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
@@ -15,8 +19,11 @@ import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
+import static jakarta.ws.rs.core.Response.Status.*;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static pt.fct.nova.id.srv.application.clients.HttpUtils.extractAccessToken;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.NOT_IMPLEMENTED_ERROR;
 
 
 @Path("secure")
@@ -27,43 +34,105 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     EncryptedStorageEngine storageEngine = new EncryptedRStorageEngine();
 
     @Override
-    public Response upload(String storeID, Map<String, String> encryptedNodes) {
+    public Response upload(Cookie cookie, String storeID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
         try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
             storageEngine.save(storeID, encryptedNodes);
             return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (Exception e) {
-            return Response.ok(UPLOAD_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response answerSPARQLQuery(String storeID, QueryExecutionPlan queryExecutionPlan) {
+    public Response answerSPARQLQuery(Cookie cookie, String storeID, QueryExecutionPlan queryExecutionPlan, List<String> authorizationHeaders) {
         try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ResultSet res = new SimpleSPARQLExecution(queryExecutionPlan).exec(new SecureSPARQLWorker(storeID, storageEngine));
             ResultSetFormatter.outputAsJSON(out, res);
             return Response.ok(out.toByteArray()).build();
         } catch (NotImplemented e) {
-            return Response.ok(NOT_IMPLEMENTED).status(NOT_IMPLEMENTED).build();
+            return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
         } catch (Exception e) {
-            return Response.ok(QUERY_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response search(String storeID, List<String> trapdoors) {
-        return Response.ok(storageEngine.search(storeID, trapdoors)).build();
+    public Response search(Cookie cookie, String storeID, List<String> trapdoors, List<String> authorizationHeaders) {
+        try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
+            return Response.ok(storageEngine.search(storeID, trapdoors)).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override
-    public Response delete(String storeID) {
-        storageEngine.delete(storeID);
-        return Response.ok(SUCCESS_DELETE_BATCH).build();
+    public Response delete(Cookie cookie, String storeID, List<String> authorizationHeaders) {
+        try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
+            storageEngine.delete(storeID);
+            return Response.ok(SUCCESS_DELETE_BATCH).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override
-    public Response delete(String storeID, List<String> trapdoors) {
-        storageEngine.delete(storeID, trapdoors);
-        return Response.ok(SUCCESSFUL_DELETION).build();
+    public Response delete(Cookie cookie, String storeID, List<String> trapdoors, List<String> authorizationHeaders) {
+        try {
+            String accessToken = extractAccessToken(authorizationHeaders);
+            if (accessToken == null)
+                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, storeID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                if (!Boolean.parseBoolean(response.getEntity().toString()))
+                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
+            }
+            storageEngine.delete(storeID, trapdoors);
+            return Response.ok(SUCCESSFUL_DELETION).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

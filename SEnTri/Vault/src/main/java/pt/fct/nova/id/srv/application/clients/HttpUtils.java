@@ -31,21 +31,6 @@ public class HttpUtils {
         }
     }
 
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body) throws IOException {
-        HttpPost request = new HttpPost(uri);
-        request.setEntity(body);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
@@ -53,24 +38,6 @@ public class HttpUtils {
             return client.execute(request, generateContext(cookie.getValue()));
         }
     }
-
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri, String accessToken) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
-        HttpPost request = new HttpPost(uri);
-        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        request.setEntity(body);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
 
     public static Response buildResponse(CloseableHttpResponse response) throws IOException {
         return Response.ok(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8))
@@ -92,5 +59,11 @@ public class HttpUtils {
         return cookie;
     }
 
-
+    public static String extractAccessToken(List<String> authorizationHeaders) {
+        for (String val : authorizationHeaders) {
+            if (val.contains("Bearer"))
+                return val;
+        }
+        return null;
+    }
 }

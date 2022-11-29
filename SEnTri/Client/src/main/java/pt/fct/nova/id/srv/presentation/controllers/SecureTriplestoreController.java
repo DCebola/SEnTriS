@@ -6,10 +6,6 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.VaultClient;
@@ -28,20 +24,21 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.OK;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.parseRDFLanguage;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.parseTriples;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INVALID_SYNTAX;
 
 @Path("triplestore/secure")
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
     public static final String SECRETS_VERSION_KEY = System.getenv("PROTOCOL_VERSION_KEY");
     public static final String SECRETS_NTH_KEY = System.getenv("PROTOCOL_KEY").concat("_%s");
     public static final String SECRETS_IV = System.getenv("PROTOCOL_KEY");
-    private static final String INVALID_SYNTAX = "Invalid syntax.";
     private static final String INTERNAL_ERROR = "Internal error.";
     private static final String SUCCESSFUL_UPLOAD = "Successful upload.";
     private static final String SUCCESSFUL_CREATE = "Successful create.";
@@ -218,18 +215,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
-    private List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException {
-        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
-        RDFParser.source(content).lang(lang).parse(tripleCollector);
-        return tripleCollector.getCollected();
-    }
 
-    private Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
-        Lang l = RDFLanguages.nameToLang(syntax);
-        if (l == null)
-            throw new UnknownRDFLanguageException();
-        return l;
-    }
 
     private Response fetchAndUpdateKeywords(Cookie cookie, String storeID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
         List<String> trapdoors = new ArrayList<>(keywordTrapdoorMap.size());

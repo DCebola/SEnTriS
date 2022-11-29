@@ -2,9 +2,6 @@ package pt.fct.nova.id.srv.application.storage.redis;
 
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import redis.clients.jedis.Jedis;
@@ -27,7 +24,7 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
     private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
     @Override
-    public void delete(String storeID) throws StorageEngineException {
+    public void delete(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             ScanParams params = new ScanParams();
             params.match(String.format(STORE_DATA_PATTERN, storeID));
@@ -43,24 +40,20 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
             collector.forEach(t::del);
             t.del(String.format(STORE_STATE, storeID));
             t.exec();
-        } catch (Exception e) {
-            throw new StorageEngineException();
         }
     }
 
     @Override
-    public void delete(String storeID, List<String> trapdoors) throws StorageEngineException {
+    public void delete(String storeID, List<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, storeID, trapdoor)));
             t.exec();
-        } catch (Exception e) {
-            throw new StorageEngineException();
         }
     }
 
     @Override
-    public void save(String storeID, Map<String, String> encryptedNodes) throws StorageEngineException {
+    public void save(String storeID, Map<String, String> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
@@ -69,8 +62,6 @@ public class EncryptedRStorageEngine implements EncryptedStorageEngine {
                 t.set(String.format(KEY_FORMAT, storeID, key), value);
             }
             t.exec();
-        } catch (Exception e) {
-            throw new StorageEngineException();
         }
     }
 

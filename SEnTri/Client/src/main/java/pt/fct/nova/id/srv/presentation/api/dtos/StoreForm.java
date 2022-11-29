@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
-import java.io.InputStream;
 
 public class StoreForm {
     @FormParam("issuer")

@@ -11,6 +11,11 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
@@ -18,11 +23,13 @@ import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
+import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -52,15 +59,6 @@ public class ClientUtils {
                 .create()
                 .addTextBody("storeID", storeID, ContentType.create(MediaType.TEXT_PLAIN))
                 .addTextBody("secrets", gson.toJson(secrets), ContentType.create(MediaType.APPLICATION_JSON))
-                .build();
-    }
-
-    public static HttpEntity uploadFormToHttpEntity(UploadForm form) {
-        return MultipartEntityBuilder
-                .create()
-                .addTextBody("syntax", form.getSyntax(), ContentType.create(MediaType.TEXT_PLAIN))
-                .addTextBody("namespaces", gson.toJson(form.getNamespaces()), ContentType.create(MediaType.APPLICATION_JSON))
-                .addBinaryBody("contents", form.getContents())
                 .build();
     }
 
@@ -153,6 +151,19 @@ public class ClientUtils {
     public static List<String> parseSearchResults(String results) {
         return gson.fromJson(results, new TypeToken<List<String>>() {
         }.getType());
+    }
+
+    public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException {
+        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
+        RDFParser.source(content).lang(lang).parse(tripleCollector);
+        return tripleCollector.getCollected();
+    }
+
+    public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
+        Lang l = RDFLanguages.nameToLang(syntax);
+        if (l == null)
+            throw new UnknownRDFLanguageException();
+        return l;
     }
 
 

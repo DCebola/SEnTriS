@@ -17,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class HttpUtils {
     public static final String COOKIE_PARAM = "session";
@@ -91,5 +92,11 @@ public class HttpUtils {
         return cookie;
     }
 
-
+    public static String extractAccessToken(List<String> authorizationHeaders) {
+        for (String val : authorizationHeaders) {
+            if (val.contains("Bearer"))
+                return val;
+        }
+        return null;
+    }
 }

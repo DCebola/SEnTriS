@@ -4,26 +4,15 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
-import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.List;
-import java.util.Map;
 
 public interface StorageEngine {
-
-    void saveNamespaces(String storeID, Map<String, String> namespaces);
 
     void deleteStore(String storeID) throws StorageEngineException;
 
     void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException, StorageEngineException;
-
-    List<Triple> getTriples(String storeID);
-
-    Map<String, String> getNamespaces(String storeID);
 
     IRITable findSubjects(String storeID, Node predicate, Node object, Var var);
 

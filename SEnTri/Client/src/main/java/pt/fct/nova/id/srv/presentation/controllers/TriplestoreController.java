@@ -5,28 +5,29 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
+import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
+import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.INTERNAL_ERROR;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController.SUCCESSFUL_DELETION;
 
 
 @Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
-    private static final String MALFORMED_FORM = "Malformed form.";
+    public static final String INVALID_SYNTAX = "Invalid syntax.";
     private static final String TRIPLESTORE_URI = System.getenv("TRIPLESTORE_URI");
-    private static final String CREATE_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("CREATE_TRIPLESTORE_PATH"));
     private static final String UPLOAD_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("UPLOAD_TRIPLESTORE_PATH"));
     private static final String QUERY_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("QUERY_TRIPLESTORE_PATH"));
     private static final String SUCCESSFUL_ACCESS_REQUEST = "Access request issued.";
@@ -50,9 +51,11 @@ public class TriplestoreController implements TriplestoreAPI {
                     return HttpUtils.buildResponse(response);
                 accessToken = response.getEntity().toString();
             }
-            return upload(cookie, storeID, form, accessToken, CREATE_TRIPLESTORE_PATH);
+            return upload(cookie, storeID, parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())), accessToken);
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        } catch (UnknownRDFLanguageException e) {
+            return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         }
     }
 
@@ -74,27 +77,27 @@ public class TriplestoreController implements TriplestoreAPI {
                     return HttpUtils.buildResponse(response);
                 accessToken = response.getEntity().toString();
             }
-            return upload(cookie, storeID, form, accessToken, UPLOAD_TRIPLESTORE_PATH);
+            return upload(cookie, storeID, parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())), accessToken);
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        } catch (UnknownRDFLanguageException e) {
+            return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         }
     }
 
-    private Response upload(Cookie cookie, String storeID, UploadForm form, String accessToken, String uploadTriplestorePath) throws IOException {
+    private Response upload(Cookie cookie, String storeID, List<Triple> triples, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.acquireStoreLock(cookie, storeID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HttpUtils.buildResponse(response);
         }
-        if (form.getSyntax() != null && form.getContents() != null) {
-            try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
-                    String.format(uploadTriplestorePath, storeID),
-                    ClientUtils.uploadFormToHttpEntity(form),
-                    accessToken)) {
-                IAMClient.releaseStoreLock(cookie, storeID, accessToken);
-                return HttpUtils.buildResponse(response);
-            }
+
+        try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
+                String.format(TriplestoreController.UPLOAD_TRIPLESTORE_PATH, storeID),
+                ClientUtils.objectToHttpEntity(triples),
+                accessToken)) {
+            IAMClient.releaseStoreLock(cookie, storeID, accessToken);
+            return HttpUtils.buildResponse(response);
         }
-        return Response.ok(MALFORMED_FORM).status(BAD_REQUEST).build();
     }
 
     @Override

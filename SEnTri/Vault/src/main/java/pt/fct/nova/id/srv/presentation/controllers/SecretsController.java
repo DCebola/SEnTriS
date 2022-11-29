@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.application.clients.HttpUtils.extractAccessToken;
 
 @Path("secrets")
 public class SecretsController implements SecretsAPI {
@@ -26,7 +27,7 @@ public class SecretsController implements SecretsAPI {
     private static final String SUCCESSFUL_SECRETS_DELETION = "Successful secrets deletion.";
     private static final String UNKNOWN_STORE = "Store not found.";
     private static final String OPERATION_TIMEOUT = "Operation timeout.";
-    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
+    private static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
 
     @Override
     public Response createSecrets(Cookie cookie, SecretsForm form, List<String> authorizationHeaders) {
@@ -103,11 +104,4 @@ public class SecretsController implements SecretsAPI {
         }
     }
 
-    private String extractAccessToken(List<String> authorizationHeaders) {
-        for (String val : authorizationHeaders) {
-            if (val.contains("Bearer"))
-                return val;
-        }
-        return null;
-    }
 }

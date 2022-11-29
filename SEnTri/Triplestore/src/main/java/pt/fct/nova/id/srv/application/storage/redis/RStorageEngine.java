@@ -7,7 +7,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.exceptions.StorageEngineException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -26,7 +25,6 @@ public class RStorageEngine implements StorageEngine {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
     private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-    private final static String NAMESPACES = "%s".concat(BASIC_SEPARATOR).concat("NS");
 
     private final static String S_IRIS = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("IRIS");
     private final static String P_IRIS = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat("IRIS");
@@ -55,24 +53,7 @@ public class RStorageEngine implements StorageEngine {
     private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
     @Override
-    public void saveNamespaces(String storeID, Map<String, String> namespaces) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Transaction t = jedis.multi();
-            if (namespaces != null)
-                namespaces.forEach((k, v) -> putNamespace(t, storeID, k, v));
-            t.exec();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void putNamespace(Transaction t, String storeID, String namespaceKey, String namespaceValue) {
-        t.hset(String.format(NAMESPACES, storeID), namespaceKey, namespaceValue);
-    }
-
-
-    @Override
-    public void deleteStore(String storeID) throws StorageEngineException {
+    public void deleteStore(String storeID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             ScanParams params = new ScanParams();
             params.match(String.format(STORE_DATA_PATTERN, storeID));
@@ -87,13 +68,11 @@ public class RStorageEngine implements StorageEngine {
             Transaction t = jedis.multi();
             collector.forEach(t::del);
             t.exec();
-        } catch (Exception e) {
-            throw new StorageEngineException();
         }
     }
 
     @Override
-    public void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException, StorageEngineException {
+    public void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             List<Response<String>> s_idxs = new ArrayList<>(triples.size());
             List<Response<String>> p_idxs = new ArrayList<>(triples.size());
@@ -155,8 +134,6 @@ public class RStorageEngine implements StorageEngine {
             t.exec();
         } catch (InvalidNodeException e) {
             throw e;
-        } catch (Exception e) {
-            throw new StorageEngineException();
         }
     }
 
@@ -212,59 +189,6 @@ public class RStorageEngine implements StorageEngine {
 
     private String generateComplementIndex(String idx1, String idx2) {
         return idx1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx2);
-    }
-
-    @Override
-    public List<Triple> getTriples(String storeID) {
-        List<Triple> triples = new LinkedList<>();
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Set<String> s_idxs = jedis.smembers(String.format(ALL_S, storeID));
-            List<Response<Set<String>>> responses = new ArrayList<>(s_idxs.size());
-
-            Pipeline p = jedis.pipelined();
-
-            for (String s_idx : s_idxs)
-                responses.add(p.smembers(String.format(SINGLE_S, storeID, s_idx)));
-
-            p.sync();
-            int i = 0;
-            for (String s_idx : s_idxs) {
-                responses.get(i).get().forEach(
-                        po_idx -> {
-                            String[] po_split = po_idx.split(COMPOUND_INDEX_SEPARATOR);
-                            String p_idx = po_split[0];
-                            String o_idx = po_split[1];
-                            Response<String> resp_s_iri = p.hget(String.format(REV_IRIS, storeID), s_idx);
-                            Response<String> resp_p_iri = p.hget(String.format(REV_IRIS, storeID), p_idx);
-                            Response<String> resp_o_iri = p.hget(String.format(REV_IRIS, storeID), o_idx);
-                            p.sync();
-
-                            String s_iri = resp_s_iri.get();
-                            String p_iri = resp_p_iri.get();
-                            String o_iri = resp_o_iri.get();
-
-                            triples.add(new Triple(
-                                    generateNode(s_iri),
-                                    generateNode(p_iri),
-                                    generateNode(o_iri)));
-                        }
-                );
-                i++;
-            }
-
-            return triples;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    @Override
-    public Map<String, String> getNamespaces(String storeID) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.hgetAll(String.format(NAMESPACES, storeID));
-        } catch (Exception e) {
-            return new HashMap<>();
-        }
     }
 
     @Override
@@ -356,9 +280,6 @@ public class RStorageEngine implements StorageEngine {
                         res.add(p_idx, var3, resp_list.get(2).get());
                     }
             );
-
-            return res;
-        } catch (Exception e) {
             return res;
         }
     }
@@ -409,8 +330,7 @@ public class RStorageEngine implements StorageEngine {
                     }
             );
             return res;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InvalidNodeException e) {
             return res;
         }
     }
