@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-    triplestore-db:
+    iam-provider-db:
       image: redis:latest
-      container_name: sentri-triplestore-db
+      container_name: sentri-iam-provider-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
         - ./db_data:/data
@@ -15,46 +15,38 @@ services:
       expose:
         - "6379"
       networks:
-        - sentri-triplestore-backend
+        - sentri-iam-provider-backend
       environment:
         REDIS_TLS_ENABLED: "yes"
 
-    triplestore-api:
+    iam-provider-api:
       depends_on:
-        - triplestore-db
-      image: ${DOCKER_REGISTRY}/sentri-triplestore-api
-      container_name: sentri-triplestore-api
+        - iam-provider-db
+      image: ${DOCKER_REGISTRY}/sentri-iam-provider-api
+      container_name: sentri-iam-provider-api
       command: >
         sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
       volumes:
-        - ../SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
-        - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
-        - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
+        - ../SSL/iam-provider-truststore.ks:/usr/local/tomcat/ssl/iam-provider-truststore.ks
+        - ../SSL/iam-provider-cert.pem:/usr/local/tomcat/ssl/iam-provider-cert.pem
+        - ../SSL/iam-provider-key.pem:/usr/local/tomcat/ssl/iam-provider-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
         - "8080:8443"
       networks:
-        - sentri-triplestore-backend
-        - sentri-triplestore-frontend
+        - sentri-iam-provider-backend
         - sentri-iam-provider-frontend
-        - sentri-vault-frontend
       env_file:
         - ./system-properties.env
-        - ../Secrets/triplestore-secrets.env
+        - ../Secrets/iam-provider-secrets.env
 
 volumes:
     db_data:
 
 networks:
-  sentri-triplestore-backend:
-    name: sentri-triplestore-backend
-    driver: bridge
-  sentri-triplestore-frontend:
-    name: sentri-triplestore-frontend
+  sentri-iam-provider-backend:
+    name: sentri-iam-provider-backend
     driver: bridge
   sentri-iam-provider-frontend:
     name: sentri-iam-provider-frontend
-    external: true
-  sentri-vault-frontend:
-    name: sentri-vault-frontend
-    external: true
+    driver: bridge

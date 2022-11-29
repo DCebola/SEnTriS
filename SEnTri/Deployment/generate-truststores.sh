@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -ne 0  ]; then
-    echo "Usage: generate-x509-certificate"
+    echo "Usage: generate-truststores"
     exit 1
 fi
 
@@ -27,18 +27,36 @@ generate_cert() {
             -out $certfile
 }
 
-openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola" 
-wait
-generate_cert triplestore sentri-triplestore-api
-wait
-generate_cert proxy sentri-proxy
-wait
-generate_cert data-owner sentri-data-owner
-wait
-generate_cert redis sentri-triplestore-db
+openssl req -x509 -newkey rsa:4096 -keyout ./SSL/ca-key.pem -out ./SSL/ca-cert.pem -days 365 -subj "/C=PT/ST=Setubal/L=Almada/O=NOVA.ID.FCT/OU=DI/CN=dcebola"
 wait
 
-[ -f ./SSL/redis.dh ] || openssl dhparam -out ./SSL/redis.dh 2048
+generate_cert iam-provider sentri-iam-provider-api
+wait
+generate_cert iam-provider-redis sentri-iam-provider-db
+wait
+
+generate_cert vault sentri-vault-api 
+wait
+generate_cert vault-redis sentri-vault-db
+wait
+
+generate_cert proxy sentri-proxy
+wait
+generate_cert proxy-redis sentri-proxy-db
+wait
+
+generate_cert triplestore sentri-triplestore-api
+wait
+generate_cert triplestore-redis sentri-triplestore-db
+wait
+
+generate_cert data-owner sentri-client-api
+wait
+
+[ -f ./SSL/iam-provider-redis.dh ] || openssl dhparam -out ./SSL/iam-provider-redis.dh 2048
+[ -f ./SSL/vault-redis.dh ] || openssl dhparam -out ./SSL/vault-redis.dh 2048
+[ -f ./SSL/proxy-redis.dh ] || openssl dhparam -out ./SSL/proxy-redis.dh 2048
+[ -f ./SSL/triplestore-redis.dh ] || openssl dhparam -out ./SSL/triplestore-redis.dh 2048
 
 keytool -import -file ./SSL/redis-cert.pem -alias redis -keystore ./SSL/triplestore-truststore.ks
 wait

@@ -8,15 +8,22 @@ fi
 echo "Resetting system..."
 docker rm $(docker stop $(docker ps -q -f "name=sentri")) &> /dev/null
 wait
-#docker network rm $(docker network ls -q -f 'name=sentri')
-#wait
+docker network rm $(docker network ls -q -f 'name=sentri')
+wait
 export var DOCKER_REGISTRY=$1
+cd ../IAMProvider 
+docker-compose up --force-recreate --remove-orphans --detach
+wait
+cd ../Vault 
+docker-compose up --force-recreate --remove-orphans --detach
+wait
+cd ../Proxy 
+docker-compose up --force-recreate --remove-orphans --detach
 wait
 cd ./Triplestore 
 docker-compose up --force-recreate --remove-orphans --detach
-cd ../Proxy 
-docker-compose up --force-recreate --remove-orphans --detach
-cd ../DataOwner 
+wait
+cd ../Client 
 docker-compose up --force-recreate --remove-orphans --detach
 wait
 unset DOCKER_REGISTRY

@@ -28,7 +28,7 @@ networks:
     driver: bridge
   sentri-vault-frontend:
     name: sentri-vault-frontend
-    driver: true
+    external: true
   sentri-iam-provider-frontend:
     name: sentri-iam-provider-frontend
     external: true
