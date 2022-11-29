@@ -17,7 +17,7 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 public interface EncryptedTriplestoreAPI {
 
     @POST
-    @Path("upload/{storeID}")
+    @Path("{storeID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -35,7 +35,7 @@ public interface EncryptedTriplestoreAPI {
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/search/{storeID}")
+    @Path("{storeID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     Response search(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -44,14 +44,14 @@ public interface EncryptedTriplestoreAPI {
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/delete/{storeID}")
+    @Path("/{storeID}")
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
                     @PathParam("storeID") String storeID,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/delete/{storeID}")
+    @Path("/{storeID}/delete")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
