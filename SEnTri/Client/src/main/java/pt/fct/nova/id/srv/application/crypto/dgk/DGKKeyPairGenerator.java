@@ -5,10 +5,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGeneratorSpi;
 import java.security.SecureRandom;
 
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.CipherConstants;
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.HomomorphicException;
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.NTL;
-
 public final class DGKKeyPairGenerator extends KeyPairGeneratorSpi implements CipherConstants {
     // Default parameters
     private int l = 16;

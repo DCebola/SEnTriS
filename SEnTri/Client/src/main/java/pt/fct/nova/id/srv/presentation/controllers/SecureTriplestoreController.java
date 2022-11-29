@@ -6,10 +6,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.clients.HttpUtils;
-import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.clients.VaultClient;
-import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
+import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
@@ -29,16 +26,15 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static jakarta.ws.rs.core.Response.Status.OK;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.parseRDFLanguage;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.parseTriples;
+import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INVALID_SYNTAX;
 
 @Path("triplestore/secure")
 public class SecureTriplestoreController implements SecureTriplestoreAPI {
-    public static final String SECRETS_VERSION_KEY = System.getenv("PROTOCOL_VERSION_KEY");
-    public static final String SECRETS_NTH_KEY = System.getenv("PROTOCOL_KEY").concat("_%s");
-    public static final String SECRETS_IV = System.getenv("PROTOCOL_KEY");
+    public static final String SECRETS_VERSION = System.getenv("SECRETS_PROTOCOL_VERSION");
+    public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
+    public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
     private static final String INTERNAL_ERROR = "Internal error.";
     private static final String SUCCESSFUL_UPLOAD = "Successful upload.";
     private static final String SUCCESSFUL_CREATE = "Successful create.";
@@ -88,7 +84,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
 
-                    try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
+                    try (CloseableHttpResponse response = SecureTriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                             IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
@@ -125,7 +121,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     return HttpUtils.buildResponse(response);
             }
 
-            try (CloseableHttpResponse response = TriplestoreClient.delete(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = SecureTriplestoreClient.deleteAll(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                     IAMClient.releaseStoreLock(cookie, username, storeID);
                     return HttpUtils.buildResponse(response);
@@ -144,7 +140,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                 }
             }
             return Response.ok(SUCCESSFUL_DELETION).build();
-        }  catch (IOException e) {
+        } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -174,7 +170,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     return HttpUtils.buildResponse(response);
             }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
-            switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION_KEY))) {
+            switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
                     Protocol1 p = ClientUtils.initProtocol1(storeID, secrets);
                     Collections.shuffle(triples);
@@ -186,7 +182,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                     }
                     Collections.shuffle(triples);
                     p.exec(triples);
-                    try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
+                    try (CloseableHttpResponse response = SecureTriplestoreClient.upload(cookie, storeID, p.getEncryptedT(), accessToken)) {
                         if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                             IAMClient.releaseStoreLock(cookie, storeID, accessToken);
                             return HttpUtils.buildResponse(response);
@@ -202,7 +198,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         } catch (MalformedSecretsException e) {
             return Response.ok(MALFORMED_SECRETS, storeID).status(Response.Status.BAD_REQUEST).build();
         } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX, form.getSyntax())).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
@@ -211,10 +207,25 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     }
 
     @Override
-    public Response answerSPARQLQuery(Cookie cookie, String storeID, SecureQueryForm form) {
-        return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
+    public Response answerSPARQLQuery(Cookie cookie, SecureQueryForm form) {
+        try {
+            String accessToken;
+            String storeID = form.getStoreID();
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, form.getIssuer(), storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+            /*
+            try (CloseableHttpResponse response = SecureTriplestoreClient.query(cookie, storeID, queryEngine.getQueryPlan(form.getQuery()), accessToken)) {
+                return HttpUtils.buildResponse(response);
+            }
+            */
+            return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
+        } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
     }
-
 
 
     private Response fetchAndUpdateKeywords(Cookie cookie, String storeID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
@@ -228,7 +239,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
         }
 
         List<String> keywordsTotals;
-        try (CloseableHttpResponse response = TriplestoreClient.search(cookie, storeID, trapdoors, accessToken)) {
+        try (CloseableHttpResponse response = SecureTriplestoreClient.search(cookie, storeID, trapdoors, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HttpUtils.buildResponse(response);
             keywordsTotals = ClientUtils.parseSearchResults(EntityUtils.toString(response.getEntity()));

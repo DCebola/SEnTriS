@@ -4,7 +4,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.entity.StringEntity;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
@@ -13,6 +12,7 @@ import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
@@ -28,9 +28,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreContr
 @Path("triplestore")
 public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
-    private static final String TRIPLESTORE_URI = System.getenv("TRIPLESTORE_URI");
-    private static final String UPLOAD_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("UPLOAD_TRIPLESTORE_PATH"));
-    private static final String QUERY_TRIPLESTORE_PATH = TRIPLESTORE_URI.concat(System.getenv("QUERY_TRIPLESTORE_PATH"));
     private static final String SUCCESSFUL_ACCESS_REQUEST = "Access request issued.";
     private static final String SUCCESSFUL_ACCESS_GRANT = "Access granted.";
     private static final String SUCCESSFUL_ACCESS_REVOCATION = "Access revoked.";
@@ -94,10 +91,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 return HttpUtils.buildResponse(response);
         }
 
-        try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
-                String.format(TriplestoreController.UPLOAD_TRIPLESTORE_PATH, storeID),
-                ClientUtils.objectToHttpEntity(triples),
-                accessToken)) {
+        try (CloseableHttpResponse response = TriplestoreClient.upload(cookie, storeID, triples, accessToken)) {
             IAMClient.releaseStoreLock(cookie, storeID, accessToken);
             return HttpUtils.buildResponse(response);
         }
@@ -118,7 +112,7 @@ public class TriplestoreController implements TriplestoreAPI {
                     return HttpUtils.buildResponse(response);
             }
 
-            try (CloseableHttpResponse response = TriplestoreClient.delete(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = TriplestoreClient.deleteAll(cookie, storeID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                     IAMClient.releaseStoreLock(cookie, username, storeID);
                     return HttpUtils.buildResponse(response);
@@ -137,12 +131,18 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response answerSPARQLQuery(Cookie cookie, String storeID, String query) {
-        try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
-                String.format(QUERY_TRIPLESTORE_PATH, storeID),
-                ClientUtils.objectToHttpEntity(queryEngine.getQueryPlan(query))
-        )) {
-            return HttpUtils.buildResponse(response);
+    public Response answerSPARQLQuery(Cookie cookie, QueryForm form) {
+        try {
+            String accessToken;
+            String storeID = form.getStoreID();
+            try (CloseableHttpResponse response = IAMClient.getAccessToken(cookie, form.getIssuer(), storeID)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HttpUtils.buildResponse(response);
+                accessToken = response.getEntity().toString();
+            }
+            try (CloseableHttpResponse response = TriplestoreClient.query(cookie, storeID, queryEngine.getQueryPlan(form.getQuery()), accessToken)) {
+                return HttpUtils.buildResponse(response);
+            }
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }

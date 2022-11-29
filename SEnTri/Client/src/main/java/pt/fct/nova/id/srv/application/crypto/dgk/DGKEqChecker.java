@@ -1,8 +1,4 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
-
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.HomomorphicException;
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.NTL;
-
 import java.io.*;
 import java.math.BigInteger;
 

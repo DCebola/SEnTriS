@@ -25,8 +25,8 @@ POST   /Client/api/triplestores/secure                       #Create encrypted t
 POST   /Client/api/triplestores/{storeID}                    #Upload data to triplestore.                      (Any Access)
 POST   /Client/api/triplestores/secure/{storeID}             #Upload data to encrypted triplestore.            (Any Access)
 
-POST   /Client/api/triplestore/query/{storeID}               #Execute SPARQL query.                            (Any Access)
-POST   /Client/api/triplestores/secure/query/{storeID}       #Execute SPARQL query over encrypted triplestore. (Any Access)
+POST   /Client/api/triplestore/query                         #Execute SPARQL query.                            (Any Access)
+POST   /Client/api/triplestores/secure/query/                #Execute SPARQL query over encrypted triplestore. (Any Access)
 
 DELETE /Client/api/triplestores/secure/{storeID}/{username}  #Delete encrypted triplestore.                    (Store Owner)
 DELETE /Client/api/triplestores/{storeID}/{username}         #Delete triplestore.                              (Store Owner)
@@ -74,7 +74,9 @@ GET    Triplestore/api/ctrl/version             #Get service version            
 
 POST   Triplestore/api/{storeID}                #Upload data to triplestore.                      (Write Access)
 DELETE Triplestore/api/{storeID}                #Delete triplestore.                              (Store Owner)
+POST   Triplestore/api/{storeID}/delete         #Delete data from triplestore.                    (Write Access)
 POST   Triplestore/api/query/{storeID}          #Execute SPARQL query over triplestore.           (Any Access)
+
 
 POST   Triplestore/api/secure/{storeID}         #Upload data to encrypted triplestore.            (Write Access)
 POST   Triplestore/api/secure/{storeID}/delete  #Delete data from encrypted triplestore.          (Write Access)

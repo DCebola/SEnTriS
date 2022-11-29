@@ -3,13 +3,9 @@ package pt.fct.nova.id.srv.application.query.plans;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.*;
 
-public class SimpleQueryExecutionPlan implements QueryExecutionPlan, Serializable {
-    @Serial
-    private static final long serialVersionUID = 6345655033367727690L;
+public class SimpleQueryExecutionPlan implements QueryExecutionPlan {
     private final Map<String, Job> jobs;
     private final Deque<String> executionOrder;
     private final List<Var> vars;

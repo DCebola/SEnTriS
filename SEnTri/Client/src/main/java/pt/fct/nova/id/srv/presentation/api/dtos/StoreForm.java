@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.presentation.api.dtos;
 
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;

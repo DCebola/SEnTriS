@@ -12,63 +12,62 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 public class IAMClient {
-    private static final String IAM_PROVIDER_URI = System.getenv("IAM_PROVIDER_URI");
-    private static final String ACQUIRE_STORE_LOCK_PATH = IAM_PROVIDER_URI.concat(System.getenv("ACQUIRE_LOCK_PATH"));
-    private static final String RELEASE_STORE_LOCK_PATH = IAM_PROVIDER_URI.concat(System.getenv("RELEASE_LOCK_PATH"));
-    private static final String CREATE_STORE_PATH = IAM_PROVIDER_URI.concat(System.getenv("CREATE_STORE_PATH"));
-    private static final String DELETE_STORE_PATH = IAM_PROVIDER_URI.concat(System.getenv("DELETE_STORE_PATH"));
-    private static final String GET_ACCESS_TOKEN_PATH = IAM_PROVIDER_URI.concat(System.getenv("CREATE_ACCESS_TOKEN_PATH"));
-    private static final String AUTH_PATH = IAM_PROVIDER_URI.concat(System.getenv("AUTH_PATH"));
-    private static final String REGISTER_USER_PATH = IAM_PROVIDER_URI.concat(System.getenv("REGISTER_USER_PATH"));
-    private static final String DELETE_USER_PATH = IAM_PROVIDER_URI.concat(System.getenv("DELETE_USER_PATH"));
-    private static final String ISSUE_ROLE_REQUEST_PATH = IAM_PROVIDER_URI.concat(System.getenv("ISSUE_ROLE_REQUEST_PATH"));
-    private static final String LIST_STORES_PATH = IAM_PROVIDER_URI.concat(System.getenv("LIST_STORES_PATH"));
-    private static final String REQUEST_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("GRANT_ACCESS_PATH"));
-    private static final String GRANT_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("GRANT_ACCESS_PATH"));
-    private static final String REVOKE_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("REVOKE_ACCESS_PATH"));
+    private static final String AUTH_URI = System.getenv("IAM_PROVIDER_AUTH_URI");
+    private static final String REGISTER_USER_URI = System.getenv("IAM_PROVIDER_REGISTER_USER_URI");
+    private static final String DELETE_USER_URI = System.getenv("IAM_PROVIDER_DELETE_USER_URI");
+    private static final String ISSUE_ROLE_REQUEST_URI = System.getenv("IAM_PROVIDER_ISSUE_ROLE_REQUEST_URI");
+    private static final String CREATE_STORE_URI = System.getenv("IAM_PROVIDER_CREATE_STORE_URI");
+    private static final String LIST_STORES_URI = System.getenv("IAM_PROVIDER_LIST_STORES_URI");
+    private static final String DELETE_STORE_URI = System.getenv("IAM_PROVIDER_DELETE_STORE_URI");
+    private static final String GRANT_ACCESS_URI = System.getenv("IAM_PROVIDER_GRANT_ACCESS_URI");
+    private static final String REVOKE_ACCESS_URI = System.getenv("IAM_PROVIDER_REVOKE_ACCESS_URI");
+    private static final String REQUEST_ACCESS_URI = System.getenv("IAM_PROVIDER_REQUEST_ACCESS_URI");
+    private static final String GET_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
+    private static final String ACQUIRE_STORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_LOCK_URI");
+    private static final String RELEASE_STORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_LOCK_URI");
 
 
     public static CloseableHttpResponse acquireStoreLock(Cookie cookie, String storeID, String accessToken) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(ACQUIRE_STORE_LOCK_PATH, storeID), accessToken);
+        return HttpUtils.sendGETRequest(cookie, String.format(ACQUIRE_STORE_LOCK_URI, storeID), accessToken);
     }
 
     public static void releaseStoreLock(Cookie cookie, String storeID, String accessToken) throws IOException {
-        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(RELEASE_STORE_LOCK_PATH, storeID), accessToken);
+        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(RELEASE_STORE_LOCK_URI, storeID), accessToken);
         r.close();
     }
 
     public static CloseableHttpResponse createStore(Cookie cookie, String storeID, String username) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_STORE_PATH, username),
+        return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_STORE_URI, username),
                 ClientUtils.generateStoreForm(username, storeID));
 
     }
 
     public static CloseableHttpResponse deleteStore(Cookie cookie, String storeID, String accessToken) throws IOException {
-        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_STORE_PATH, storeID), accessToken);
+        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_STORE_URI, storeID), accessToken);
     }
 
     public static CloseableHttpResponse getAccessToken(Cookie cookie, String username, String storeID) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(GET_ACCESS_TOKEN_PATH, storeID, username));
+        return HttpUtils.sendGETRequest(cookie, String.format(GET_ACCESS_TOKEN_URI, storeID, username));
     }
 
     public static CloseableHttpResponse authenticate(AuthForm credentialsForm) throws IOException {
-        return HttpUtils.sendPOSTRequest(AUTH_PATH, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
+        return HttpUtils.sendPOSTRequest(AUTH_URI, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
     }
 
     public static CloseableHttpResponse registerUser(AuthForm credentialsForm) throws IOException {
-        return HttpUtils.sendPOSTRequest(REGISTER_USER_PATH, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
+        return HttpUtils.sendPOSTRequest(REGISTER_USER_URI, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
     }
 
     public static CloseableHttpResponse deleteUser(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_USER_PATH, username));
+        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_USER_URI, username));
     }
 
     public static CloseableHttpResponse issueUpgradeRequest(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_PATH, username), ClientUtils.generatePrivilegeRoleRequest(username));
+        return HttpUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ClientUtils.generatePrivilegeRoleRequest(username));
     }
 
     public static CloseableHttpResponse listStores(Cookie cookie, String username, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
-        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_STORES_PATH, username))
+        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_STORES_URI, username))
                 .addParameter("write", String.valueOf(write))
                 .addParameter("read", String.valueOf(read))
                 .addParameter("owns", String.valueOf(owns))
@@ -76,17 +75,17 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse requestAccess(Cookie cookie, String storeID, AccessForm form) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(REQUEST_ACCESS_PATH, storeID), ClientUtils.accessFormToHttpEntity(form));
+        return HttpUtils.sendPOSTRequest(cookie, String.format(REQUEST_ACCESS_URI, storeID), ClientUtils.accessFormToHttpEntity(form));
     }
 
 
     public static CloseableHttpResponse grantAccess(Cookie cookie, String storeID, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_PATH, storeID))
+        return HttpUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_URI, storeID))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
     public static CloseableHttpResponse revokeAccess(Cookie cookie, String storeID, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_PATH, storeID))
+        return HttpUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_URI, storeID))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 

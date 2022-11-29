@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public interface EncryptionProtocol {
-    String KEYWORD_SEPARATOR = System.getenv("BASIC_SEPARATOR");
+    String KEYWORD_SEPARATOR = System.getenv("KEYWORD_SEPARATOR");
     String COMPOUND_KEYWORD = "%s".concat(KEYWORD_SEPARATOR).concat("%s");
     void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 }

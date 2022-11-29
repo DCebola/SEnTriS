@@ -8,46 +8,26 @@ import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 
 import java.io.InputStream;
 
-public class SecureCreateForm extends StoreForm {
+public class SecureCreateForm extends UploadForm {
 
     @FormParam("version")
     @DefaultValue("V1")
     @PartType(MediaType.TEXT_PLAIN)
     private final ProtocolVersion protocolVersion;
 
-    @FormParam("syntax")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final String syntax;
-
-    @FormParam("contents")
-    @PartType(MediaType.APPLICATION_OCTET_STREAM)
-    private final InputStream contents;
-
     public SecureCreateForm(String issuer, String storeID, String protocolVersion, String syntax, InputStream contents) {
-        super(issuer, storeID);
-        this.syntax = syntax;
-        this.contents = contents;
+        super(issuer, storeID, syntax, contents);
         this.protocolVersion = ProtocolVersion.fromString(protocolVersion);
     }
 
     public SecureCreateForm() {
         super();
-        this.syntax = null;
-        this.contents = null;
         this.protocolVersion = null;
 
     }
 
     public ProtocolVersion getProtocolVersion() {
         return protocolVersion;
-    }
-
-    public String getSyntax() {
-        return syntax;
-    }
-
-    public InputStream getContents() {
-        return contents;
     }
 
 }

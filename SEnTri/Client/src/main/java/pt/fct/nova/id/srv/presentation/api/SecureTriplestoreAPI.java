@@ -36,10 +36,9 @@ public interface SecureTriplestoreAPI {
                     @MultipartForm SecureUploadForm form);
 
     @POST
-    @Path("query/{storeID}")
+    @Path("query/")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("storeID") String storeID,
                                @MultipartForm SecureQueryForm form);
 }

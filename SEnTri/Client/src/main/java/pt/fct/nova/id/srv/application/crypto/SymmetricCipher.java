@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.crypto;
 
 import javax.crypto.*;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -23,8 +22,7 @@ public class SymmetricCipher {
     public static byte[] encrypt(byte[] input, SecretKey key, byte[] iv) throws NoSuchPaddingException,
             NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException {
-        checkAlgorithm(ALGORITHM + "/" + MODE + "/" + PADDING);
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        Cipher cipher = Cipher.getInstance(ALGORITHM + "/" + MODE + "/" + PADDING);
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
         byte[] cipherText = cipher.doFinal(input);
         return ByteBuffer.allocate(cipherText.length + IV_SIZE)
@@ -36,8 +34,7 @@ public class SymmetricCipher {
     public static byte[] decrypt(SecretKey key, byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
-        checkAlgorithm(ALGORITHM + "/" + MODE + "/" + PADDING);
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        Cipher cipher = Cipher.getInstance(ALGORITHM + "/" + MODE + "/" + PADDING);
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(Arrays.copyOfRange(cipherText, cipherText.length - IV_SIZE, cipherText.length)));
         return cipher.doFinal(Base64.getDecoder().decode(cipherText));
     }
@@ -48,13 +45,8 @@ public class SymmetricCipher {
         return encrypt(input, key, generateIV());
     }
 
-    private static void checkAlgorithm(String alg) throws NoSuchAlgorithmException {
-        if (!alg.equals("AES/GCM/NoPadding") && !alg.equals("ChaCha20-Poly1305/None/NoPadding"))
-            throw new NoSuchAlgorithmException();
-    }
-
     public static SecretKey generateKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM + "/" + MODE + "/" + PADDING);
         keyGenerator.init(KEY_SIZE);
         return keyGenerator.generateKey();
     }

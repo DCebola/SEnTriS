@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.crypto.dgk.misc;
+package pt.fct.nova.id.srv.application.crypto.dgk;
 
 import java.io.Serial;
 

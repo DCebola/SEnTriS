@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
@@ -48,12 +49,11 @@ public interface TriplestoreAPI {
                     @PathParam("storeID") String storeID);
 
     @POST
-    @Path("/query/{storeID}")
+    @Path("/query")
     @Consumes(SPARQL_QUERY)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("storeID") String storeID,
-                               String query);
+                               @Form QueryForm form);
 
     @POST
     @Path("/{storeID}/access/requests")

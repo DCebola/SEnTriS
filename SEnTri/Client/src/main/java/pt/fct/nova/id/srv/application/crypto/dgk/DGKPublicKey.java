@@ -5,10 +5,6 @@ import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.HashMap;
 
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.CipherConstants;
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.HomomorphicException;
-import pt.fct.nova.id.srv.application.crypto.dgk.misc.NTL;
-
 public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, CipherConstants {
 
     @Serial
