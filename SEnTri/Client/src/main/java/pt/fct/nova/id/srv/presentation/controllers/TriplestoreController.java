@@ -6,9 +6,11 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.StringEntity;
 import org.apache.jena.graph.Triple;
+import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
+import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
@@ -16,7 +18,6 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -33,6 +34,8 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final String SUCCESSFUL_ACCESS_REQUEST = "Access request issued.";
     private static final String SUCCESSFUL_ACCESS_GRANT = "Access granted.";
     private static final String SUCCESSFUL_ACCESS_REVOCATION = "Access revoked.";
+
+    private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new SimpleSPARQLPlanner());
 
 
     @Override
@@ -135,10 +138,9 @@ public class TriplestoreController implements TriplestoreAPI {
 
     @Override
     public Response answerSPARQLQuery(Cookie cookie, String storeID, String query) {
-        //TODO: Migrate query planner to client. Send query execution.
         try (CloseableHttpResponse response = HttpUtils.sendPOSTRequest(cookie,
                 String.format(QUERY_TRIPLESTORE_PATH, storeID),
-                new StringEntity(query, StandardCharsets.UTF_8)
+                ClientUtils.objectToHttpEntity(queryEngine.getQueryPlan(query))
         )) {
             return HttpUtils.buildResponse(response);
         } catch (IOException e) {

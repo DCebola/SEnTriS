@@ -8,16 +8,15 @@ import org.apache.jena.query.QueryType;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SPARQLPlanner;
-import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
 
 public class SPARQLQueryEngine implements QueryEngine {
 
     private final AlgebraGenerator algebraGenerator;
     private final SPARQLPlanner planner;
 
-    public SPARQLQueryEngine() {
+    public SPARQLQueryEngine(SPARQLPlanner planner) {
         this.algebraGenerator = new AlgebraGenerator(ARQ.getContext());
-        this.planner = new SimpleSPARQLPlanner();
+        this.planner = planner;
     }
 
     public QueryExecutionPlan getQueryPlan(String queryString) throws NotImplemented {

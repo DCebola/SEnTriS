@@ -8,10 +8,6 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
@@ -21,10 +17,8 @@ import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
-import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -39,7 +33,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String SUCCESSFUL_DELETION = "Store deleted.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private final StorageEngine storageEngine = new RStorageEngine();
+    private static final StorageEngine storageEngine = new RStorageEngine();
 
     @Override
     public Response upload(Cookie cookie, String storeID, List<Triple> triples, List<String> authorizationHeaders) {
@@ -124,18 +118,4 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    private Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
-        Lang l = RDFLanguages.nameToLang(syntax);
-        if (l == null)
-            throw new UnknownRDFLanguageException();
-        return l;
-    }
-
-    private List<Triple> parseTriples(InputStream content, Lang lang) {
-        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
-        RDFParser.source(content).lang(lang).parse(tripleCollector);
-        return tripleCollector.getCollected();
-    }
-
 }
