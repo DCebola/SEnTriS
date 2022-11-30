@@ -69,7 +69,7 @@ public class ClientUtils {
 
     public static HttpEntity accessFormToHttpEntity(AccessForm accessForm) {
         List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("user", accessForm.getUser()));
+        pairs.add(new BasicNameValuePair("user", accessForm.getIssuer()));
         pairs.add(new BasicNameValuePair("write", String.valueOf(accessForm.getWrite())));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }

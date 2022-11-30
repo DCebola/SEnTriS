@@ -25,10 +25,10 @@ public interface TriplestoreAPI {
                     @MultipartForm UploadForm form);
 
     @GET
-    @Path("/{username}")
+    @Path("/{issuer}")
     @Produces(TEXT_PLAIN)
     Response listStores(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                        @PathParam("username") String username,
+                        @PathParam("issuer") String issuer,
                         @DefaultValue("false") @QueryParam("write") boolean write,
                         @DefaultValue("false") @QueryParam("read") boolean read,
                         @DefaultValue("false") @QueryParam("owns") boolean owns);
@@ -55,27 +55,41 @@ public interface TriplestoreAPI {
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @Form QueryForm form);
 
-    @POST
-    @Path("/{storeID}/access/requests")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
-    Response requestAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                           @PathParam("storeID") String storeID,
-                           @Form AccessForm form);
-
-    @POST
-    @Path("/{storeID}/access/{username}")
+    @PUT
+    @Path("/{storeID}/{issuer}/access/{username}")
     @Produces(TEXT_PLAIN)
     Response grantAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                          @PathParam("storeID") String storeID,
+                         @PathParam("issuer") String issuer,
                          @PathParam("username") String username,
                          @DefaultValue("false") @QueryParam("write") boolean write);
 
+
     @DELETE
-    @Path("/{storeID}/access/{username}")
+    @Path("/{storeID}/{issuer}/access/{username}")
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                           @PathParam("storeID") String storeID,
+                          @PathParam("issuer") String issuer,
                           @PathParam("username") String username,
                           @DefaultValue("false") @QueryParam("write") boolean write);
+
+
+    @PUT
+    @Path("/{storeID}/access")
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_PLAIN)
+    Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                @PathParam("storeID") String storeID,
+                                @Form AccessForm form);
+
+    @PUT
+    @Path("/{storeID}/{issuer}/owner/{username}")
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_PLAIN)
+    Response updateTriplestoreOwner(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("storeID") String storeID,
+                                    @PathParam("issuer") String issuer,
+                                    @PathParam("username") String username);
+
 }

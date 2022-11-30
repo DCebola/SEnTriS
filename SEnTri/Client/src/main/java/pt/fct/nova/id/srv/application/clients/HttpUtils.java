@@ -7,6 +7,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -45,6 +46,13 @@ public class HttpUtils {
         }
     }
 
+    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request,  generateContext(cookie.getValue()));
+        }
+    }
+
     public static CloseableHttpResponse sendPOSTRequest(String uri, HttpEntity body) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setEntity(body);
@@ -77,6 +85,21 @@ public class HttpUtils {
         }
     }
 
+    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+        HttpPut request = new HttpPut(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
     public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
@@ -96,6 +119,14 @@ public class HttpUtils {
 
     public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+        HttpPut request = new HttpPut(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request, generateContext(cookie.getValue()));
@@ -126,4 +157,6 @@ public class HttpUtils {
         cookie.setSecure(true);
         return cookie;
     }
+
+
 }

@@ -3,7 +3,7 @@ package pt.fct.nova.id.srv.presentation;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
-import pt.fct.nova.id.srv.application.IAMStore;
+import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 import pt.fct.nova.id.srv.presentation.exceptions.*;
 
@@ -26,7 +26,7 @@ public class Utils {
     public static void authCheck(Cookie cookie, String username) throws InvalidCookieException, NoSessionFoundException, InvalidSessionException {
         if (cookie == null || cookie.getValue() == null)
             throw new InvalidCookieException();
-        String s = IAMStore.getSession(username);
+        String s = IAMStorage.getSession(username);
         if (s == null || s.length() == 0)
             throw new NoSessionFoundException();
         if (!s.equals(cookie.getValue()))
@@ -34,7 +34,7 @@ public class Utils {
     }
 
     public static void checkPassword(String username, String password) throws InvalidPasswordException, UnknownUserException, NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] hash = Base64.decodeBase64(IAMStore.getPassword(username));
+        byte[] hash = Base64.decodeBase64(IAMStorage.getPassword(username));
         if (hash == null)
             throw new UnknownUserException();
         if (!PasswordUtils.verify(password, hash))

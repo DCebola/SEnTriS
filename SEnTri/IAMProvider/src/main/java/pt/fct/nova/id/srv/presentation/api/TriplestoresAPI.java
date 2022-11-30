@@ -1,0 +1,145 @@
+package pt.fct.nova.id.srv.presentation.api;
+
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.annotations.Form;
+import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
+
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.MediaType.*;
+import static pt.fct.nova.id.srv.application.IAMStorage.COOKIE_PARAM;
+
+public interface TriplestoresAPI {
+    @POST
+    @Path("")
+    @Produces(TEXT_PLAIN)
+    Response createTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                           @Form TriplestoreForm form);
+
+    @GET
+    @Path("/{username}")
+    @Produces(TEXT_PLAIN)
+    Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                  @PathParam("username") String username,
+                                  @DefaultValue("false") @QueryParam("write") boolean write,
+                                  @DefaultValue("false") @QueryParam("read") boolean read,
+                                  @DefaultValue("false") @QueryParam("owns") boolean owns);
+
+    @GET
+    @Path("/{triplestoreID}/access/users")
+    @Produces(TEXT_PLAIN)
+    Response listUsersWithAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                 @PathParam("triplestoreID") String triplestoreID,
+                                 @DefaultValue("false") @QueryParam("write") boolean write,
+                                 @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @PUT
+    @Path("/{triplestoreID}/owner/{username}")
+    @Produces(TEXT_PLAIN)
+    Response changeTriplestoreOwner(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("triplestoreID") String triplestoreID,
+                                    @PathParam("username") String username,
+                                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @DELETE
+    @Path("/{triplestoreID}")
+    @Produces(TEXT_PLAIN)
+    Response deleteTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                           @PathParam("triplestoreID") String triplestoreID,
+                                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @PUT
+    @Path("/{triplestoreID}/access/{username}")
+    @Produces(TEXT_PLAIN)
+    Response grantAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                         @PathParam("triplestoreID") String triplestoreID,
+                         @PathParam("username") String username,
+                         @DefaultValue("false") @QueryParam("write") boolean write,
+                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @DELETE
+    @Path("/{triplestoreID}/access/{username}")
+    @Produces(TEXT_PLAIN)
+    Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                          @PathParam("triplestoreID") String triplestoreID,
+                          @PathParam("username") String username,
+                          @DefaultValue("false") @QueryParam("write") boolean write,
+                          @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/access/requests")
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_PLAIN)
+    Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                @PathParam("triplestoreID") String triplestoreID,
+                                @Form AccessForm accessForm);
+
+    @GET
+    @Path("/{triplestoreID}/access/requests")
+    @Produces(APPLICATION_JSON)
+    Response getPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                      @PathParam("triplestoreID") String triplestoreID,
+                                      @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @PUT
+    @Path("/{triplestoreID}/access/requests/{requestID}")
+    @Produces(TEXT_PLAIN)
+    Response processAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                  @PathParam("triplestoreID") String triplestoreID,
+                                  @PathParam("requestID") String requestID,
+                                  @DefaultValue("false") @QueryParam("accept") boolean decision,
+                                  @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/access/tokens/{username}")
+    @Produces(TEXT_PLAIN)
+    Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                               @PathParam("triplestoreID") String triplestoreID,
+                               @PathParam("username") String username);
+
+    @DELETE
+    @Path("/{triplestoreID}/tokens")
+    @Produces(TEXT_PLAIN)
+    Response deleteAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                               @PathParam("triplestoreID") String triplestoreID,
+                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @GET
+    @Path("/{triplestoreID}/access/tokens/read")
+    @Produces(TEXT_PLAIN)
+    Response checkReadAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                             @PathParam("triplestoreID") String triplestoreID,
+                             @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @GET
+    @Path("/{triplestoreID}/access/tokens/write")
+    @Produces(TEXT_PLAIN)
+    Response checkWriteAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                              @PathParam("triplestoreID") String triplestoreID,
+                              @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @GET
+    @Path("/{triplestoreID}/access/tokens/owner")
+    @Produces(TEXT_PLAIN)
+    Response checkOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                              @PathParam("triplestoreID") String triplestoreID,
+                              @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/locks")
+    @Produces(TEXT_PLAIN)
+    Response acquireTriplestoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("triplestoreID") String triplestoreID,
+                                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @DELETE
+    @Path("/{triplestoreID}/locks")
+    @Produces(TEXT_PLAIN)
+    Response releaseTriplestoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                    @PathParam("triplestoreID") String triplestoreID,
+                                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+}

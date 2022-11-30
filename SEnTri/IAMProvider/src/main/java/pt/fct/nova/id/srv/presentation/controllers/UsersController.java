@@ -5,7 +5,7 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
-import pt.fct.nova.id.srv.application.IAMStore;
+import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.RoleRequest;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
@@ -38,13 +38,14 @@ public class UsersController implements UsersAPI {
     private static final String SUCCESSFUL_ROLE_REQUEST_ISSUED = "Successful issued role request.";
     private static final String SUCCESSFUL_ROLE_GRANT = "Successful role grant.";
     private static final String REQUEST_DECISION_MALFORMED = "Request decision malformed.";
+    private static final String ALREADY_HAS_ROLE = "User already has role.";
 
     @Override
     public Response auth(AuthForm credentials) {
         try {
             String username = credentials.getUsername();
             Utils.checkPassword(username, credentials.getPassword());
-            NewCookie cookie = IAMStore.cacheSession(credentials.getUsername());
+            NewCookie cookie = IAMStorage.cacheSession(credentials.getUsername());
             return Response.ok(SUCCESSFUL_AUTH).cookie(cookie).build();
         } catch (UnknownUserException e) {
             return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
@@ -60,12 +61,12 @@ public class UsersController implements UsersAPI {
         try {
             String username = credentials.getUsername();
             String lockID = LocksClient.acquireUserLock(username);
-            if (IAMStore.userExists(username)) {
+            if (IAMStorage.userExists(username)) {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordUtils.hash(credentials.getPassword()));
-            IAMStore.saveUser(username, passwordHash, BASIC);
+            IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {
@@ -80,8 +81,8 @@ public class UsersController implements UsersAPI {
         try {
             Utils.authCheck(cookie, username);
             String lockID = LocksClient.acquireUserLock(username);
-            IAMStore.deleteUser(username);
-            if (IAMStore.checkIfOwnsAny(username)) {
+            IAMStorage.deleteUser(username);
+            if (IAMStorage.checkIfOwnsAny(username)) {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(CAN_NOT_DELETE_STORE_OWNER).build();
             }
@@ -102,21 +103,24 @@ public class UsersController implements UsersAPI {
         try {
             String issuerUsername = roleForm.getIssuer();
             Utils.authCheck(cookie, issuerUsername);
-            if (!IAMStore.userExists(username))
+            if (!IAMStorage.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-            Role issuerRole = IAMStore.getRole(issuerUsername);
+            Role issuerRole = IAMStorage.getRole(issuerUsername);
+            Role role = roleForm.getRole();
+            if (IAMStorage.getRole(username).equals(role))
+                return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
             if (issuerRole.equals(BASIC) || issuerRole.equals(PRIVILEGED)) {
                 if (username.equals(issuerUsername)) {
-                    IAMStore.saveRoleRequest(username, roleForm.getRole());
+                    IAMStorage.saveRoleRequest(username, role);
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            } else if (!issuerRole.equals(ADMIN) && roleForm.getRole().equals(ADMIN)) {
-                IAMStore.saveRoleRequest(username, roleForm.getRole());
+            } else if (!issuerRole.equals(ADMIN) && role.equals(ADMIN)) {
+                IAMStorage.saveRoleRequest(username, role);
                 return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
             }
             String lockID = LocksClient.acquireUserLock(username);
-            IAMStore.setRole(username, roleForm.getRole());
+            IAMStorage.setRole(username, role);
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
         } catch (SessionException e) {
@@ -132,10 +136,10 @@ public class UsersController implements UsersAPI {
     public Response getPendingRoleRequests(Cookie cookie, String username) {
         try {
             Utils.authCheck(cookie, username);
-            Role role = IAMStore.getRole(username);
+            Role role = IAMStorage.getRole(username);
             if (!role.equals(ADMIN))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            return Response.ok(IAMStore.getPendingRoleRequests()).build();
+            return Response.ok(IAMStorage.getPendingRoleRequests()).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         }
@@ -146,14 +150,14 @@ public class UsersController implements UsersAPI {
         try {
             String targetUser = requestDecisionForm.getTarget();
             Utils.authCheck(cookie, username);
-            Role issuerRole = IAMStore.getRole(username);
+            Role issuerRole = IAMStorage.getRole(username);
             if (!issuerRole.equals(ADMIN))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            if (!IAMStore.userExists(targetUser))
+            if (!IAMStorage.userExists(targetUser))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
             String lockID = LocksClient.acquireUserLock(targetUser);
-            RoleRequest req = IAMStore.getPendingRoleRequest(requestID);
+            RoleRequest req = IAMStorage.getPendingRoleRequest(requestID);
             if (req == null) {
                 LocksClient.releaseUserLock(targetUser, lockID);
                 return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
@@ -162,9 +166,15 @@ public class UsersController implements UsersAPI {
                 LocksClient.releaseUserLock(targetUser, lockID);
                 return Response.ok(REQUEST_DECISION_MALFORMED).status(BAD_REQUEST).build();
             }
-            if (requestDecisionForm.isAccept())
-                IAMStore.setRole(targetUser, req.role());
-            IAMStore.deleteRoleRequest(requestID);
+            if (requestDecisionForm.isAccept()) {
+                if (IAMStorage.getRole(targetUser).equals(req.role())) {
+                    IAMStorage.deleteRoleRequest(requestID);
+                    LocksClient.releaseUserLock(targetUser, lockID);
+                    return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
+                }
+                IAMStorage.setRole(targetUser, req.role());
+            }
+            IAMStorage.deleteRoleRequest(requestID);
             LocksClient.releaseUserLock(targetUser, lockID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
@@ -175,4 +185,6 @@ public class UsersController implements UsersAPI {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
 }

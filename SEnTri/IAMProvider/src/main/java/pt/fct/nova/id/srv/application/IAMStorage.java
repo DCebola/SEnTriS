@@ -17,20 +17,20 @@ import java.util.stream.Collectors;
 
 import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
 
-public class IAMStore {
+public class IAMStorage {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
     private static final String SESSION = "S".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_ROLE = "UR".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String USER_OWNED_STORES = "UOS".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORE_READ_ACCESS = "SRA".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORE_WRITE_ACCESS = "SWA".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORE_OWNER = "SO".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORES_PATTERN = "SO".concat(BASIC_SEPARATOR).concat("*");
+    private static final String USER_OWNED_TRIPLESTORES = "UOT".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String TRIPLESTORE_READ_ACCESS = "TRA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String TRIPLESTORE_WRITE_ACCESS = "TWA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String TRIPLESTORE_OWNER = "TO".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String TRIPLESTORES_PATTERN = "TO".concat(BASIC_SEPARATOR).concat("*");
     ;
-    private static final String STORE_PENDING_ACCESS_REQUESTS = "SPA".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String TRIPLESTORE_PENDING_ACCESS_REQUESTS = "TPA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ACCESS_REQUEST = "PA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ROLE_REQUESTS = "PRR";
     private static final String PENDING_ROLE_REQUEST = "PR".concat(BASIC_SEPARATOR).concat("%s");
@@ -38,7 +38,7 @@ public class IAMStore {
     private static final String ACCESS_TOKEN = "AT".concat(BASIC_SEPARATOR).concat("%s");
     private static final long ACCESS_TOKEN_LIFETIME = Integer.toUnsignedLong(Integer.parseInt(System.getenv("ACCESS_TOKEN_LIFETIME")));
     public static final String TOKEN_USER_FIELD = "USER";
-    public static final String TOKEN_STORE_FIELD = "STORE";
+    public static final String TOKEN_TRIPLESTORE_FIELD = "TRIPLESTORE";
     public static final String TOKEN_LOCK_FIELD = "LOCK";
     private static final int PENDING_REQUEST_USER_IDX = 0;
     private static final int PENDING_REQUEST_VALUE_IDX = 1;
@@ -93,7 +93,7 @@ public class IAMStore {
 
     public static boolean checkIfOwnsAny(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.exists(String.format(USER_OWNED_STORES, username));
+            return jedis.exists(String.format(USER_OWNED_TRIPLESTORES, username));
         }
     }
 
@@ -103,7 +103,7 @@ public class IAMStore {
             Transaction t = jedis.multi();
             t.del(String.format(USER_PASSWORD, username));
             t.del(String.format(USER_ROLE, username));
-            t.del(String.format(USER_OWNED_STORES, username));
+            t.del(String.format(USER_OWNED_TRIPLESTORES, username));
             t.del(String.format(SESSION, username));
             t.exec();
         }
@@ -178,147 +178,157 @@ public class IAMStore {
         }
     }
 
-    public static boolean checkIfOwns(String username, String storeID) {
+    public static boolean checkIfOwns(String username, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.sismember(String.format(USER_OWNED_STORES, username), storeID);
+            return jedis.sismember(String.format(USER_OWNED_TRIPLESTORES, username), triplestoreID);
         }
     }
 
-    public static String getOwner(String storeID) {
+    public static String getOwner(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.get(String.format(STORE_OWNER, storeID));
+            return jedis.get(String.format(TRIPLESTORE_OWNER, triplestoreID));
         }
     }
 
-    public static boolean checkIfUserHasReadAccess(String username, String storeID) {
+    public static boolean checkIfUserHasReadAccess(String username, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.sismember(String.format(STORE_READ_ACCESS, storeID), username);
+            return jedis.sismember(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), username);
         }
     }
 
-    public static boolean checkIfUserHasWriteAccess(String username, String storeID) {
+    public static boolean checkIfUserHasWriteAccess(String username, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.sismember(String.format(STORE_WRITE_ACCESS, storeID), username);
+            return jedis.sismember(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), username);
         }
     }
 
-    public static boolean storeAccessPolicyExists(String storeID) {
+    public static boolean storeAccessPolicyExists(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            Response<Boolean> r1 = p.exists(String.format(STORE_READ_ACCESS, storeID));
-            Response<Boolean> r2 = p.exists(String.format(STORE_WRITE_ACCESS, storeID));
+            Response<Boolean> r1 = p.exists(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
+            Response<Boolean> r2 = p.exists(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
             p.sync();
             return r1.get() || r2.get();
         }
     }
 
-    public static void saveStoreAccessPolicy(String storeID, String owner, Set<String> read, Set<String> write) {
+    public static void saveTriplestoreAccessPolicy(String triplestoreID, String owner, Set<String> read, Set<String> write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.sadd(String.format(USER_OWNED_STORES, owner), storeID);
-            t.set(String.format(STORE_OWNER, storeID), owner);
+            t.sadd(String.format(USER_OWNED_TRIPLESTORES, owner), triplestoreID);
+            t.set(String.format(TRIPLESTORE_OWNER, triplestoreID), owner);
             for (String username : read)
-                t.sadd(String.format(STORE_READ_ACCESS, storeID), username);
+                t.sadd(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), username);
             for (String username : write)
-                t.sadd(String.format(STORE_WRITE_ACCESS, storeID), username);
+                t.sadd(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), username);
             t.exec();
         }
     }
 
-    public static void updateStoreOwner(String storeID, String currentOwner, String newOwner) {
+    public static void updateTriplestoreOwner(String triplestoreID, String currentOwner, String newOwner) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.set(String.format(STORE_OWNER, storeID), newOwner);
-            t.srem(String.format(USER_OWNED_STORES, currentOwner), storeID);
-            t.sadd(String.format(USER_OWNED_STORES, newOwner), storeID);
+            t.set(String.format(TRIPLESTORE_OWNER, triplestoreID), newOwner);
+            t.srem(String.format(USER_OWNED_TRIPLESTORES, currentOwner), triplestoreID);
+            t.sadd(String.format(USER_OWNED_TRIPLESTORES, newOwner), triplestoreID);
             t.exec();
         }
     }
 
-    public static void deleteStoreAccessPolicy(String storeID) {
+    public static void deleteTriplestoreAccessPolicy(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<String> pendingRequests = jedis.lrange(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 0, -1);
+            List<String> pendingRequests = jedis.lrange(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), 0, -1);
             Transaction t = jedis.multi();
-            t.del(String.format(STORE_OWNER, storeID));
-            t.del(String.format(STORE_READ_ACCESS, storeID));
-            t.del(String.format(STORE_WRITE_ACCESS, storeID));
-            t.del(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID));
+            t.del(String.format(TRIPLESTORE_OWNER, triplestoreID));
+            t.del(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
+            t.del(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
+            t.del(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID));
             for (String requestID : pendingRequests)
                 t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
             t.exec();
         }
     }
 
-    public static Set<String> getStores(String username, boolean write, boolean read, boolean owns) {
+    public static Set<String> getTriplestores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Set<String> storeIDs = Utils.scan(jedis, STORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
+            Set<String> triplestoreIDs = Utils.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
             if (!write && !read && !owns)
-                return storeIDs;
+                return triplestoreIDs;
             Pipeline p = jedis.pipelined();
-            Set<String> filteredStoreIDs = new HashSet<>();
+            Set<String> filteredTriplestoreIDs = new HashSet<>();
             if (owns) {
-                List<Response<String>> owners = new ArrayList<>(storeIDs.size());
-                for (String storeID : storeIDs)
-                    owners.add(p.get(String.format(STORE_OWNER, storeID)));
+                List<Response<String>> owners = new ArrayList<>(triplestoreIDs.size());
+                for (String triplestoreID : triplestoreIDs)
+                    owners.add(p.get(String.format(TRIPLESTORE_OWNER, triplestoreID)));
                 p.sync();
                 int i = 0;
-                for (String storeID : storeIDs) {
+                for (String triplestoreID : triplestoreIDs) {
                     if (username.equals(owners.get(i).get()))
-                        filteredStoreIDs.add(storeID);
+                        filteredTriplestoreIDs.add(triplestoreID);
                     i++;
                 }
-                return filteredStoreIDs;
+                return filteredTriplestoreIDs;
             }
             String accessCheckKey;
             if (write)
-                accessCheckKey = STORE_WRITE_ACCESS;
+                accessCheckKey = TRIPLESTORE_WRITE_ACCESS;
             else
-                accessCheckKey = STORE_READ_ACCESS;
+                accessCheckKey = TRIPLESTORE_READ_ACCESS;
 
-            List<Response<Boolean>> accessCheck = new ArrayList<>(storeIDs.size());
-            for (String storeID : storeIDs)
-                accessCheck.add(p.sismember(String.format(accessCheckKey, storeID), username));
+            List<Response<Boolean>> accessCheck = new ArrayList<>(triplestoreIDs.size());
+            for (String triplestoreID : triplestoreIDs)
+                accessCheck.add(p.sismember(String.format(accessCheckKey, triplestoreID), username));
             p.sync();
             int i = 0;
-            for (String storeID : storeIDs) {
+            for (String triplestoreID : triplestoreIDs) {
                 if (accessCheck.get(i).get())
-                    filteredStoreIDs.add(storeID);
+                    filteredTriplestoreIDs.add(triplestoreID);
                 i++;
             }
-            return filteredStoreIDs;
+            return filteredTriplestoreIDs;
         }
-
+    }
+    public static Set<String> getUserWithReadAccess(String triplestoreID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.smembers(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
+        }
     }
 
-    public static void revokeAccess(String storeID, String username, boolean write) {
+    public static Set<String> getUserWithWriteAccess(String triplestoreID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.smembers(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
+        }
+    }
+
+    public static void revokeAccess(String triplestoreID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             if (!write) {
-                t.srem(String.format(STORE_READ_ACCESS, storeID), username);
-                t.srem(String.format(STORE_WRITE_ACCESS, storeID), username);
+                t.srem(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), username);
+                t.srem(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), username);
             } else
-                t.srem(String.format(STORE_WRITE_ACCESS, storeID), username);
+                t.srem(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), username);
             t.exec();
         }
     }
 
-    public static void grantAccess(String storeID, String username, boolean write) {
+    public static void grantAccess(String triplestoreID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             if (write) {
-                t.sadd(String.format(STORE_READ_ACCESS, username), storeID);
-                t.sadd(String.format(STORE_WRITE_ACCESS, username), storeID);
+                t.sadd(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), username);
+                t.sadd(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), username);
             } else
-                t.sadd(String.format(STORE_READ_ACCESS, username), storeID);
+                t.sadd(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), username);
             t.exec();
         }
     }
 
-    public static void saveAccessRequest(String storeID, String username, boolean write) {
+    public static void saveAccessRequest(String triplestoreID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String requestID = UUID.randomUUID().toString();
-            t.lpush(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), requestID);
+            t.lpush(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), requestID);
             t.lpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
             t.exec();
         }
@@ -339,10 +349,10 @@ public class IAMStore {
                 Boolean.parseBoolean(requestData.get(PENDING_REQUEST_VALUE_IDX)));
     }
 
-    public static List<AccessRequest> getPendingAccessRequests(String storeID) {
+    public static List<AccessRequest> getPendingAccessRequests(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            List<String> requestIDs = jedis.lrange(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 0, -1);
+            List<String> requestIDs = jedis.lrange(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), 0, -1);
             List<Response<List<String>>> storeRequestsResponses = new ArrayList<>(requestIDs.size());
             List<AccessRequest> pendingRequests = new ArrayList<>(requestIDs.size());
             for (String requestID : requestIDs)
@@ -358,10 +368,10 @@ public class IAMStore {
         }
     }
 
-    public static void deleteAccessRequest(String storeID, String requestID) {
+    public static void deleteAccessRequest(String triplestoreID, String requestID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            t.lrem(String.format(STORE_PENDING_ACCESS_REQUESTS, storeID), 1, requestID);
+            t.lrem(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), 1, requestID);
             t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
             t.exec();
         }
@@ -375,7 +385,7 @@ public class IAMStore {
             Transaction t = jedis.multi();
             t.del(key);
             t.hset(key, TOKEN_USER_FIELD, username);
-            t.hset(key, TOKEN_STORE_FIELD, store);
+            t.hset(key, TOKEN_TRIPLESTORE_FIELD, store);
             t.expire(key, ACCESS_TOKEN_LIFETIME);
             t.exec();
             return uuid;
@@ -404,9 +414,9 @@ public class IAMStore {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String lockID = values.get(TOKEN_LOCK_FIELD);
             if (lockID != null)
-                LocksClient.releaseStoreLock(
+                LocksClient.releaseTriplestoreLock(
                         values.get(TOKEN_USER_FIELD),
-                        values.get(TOKEN_STORE_FIELD),
+                        values.get(TOKEN_TRIPLESTORE_FIELD),
                         lockID);
             jedis.del(String.format(ACCESS_TOKEN, tokenID));
         }
@@ -427,6 +437,4 @@ public class IAMStore {
             return jedis.exists(STATUS);
         }
     }
-
-
 }

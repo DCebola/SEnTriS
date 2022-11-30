@@ -7,7 +7,7 @@ import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.*;
 
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.application.IAMStore.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.application.IAMStorage.COOKIE_PARAM;
 
 public interface UsersAPI {
 
@@ -43,7 +43,7 @@ public interface UsersAPI {
     Response getPendingRoleRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("username") String username);
 
-    @POST
+    @PUT
     @Path("/{username}/role/requests/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)

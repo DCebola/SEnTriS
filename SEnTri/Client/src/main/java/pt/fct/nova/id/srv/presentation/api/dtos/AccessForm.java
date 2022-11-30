@@ -5,19 +5,19 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
 public class AccessForm {
 
-    @FormParam("user")
-    private final String user;
+    @FormParam("issuer")
+    private final String issuer;
     @FormParam("write")
     @DefaultValue("false")
     private final boolean write;
 
-    public AccessForm(String user, boolean write) {
-        this.user = user;
+    public AccessForm(String issuer, boolean write) {
+        this.issuer = issuer;
         this.write = write;
     }
 
     public AccessForm() {
-        this.user = null;
+        this.issuer = null;
         this.write = false;
     }
 
@@ -25,7 +25,7 @@ public class AccessForm {
         return write;
     }
 
-    public String getUser() {
-        return user;
+    public String getIssuer() {
+        return issuer;
     }
 }

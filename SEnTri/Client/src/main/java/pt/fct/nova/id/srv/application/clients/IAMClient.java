@@ -22,13 +22,16 @@ public class IAMClient {
     private static final String GRANT_ACCESS_URI = System.getenv("IAM_PROVIDER_GRANT_ACCESS_URI");
     private static final String REVOKE_ACCESS_URI = System.getenv("IAM_PROVIDER_REVOKE_ACCESS_URI");
     private static final String REQUEST_ACCESS_URI = System.getenv("IAM_PROVIDER_REQUEST_ACCESS_URI");
-    private static final String GET_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
+    private static final String CREATE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
+    private static final String DELETE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_DELETE_ACCESS_TOKEN_URI");
     private static final String ACQUIRE_STORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_LOCK_URI");
     private static final String RELEASE_STORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_LOCK_URI");
+    private static final String UPDATE_TRIPLESTORE_OWNER_URI = System.getenv("IAM_PROVIDER_UPDATE_TRIPLESTORE_OWNER_URI");
+
 
 
     public static CloseableHttpResponse acquireStoreLock(Cookie cookie, String storeID, String accessToken) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(ACQUIRE_STORE_LOCK_URI, storeID), accessToken);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(ACQUIRE_STORE_LOCK_URI, storeID), accessToken);
     }
 
     public static void releaseStoreLock(Cookie cookie, String storeID, String accessToken) throws IOException {
@@ -46,8 +49,13 @@ public class IAMClient {
         return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_STORE_URI, storeID), accessToken);
     }
 
-    public static CloseableHttpResponse getAccessToken(Cookie cookie, String username, String storeID) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(GET_ACCESS_TOKEN_URI, storeID, username));
+    public static CloseableHttpResponse createAccessToken(Cookie cookie, String username, String storeID) throws IOException {
+        return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_ACCESS_TOKEN_URI, storeID, username));
+    }
+
+    public static void deleteAccessToken(Cookie cookie, String accessToken) throws IOException {
+        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ACCESS_TOKEN_URI, accessToken));
+        r.close();
     }
 
     public static CloseableHttpResponse authenticate(AuthForm credentialsForm) throws IOException {
@@ -66,8 +74,8 @@ public class IAMClient {
         return HttpUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ClientUtils.generatePrivilegeRoleRequest(username));
     }
 
-    public static CloseableHttpResponse listStores(Cookie cookie, String username, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
-        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_STORES_URI, username))
+    public static CloseableHttpResponse listStores(Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
+        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_STORES_URI, issuer))
                 .addParameter("write", String.valueOf(write))
                 .addParameter("read", String.valueOf(read))
                 .addParameter("owns", String.valueOf(owns))
@@ -79,15 +87,17 @@ public class IAMClient {
     }
 
 
-    public static CloseableHttpResponse grantAccess(Cookie cookie, String storeID, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_URI, storeID))
+    public static CloseableHttpResponse grantAccess(Cookie cookie, String storeID,  String username, boolean write, String accessToken) throws IOException, URISyntaxException {
+        return HttpUtils.sendPUTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_URI, storeID, username))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
-    public static CloseableHttpResponse revokeAccess(Cookie cookie, String storeID, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_URI, storeID))
+    public static CloseableHttpResponse revokeAccess(Cookie cookie, String storeID, String username, boolean write, String accessToken) throws IOException, URISyntaxException {
+        return HttpUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_URI, storeID, username))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
-
+    public static CloseableHttpResponse updateStoreOwner(Cookie cookie, String storeID, String issuer, String accessToken) throws IOException {
+        return HttpUtils.sendPUTRequest(cookie, String.format(UPDATE_TRIPLESTORE_OWNER_URI, storeID, issuer), accessToken);
+    }
 }
