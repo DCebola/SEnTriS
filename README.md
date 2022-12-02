@@ -49,17 +49,20 @@ POST   IAMProvider/api/triplestores                                             
 GET    IAMProvider/api/triplestores/{username}                                  #List triplestores.              (Basic)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}                             #Delete triplestore.             (Owner)
 PUT    IAMProvider/api/triplestores/{TriplestoreID}/owner/{username}            #Change triplestore owner.       (Owner)
+
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/users                #Get users with access.          (Owner)
 PUT    IAMProvider/api/triplestores/{TriplestoreID}/access/{username}           #Grant triplestore access        (Owner)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}/access/{username}           #Revoke triplestore access.      (Owner)
 POST   IAMProvider/api/triplestores/{TriplestoreID}/access/requests             #Issue triplestore access request. (Basic)
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/requests             #List pending access requests.   (Owner)
 PUT    IAMProvider/api/triplestores/{TriplestoreID}/access/requests/{requestID} #Process pending access request. (Owner)
+
 POST   IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/{username}    #Create access token for user.   (Basic)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}/access/tokens               #Delete access token.            (Token owner)
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/read          #Check if has read access        (Basic)
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/write         #Check if has write access       (Basic)
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/owner         #Check if has owner access       (Basic)
+
 POST   IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Lock access to triplestore.    (Write access)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Unlock access to triplestore.  (Write access)
 ```

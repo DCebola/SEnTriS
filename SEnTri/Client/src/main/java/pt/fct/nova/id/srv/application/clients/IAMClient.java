@@ -19,8 +19,8 @@ public class IAMClient {
     private static final String REGISTER_USER_URI = System.getenv("IAM_PROVIDER_REGISTER_USER_URI");
     private static final String DELETE_USER_URI = System.getenv("IAM_PROVIDER_DELETE_USER_URI");
     private static final String ISSUE_ROLE_REQUEST_URI = System.getenv("IAM_PROVIDER_ISSUE_ROLE_REQUEST_URI");
-    private static final String LIST_PENDING_ROLE_REQUESTS = System.getenv("LIST_PENDING_ROLE_REQUESTS");
-    private static final String PROCESS_ROLE_REQUEST = System.getenv("PROCESS_ROLE_REQUEST");
+    private static final String LIST_PENDING_ROLE_REQUESTS = System.getenv("IAM_PROVIDER_LIST_PENDING_ROLE_REQUESTS");
+    private static final String PROCESS_ROLE_REQUEST = System.getenv("IAM_PROVIDER_PROCESS_ROLE_REQUEST");
     private static final String CREATE_TRIPLESTORE_URI = System.getenv("IAM_PROVIDER_CREATE_TRIPLESTORE_URI");
     private static final String LIST_TRIPLESTORES_URI = System.getenv("IAM_PROVIDER_LIST_TRIPLESTORES_URI");
     private static final String DELETE_TRIPLESTORE_URI = System.getenv("IAM_PROVIDER_DELETE_TRIPLESTORE_URI");
@@ -29,12 +29,12 @@ public class IAMClient {
     private static final String REQUEST_ACCESS_URI = System.getenv("IAM_PROVIDER_REQUEST_ACCESS_URI");
     private static final String CREATE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
     private static final String DELETE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_DELETE_ACCESS_TOKEN_URI");
-    private static final String ACQUIRE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_LOCK_URI");
-    private static final String RELEASE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_LOCK_URI");
+    private static final String ACQUIRE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_TRIPLESTORE_LOCK_URI");
+    private static final String RELEASE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_TRIPLESTORE_LOCK_URI");
     private static final String UPDATE_TRIPLESTORE_OWNER_URI = System.getenv("IAM_PROVIDER_UPDATE_TRIPLESTORE_OWNER_URI");
-    private static final String LIST_USERS_WITH_ACCESS = System.getenv("LIST_USERS_WITH_ACCESS");
-    private static final String LIST_PENDING_ACCESS_REQUESTS = System.getenv("LIST_PENDING_ACCESS_REQUESTS");
-    private static final String PROCESS_ACCESS_REQUEST = System.getenv("PROCESS_ACCESS_REQUEST");
+    private static final String LIST_USERS_WITH_ACCESS = System.getenv("IAM_PROVIDER_LIST_USERS_WITH_ACCESS");
+    private static final String LIST_PENDING_ACCESS_REQUESTS = System.getenv("IAM_PROVIDER_LIST_PENDING_ACCESS_REQUESTS");
+    private static final String PROCESS_ACCESS_REQUEST = System.getenv("IAM_PROVIDER_PROCESS_ACCESS_REQUEST");
 
 
     public static CloseableHttpResponse acquireTriplestoreLock(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
