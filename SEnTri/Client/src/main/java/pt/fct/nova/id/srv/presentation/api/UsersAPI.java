@@ -31,21 +31,27 @@ public interface UsersAPI {
 
     @POST
     @Path("/{username}/upgrade")
-    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueUpgradeRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                  @PathParam("username") String username);
 
     @POST
     @Path("/{username}/downgrade")
-    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueDowngradeRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                 @PathParam("username") String username);
+                                   @PathParam("username") String username);
 
     @GET
     @Path("{username}/requests")
     @Produces(TEXT_PLAIN)
-    Response listUpgradeRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listPendingRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                  @PathParam("username") String username);
+
+    @PUT
+    @Path("{username}/requests/{requestID}")
+    @Produces(TEXT_PLAIN)
+    Response processPendingRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                   @PathParam("username") String username,
+                                   @PathParam("requestID") String requestID,
+                                   @DefaultValue("false") @QueryParam("accept") boolean decision);
 }

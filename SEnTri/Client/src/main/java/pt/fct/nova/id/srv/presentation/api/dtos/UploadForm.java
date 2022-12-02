@@ -6,7 +6,7 @@ import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
 import java.io.InputStream;
 
-public class UploadForm extends StoreForm{
+public class UploadForm extends TriplestoreForm {
     @FormParam("syntax")
     @PartType(MediaType.TEXT_PLAIN)
     private final String syntax;

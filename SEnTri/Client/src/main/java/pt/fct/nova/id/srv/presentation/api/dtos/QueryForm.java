@@ -4,7 +4,7 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 import pt.fct.nova.id.srv.presentation.api.RDFMediaType;
 
-public class QueryForm extends StoreForm{
+public class QueryForm extends TriplestoreForm {
 
     @FormParam("query")
     @PartType(RDFMediaType.SPARQL_QUERY)

@@ -5,27 +5,27 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
 
-public class StoreForm {
+public class TriplestoreForm {
     @FormParam("issuer")
     @PartType(MediaType.TEXT_PLAIN)
     private final String issuer;
 
-    @FormParam("storeID")
+    @FormParam("triplestoreID")
     @PartType(MediaType.TEXT_PLAIN)
-    private final String storeID;
+    private final String triplestoreID;
 
-    public StoreForm(String issuer, String storeID) {
+    public TriplestoreForm(String issuer, String triplestoreID) {
         this.issuer = issuer;
-        this.storeID = storeID;
+        this.triplestoreID = triplestoreID;
     }
 
-    public StoreForm() {
+    public TriplestoreForm() {
         this.issuer = null;
-        this.storeID = null;
+        this.triplestoreID = null;
     }
 
-    public String getStoreID() {
-        return storeID;
+    public String getTriplestoreID() {
+        return triplestoreID;
     }
 
     public String getIssuer() {

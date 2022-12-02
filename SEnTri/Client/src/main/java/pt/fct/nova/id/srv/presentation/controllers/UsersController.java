@@ -20,7 +20,7 @@ public class UsersController implements UsersAPI {
     public Response auth(AuthForm credentialsForm) {
         try (CloseableHttpResponse response = IAMClient.authenticate(credentialsForm)) {
             return HttpUtils.buildResponse(response);
-        }  catch (IOException e) {
+        } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -30,7 +30,8 @@ public class UsersController implements UsersAPI {
         try (CloseableHttpResponse response = IAMClient.registerUser(credentialsForm)) {
             return HttpUtils.buildResponse(response);
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();        }
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override
@@ -47,6 +48,33 @@ public class UsersController implements UsersAPI {
         try (CloseableHttpResponse response = IAMClient.issueUpgradeRequest(cookie, username)) {
             return HttpUtils.buildResponse(response);
         } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response issueDowngradeRequest(Cookie cookie, String username) {
+        try (CloseableHttpResponse response = IAMClient.issueDowngradeRequest(cookie, username)) {
+            return HttpUtils.buildResponse(response);
+        } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response listPendingRequests(Cookie cookie, String username) {
+        try (CloseableHttpResponse response = IAMClient.listPendingRoleRequests(cookie, username)) {
+            return HttpUtils.buildResponse(response);
+        } catch (IOException e) {
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response processPendingRequest(Cookie cookie, String username, String requestID, boolean accept) {
+        try (CloseableHttpResponse response = IAMClient.processRoleRequest(cookie, username, requestID, accept)) {
+            return HttpUtils.buildResponse(response);
+        } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -8,26 +8,26 @@ import java.util.Map;
 
 public class SecretsForm {
 
-    @FormParam("storeID")
+    @FormParam("triplestoreID")
     @PartType(MediaType.TEXT_PLAIN)
-    private final String storeID;
+    private final String triplestoreID;
 
     @FormParam("secrets")
     @PartType(MediaType.APPLICATION_JSON)
     private final Map<String, String> secrets;
 
-    public SecretsForm(String storeID, Map<String, String> secrets) {
-        this.storeID = storeID;
+    public SecretsForm(String triplestoreID, Map<String, String> secrets) {
+        this.triplestoreID = triplestoreID;
         this.secrets = secrets;
     }
 
     public SecretsForm() {
-        this.storeID = null;
+        this.triplestoreID = null;
         this.secrets = null;
     }
 
-    public String getStoreID() {
-        return storeID;
+    public String getTriplestoreID() {
+        return triplestoreID;
     }
 
     public Map<String, String> getSecrets() {

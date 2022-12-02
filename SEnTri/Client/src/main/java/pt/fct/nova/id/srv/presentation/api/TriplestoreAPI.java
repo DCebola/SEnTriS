@@ -27,26 +27,26 @@ public interface TriplestoreAPI {
     @GET
     @Path("/{issuer}")
     @Produces(TEXT_PLAIN)
-    Response listStores(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                        @PathParam("issuer") String issuer,
-                        @DefaultValue("false") @QueryParam("write") boolean write,
-                        @DefaultValue("false") @QueryParam("read") boolean read,
-                        @DefaultValue("false") @QueryParam("owns") boolean owns);
+    Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                              @PathParam("issuer") String issuer,
+                              @DefaultValue("false") @QueryParam("write") boolean write,
+                              @DefaultValue("false") @QueryParam("read") boolean read,
+                              @DefaultValue("false") @QueryParam("owns") boolean owns);
 
     @POST
-    @Path("/{storeID}")
+    @Path("/{triplestoreID}")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("storeID") String storeID,
+                    @PathParam("triplestoreID") String triplestoreID,
                     @MultipartForm UploadForm form);
 
     @DELETE
-    @Path("/{storeID}/{username}")
+    @Path("/{triplestoreID}/{username}")
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
                     @PathParam("username") String username,
-                    @PathParam("storeID") String storeID);
+                    @PathParam("triplestoreID") String triplestoreID);
 
     @POST
     @Path("/query")
@@ -56,40 +56,65 @@ public interface TriplestoreAPI {
                                @Form QueryForm form);
 
     @PUT
-    @Path("/{storeID}/{issuer}/access/{username}")
+    @Path("/{triplestoreID}/{issuer}/access/{username}")
     @Produces(TEXT_PLAIN)
     Response grantAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                         @PathParam("storeID") String storeID,
+                         @PathParam("triplestoreID") String triplestoreID,
                          @PathParam("issuer") String issuer,
                          @PathParam("username") String username,
                          @DefaultValue("false") @QueryParam("write") boolean write);
 
 
     @DELETE
-    @Path("/{storeID}/{issuer}/access/{username}")
+    @Path("/{triplestoreID}/{issuer}/access/{username}")
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                          @PathParam("storeID") String storeID,
+                          @PathParam("triplestoreID") String triplestoreID,
                           @PathParam("issuer") String issuer,
                           @PathParam("username") String username,
                           @DefaultValue("false") @QueryParam("write") boolean write);
 
 
     @PUT
-    @Path("/{storeID}/access")
+    @Path("/{triplestoreID}/access")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                @PathParam("storeID") String storeID,
+                                @PathParam("triplestoreID") String triplestoreID,
                                 @Form AccessForm form);
 
     @PUT
-    @Path("/{storeID}/{issuer}/owner/{username}")
+    @Path("/{triplestoreID}/{issuer}/owner/{username}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response updateTriplestoreOwner(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                    @PathParam("storeID") String storeID,
+                                    @PathParam("triplestoreID") String triplestoreID,
                                     @PathParam("issuer") String issuer,
                                     @PathParam("username") String username);
+
+    @GET
+    @Path("/{triplestoreID}/{issuer}/access/users")
+    @Produces(TEXT_PLAIN)
+    Response listUsersWithAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                 @PathParam("triplestoreID") String triplestoreID,
+                                 @PathParam("issuer") String issuer,
+                                 @DefaultValue("false") @QueryParam("write") boolean write);
+
+    @GET
+    @Path("/{triplestoreID}/{issuer}/access/requests")
+    @Produces(TEXT_PLAIN)
+    Response listPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                       @PathParam("triplestoreID") String triplestoreID,
+                                       @PathParam("issuer") String issuer);
+
+    @PUT
+    @Path("/{triplestoreID}/{issuer}/access/requests/{requestID}")
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_PLAIN)
+    Response processPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                         @PathParam("triplestoreID") String triplestoreID,
+                                         @PathParam("issuer") String issuer,
+                                         @PathParam("requestID") String requestID,
+                                         @DefaultValue("false") @QueryParam("accept") boolean decision);
 
 }

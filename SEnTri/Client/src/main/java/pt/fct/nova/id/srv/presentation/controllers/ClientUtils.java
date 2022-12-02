@@ -21,6 +21,7 @@ import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
@@ -45,17 +46,17 @@ public class ClientUtils {
     public static final String INTERNAL_ERROR = "Internal error.";
     private static final Gson gson = new Gson();
 
-    public static HttpEntity generateStoreForm(String username, String storeID) {
+    public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("issuer", username));
-        pairs.add(new BasicNameValuePair("store", storeID));
+        pairs.add(new BasicNameValuePair("triplestoreID", triplestoreID));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
-    public static HttpEntity generateSecretsForm(String storeID, Map<String, String> secrets) {
+    public static HttpEntity generateSecretsForm(String triplestoreID, Map<String, String> secrets) {
         return MultipartEntityBuilder
                 .create()
-                .addTextBody("storeID", storeID, ContentType.create(MediaType.TEXT_PLAIN))
+                .addTextBody("triplestoreID", triplestoreID, ContentType.create(MediaType.TEXT_PLAIN))
                 .addTextBody("secrets", gson.toJson(secrets), ContentType.create(MediaType.APPLICATION_JSON))
                 .build();
     }
@@ -74,10 +75,10 @@ public class ClientUtils {
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
-    public static HttpEntity generatePrivilegeRoleRequest(String issuer) {
+    public static HttpEntity generateRoleRequest(String issuer, Role role) {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("issuer", issuer));
-        pairs.add(new BasicNameValuePair("role", "PRIVILEGED"));
+        pairs.add(new BasicNameValuePair("role", role.name()));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
@@ -85,12 +86,12 @@ public class ClientUtils {
         return new StringEntity(gson.toJson(obj), StandardCharsets.UTF_8);
     }
 
-    public static Protocol1 initProtocol1(String storeID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         SecretKey k1 = gson.fromJson(secrets.get(String.format(SECRETS_KEY, 1)), SecretKey.class);
         SecretKey k2 = gson.fromJson(secrets.get(String.format(SECRETS_KEY, 2)), SecretKey.class);
         SecretKey k3 = gson.fromJson(secrets.get(String.format(SECRETS_KEY, 3)), SecretKey.class);
         byte[] iv = decodeBase64(secrets.get(SECRETS_IV));
-        return new Protocol1(storeID, k1, k2, k3, iv);
+        return new Protocol1(triplestoreID, k1, k2, k3, iv);
     }
 
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {

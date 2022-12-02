@@ -32,13 +32,6 @@ public class HttpUtils {
         }
     }
 
-    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
     public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri) throws IOException {
         HttpGet request = new HttpGet(uri);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
@@ -93,6 +86,13 @@ public class HttpUtils {
         }
     }
 
+    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, URI uri) throws IOException {
+        HttpPut request = new HttpPut(uri);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
     public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
@@ -104,6 +104,22 @@ public class HttpUtils {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         request.setEntity(body);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
+
+    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request, generateContext(cookie.getValue()));
         }
