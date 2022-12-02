@@ -6,7 +6,7 @@ services:
       container_name: sentri-proxy-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
-        - ./db_data:/data
+        - ./data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
         - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
         - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
@@ -43,7 +43,7 @@ services:
         - ../Secrets/proxy-secrets.env
 
 volumes:
-    db_data:
+    data:
 
 networks:
   sentri-proxy-backend:

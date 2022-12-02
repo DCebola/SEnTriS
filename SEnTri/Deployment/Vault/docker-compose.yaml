@@ -43,7 +43,7 @@ services:
         - ../Secrets/vault-secrets.env
 
 volumes:
-    db_data:
+    data:
 
 networks:
   sentri-vault-backend:

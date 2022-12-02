@@ -6,7 +6,7 @@ services:
       container_name: sentri-iam-provider-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
-        - ./db_data:/data
+        - ./data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
         - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
         - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
@@ -41,7 +41,7 @@ services:
         - ../Secrets/iam-provider-secrets.env
 
 volumes:
-    db_data:
+    data:
 
 networks:
   sentri-iam-provider-backend:
