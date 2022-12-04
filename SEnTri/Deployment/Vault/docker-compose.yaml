@@ -8,9 +8,9 @@ services:
       volumes:
         - ./db_data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ../SSL/vault-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/vault-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/vault-redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       expose:
         - "6379"
@@ -31,13 +31,12 @@ services:
         - ../SSL/vault-cert.pem:/usr/local/tomcat/ssl/vault-cert.pem
         - ../SSL/vault-key.pem:/usr/local/tomcat/ssl/vault-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
-      ports:
-        - "8080:8443"
+      expose:
+        - "8443"
       networks:
         - sentri-vault-backend
         - sentri-vault-frontend
         - sentri-iam-provider-frontend
-        - sentri-vault-frontend
       env_file:
         - ./system-properties.env
         - ../Secrets/vault-secrets.env
@@ -54,7 +53,4 @@ networks:
     driver: bridge
   sentri-iam-provider-frontend:
     name: sentri-iam-provider-frontend
-    external: true
-  sentri-vault-frontend:
-    name: sentri-vault-frontend
     external: true

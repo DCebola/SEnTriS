@@ -23,7 +23,7 @@ public final class PasswordUtils {
     }
 
     public static boolean verify(String password, byte[] hash) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] salt = Arrays.copyOfRange(hash, k, k + s);
+        byte[] salt = Arrays.copyOf(hash, s);
         return Arrays.equals(hash(password, salt), hash);
     }
 
@@ -31,8 +31,9 @@ public final class PasswordUtils {
         initKeyFactory();
         KeySpec keyspec = new PBEKeySpec(password.toCharArray(), salt, i, k);
         return ByteBuffer.allocate(k + s)
+                .put(salt)
                 .put(keyFactory.generateSecret(keyspec).getEncoded())
-                .put(salt).array();
+                .array();
     }
 
     private static void initKeyFactory() throws NoSuchAlgorithmException {

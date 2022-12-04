@@ -4,10 +4,10 @@ import org.apache.jena.graph.Node;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
 public class ProtocolUtils {
-    private static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
+    private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String BLANK_IRI = "BLANK";
-    private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
-    private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
+    private static final String SIMPLE_IRI = "S".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String LITERAL_IRI = "L".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
 
     public static String parseNodeIRI(Node node) throws InvalidNodeException {
         if (!node.isConcrete())

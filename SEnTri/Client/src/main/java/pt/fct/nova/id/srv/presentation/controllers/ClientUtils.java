@@ -125,7 +125,7 @@ public class ClientUtils {
                 putIfFound(sanitizedSecrets, k1, secrets.get(k1));
                 putIfFound(sanitizedSecrets, k2, secrets.get(k2));
                 putIfFound(sanitizedSecrets, k3, secrets.get(k3));
-                putIfFound(sanitizedSecrets, SECRETS_IV, secrets.get(SECRETS_IV));
+                putIfFound(sanitizedSecrets, SECRETS_IV, new String(decodeBase64(secrets.get(SECRETS_IV))));
             }
             case V2 -> {
                 //TODO: Implemented v2.

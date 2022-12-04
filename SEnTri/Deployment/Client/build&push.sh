@@ -7,7 +7,7 @@ fi
 
 cd ../Client 
 mvn clean compile package
-cp ./target/Client.war ../Scripts/Client/Client.war
+cp ./target/Client.war ../Deployment/Client/Client.war
 wait
 
 docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-client-api")) &> /dev/null
@@ -15,7 +15,7 @@ wait
 docker rmi $(docker image ls $1/sentri-client-api) &> /dev/null
 wait
 
-cd ../Scripts/Client
+cd ../Deployment/Client
 docker build -t $1/sentri-client-api .
 wait
 docker push $1/sentri-client-api

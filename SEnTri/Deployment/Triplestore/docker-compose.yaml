@@ -8,9 +8,9 @@ services:
       volumes:
         - ./data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ../SSL/triplestore-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/triplestore-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/triplestore-redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       expose:
         - "6379"
@@ -31,8 +31,8 @@ services:
         - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
         - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
-      ports:
-        - "8080:8443"
+      expose:
+        - "8443"
       networks:
         - sentri-triplestore-backend
         - sentri-triplestore-frontend

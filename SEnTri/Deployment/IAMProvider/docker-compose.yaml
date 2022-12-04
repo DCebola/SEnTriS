@@ -8,9 +8,9 @@ services:
       volumes:
         - ./data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ../SSL/iam-provider-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/iam-provider-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/iam-provider-redis.dh:/usr/local/etc/redis/tls/redis.dh
         - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
       expose:
         - "6379"
@@ -32,7 +32,7 @@ services:
         - ../SSL/iam-provider-key.pem:/usr/local/tomcat/ssl/iam-provider-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
       ports:
-        - "8080:8443"
+        - "8081:8443"
       networks:
         - sentri-iam-provider-backend
         - sentri-iam-provider-frontend

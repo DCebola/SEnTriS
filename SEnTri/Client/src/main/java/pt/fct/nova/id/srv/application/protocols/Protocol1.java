@@ -3,9 +3,6 @@ package pt.fct.nova.id.srv.application.protocols;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Triple;
 
-import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
-
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 
@@ -20,6 +17,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+
+import static org.apache.commons.codec.binary.Base64.*;
 
 public class Protocol1 implements EncryptionProtocol {
     private final String storeID;

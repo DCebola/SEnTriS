@@ -11,7 +11,7 @@ wait
 docker network rm $(docker network ls -q -f 'name=sentri')
 wait
 export var DOCKER_REGISTRY=$1
-cd ../IAMProvider 
+cd ./IAMProvider 
 docker-compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Vault 
@@ -20,7 +20,7 @@ wait
 cd ../Proxy 
 docker-compose up --force-recreate --remove-orphans --detach
 wait
-cd ./Triplestore 
+cd ../Triplestore 
 docker-compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Client 
