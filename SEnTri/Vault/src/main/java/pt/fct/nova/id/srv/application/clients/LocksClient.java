@@ -11,7 +11,7 @@ import java.util.UUID;
 public class LocksClient {
 
     private final static String LOCK = "L".concat(System.getenv("BASIC_SEPARATOR")).concat("%s");
-    private final static String LOCK_TIMEOUT = System.getenv("LOCK_TIMEOUT");
+    private final static String LOCK_LIFETIME = System.getenv("LOCK_LIFETIME");
     private static final int LOCK_TRIES = Integer.parseInt(System.getenv("LOCK_TRIES"));
     private static final long LOCK_SLEEP = Long.parseLong(System.getenv("LOCK_SLEEP"));
     private final static String LOCK_SCRIPT = """
@@ -48,7 +48,7 @@ public class LocksClient {
             List<String> args = new ArrayList<>(2);
             keys.add(key);
             args.add(lockID);
-            args.add(LOCK_TIMEOUT);
+            args.add(LOCK_LIFETIME);
             return (Long) jedis.eval(LOCK_SCRIPT, keys, args);
         }
     }

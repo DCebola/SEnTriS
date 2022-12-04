@@ -17,7 +17,7 @@ public class LocksClient {
             .concat("%s").concat(BASIC_SEPARATOR).concat("*");
     private static final String USER_TRIPLESTORE_LOCK_PATTERN = "UTL".concat(BASIC_SEPARATOR)
             .concat("%s").concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("*");
-    private final static String LOCK_TIMEOUT = System.getenv("LOCK_TIMEOUT");
+    private final static String LOCK_LIFETIME = System.getenv("LOCK_LIFETIME");
     private static final int LOCK_TRIES = Integer.parseInt(System.getenv("LOCK_TRIES"));
     private static final long LOCK_SLEEP = Long.parseLong(System.getenv("LOCK_SLEEP"));
     private static final int USL_TRIPLESTORE_POS = 2;
@@ -56,7 +56,7 @@ public class LocksClient {
         List<String> args = new ArrayList<>(2);
         keys.add(key);
         args.add(uuid);
-        args.add(LOCK_TIMEOUT);
+        args.add(LOCK_LIFETIME);
         return execLockScript(USER_LOCK_SCRIPT, uuid, keys, args);
     }
 
@@ -78,7 +78,7 @@ public class LocksClient {
         keys.add(String.format(TRIPLESTORE_LOCK, triplestoreID));
         keys.add(String.format(USER_TRIPLESTORE_LOCK, username));
         args.add(uuid);
-        args.add(LOCK_TIMEOUT);
+        args.add(LOCK_LIFETIME);
         return execLockScript(TRIPLESTORE_LOCK_SCRIPT, uuid, keys, args);
 
     }

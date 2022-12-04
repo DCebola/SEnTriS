@@ -8,20 +8,14 @@ import java.io.IOException;
 import static pt.fct.nova.id.srv.application.clients.HttpUtils.sendGETRequest;
 
 public class IAMClient {
-    private static final String IAM_PROVIDER_URI = System.getenv("IAM_PROVIDER_URI");
-    private static final String GET_TRIPLESTORE_OWNER_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("GET_OWNER_ACCESS_PATH"));
-    private static final String GET_TRIPLESTORE_READ_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("GET_READ_ACCESS_PATH"));
-    private static final String GET_TRIPLESTORE_WRITE_ACCESS_PATH = IAM_PROVIDER_URI.concat(System.getenv("GET_WRITE_ACCESS_PATH"));
+    private static final String CHECK_TRIPLESTORE_OWNER_ACCESS_URI = System.getenv("IAM_PROVIDER_CHECK_OWNER_ACCESS_URI");
+    private static final String CHECK_TRIPLESTORE_READ_ACCESS_URI = System.getenv("IAM_PROVIDER_CHECK_READ_ACCESS_URI");
 
     public static CloseableHttpResponse hasReadAccess(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return sendGETRequest(cookie, String.format(GET_TRIPLESTORE_READ_ACCESS_PATH, triplestoreID), accessToken);
-    }
-
-    public static CloseableHttpResponse hasWriteAccess(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return sendGETRequest(cookie, String.format(GET_TRIPLESTORE_WRITE_ACCESS_PATH, triplestoreID), accessToken);
+        return sendGETRequest(cookie, String.format(CHECK_TRIPLESTORE_READ_ACCESS_URI, triplestoreID), accessToken);
     }
 
     public static CloseableHttpResponse hasOwnerAccess(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return sendGETRequest(cookie, String.format(GET_TRIPLESTORE_OWNER_ACCESS_PATH, triplestoreID), accessToken);
+        return sendGETRequest(cookie, String.format(CHECK_TRIPLESTORE_OWNER_ACCESS_URI, triplestoreID), accessToken);
     }
 }

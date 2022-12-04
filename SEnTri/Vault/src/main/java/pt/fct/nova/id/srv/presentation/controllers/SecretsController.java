@@ -40,8 +40,6 @@ public class SecretsController implements SecretsAPI {
             try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
-                if (!Boolean.parseBoolean(response.getEntity().toString()))
-                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
             String lockID = LocksClient.acquireLock(triplestoreID);
             if (Vault.exists(triplestoreID)) {
@@ -68,8 +66,6 @@ public class SecretsController implements SecretsAPI {
             try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
-                if (!Boolean.parseBoolean(response.getEntity().toString()))
-                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
             if (!Vault.exists(triplestoreID))
                 return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
@@ -88,8 +84,6 @@ public class SecretsController implements SecretsAPI {
             try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
-                if (!Boolean.parseBoolean(response.getEntity().toString()))
-                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(UNAUTHORIZED).build();
             }
             if (!Vault.exists(triplestoreID))
                 return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
