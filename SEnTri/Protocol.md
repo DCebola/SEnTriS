@@ -12,20 +12,22 @@ State:
 
 function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2, k3):
 	foreach t = (s,p,o) in T:
-		encodeNode(k1, k2, k3, s, p)
-		encodeNode(k1, k2, k3, s, o)
-		encodeNode(k1, k2, k3, p, s)
-		encodeNode(k1, k2, k3, p, o)
-		encodeNode(k1, k2, k3, o, s)
-		encodeNode(k1, k2, k3, o, p)
-		encodeNode(k1, k2, k3, s, p||o)
-		encodeNode(k1, k2, k3, p, s||o)
-		encodeNode(k1, k2, k3, o, s||p)
+		encodeNode(k1, k2, k3, s, "P", p)
+		encodeNode(k1, k2, k3, s, "O", o)
+		encodeNode(k1, k2, k3, p, "S", s)
+		encodeNode(k1, k2, k3, p, "O", o)
+		encodeNode(k1, k2, k3, o, "S", s)
+		encodeNode(k1, k2, k3, o, "P", p)
+		encodeNode(k1, k2, k3, s, "PO", p||o)
+		encodeNode(k1, k2, k3, p, "SO", s||o)
+		encodeNode(k1, k2, k3, o, "SP", s||p)
+	foreach (total, keyword) in keywords:
+		Encoded_T[DET(k1, rand, keyword)] ←  RND(k2, total)
 return Encoded_T
 
-function encodeNode(k1, k2, k3, node, keyword):
+function encodeNode(k1, k2, k3, node, patternType, keyword):
 	i ← getKeywordIdx(keyword)
-	st ← DET(k1, rand + i, keyword)
+	st ← DET(k1, rand + i, patternType || keyword)
     ct ← RND(k2, DET(k3, node))
 	Encoded_T[st] ← ct
 		
@@ -56,25 +58,30 @@ function EncodeTriplestore(T = {t0, t1, ... tn}, k1, k2 = (pk, sk), k3):
 	foreach t = (s,p,o) in T:
 		foreach n in t:
 			nCtr ← setEQ(n)
-		generateTrapdoor(k1, s, p)
-		generateTrapdoor(k1, s, o)
-		generateTrapdoor(k1, p, s)
-		generateTrapdoor(k1, p, o)
-		generateTrapdoor(k1, o, s)
-		generateTrapdoor(k1, o, p)
-		generateTrapdoor(k1, s, p||o)
-		generateTrapdoor(k1, p, s||o)
-		generateTrapdoor(k1, o, s||p)			
+		generateTrapdoor(k1, s, "P", p)
+		generateTrapdoor(k1, s, "O", o)
+		generateTrapdoor(k1, p, "S", s)
+		generateTrapdoor(k1, p, "O", o)
+		generateTrapdoor(k1, o, "S", s)
+		generateTrapdoor(k1, o, "P", p)
+		generateTrapdoor(k1, s, "PO", p||o)
+		generateTrapdoor(k1, p, "SO", s||o)
+		generateTrapdoor(k1, o, "SP", s||p)			
 	
 	foreach (st, n) in Encoded_T:
-		eq_tag ← HOM(k2, Eq[n])
-		ct ← RND(k3, n)
-		Encoded_T[st] ← (eq_tag, ct)
+		eq_tag ← Eq[n]
+		Encoded_T[st] ← (HOM(k2, eq_tag), RND(k3, n))
+		key ← DET(k1, rand, n)
+		if Encoded_T[key] = ⊥:
+			Encoded_T[key] ← RND(k3, eq_tag)
+		
+    foreach (total, keyword) in keywords:
+		Encoded_T[DET(k1, rand, keyword)] ←  RND(k2, total)
 return Encoded_T
 
-function generateTrapdoor(k, node, keyword):
+function generateTrapdoor(k, node, patternType, keyword):
 	i ← getKeywordIdx(keyword)
-	st ← DET(k1, rand + i, keyword)
+	st ← DET(k1, rand + i, patternType || keyword)
 	Encoded_T[st] ← node
 
 function setEQ(node):

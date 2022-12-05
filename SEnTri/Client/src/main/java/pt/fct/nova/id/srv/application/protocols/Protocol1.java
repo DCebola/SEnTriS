@@ -5,12 +5,12 @@ import org.apache.jena.graph.Triple;
 
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -21,6 +21,7 @@ import java.util.*;
 import static org.apache.commons.codec.binary.Base64.*;
 
 public class Protocol1 implements EncryptionProtocol {
+
     private final String storeID;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
@@ -91,15 +92,15 @@ public class Protocol1 implements EncryptionProtocol {
             s = ProtocolUtils.parseNodeIRI(t.getSubject());
             p = ProtocolUtils.parseNodeIRI(t.getSubject());
             o = ProtocolUtils.parseNodeIRI(t.getSubject());
-            encodeNode(k1, k2, k3, s, p);
-            encodeNode(k1, k2, k3, s, o);
-            encodeNode(k1, k2, k3, p, s);
-            encodeNode(k1, k2, k3, p, o);
-            encodeNode(k1, k2, k3, o, s);
-            encodeNode(k1, k2, k3, o, p);
-            encodeNode(k1, k2, k3, s, String.format(COMPOUND_KEYWORD, p, o));
-            encodeNode(k1, k2, k3, p, String.format(COMPOUND_KEYWORD, s, o));
-            encodeNode(k1, k2, k3, o, String.format(COMPOUND_KEYWORD, s, p));
+            encodeNode(k1, k2, k3, s, VariablesPattern.P, p);
+            encodeNode(k1, k2, k3, s, VariablesPattern.O, o);
+            encodeNode(k1, k2, k3, p, VariablesPattern.S, s);
+            encodeNode(k1, k2, k3, p, VariablesPattern.O, o);
+            encodeNode(k1, k2, k3, o, VariablesPattern.S, s);
+            encodeNode(k1, k2, k3, o, VariablesPattern.P, p);
+            encodeNode(k1, k2, k3, s, VariablesPattern.PO, String.format(COMPOUND_KEYWORD, p, o));
+            encodeNode(k1, k2, k3, p, VariablesPattern.SO, String.format(COMPOUND_KEYWORD, s, o));
+            encodeNode(k1, k2, k3, o, VariablesPattern.SP, String.format(COMPOUND_KEYWORD, s, p));
         }
     }
 
@@ -128,19 +129,20 @@ public class Protocol1 implements EncryptionProtocol {
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);
-            generateKeywordTrapdoor(res, skip, s);
-            generateKeywordTrapdoor(res, skip, p);
-            generateKeywordTrapdoor(res, skip, o);
-            generateKeywordTrapdoor(res, skip, po);
-            generateKeywordTrapdoor(res, skip, so);
-            generateKeywordTrapdoor(res, skip, sp);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.S, s);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.P, p);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.O, o);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.PO, po);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.SO, so);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.SP, sp);
         }
         return res;
     }
 
-    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, String keyword)
+    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, VariablesPattern pattern, String keyword)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
             NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
         byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
         encryptedT.put(
@@ -168,7 +170,8 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
-    private void generateKeywordTrapdoor(Map<String, String> trapdoors, Set<String> skip, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private void generateKeywordTrapdoor(Map<String, String> trapdoors, Set<String> skip, VariablesPattern pattern, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
         if (!skip.contains(keyword)) {
             trapdoors.put(keyword, generateTrapdoor(keyword));
             skip.add(keyword);

@@ -37,7 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static pt.fct.nova.id.srv.presentation.controllers.SecureTriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
 
 public class ClientUtils {
 
@@ -65,13 +65,6 @@ public class ClientUtils {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));
         pairs.add(new BasicNameValuePair("password", credentialsForm.getPassword()));
-        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
-    }
-
-    public static HttpEntity accessFormToHttpEntity(AccessForm accessForm) {
-        List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("user", accessForm.getIssuer()));
-        pairs.add(new BasicNameValuePair("write", String.valueOf(accessForm.getWrite())));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 

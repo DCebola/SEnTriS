@@ -10,10 +10,10 @@ import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.presentation.api.SecureTriplestoreAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecureCreateForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecureQueryForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecureUploadForm;
+import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedCreateForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedQueryForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedUploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
@@ -30,14 +30,12 @@ import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INVALID_SYNTAX;
 
-@Path("triplestore/secure")
-public class SecureTriplestoreController implements SecureTriplestoreAPI {
+@Path("triplestore/encrypted")
+public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     public static final String SECRETS_VERSION = System.getenv("SECRETS_PROTOCOL_VERSION");
     public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
     public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
     private static final String INTERNAL_ERROR = "Internal error.";
-    private static final String SUCCESSFUL_UPLOAD = "Successful upload.";
-    private static final String SUCCESSFUL_CREATE = "Successful create.";
     public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
@@ -45,7 +43,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
 
 
     @Override
-    public Response create(Cookie cookie, SecureCreateForm form) {
+    public Response create(Cookie cookie, EncryptedCreateForm form) {
         try {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
@@ -150,9 +148,10 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     }
 
     @Override
-    public Response upload(Cookie cookie, String triplestoreID, SecureUploadForm form) {
+    public Response upload(Cookie cookie, EncryptedUploadForm form) {
         try {
             String issuer = form.getIssuer();
+            String triplestoreID = form.getTriplestoreID();
             Map<String, String> secrets = ClientUtils.sanitizeSecrets(form.getSecrets());
 
             String accessToken;
@@ -203,7 +202,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
                         throw new IllegalStateException("Unexpected value: " + ProtocolVersion.fromString(secrets.get(SECRETS_VERSION)));
             }
         } catch (MalformedSecretsException e) {
-            return Response.ok(MALFORMED_SECRETS, triplestoreID).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(MALFORMED_SECRETS).status(Response.Status.BAD_REQUEST).build();
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
@@ -214,7 +213,7 @@ public class SecureTriplestoreController implements SecureTriplestoreAPI {
     }
 
     @Override
-    public Response answerSPARQLQuery(Cookie cookie, SecureQueryForm form) {
+    public Response answerSPARQLQuery(Cookie cookie, EncryptedQueryForm form) {
         try {
             String accessToken;
             String triplestoreID = form.getTriplestoreID();

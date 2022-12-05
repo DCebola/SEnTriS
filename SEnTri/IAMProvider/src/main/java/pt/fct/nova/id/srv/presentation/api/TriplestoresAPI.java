@@ -4,7 +4,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
-import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 
 import java.util.List;
@@ -21,13 +20,13 @@ public interface TriplestoresAPI {
                                            @Form TriplestoreForm form);
 
     @GET
-    @Path("/{username}")
+    @Path("/{target}")
     @Produces(TEXT_PLAIN)
     Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                  @PathParam("username") String username,
-                                  @DefaultValue("false") @QueryParam("write") boolean write,
-                                  @DefaultValue("false") @QueryParam("read") boolean read,
-                                  @DefaultValue("false") @QueryParam("owns") boolean owns);
+                              @PathParam("target") String target,
+                              @DefaultValue("false") @QueryParam("write") boolean write,
+                              @DefaultValue("false") @QueryParam("read") boolean read,
+                              @DefaultValue("false") @QueryParam("owns") boolean owns);
 
     @GET
     @Path("/{triplestoreID}/access/users")
@@ -38,11 +37,11 @@ public interface TriplestoresAPI {
                                  @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @PUT
-    @Path("/{triplestoreID}/owner/{username}")
+    @Path("/{triplestoreID}/owner/{target}")
     @Produces(TEXT_PLAIN)
     Response changeTriplestoreOwner(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("triplestoreID") String triplestoreID,
-                                    @PathParam("username") String username,
+                                    @PathParam("target") String target,
                                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
@@ -53,30 +52,30 @@ public interface TriplestoresAPI {
                                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @PUT
-    @Path("/{triplestoreID}/access/{username}")
+    @Path("/{triplestoreID}/access/{target}")
     @Produces(TEXT_PLAIN)
     Response grantAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                          @PathParam("triplestoreID") String triplestoreID,
-                         @PathParam("username") String username,
+                         @PathParam("target") String target,
                          @DefaultValue("false") @QueryParam("write") boolean write,
                          @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/{triplestoreID}/access/{username}")
+    @Path("/{triplestoreID}/access/{target}")
     @Produces(TEXT_PLAIN)
     Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                           @PathParam("triplestoreID") String triplestoreID,
-                          @PathParam("username") String username,
+                          @PathParam("target") String target,
                           @DefaultValue("false") @QueryParam("write") boolean write,
                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{triplestoreID}/access/requests")
-    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Path("/{triplestoreID}/access/requests/{target}")
     @Produces(TEXT_PLAIN)
     Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                 @PathParam("triplestoreID") String triplestoreID,
-                                @Form AccessForm accessForm);
+                                @PathParam("target") String target,
+                                @DefaultValue("false") @QueryParam("write") boolean write);
 
     @GET
     @Path("/{triplestoreID}/access/requests")
@@ -95,11 +94,11 @@ public interface TriplestoresAPI {
                                   @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{triplestoreID}/access/tokens/{username}")
+    @Path("/{triplestoreID}/access/tokens/{target}")
     @Produces(TEXT_PLAIN)
     Response createAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @PathParam("triplestoreID") String triplestoreID,
-                               @PathParam("username") String username);
+                               @PathParam("target") String target);
 
     @DELETE
     @Path("/{triplestoreID}/tokens")

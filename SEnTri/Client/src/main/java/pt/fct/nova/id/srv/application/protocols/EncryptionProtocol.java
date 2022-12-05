@@ -11,8 +11,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import static pt.fct.nova.id.srv.application.protocols.ProtocolUtils.BASIC_SEPARATOR;
+
 public interface EncryptionProtocol {
-    String KEYWORD_SEPARATOR = System.getenv("KEYWORD_SEPARATOR");
-    String COMPOUND_KEYWORD = "%s".concat(KEYWORD_SEPARATOR).concat("%s");
+    String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
+    String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
     void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 }

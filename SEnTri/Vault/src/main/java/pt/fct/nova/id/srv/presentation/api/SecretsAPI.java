@@ -23,16 +23,16 @@ public interface SecretsAPI {
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
-    @Path("/{storeID}")
+    @Path("/{triplestoreID}")
     @Produces(APPLICATION_JSON)
     Response getSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                        @PathParam("storeID") String storeID,
+                        @PathParam("triplestoreID") String triplestoreID,
                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/{storeID}")
+    @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
     Response deleteSecrets(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                           @PathParam("storeID") String storeID,
+                           @PathParam("triplestoreID") String triplestoreID,
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

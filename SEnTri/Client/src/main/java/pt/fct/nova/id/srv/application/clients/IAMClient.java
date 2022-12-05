@@ -102,8 +102,9 @@ public class IAMClient {
                 .build());
     }
 
-    public static CloseableHttpResponse requestAccess(Cookie cookie, String triplestoreID, AccessForm form) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(REQUEST_ACCESS_URI, triplestoreID), ClientUtils.accessFormToHttpEntity(form));
+    public static CloseableHttpResponse requestAccess(Cookie cookie, String triplestoreID, String issuer, boolean write) throws IOException, URISyntaxException {
+        return HttpUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(REQUEST_ACCESS_URI, triplestoreID, issuer))
+                        .addParameter("write", String.valueOf(write)).build());
     }
 
 

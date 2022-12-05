@@ -7,18 +7,18 @@ import org.jboss.resteasy.annotations.providers.multipart.PartType;
 import java.io.InputStream;
 import java.util.Map;
 
-public class SecureUploadForm extends UploadForm{
+public class EncryptedUploadForm extends UploadForm{
 
     @FormParam("secrets")
     @PartType(MediaType.APPLICATION_JSON)
     private final Map<String, String> secrets;
 
-    public SecureUploadForm(String issuer, String storeID, Map<String, String> secrets, String syntax, InputStream contents) {
+    public EncryptedUploadForm(String issuer, String storeID, Map<String, String> secrets, String syntax, InputStream contents) {
         super(issuer, storeID, syntax, contents);
         this.secrets = secrets;
     }
 
-    public SecureUploadForm() {
+    public EncryptedUploadForm() {
         super();
         this.secrets = null;
     }

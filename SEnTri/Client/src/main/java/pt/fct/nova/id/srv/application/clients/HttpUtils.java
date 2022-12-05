@@ -133,6 +133,14 @@ public class HttpUtils {
         }
     }
 
+
+    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, URI uri) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request, generateContext(cookie.getValue()));
+        }
+    }
+
     public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));

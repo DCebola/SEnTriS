@@ -5,7 +5,7 @@ import org.jboss.resteasy.annotations.jaxrs.FormParam;
 
 public class RequestDecisionForm {
 
-    @FormParam("user")
+    @FormParam("target")
     private final String target;
 
     @FormParam("accept")
