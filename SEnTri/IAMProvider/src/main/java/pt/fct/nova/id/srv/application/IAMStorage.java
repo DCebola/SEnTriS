@@ -20,7 +20,7 @@ import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
 public class IAMStorage {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
-    private static final int COOKIE_LIFETIME = Integer.parseInt(System.getenv("COOKIE_LIFETIME"));
+    private static final int SESSION_LIFETIME = Integer.parseInt(System.getenv("SESSION_LIFETIME"));
     private static final String SESSION = "S".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_PASSWORD = "UP".concat(BASIC_SEPARATOR).concat("%s");
     private static final String USER_ROLE = "UR".concat(BASIC_SEPARATOR).concat("%s");
@@ -51,7 +51,7 @@ public class IAMStorage {
             Transaction t = jedis.multi();
             t.del(key);
             t.set(key, uuid);
-            t.expire(key, COOKIE_LIFETIME);
+            t.expire(key, SESSION_LIFETIME);
             t.exec();
             return buildCookie(uuid);
         }
@@ -60,7 +60,7 @@ public class IAMStorage {
     private static NewCookie buildCookie(String uid) {
         return new NewCookie.Builder(COOKIE_PARAM)
                 .value(uid)
-                .maxAge(COOKIE_LIFETIME)
+                .path("/")
                 .secure(true)
                 .httpOnly(true)
                 .build();

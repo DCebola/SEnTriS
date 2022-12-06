@@ -42,7 +42,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreCo
 public class ClientUtils {
 
     public static final String COOKIE_PARAM = "session";
-    public static final String COOKIE_LIFETIME = System.getenv("COOKIE_LIFETIME");
     public static final String INTERNAL_ERROR = "Internal error.";
     private static final Gson gson = new Gson();
 

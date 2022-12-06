@@ -26,8 +26,8 @@ public class SymmetricCipher {
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
         byte[] cipherText = cipher.doFinal(input);
         return ByteBuffer.allocate(cipherText.length + IV_SIZE)
-                .put(cipherText)
                 .put(iv)
+                .put(cipherText)
                 .array();
     }
 
@@ -35,7 +35,7 @@ public class SymmetricCipher {
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance(ALGORITHM + "/" + MODE + "/" + PADDING);
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(Arrays.copyOfRange(cipherText, cipherText.length - IV_SIZE, cipherText.length)));
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(Arrays.copyOf(cipherText, IV_SIZE)));
         return cipher.doFinal(Base64.getDecoder().decode(cipherText));
     }
 

@@ -1,9 +1,7 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Cookie;
-import jakarta.ws.rs.core.NewCookie;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.*;
 import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.RoleRequest;

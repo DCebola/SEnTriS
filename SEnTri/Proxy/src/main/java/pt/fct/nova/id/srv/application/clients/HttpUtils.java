@@ -21,28 +21,12 @@ import java.util.List;
 
 public class HttpUtils {
     public static final String COOKIE_PARAM = "session";
-    private static final String COOKIE_LIFETIME = System.getenv("COOKIE_LIFETIME");
     private static final String BEARER = "Bearer ";
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
         HttpGet request = new HttpGet(uri);
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body) throws IOException {
-        HttpPost request = new HttpPost(uri);
-        request.setEntity(body);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
+            return client.execute(request, generateContext(cookie));
         }
     }
 
@@ -50,46 +34,31 @@ public class HttpUtils {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
+            return client.execute(request, generateContext(cookie));
         }
     }
-
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri, String accessToken) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
-        HttpPost request = new HttpPost(uri);
-        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        request.setEntity(body);
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie.getValue()));
-        }
-    }
-
 
     public static Response buildResponse(CloseableHttpResponse response) throws IOException {
         return Response.ok(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8))
                 .status(response.getStatusLine().getStatusCode()).build();
     }
 
-    private static HttpContext generateContext(String cookieValue) {
+    private static HttpContext generateContext(Cookie cookie) {
         BasicCookieStore cookieStore = new BasicCookieStore();
         HttpContext localContext = new BasicHttpContext();
-        cookieStore.addCookie(createApacheCookie(cookieValue));
+        cookieStore.addCookie(createApacheCookie(cookie));
         localContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
         return localContext;
     }
 
-    private static org.apache.http.cookie.Cookie createApacheCookie(String value) {
-        BasicClientCookie cookie = new BasicClientCookie(COOKIE_PARAM, value);
-        cookie.setAttribute(BasicClientCookie.MAX_AGE_ATTR, COOKIE_LIFETIME);
-        cookie.setSecure(true);
-        return cookie;
+    private static org.apache.http.cookie.Cookie createApacheCookie(Cookie cookie) {
+        String session = cookie.getValue().split("=")[1];
+        BasicClientCookie apacheCookie = new BasicClientCookie(COOKIE_PARAM, session);
+        apacheCookie.setDomain(cookie.getDomain());
+        apacheCookie.setPath(cookie.getPath());
+        apacheCookie.setAttribute("", "HttpOnly");
+        apacheCookie.setSecure(true);
+        return apacheCookie;
     }
 
     public static String extractAccessToken(List<String> authorizationHeaders) {
