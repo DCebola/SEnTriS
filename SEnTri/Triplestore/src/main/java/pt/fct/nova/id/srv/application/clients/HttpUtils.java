@@ -22,19 +22,23 @@ import java.util.List;
 public class HttpUtils {
     public static final String COOKIE_PARAM = "session";
     private static final String BEARER = "Bearer ";
+    private static final String DOMAIN = System.getenv("DOMAIN");
+    private static final String COOKIE_FORMAT = COOKIE_PARAM.concat("=%s; Path=/; Domain=").concat(DOMAIN).concat("; Secure; HttpOnly;");
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
         HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie));
+            return client.execute(request);
         }
     }
 
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request, generateContext(cookie));
+            return client.execute(request);
         }
     }
 
@@ -43,23 +47,10 @@ public class HttpUtils {
                 .status(response.getStatusLine().getStatusCode()).build();
     }
 
-    private static HttpContext generateContext(Cookie cookie) {
-        BasicCookieStore cookieStore = new BasicCookieStore();
-        HttpContext localContext = new BasicHttpContext();
-        cookieStore.addCookie(createApacheCookie(cookie));
-        localContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
-        return localContext;
+    private static String buildCookieHeader(Cookie cookie) {
+        return String.format(COOKIE_FORMAT, cookie.getValue());
     }
 
-    private static org.apache.http.cookie.Cookie createApacheCookie(Cookie cookie) {
-        String session = cookie.getPath().split("=")[1];
-        BasicClientCookie apacheCookie = new BasicClientCookie(COOKIE_PARAM, session);
-        apacheCookie.setDomain(cookie.getDomain());
-        apacheCookie.setPath(cookie.getPath());
-        apacheCookie.setAttribute("", "HttpOnly");
-        apacheCookie.setSecure(true);
-        return apacheCookie;
-    }
 
     public static String extractAccessToken(List<String> authorizationHeaders) {
         for (String val : authorizationHeaders) {

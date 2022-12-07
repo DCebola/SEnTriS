@@ -86,7 +86,7 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(USER_PASSWORD, username), password);
-            t.set(String.format(USER_ROLE, username), role.toString());
+            t.set(String.format(USER_ROLE, username), role.name());
             t.exec();
         }
     }
@@ -131,8 +131,8 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String requestID = UUID.randomUUID().toString();
-            t.lpush(PENDING_ROLE_REQUESTS, requestID);
-            t.lpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.toString());
+            t.rpush(PENDING_ROLE_REQUESTS, requestID);
+            t.rpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.toString());
             t.exec();
         }
     }
@@ -142,12 +142,12 @@ public class IAMStorage {
             List<String> requestData = jedis.lrange(String.format(PENDING_ROLE_REQUEST, requestID), 0, -1);
             if (requestData == null || requestData.isEmpty())
                 return null;
-            else return parseRoleRequestData(requestData);
+            else return buildRoleRequestData(requestID, requestData);
         }
     }
 
-    private static RoleRequest parseRoleRequestData(List<String> requestData) {
-        return new RoleRequest(requestData.get(PENDING_REQUEST_USER_IDX), Role.fromString(requestData.get(PENDING_REQUEST_VALUE_IDX)));
+    private static RoleRequest buildRoleRequestData(String requestID, List<String> requestData) {
+        return new RoleRequest(requestID, requestData.get(PENDING_REQUEST_USER_IDX), Role.fromString(requestData.get(PENDING_REQUEST_VALUE_IDX)));
     }
 
     public static List<RoleRequest> getPendingRoleRequests() {
@@ -160,10 +160,11 @@ public class IAMStorage {
                 roleRequestsResponses.add(p.lrange(String.format(PENDING_ROLE_REQUEST, requestID), 0, -1));
             p.sync();
             List<String> requestData;
-            for (Response<List<String>> response : roleRequestsResponses) {
+            for (int i = 0; i < roleRequestsResponses.size(); i++) {
+                Response<List<String>> response = roleRequestsResponses.get(i);
                 requestData = response.get();
                 if (requestData != null && !requestData.isEmpty())
-                    pendingRequests.add(parseRoleRequestData(requestData));
+                    pendingRequests.add(buildRoleRequestData(requestIDs.get(i), requestData));
             }
             return pendingRequests;
         }
@@ -288,6 +289,7 @@ public class IAMStorage {
             return filteredTriplestoreIDs;
         }
     }
+
     public static Set<String> getUserWithReadAccess(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             return jedis.smembers(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
@@ -328,8 +330,8 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String requestID = UUID.randomUUID().toString();
-            t.lpush(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), requestID);
-            t.lpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
+            t.rpush(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), requestID);
+            t.rpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
             t.exec();
         }
     }
@@ -339,13 +341,13 @@ public class IAMStorage {
             List<String> requestData = jedis.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1);
             if (requestData == null || requestData.isEmpty())
                 return null;
-            else return parseAccessRequestData(requestData);
+            else return buildAccessRequestData(requestID, requestData);
         }
 
     }
 
-    private static AccessRequest parseAccessRequestData(List<String> requestData) {
-        return new AccessRequest(requestData.get(PENDING_REQUEST_USER_IDX),
+    private static AccessRequest buildAccessRequestData(String requestID, List<String> requestData) {
+        return new AccessRequest(requestID, requestData.get(PENDING_REQUEST_USER_IDX),
                 Boolean.parseBoolean(requestData.get(PENDING_REQUEST_VALUE_IDX)));
     }
 
@@ -359,10 +361,11 @@ public class IAMStorage {
                 storeRequestsResponses.add(p.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1));
             p.sync();
             List<String> requestData;
-            for (Response<List<String>> response : storeRequestsResponses) {
+            for (int i = 0; i < storeRequestsResponses.size(); i++) {
+                Response<List<String>> response = storeRequestsResponses.get(i);
                 requestData = response.get();
                 if (requestData != null && !requestData.isEmpty())
-                    pendingRequests.add(parseAccessRequestData(requestData));
+                    pendingRequests.add(buildAccessRequestData(requestIDs.get(i), requestData));
             }
             return pendingRequests;
         }
@@ -426,8 +429,8 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(USER_PASSWORD, defaultUsername), defaultPass);
-            t.sadd(String.format(USER_ROLE, defaultUsername), ADMIN.toString());
-            t.sadd(STATUS, String.valueOf(true));
+            t.set(String.format(USER_ROLE, defaultUsername), ADMIN.toString());
+            t.set(STATUS, String.valueOf(true));
             t.exec();
         }
     }

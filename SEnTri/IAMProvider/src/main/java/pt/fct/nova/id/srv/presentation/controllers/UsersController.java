@@ -160,7 +160,7 @@ public class UsersController implements UsersAPI {
                 LocksClient.releaseUserLock(targetUser, lockID);
                 return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
             }
-            if (!targetUser.equals(req.user())) {
+            if (!targetUser.equals(req.username())) {
                 LocksClient.releaseUserLock(targetUser, lockID);
                 return Response.ok(REQUEST_DECISION_MALFORMED).status(BAD_REQUEST).build();
             }

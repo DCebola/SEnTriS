@@ -419,7 +419,7 @@ public class TriplestoresController implements TriplestoresAPI {
             if (req == null)
                 return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
 
-            String username = req.user();
+            String username = req.username();
             if (!IAMStorage.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
