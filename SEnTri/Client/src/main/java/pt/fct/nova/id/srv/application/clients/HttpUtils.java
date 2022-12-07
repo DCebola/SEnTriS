@@ -62,6 +62,15 @@ public class HttpUtils {
         }
     }
 
+    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, String uri, HttpEntity body) throws IOException {
+        HttpPut request = new HttpPut(uri);
+        request.setEntity(body);
+        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
+        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
+            return client.execute(request);
+        }
+    }
+
     public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
@@ -84,14 +93,6 @@ public class HttpUtils {
         HttpPut request = new HttpPut(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPSClient.buildClient()) {
-            return client.execute(request);
-        }
-    }
-
-    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, URI uri) throws IOException {
-        HttpPut request = new HttpPut(uri);
-        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         try (CloseableHttpClient client = HTTPSClient.buildClient()) {
             return client.execute(request);
         }

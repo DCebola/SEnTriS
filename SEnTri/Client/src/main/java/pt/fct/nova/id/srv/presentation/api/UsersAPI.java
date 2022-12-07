@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
@@ -53,5 +54,5 @@ public interface UsersAPI {
     Response processPendingRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID,
-                                   @DefaultValue("false") @QueryParam("accept") boolean decision);
+                                   @Form RequestDecisionForm decisionForm);
 }

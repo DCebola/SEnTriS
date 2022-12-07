@@ -4,15 +4,13 @@ import jakarta.ws.rs.core.Cookie;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.jena.base.Sys;
-import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import pt.fct.nova.id.srv.presentation.controllers.ClientUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Locale;
 
 public class IAMClient {
     private static final String AUTH_URI = System.getenv("IAM_PROVIDER_AUTH_URI");
@@ -89,9 +87,9 @@ public class IAMClient {
         return HttpUtils.sendGETRequest(cookie, String.format(LIST_PENDING_ROLE_REQUESTS, username));
     }
 
-    public static CloseableHttpResponse processRoleRequest(Cookie cookie, String username, String requestID, boolean accept) throws URISyntaxException, IOException {
-        return HttpUtils.sendPUTRequest(cookie, new URIBuilder(String.format(PROCESS_ROLE_REQUEST, username, requestID))
-                .addParameter("accept", String.valueOf(accept)).build());
+    public static CloseableHttpResponse processRoleRequest(Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) throws URISyntaxException, IOException {
+        return HttpUtils.sendPUTRequest(cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID),
+                ClientUtils.requestDecisionFormToHttpEntity(decisionForm));
     }
 
     public static CloseableHttpResponse listTriplestores(Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {

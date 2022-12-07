@@ -8,6 +8,7 @@ import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.presentation.api.UsersAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 
 import java.io.IOException;
 
@@ -71,8 +72,8 @@ public class UsersController implements UsersAPI {
     }
 
     @Override
-    public Response processPendingRequest(Cookie cookie, String username, String requestID, boolean accept) {
-        try (CloseableHttpResponse response = IAMClient.processRoleRequest(cookie, username, requestID, accept)) {
+    public Response processPendingRequest(Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) {
+        try (CloseableHttpResponse response = IAMClient.processRoleRequest(cookie, username, requestID, decisionForm)) {
             return HttpUtils.buildResponse(response);
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();

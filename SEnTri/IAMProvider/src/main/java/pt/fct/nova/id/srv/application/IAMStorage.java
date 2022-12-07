@@ -123,7 +123,7 @@ public class IAMStorage {
 
     public static void setRole(String username, Role role) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            jedis.sadd(String.format(USER_ROLE, username), role.toString());
+            jedis.set(String.format(USER_ROLE, username), role.name());
         }
     }
 
@@ -132,7 +132,7 @@ public class IAMStorage {
             Transaction t = jedis.multi();
             String requestID = UUID.randomUUID().toString();
             t.rpush(PENDING_ROLE_REQUESTS, requestID);
-            t.rpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.toString());
+            t.rpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.name());
             t.exec();
         }
     }

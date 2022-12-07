@@ -10,7 +10,7 @@ public class RequestDecisionForm {
 
     @FormParam("accept")
     @DefaultValue("false")
-    private boolean accept;
+    private final boolean accept;
 
     public RequestDecisionForm(String target, boolean accept) {
         this.target = target;

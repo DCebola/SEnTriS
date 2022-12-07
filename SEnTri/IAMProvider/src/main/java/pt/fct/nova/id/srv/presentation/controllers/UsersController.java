@@ -146,6 +146,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response processRoleRequest(Cookie cookie, String username, String requestID, RequestDecisionForm requestDecisionForm) {
         try {
+
             String targetUser = requestDecisionForm.getTarget();
             Utils.authCheck(cookie, username);
             Role issuerRole = IAMStorage.getRole(username);

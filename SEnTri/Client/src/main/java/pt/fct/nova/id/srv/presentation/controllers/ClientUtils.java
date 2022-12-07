@@ -19,8 +19,8 @@ import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
-import pt.fct.nova.id.srv.presentation.api.dtos.AccessForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
@@ -64,6 +64,14 @@ public class ClientUtils {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));
         pairs.add(new BasicNameValuePair("password", credentialsForm.getPassword()));
+        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+    }
+
+
+    public static UrlEncodedFormEntity requestDecisionFormToHttpEntity(RequestDecisionForm decisionForm) {
+        List<NameValuePair> pairs = new ArrayList<>(2);
+        pairs.add(new BasicNameValuePair("target", decisionForm.getTarget()));
+        pairs.add(new BasicNameValuePair("accept", Boolean.toString(decisionForm.isAccept())));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
