@@ -18,7 +18,10 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.protocols.ProtocolUtils;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -44,6 +47,7 @@ public class ClientUtils {
     public static final String COOKIE_PARAM = "session";
     public static final String INTERNAL_ERROR = "Internal error.";
     private static final Gson gson = new Gson();
+
 
     public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
         List<NameValuePair> pairs = new ArrayList<>(2);
@@ -82,8 +86,27 @@ public class ClientUtils {
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
-    public static HttpEntity objectToHttpEntity(Object obj) {
-        return new StringEntity(gson.toJson(obj), StandardCharsets.UTF_8);
+    public static HttpEntity valuesMapToHttpEntity(Map<String, String> values) {
+        String json = gson.toJson(values, Map.class);
+        System.out.println(json);
+        return new StringEntity(json, StandardCharsets.UTF_8);
+    }
+    public static HttpEntity triplesToHttpEntity(List<Triple> triples) throws InvalidNodeException {
+        String json = gson.toJson(serializeTriples(triples), List.class);
+        System.out.println(json);
+        return new StringEntity(json, StandardCharsets.UTF_8);
+    }
+
+    public static HttpEntity trapdoorsToHttpEntity(List<String> trapdoors) {
+        String json = gson.toJson(trapdoors, List.class);
+        System.out.println(json);
+        return new StringEntity(json, StandardCharsets.UTF_8);
+    }
+
+    public static HttpEntity queryExecutionPlanToHttpEntity(QueryExecutionPlan plan) {
+        String json = gson.toJson(plan, plan.getClass());
+        System.out.println(json);
+        return new StringEntity(json, StandardCharsets.UTF_8);
     }
 
     public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
@@ -152,10 +175,21 @@ public class ClientUtils {
         }.getType());
     }
 
-    public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException {
+    public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
         CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
         return tripleCollector.getCollected();
+    }
+
+    public static List<String[]> serializeTriples(List<Triple> triples) throws InvalidNodeException {
+        List<String[]> serialized = new ArrayList<>(triples.size());
+        for(Triple t: triples)
+            serialized.add(new String[]{
+                    ProtocolUtils.parseNodeIRI(t.getSubject()),
+                    ProtocolUtils.parseNodeIRI(t.getPredicate()),
+                    ProtocolUtils.parseNodeIRI(t.getObject()),
+            });
+        return serialized;
     }
 
     public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
@@ -164,6 +198,7 @@ public class ClientUtils {
             throw new UnknownRDFLanguageException();
         return l;
     }
+
 
 
 }

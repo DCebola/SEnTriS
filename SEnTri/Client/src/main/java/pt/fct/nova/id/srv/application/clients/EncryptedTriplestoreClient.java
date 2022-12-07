@@ -18,19 +18,19 @@ public class EncryptedTriplestoreClient {
     private static final String QUERY_URI = System.getenv("ENCRYPTED_TRIPLESTORE_QUERY_URI");
 
     public static CloseableHttpResponse upload(Cookie cookie, String storeID, Map<String, String> values, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(UPLOAD_URI, storeID), ClientUtils.objectToHttpEntity(values), accessToken);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(UPLOAD_URI, storeID), ClientUtils.valuesMapToHttpEntity(values), accessToken);
     }
 
     public static CloseableHttpResponse search(Cookie cookie, String storeID, List<String> trapdoors, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(SEARCH_URI, storeID), ClientUtils.objectToHttpEntity(trapdoors), accessToken);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(SEARCH_URI, storeID), ClientUtils.trapdoorsToHttpEntity(trapdoors), accessToken);
     }
 
     public static CloseableHttpResponse query(Cookie cookie, String storeID, QueryExecutionPlan plan, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(QUERY_URI, storeID), ClientUtils.objectToHttpEntity(plan), accessToken);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(QUERY_URI, storeID), ClientUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
     }
 
     public static CloseableHttpResponse deleteSome(Cookie cookie, String storeID, List<String> trapdoors, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(DELETE_SOME_URI, storeID), ClientUtils.objectToHttpEntity(trapdoors), accessToken);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(DELETE_SOME_URI, storeID), ClientUtils.trapdoorsToHttpEntity(trapdoors), accessToken);
     }
 
     public static CloseableHttpResponse deleteAll(Cookie cookie, String storeID, String accessToken) throws IOException {

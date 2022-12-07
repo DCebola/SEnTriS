@@ -20,10 +20,10 @@ public interface TriplestoresAPI {
                                            @Form TriplestoreForm form);
 
     @GET
-    @Path("/{target}")
+    @Path("/{issuer}")
     @Produces(TEXT_PLAIN)
     Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("target") String target,
+                              @PathParam("issuer") String issuer,
                               @DefaultValue("false") @QueryParam("write") boolean write,
                               @DefaultValue("false") @QueryParam("read") boolean read,
                               @DefaultValue("false") @QueryParam("owns") boolean owns);
@@ -101,7 +101,7 @@ public interface TriplestoresAPI {
                                @PathParam("target") String target);
 
     @DELETE
-    @Path("/{triplestoreID}/tokens")
+    @Path("/{triplestoreID}/access/tokens")
     @Produces(TEXT_PLAIN)
     Response deleteAccessToken(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @PathParam("triplestoreID") String triplestoreID,
@@ -129,14 +129,14 @@ public interface TriplestoresAPI {
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{triplestoreID}/locks")
+    @Path("/{triplestoreID}/access/locks")
     @Produces(TEXT_PLAIN)
     Response acquireTriplestoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("triplestoreID") String triplestoreID,
                                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/{triplestoreID}/locks")
+    @Path("/{triplestoreID}/access/locks")
     @Produces(TEXT_PLAIN)
     Response releaseTriplestoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("triplestoreID") String triplestoreID,

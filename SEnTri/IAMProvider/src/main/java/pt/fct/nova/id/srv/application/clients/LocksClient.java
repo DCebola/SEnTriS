@@ -76,7 +76,7 @@ public class LocksClient {
         List<String> keys = new ArrayList<>(2);
         List<String> args = new ArrayList<>(2);
         keys.add(String.format(TRIPLESTORE_LOCK, triplestoreID));
-        keys.add(String.format(USER_TRIPLESTORE_LOCK, username));
+        keys.add(String.format(USER_TRIPLESTORE_LOCK, username, triplestoreID, uuid));
         args.add(uuid);
         args.add(LOCK_LIFETIME);
         return execLockScript(TRIPLESTORE_LOCK_SCRIPT, uuid, keys, args);

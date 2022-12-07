@@ -14,6 +14,7 @@ import java.util.List;
 import static jakarta.ws.rs.core.Response.Status.*;
 
 public class Utils {
+    private static final String BEARER = "Bearer";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String SUCCESSFUL_REQUEST_PROCESSING = "Successful request processing.";
     public static final String REQUEST_NOT_FOUND = "Request not found.";
@@ -43,9 +44,8 @@ public class Utils {
 
     public static String extractAccessToken(List<String> authorizationHeaders) {
         for (String val : authorizationHeaders) {
-            System.out.println(val);
-            if (val.contains("Bearer"))
-                return val;
+            if (val.contains(BEARER))
+                return val.split(" ")[1];
         }
         return null;
     }

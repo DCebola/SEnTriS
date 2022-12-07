@@ -206,10 +206,11 @@ public class IAMStorage {
     public static boolean storeAccessPolicyExists(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            Response<Boolean> r1 = p.exists(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
-            Response<Boolean> r2 = p.exists(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
+            Response<Boolean> r1 = p.exists(String.format(TRIPLESTORE_OWNER, triplestoreID));
+            Response<Boolean> r2 = p.exists(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
+            Response<Boolean> r3 = p.exists(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
             p.sync();
-            return r1.get() || r2.get();
+            return r1.get() || r2.get() || r3.get();
         }
     }
 
