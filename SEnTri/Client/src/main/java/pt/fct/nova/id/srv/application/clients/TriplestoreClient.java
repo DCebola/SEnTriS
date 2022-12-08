@@ -17,20 +17,21 @@ public class TriplestoreClient {
     private static final String DELETE_SOME_URI = System.getenv("TRIPLESTORE_DELETE_SOME_URI");
     private static final String QUERY_URI = System.getenv("TRIPLESTORE_QUERY_URI");
 
-    public static CloseableHttpResponse upload(Cookie cookie, String storeID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(UPLOAD_URI, storeID), ClientUtils.triplesToHttpEntity(triples), accessToken);
+    public static CloseableHttpResponse upload(Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
+        System.out.printf((UPLOAD_URI) + "%n", triplestoreID);
+        return HttpUtils.sendPOSTRequest(cookie, String.format(UPLOAD_URI, triplestoreID), ClientUtils.triplesToHttpEntity(triples), accessToken);
     }
 
-    public static CloseableHttpResponse query(Cookie cookie, String storeID, QueryExecutionPlan plan, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(QUERY_URI, storeID), ClientUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
+    public static CloseableHttpResponse query(Cookie cookie, String triplestoreID, QueryExecutionPlan plan, String accessToken) throws IOException {
+        return HttpUtils.sendPOSTRequest(cookie, String.format(QUERY_URI, triplestoreID), ClientUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
     }
 
-    public static CloseableHttpResponse deleteAll(Cookie cookie, String storeID, String accessToken) throws IOException {
-        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ALL_URI, storeID), accessToken);
+    public static CloseableHttpResponse deleteAll(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ALL_URI, triplestoreID), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(Cookie cookie, String storeID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(DELETE_SOME_URI, storeID), ClientUtils.triplesToHttpEntity(triples), accessToken);
+    public static CloseableHttpResponse deleteSome(Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
+        return HttpUtils.sendPOSTRequest(cookie, String.format(DELETE_SOME_URI, triplestoreID), ClientUtils.triplesToHttpEntity(triples), accessToken);
     }
 
 

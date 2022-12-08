@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.storage;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
@@ -12,7 +11,7 @@ public interface StorageEngine {
 
     void deleteStore(String storeID);
 
-    void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException;
+    void saveTriples(String storeID, List<String[]> triples) throws InvalidNodeException;
 
     IRITable findSubjects(String storeID, Node predicate, Node object, Var var);
 

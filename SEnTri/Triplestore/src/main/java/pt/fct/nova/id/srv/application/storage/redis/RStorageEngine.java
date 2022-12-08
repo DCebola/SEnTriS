@@ -3,7 +3,6 @@ package pt.fct.nova.id.srv.application.storage.redis;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
@@ -72,7 +71,7 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public void saveTriples(String storeID, List<Triple> triples) throws InvalidNodeException {
+    public void saveTriples(String storeID, List<String[]> triples) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             List<Response<String>> s_idxs = new ArrayList<>(triples.size());
             List<Response<String>> p_idxs = new ArrayList<>(triples.size());
@@ -82,16 +81,12 @@ public class RStorageEngine implements StorageEngine {
             List<String> o_iris = new ArrayList<>(triples.size());
             String s_iri, p_iri, o_iri;
             Pipeline p = jedis.pipelined();
-            for (Triple triple : triples) {
-                Node subject = triple.getSubject();
-                Node predicate = triple.getPredicate();
-                Node object = triple.getObject();
-
-                s_iri = parseNodeIRI(subject);
+            for (String[] triple : triples) {
+                s_iri = triple[0];
                 s_iris.add(s_iri);
-                p_iri = parseNodeIRI(predicate);
+                p_iri = triple[1];
                 p_iris.add(p_iri);
-                o_iri = parseNodeIRI(object);
+                o_iri = triple[2];
                 o_iris.add(o_iri);
 
                 s_idxs.add(getIndexFromIRI(p, S_IRIS, storeID, s_iri));

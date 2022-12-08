@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -24,7 +25,7 @@ import java.util.List;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HttpUtils.extractAccessToken;
 
-
+@Path("")
 public class TriplestoreController implements TriplestoreAPI {
     public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
     public static final String INTERNAL_ERROR = "Internal error.";
@@ -35,17 +36,18 @@ public class TriplestoreController implements TriplestoreAPI {
     private static final StorageEngine storageEngine = new RStorageEngine();
 
     @Override
-    public Response upload(Cookie cookie, String storeID, List<Triple> triples, List<String> authorizationHeaders) {
+    public Response upload(Cookie cookie, String triplestoreID, List<String[]> triples, List<String> authorizationHeaders) {
         try {
             String accessToken = extractAccessToken(authorizationHeaders);
             if (accessToken == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            System.out.println("Access token:" + accessToken);
 
-            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
-            storageEngine.saveTriples(storeID, triples);
+            storageEngine.saveTriples(triplestoreID, triples);
             return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();
@@ -54,18 +56,18 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    public Response answerSPARQLQuery(Cookie cookie, String storeID, QueryExecutionPlan queryExecutionPlan, List<String> authorizationHeaders) {
+    public Response answerSPARQLQuery(Cookie cookie, String triplestoreID, QueryExecutionPlan queryExecutionPlan, List<String> authorizationHeaders) {
         try {
             String accessToken = extractAccessToken(authorizationHeaders);
             if (accessToken == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ResultSet res = new SimpleSPARQLExecution(queryExecutionPlan).exec(new SimpleSPARQLWorker(storeID, storageEngine));
+            ResultSet res = new SimpleSPARQLExecution(queryExecutionPlan).exec(new SimpleSPARQLWorker(triplestoreID, storageEngine));
             ResultSetFormatter.outputAsJSON(out, res);
             return Response.ok(out.toByteArray()).build();
         } catch (NotImplemented e) {
@@ -76,17 +78,17 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response delete(Cookie cookie, String storeID, List<String> authorizationHeaders) {
+    public Response delete(Cookie cookie, String triplestoreID, List<String> authorizationHeaders) {
         try {
             String accessToken = extractAccessToken(authorizationHeaders);
             if (accessToken == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.hasOwnerAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
-            storageEngine.deleteStore(storeID);
+            storageEngine.deleteStore(triplestoreID);
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
@@ -94,13 +96,13 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response delete(Cookie cookie, String storeID, List<Triple> triples, List<String> authorizationHeaders) {
+    public Response delete(Cookie cookie, String triplestoreID, List<Triple> triples, List<String> authorizationHeaders) {
         try {
             String accessToken = extractAccessToken(authorizationHeaders);
             if (accessToken == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, storeID, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.hasWriteAccess(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }

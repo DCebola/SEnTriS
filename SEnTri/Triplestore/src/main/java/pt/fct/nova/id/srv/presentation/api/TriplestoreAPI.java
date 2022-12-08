@@ -17,36 +17,36 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 public interface TriplestoreAPI {
 
     @POST
-    @Path("{storeID}")
+    @Path("{triplestoreID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("storeID") String storeID,
-                    List<Triple> triples,
+                    @PathParam("triplestoreID") String triplestoreID,
+                    List<String[]> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/query/{storeID}")
+    @Path("/query/{triplestoreID}")
     @Consumes(APPLICATION_JSON)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("storeID") String storeID,
+                               @PathParam("triplestoreID") String triplestoreID,
                                QueryExecutionPlan queryExecutionPlan,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/{storeID}")
+    @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("storeID") String storeID,
+                    @PathParam("triplestoreID") String triplestoreID,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{storeID}/delete")
+    @Path("/{triplestoreID}/delete")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("storeID") String storeID,
+                    @PathParam("triplestoreID") String triplestoreID,
                     List<Triple> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 

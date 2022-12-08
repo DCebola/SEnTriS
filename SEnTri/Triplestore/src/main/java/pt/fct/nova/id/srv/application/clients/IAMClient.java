@@ -17,6 +17,7 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse hasWriteAccess(Cookie cookie, String storeID, String accessToken) throws IOException {
+        System.out.printf((IAM_PROVIDER_CHECK_STORE_WRITE_ACCESS_URI) + "%n", storeID);
         return sendGETRequest(cookie, String.format(IAM_PROVIDER_CHECK_STORE_WRITE_ACCESS_URI, storeID), accessToken);
     }
 

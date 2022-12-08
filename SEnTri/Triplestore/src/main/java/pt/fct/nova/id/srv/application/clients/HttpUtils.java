@@ -54,8 +54,8 @@ public class HttpUtils {
 
     public static String extractAccessToken(List<String> authorizationHeaders) {
         for (String val : authorizationHeaders) {
-            if (val.contains("Bearer"))
-                return val;
+            if (val.contains(BEARER))
+                return val.split(" ")[1];
         }
         return null;
     }

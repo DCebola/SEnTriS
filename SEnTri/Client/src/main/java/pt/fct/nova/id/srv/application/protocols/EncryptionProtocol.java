@@ -11,7 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import static pt.fct.nova.id.srv.application.protocols.ProtocolUtils.BASIC_SEPARATOR;
+import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.BASIC_SEPARATOR;
 
 public interface EncryptionProtocol {
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");

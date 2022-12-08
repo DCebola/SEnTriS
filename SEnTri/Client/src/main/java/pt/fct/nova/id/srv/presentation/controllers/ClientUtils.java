@@ -9,8 +9,10 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
@@ -18,7 +20,6 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.application.protocols.ProtocolUtils;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
@@ -33,6 +34,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -43,9 +45,12 @@ import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
 
 public class ClientUtils {
-
     public static final String COOKIE_PARAM = "session";
     public static final String INTERNAL_ERROR = "Internal error.";
+    public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
+    private static final String BLANK_IRI = "BLANK";
+    private static final String SIMPLE_IRI = "S".concat(BASIC_SEPARATOR).concat("%s");
+    private static final String LITERAL_IRI = "L".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
     private static final Gson gson = new Gson();
 
 
@@ -87,26 +92,19 @@ public class ClientUtils {
     }
 
     public static HttpEntity valuesMapToHttpEntity(Map<String, String> values) {
-        String json = gson.toJson(values, Map.class);
-        System.out.println(json);
-        return new StringEntity(json, StandardCharsets.UTF_8);
+        return new StringEntity(gson.toJson(values, Map.class), ContentType.APPLICATION_JSON);
     }
+
     public static HttpEntity triplesToHttpEntity(List<Triple> triples) throws InvalidNodeException {
-        String json = gson.toJson(serializeTriples(triples), List.class);
-        System.out.println(json);
-        return new StringEntity(json, StandardCharsets.UTF_8);
+        return new StringEntity(gson.toJson(serializeTriples(triples), List.class), ContentType.APPLICATION_JSON);
     }
 
     public static HttpEntity trapdoorsToHttpEntity(List<String> trapdoors) {
-        String json = gson.toJson(trapdoors, List.class);
-        System.out.println(json);
-        return new StringEntity(json, StandardCharsets.UTF_8);
+        return new StringEntity(gson.toJson(trapdoors, List.class), ContentType.APPLICATION_JSON);
     }
 
     public static HttpEntity queryExecutionPlanToHttpEntity(QueryExecutionPlan plan) {
-        String json = gson.toJson(plan, plan.getClass());
-        System.out.println(json);
-        return new StringEntity(json, StandardCharsets.UTF_8);
+        return new StringEntity(gson.toJson(plan, QueryExecutionPlan.class), ContentType.APPLICATION_JSON);
     }
 
     public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
@@ -183,11 +181,11 @@ public class ClientUtils {
 
     public static List<String[]> serializeTriples(List<Triple> triples) throws InvalidNodeException {
         List<String[]> serialized = new ArrayList<>(triples.size());
-        for(Triple t: triples)
+        for (Triple t : triples)
             serialized.add(new String[]{
-                    ProtocolUtils.parseNodeIRI(t.getSubject()),
-                    ProtocolUtils.parseNodeIRI(t.getPredicate()),
-                    ProtocolUtils.parseNodeIRI(t.getObject()),
+                    parseNodeIRI(t.getSubject()),
+                    parseNodeIRI(t.getPredicate()),
+                    parseNodeIRI(t.getObject()),
             });
         return serialized;
     }
@@ -199,6 +197,16 @@ public class ClientUtils {
         return l;
     }
 
+    public static String parseNodeIRI(Node node) throws InvalidNodeException {
+        if (!node.isConcrete())
+            throw new InvalidNodeException();
+        if (node.isURI())
+            return String.format(SIMPLE_IRI, node.getURI());
+        else if (node.isLiteral())
+            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+        else
+            return BLANK_IRI;
+    }
 
 
 }
