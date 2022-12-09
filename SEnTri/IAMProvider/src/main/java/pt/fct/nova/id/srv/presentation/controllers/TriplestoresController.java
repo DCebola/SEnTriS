@@ -676,7 +676,7 @@ public class TriplestoresController implements TriplestoresAPI {
                 return Response.ok(LOCK_NOT_FOUND).status(BAD_REQUEST).build();
             System.out.println("Release lock [" + tokenID + "]: (" + username + ", " + triplestoreID + ", " + lockID +")");
             IAMStorage.deleteLockFromToken(tokenID);
-            LocksClient.releaseTriplestoreLock(username, lockID, triplestoreID);
+            LocksClient.releaseTriplestoreLock(username, triplestoreID, lockID);
             return Response.ok(SUCCESSFUL_LOCK_RELEASE).build();
         } catch (SessionException e) {
             return handleSessionException(e);

@@ -253,41 +253,38 @@ public class IAMStorage {
 
     public static Set<String> getTriplestores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Set<String> triplestoreIDs = Utils.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
-            if (!write && !read && !owns)
-                return triplestoreIDs;
-            Pipeline p = jedis.pipelined();
-            Set<String> filteredTriplestoreIDs = new HashSet<>();
+            Set<String> owned = new HashSet<>();
             if (owns) {
-                List<Response<String>> owners = new ArrayList<>(triplestoreIDs.size());
+                owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
+                if (!write && !read)
+                    return owned;
+            }
+            Set<String> triplestoreIDs = Utils.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
+            if (!write && !read)
+                return triplestoreIDs;
+            else {
+                Pipeline p = jedis.pipelined();
+                Set<String> filteredTriplestoreIDs = new HashSet<>();
+                String accessCheckKey;
+                if (write)
+                    accessCheckKey = TRIPLESTORE_WRITE_ACCESS;
+                else
+                    accessCheckKey = TRIPLESTORE_READ_ACCESS;
+
+                List<Response<Boolean>> accessCheck = new ArrayList<>(triplestoreIDs.size());
                 for (String triplestoreID : triplestoreIDs)
-                    owners.add(p.get(String.format(TRIPLESTORE_OWNER, triplestoreID)));
+                    accessCheck.add(p.sismember(String.format(accessCheckKey, triplestoreID), username));
                 p.sync();
                 int i = 0;
                 for (String triplestoreID : triplestoreIDs) {
-                    if (username.equals(owners.get(i).get()))
+                    if (accessCheck.get(i).get())
                         filteredTriplestoreIDs.add(triplestoreID);
                     i++;
                 }
+                if (owns)
+                    filteredTriplestoreIDs.addAll(owned);
                 return filteredTriplestoreIDs;
             }
-            String accessCheckKey;
-            if (write)
-                accessCheckKey = TRIPLESTORE_WRITE_ACCESS;
-            else
-                accessCheckKey = TRIPLESTORE_READ_ACCESS;
-
-            List<Response<Boolean>> accessCheck = new ArrayList<>(triplestoreIDs.size());
-            for (String triplestoreID : triplestoreIDs)
-                accessCheck.add(p.sismember(String.format(accessCheckKey, triplestoreID), username));
-            p.sync();
-            int i = 0;
-            for (String triplestoreID : triplestoreIDs) {
-                if (accessCheck.get(i).get())
-                    filteredTriplestoreIDs.add(triplestoreID);
-                i++;
-            }
-            return filteredTriplestoreIDs;
         }
     }
 
