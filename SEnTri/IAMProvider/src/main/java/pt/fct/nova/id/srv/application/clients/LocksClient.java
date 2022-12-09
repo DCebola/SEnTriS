@@ -86,7 +86,10 @@ public class LocksClient {
 
     public static boolean checkIfTriplestoreLockExists(String triplestoreID, String lockID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            return jedis.get(String.format(TRIPLESTORE_LOCK, triplestoreID)).equals(lockID);
+            String l = jedis.get(String.format(TRIPLESTORE_LOCK, triplestoreID));
+            System.out.println(l);
+            System.out.println(lockID);
+            return l.equals(lockID);
         }
     }
 

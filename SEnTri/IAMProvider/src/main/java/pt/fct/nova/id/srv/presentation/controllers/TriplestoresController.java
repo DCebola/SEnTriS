@@ -462,11 +462,11 @@ public class TriplestoresController implements TriplestoresAPI {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-
+            System.out.println("Trying to deleted access token [" + tokenID + "]: (" + triplestoreID + ")");
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
                 return Response.ok(UNKNOWN_OR_EXPIRED_TOKEN).status(NOT_FOUND).build();
-            System.out.println("Trying to deleted access token [" + tokenID + "]: (" + triplestoreID + ")");
+            System.out.println("Found token to delete [" + tokenID + "]: (" + triplestoreID + ")");
             String tokenStoreID = Objects.requireNonNull(token.get(TOKEN_TRIPLESTORE_FIELD));
             if (!IAMStorage.storeAccessPolicyExists(triplestoreID)) {
                 if (triplestoreID.equals(tokenStoreID))

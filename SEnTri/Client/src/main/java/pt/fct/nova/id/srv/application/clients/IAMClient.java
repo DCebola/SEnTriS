@@ -58,8 +58,8 @@ public class IAMClient {
         return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_ACCESS_TOKEN_URI, triplestoreID, username));
     }
 
-    public static void deleteAccessToken(Cookie cookie, String accessToken) throws IOException {
-        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ACCESS_TOKEN_URI, accessToken));
+    public static void deleteAccessToken(Cookie cookie,String triplestoreID, String accessToken) throws IOException {
+        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ACCESS_TOKEN_URI, triplestoreID), accessToken);
         r.close();
     }
 

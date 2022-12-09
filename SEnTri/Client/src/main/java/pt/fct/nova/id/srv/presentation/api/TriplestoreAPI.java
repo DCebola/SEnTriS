@@ -43,8 +43,8 @@ public interface TriplestoreAPI {
     @Path("/{triplestoreID}/{issuer}")
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("issuer") String issuer,
-                    @PathParam("triplestoreID") String triplestoreID);
+                    @PathParam("triplestoreID") String triplestoreID,
+                    @PathParam("issuer") String issuer);
 
     @POST
     @Path("/query")

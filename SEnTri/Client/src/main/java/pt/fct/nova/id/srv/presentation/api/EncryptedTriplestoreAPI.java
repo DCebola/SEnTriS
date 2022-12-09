@@ -21,11 +21,11 @@ public interface EncryptedTriplestoreAPI {
                     @MultipartForm EncryptedCreateForm form);
 
     @DELETE
-    @Path("/{triplestoreID}/{username}")
+    @Path("/{triplestoreID}/{issuer}")
     @Produces(TEXT_PLAIN)
     Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("username") String username,
-                    @PathParam("triplestoreID") String triplestoreID);
+                    @PathParam("triplestoreID") String triplestoreID,
+                    @PathParam("issuer") String issuer);
 
     @POST
     @Path("/upload")

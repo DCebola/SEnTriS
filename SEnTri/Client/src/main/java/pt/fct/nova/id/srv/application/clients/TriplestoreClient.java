@@ -18,7 +18,6 @@ public class TriplestoreClient {
     private static final String QUERY_URI = System.getenv("TRIPLESTORE_QUERY_URI");
 
     public static CloseableHttpResponse upload(Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        System.out.printf((UPLOAD_URI) + "%n", triplestoreID);
         return HttpUtils.sendPOSTRequest(cookie, String.format(UPLOAD_URI, triplestoreID), ClientUtils.triplesToHttpEntity(triples), accessToken);
     }
 
@@ -27,6 +26,7 @@ public class TriplestoreClient {
     }
 
     public static CloseableHttpResponse deleteAll(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+        System.out.printf((DELETE_ALL_URI) + "%n", triplestoreID);
         return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ALL_URI, triplestoreID), accessToken);
     }
 
