@@ -125,7 +125,6 @@ public class TriplestoreController implements TriplestoreAPI {
 
             try (CloseableHttpResponse response = TriplestoreClient.deleteAll(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                    System.out.println("Failed to delete all.");
                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
                     return HttpUtils.buildResponse(response);
@@ -133,7 +132,6 @@ public class TriplestoreController implements TriplestoreAPI {
             }
             try (CloseableHttpResponse response = IAMClient.deleteTriplestore(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                    System.out.println("Failed to delete access policy.");
                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
                     return HttpUtils.buildResponse(response);
@@ -168,7 +166,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response updateTriplestoreOwner(Cookie cookie, String triplestoreID, String issuer, String target) {
         try {
             String accessToken;
-            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, target, triplestoreID)) {
+            try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, triplestoreID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
@@ -178,7 +176,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
-            try (CloseableHttpResponse response = IAMClient.updateTriplestoreOwner(cookie, triplestoreID, issuer, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.updateTriplestoreOwner(cookie, triplestoreID, target, accessToken)) {
                 IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                 IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
                 return HttpUtils.buildResponse(response);

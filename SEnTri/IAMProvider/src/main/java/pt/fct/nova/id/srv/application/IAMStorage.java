@@ -29,7 +29,7 @@ public class IAMStorage {
     private static final String TRIPLESTORE_WRITE_ACCESS = "TWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String TRIPLESTORE_OWNER = "TO".concat(BASIC_SEPARATOR).concat("%s");
     private static final String TRIPLESTORES_PATTERN = "TO".concat(BASIC_SEPARATOR).concat("*");
-    ;
+
     private static final String TRIPLESTORE_PENDING_ACCESS_REQUESTS = "TPA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ACCESS_REQUEST = "PA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ROLE_REQUESTS = "PRR";
@@ -231,8 +231,10 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.set(String.format(TRIPLESTORE_OWNER, triplestoreID), newOwner);
-            t.srem(String.format(USER_OWNED_TRIPLESTORES, currentOwner), triplestoreID);
             t.sadd(String.format(USER_OWNED_TRIPLESTORES, newOwner), triplestoreID);
+            t.srem(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID), newOwner);
+            t.srem(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID), newOwner);
+            t.srem(String.format(USER_OWNED_TRIPLESTORES, currentOwner), triplestoreID);
             t.exec();
         }
     }
@@ -253,38 +255,32 @@ public class IAMStorage {
 
     public static Set<String> getTriplestores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Set<String> owned = new HashSet<>();
-            if (owns) {
-                owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
-                if (!write && !read)
-                    return owned;
-            }
+            Set<String> owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
+            if (owns && !write && !read)
+                return owned;
             Set<String> triplestoreIDs = Utils.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
-            if (!write && !read)
+            if (!owns && !write && !read)
                 return triplestoreIDs;
-            else {
-                Pipeline p = jedis.pipelined();
-                Set<String> filteredTriplestoreIDs = new HashSet<>();
-                String accessCheckKey;
-                if (write)
-                    accessCheckKey = TRIPLESTORE_WRITE_ACCESS;
-                else
-                    accessCheckKey = TRIPLESTORE_READ_ACCESS;
+            Pipeline p = jedis.pipelined();
+            Set<String> filteredTriplestoreIDs = new HashSet<>();
+            String accessCheckKey;
+            if (write)
+                accessCheckKey = TRIPLESTORE_WRITE_ACCESS;
+            else
+                accessCheckKey = TRIPLESTORE_READ_ACCESS;
 
-                List<Response<Boolean>> accessCheck = new ArrayList<>(triplestoreIDs.size());
-                for (String triplestoreID : triplestoreIDs)
-                    accessCheck.add(p.sismember(String.format(accessCheckKey, triplestoreID), username));
-                p.sync();
-                int i = 0;
-                for (String triplestoreID : triplestoreIDs) {
-                    if (accessCheck.get(i).get())
-                        filteredTriplestoreIDs.add(triplestoreID);
-                    i++;
-                }
-                if (owns)
-                    filteredTriplestoreIDs.addAll(owned);
-                return filteredTriplestoreIDs;
+            List<Response<Boolean>> accessCheck = new ArrayList<>(triplestoreIDs.size());
+            for (String triplestoreID : triplestoreIDs)
+                accessCheck.add(p.sismember(String.format(accessCheckKey, triplestoreID), username));
+            p.sync();
+            int i = 0;
+            for (String triplestoreID : triplestoreIDs) {
+                if (accessCheck.get(i).get())
+                    filteredTriplestoreIDs.add(triplestoreID);
+                i++;
             }
+            filteredTriplestoreIDs.addAll(owned);
+            return filteredTriplestoreIDs;
         }
     }
 

@@ -116,8 +116,8 @@ public class IAMClient {
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
-    public static CloseableHttpResponse updateTriplestoreOwner(Cookie cookie, String triplestoreID, String issuer, String accessToken) throws IOException {
-        return HttpUtils.sendPUTRequest(cookie, String.format(UPDATE_TRIPLESTORE_OWNER_URI, triplestoreID, issuer), accessToken);
+    public static CloseableHttpResponse updateTriplestoreOwner(Cookie cookie, String triplestoreID, String target, String accessToken) throws IOException {
+        return HttpUtils.sendPUTRequest(cookie, String.format(UPDATE_TRIPLESTORE_OWNER_URI, triplestoreID, target), accessToken);
     }
 
     public static CloseableHttpResponse listUsersWithAccess(Cookie cookie, String triplestoreID, boolean write, String accessToken) throws URISyntaxException, IOException {

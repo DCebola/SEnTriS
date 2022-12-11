@@ -144,8 +144,6 @@ public class TriplestoresController implements TriplestoresAPI {
 
             if (!IAMStorage.userExists(target))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-            if (target.equals(issuer))
-                return Response.ok(ALREADY_OWNS).status(BAD_REQUEST).build();
 
             String tokenStoreID = Objects.requireNonNull(token.get(TOKEN_TRIPLESTORE_FIELD));
 
@@ -163,6 +161,13 @@ public class TriplestoresController implements TriplestoresAPI {
             if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(target, triplestoreID)))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
 
+            String owner = IAMStorage.getOwner(triplestoreID);
+            System.out.println("T: " + target);
+            System.out.println("O: " + owner);
+
+            if (target.equals(owner))
+                return Response.ok(ALREADY_OWNS).status(BAD_REQUEST).build();
+
             Role role = IAMStorage.getRole(target);
 
             if (role.equals(BASIC))
@@ -173,10 +178,8 @@ public class TriplestoresController implements TriplestoresAPI {
                 return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
                 return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
-            if (role.equals(ADMIN))
-                IAMStorage.updateTriplestoreOwner(triplestoreID, IAMStorage.getOwner(triplestoreID), target);
-            else
-                IAMStorage.updateTriplestoreOwner(triplestoreID, issuer, target);
+
+            IAMStorage.updateTriplestoreOwner(triplestoreID, owner, target);
             return Response.ok(SUCCESSFUL_TRIPLESTORE_OWNER_CHANGE).build();
         } catch (SessionException e) {
             return handleSessionException(e);
@@ -674,7 +677,7 @@ public class TriplestoresController implements TriplestoresAPI {
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
                 return Response.ok(LOCK_NOT_FOUND).status(BAD_REQUEST).build();
-            System.out.println("Release lock [" + tokenID + "]: (" + username + ", " + triplestoreID + ", " + lockID +")");
+            System.out.println("Release lock [" + tokenID + "]: (" + username + ", " + triplestoreID + ", " + lockID + ")");
             IAMStorage.deleteLockFromToken(tokenID);
             LocksClient.releaseTriplestoreLock(username, triplestoreID, lockID);
             return Response.ok(SUCCESSFUL_LOCK_RELEASE).build();
