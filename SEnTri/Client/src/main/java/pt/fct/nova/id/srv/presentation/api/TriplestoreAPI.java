@@ -73,8 +73,8 @@ public interface TriplestoreAPI {
                           @DefaultValue("false") @QueryParam("write") boolean write);
 
 
-    @PUT
-    @Path("/{triplestoreID}/access/{issuer}")
+    @POST
+    @Path("/{triplestoreID}/{issuer}/access/requests")
     @Produces(TEXT_PLAIN)
     Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                 @PathParam("triplestoreID") String triplestoreID,

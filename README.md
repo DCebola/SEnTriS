@@ -15,11 +15,11 @@ POST   Client/api/users/{username}/downgrade                          #Go back t
 GET    Client/api/users/{username}/requests                           #List pending upgrade requests.          (Admin)
 PUT    Client/api/users/{username}/requests/{requestID}               #Process upgrade request.                (Admin)
 
-POST   Client/api/triplestores/{TriplestoreID}/access/{issuer}                       #Issue access request.         (Basic)
 PUT    Client/api/triplestores/{TriplestoreID}/{issuer}/owner/{target}               #Change triplestore owner.     (Owner)
 DELETE Client/api/triplestores/{TriplestoreID}/{issuer}/access/{target}              #Revoke access.                (Basic)
-PUT    Client/api/triplestores/{TriplestoreID}/{issuer}/access/{taget}               #Grant access.                 (Owner)
+PUT    Client/api/triplestores/{TriplestoreID}/{issuer}/access/{target}              #Grant access.                 (Owner)
 GET    Client/api/triplestores/{TriplestoreID}/{issuer}/access/users                 #List users with access.       (Owner)
+POST   Client/api/triplestores/{TriplestoreID}/{issuer}/access/requests              #Issue access request.         (Basic)
 GET    Client/api/triplestores/{TriplestoreID}/{issuer}/access/requests              #List pending access requests. (Owner)
 PUT    Client/api/triplestores/{TriplestoreID}/{issuer}/access/requests/{requestID}  #Process access request.       (Owner)
 
