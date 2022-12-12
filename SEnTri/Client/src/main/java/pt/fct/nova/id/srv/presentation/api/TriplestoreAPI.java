@@ -48,7 +48,7 @@ public interface TriplestoreAPI {
 
     @POST
     @Path("/query")
-    @Consumes(SPARQL_QUERY)
+    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @Form QueryForm form);

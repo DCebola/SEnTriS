@@ -22,7 +22,6 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse hasOwnerAccess(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        System.out.printf((IAM_PROVIDER_CHECK_STORE_OWNER_ACCESS_URI) + "%n", triplestoreID);
         return sendGETRequest(cookie, String.format(IAM_PROVIDER_CHECK_STORE_OWNER_ACCESS_URI, triplestoreID), accessToken);
     }
 }

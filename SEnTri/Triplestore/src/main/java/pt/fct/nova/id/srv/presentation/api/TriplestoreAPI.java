@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 public interface TriplestoreAPI {
 
     @POST
-    @Path("{triplestoreID}")
+    @Path("/{triplestoreID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
@@ -31,7 +32,7 @@ public interface TriplestoreAPI {
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @PathParam("triplestoreID") String triplestoreID,
-                               QueryExecutionPlan queryExecutionPlan,
+                               SimpleQueryExecutionPlan queryExecutionPlan,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE

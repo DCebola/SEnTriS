@@ -4,12 +4,14 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.HttpUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
@@ -19,6 +21,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -29,9 +32,9 @@ import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreCo
 @Path("triplestores")
 public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
-
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
+    private static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new SimpleSPARQLPlanner());
 
 
@@ -93,12 +96,10 @@ public class TriplestoreController implements TriplestoreAPI {
     private Response upload(Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
         try (CloseableHttpResponse r = IAMClient.acquireTriplestoreLock(cookie, triplestoreID, accessToken)) {
             if (r.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                System.out.println("Failed to acquire lock.");
                 IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
                 return HttpUtils.buildResponse(r);
             }
         }
-        System.out.println("Acquired lock.");
         try (CloseableHttpResponse r = TriplestoreClient.upload(cookie, triplestoreID, triples, accessToken)) {
             IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
             IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
@@ -153,11 +154,17 @@ public class TriplestoreController implements TriplestoreAPI {
                     return HttpUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
             }
-            try (CloseableHttpResponse r = TriplestoreClient.query(cookie, triplestoreID, queryEngine.getQueryPlan(form.getQuery()), accessToken)) {
+            SimpleQueryExecutionPlan plan = (SimpleQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
+            System.out.println("Execution order:" + Arrays.toString(plan.getExecutionOrder().toArray()));
+            System.out.println("Vars:" + Arrays.toString(plan.getVars().toArray()));
+            try (CloseableHttpResponse r = TriplestoreClient.query(cookie, triplestoreID, plan , accessToken)) {
                 IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
                 return HttpUtils.buildResponse(r);
             }
-        } catch (IOException e) {
+        }catch (NotImplemented e) {
+            return Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+        catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }

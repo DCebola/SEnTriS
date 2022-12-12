@@ -55,6 +55,7 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse createAccessToken(Cookie cookie, String username, String triplestoreID) throws IOException {
+        System.out.printf((CREATE_ACCESS_TOKEN_URI) + "%n", triplestoreID, username);
         return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_ACCESS_TOKEN_URI, triplestoreID, username));
     }
 

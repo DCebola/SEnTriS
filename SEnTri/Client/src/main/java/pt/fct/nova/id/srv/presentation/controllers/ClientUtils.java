@@ -23,6 +23,7 @@ import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -103,8 +104,8 @@ public class ClientUtils {
         return new StringEntity(gson.toJson(trapdoors, List.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity queryExecutionPlanToHttpEntity(QueryExecutionPlan plan) {
-        return new StringEntity(gson.toJson(plan, QueryExecutionPlan.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity queryExecutionPlanToHttpEntity(SimpleQueryExecutionPlan plan) {
+        return new StringEntity(gson.toJson(plan, SimpleQueryExecutionPlan.class), ContentType.APPLICATION_JSON);
     }
 
     public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {

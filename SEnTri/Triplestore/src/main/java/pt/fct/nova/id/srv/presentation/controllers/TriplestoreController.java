@@ -14,6 +14,7 @@ import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLWorker;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
@@ -56,7 +57,7 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    public Response answerSPARQLQuery(Cookie cookie, String triplestoreID, QueryExecutionPlan queryExecutionPlan, List<String> authorizationHeaders) {
+    public Response answerSPARQLQuery(Cookie cookie, String triplestoreID, SimpleQueryExecutionPlan queryExecutionPlan, List<String> authorizationHeaders) {
         try {
             String accessToken = extractAccessToken(authorizationHeaders);
             if (accessToken == null)
@@ -66,6 +67,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ResultSet res = new SimpleSPARQLExecution(queryExecutionPlan).exec(new SimpleSPARQLWorker(triplestoreID, storageEngine));
             ResultSetFormatter.outputAsJSON(out, res);
@@ -73,6 +75,7 @@ public class TriplestoreController implements TriplestoreAPI {
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -11,8 +11,8 @@ public class EncryptedQueryForm extends QueryForm{
     @PartType(MediaType.APPLICATION_JSON)
     private final Map<String, String> secrets;
 
-    public EncryptedQueryForm(String issuer, String storeID, Map<String, String> secrets, String query) {
-        super(issuer, storeID, query);
+    public EncryptedQueryForm(String issuer, String triplestoreID, Map<String, String> secrets, String query) {
+        super(issuer, triplestoreID, query);
         this.secrets = secrets;
 
     }
