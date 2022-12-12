@@ -1,8 +1,13 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
+import org.apache.jena.atlas.json.JsonArray;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.AccessRequest;
 import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
@@ -112,16 +117,22 @@ public class TriplestoresController implements TriplestoresAPI {
             boolean isOwner = IAMStorage.checkIfOwns(issuer, triplestoreID);
             if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !isOwner))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-
+            JSONObject responseBody = new JSONObject();
             Set<String> readUsers = IAMStorage.getUserWithReadAccess(triplestoreID);
             Set<String> writeUsers = new HashSet<>();
             if (write) {
                 writeUsers = IAMStorage.getUserWithWriteAccess(triplestoreID);
                 readUsers.removeAll(writeUsers);
             }
+            String owner;
             if (!isOwner)
-                return Response.ok(new UsersWithAccessResponse(IAMStorage.getOwner(triplestoreID), readUsers, writeUsers)).build();
-            return Response.ok(new UsersWithAccessResponse(issuer, readUsers, writeUsers)).build();
+                owner = IAMStorage.getOwner(triplestoreID);
+            else
+                owner = issuer;
+            responseBody.put("owner", owner)
+                    .put("write", new JSONArray(writeUsers))
+                    .put("read", new JSONArray(readUsers));
+            return Response.ok(responseBody).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         }
