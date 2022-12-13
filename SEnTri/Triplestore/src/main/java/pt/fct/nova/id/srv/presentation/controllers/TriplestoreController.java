@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -76,7 +77,9 @@ public class TriplestoreController implements TriplestoreAPI {
                         .exec(new SimpleSPARQLWorker(triplestoreID, storageEngine));
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 ResultSetFormatter.outputAsJSON(out, res);
-                return Response.ok(res).build();
+                String responseBody = out.toString();
+                return Response.ok(responseBody)
+                        .header(HttpHeaders.CONTENT_LENGTH, responseBody.length()).build();
             }
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();

@@ -19,8 +19,8 @@ import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.INTERNAL_
 public class UsersController implements UsersAPI {
     @Override
     public Response auth(AuthForm credentialsForm) {
-        try (CloseableHttpResponse response = IAMClient.authenticate(credentialsForm)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.authenticate(credentialsForm));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -28,8 +28,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response registerUser(AuthForm credentialsForm) {
-        try (CloseableHttpResponse response = IAMClient.registerUser(credentialsForm)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.registerUser(credentialsForm));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -37,8 +37,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response deleteUser(Cookie cookie, String username) {
-        try (CloseableHttpResponse response = IAMClient.deleteUser(cookie, username)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.deleteUser(cookie, username));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -46,8 +46,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response issueUpgradeRequest(Cookie cookie, String username) {
-        try (CloseableHttpResponse response = IAMClient.issueUpgradeRequest(cookie, username)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.issueUpgradeRequest(cookie, username));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -55,8 +55,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response issueDowngradeRequest(Cookie cookie, String username) {
-        try (CloseableHttpResponse response = IAMClient.issueDowngradeRequest(cookie, username)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.issueDowngradeRequest(cookie, username));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -64,8 +64,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response listPendingRequests(Cookie cookie, String username) {
-        try (CloseableHttpResponse response = IAMClient.listPendingRoleRequests(cookie, username)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.listPendingRoleRequests(cookie, username));
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -73,8 +73,8 @@ public class UsersController implements UsersAPI {
 
     @Override
     public Response processPendingRequest(Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) {
-        try (CloseableHttpResponse response = IAMClient.processRoleRequest(cookie, username, requestID, decisionForm)) {
-            return HTTPUtils.buildResponse(response);
+        try {
+            return HTTPUtils.buildResponse(IAMClient.processRoleRequest(cookie, username, requestID, decisionForm));
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
