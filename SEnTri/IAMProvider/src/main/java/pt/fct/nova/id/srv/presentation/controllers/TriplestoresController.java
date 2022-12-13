@@ -507,11 +507,11 @@ public class TriplestoresController implements TriplestoresAPI {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
                 return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-
+            System.out.println("Check read access [" + tokenID + "]:" + triplestoreID);
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
                 return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
-
+            System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
             String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
 
@@ -528,6 +528,7 @@ public class TriplestoresController implements TriplestoresAPI {
 
             if (!IAMStorage.checkIfUserHasReadAccess(username, triplestoreID) &&
                     !IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
+                    !IAMStorage.checkIfOwns(username, triplestoreID) &&
                     !IAMStorage.getRole(username).equals(ADMIN)) {
                 IAMStorage.deleteAccessToken(tokenID, token);
                 return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();

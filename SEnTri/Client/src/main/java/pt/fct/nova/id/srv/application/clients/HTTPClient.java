@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.clients;
 
-
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -8,9 +7,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
 
-public class HTTPSClient {
+public class HTTPClient {
 
     private static HttpClientBuilder httpClientBuilder;
+
 
     private static void createHttpClientBuilder() {
         httpClientBuilder = HttpClients.custom()
@@ -22,5 +22,4 @@ public class HTTPSClient {
             createHttpClientBuilder();
         return httpClientBuilder.build();
     }
-
 }

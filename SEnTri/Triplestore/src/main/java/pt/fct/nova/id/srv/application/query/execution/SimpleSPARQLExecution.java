@@ -33,8 +33,6 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
         this.finished = new LinkedList<>();
         this.current = null;
         jobResults = new HashMap<>();
-        System.out.println("Pending:" + Arrays.toString(pending.toArray()));
-        System.out.println("Vars:" + Arrays.toString(vars.toArray()));
     }
 
 
@@ -71,8 +69,6 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     @Override
     public ResultSet exec(SPARQLWorker worker) throws SPARQLExecutionException{
         while (!pending.isEmpty()) {
-            System.out.println("Pending:" + pending);
-            System.out.println("Current:" + current);
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));
             finished.add(pending.poll());

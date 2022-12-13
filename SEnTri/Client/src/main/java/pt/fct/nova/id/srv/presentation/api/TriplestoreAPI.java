@@ -11,8 +11,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import static jakarta.ws.rs.core.MediaType.*;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
-import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_QUERY;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface TriplestoreAPI {
 

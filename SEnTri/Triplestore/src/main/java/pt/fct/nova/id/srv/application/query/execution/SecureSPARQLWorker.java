@@ -33,8 +33,8 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob) return execSearch((SecureSearchJob) job);
+        //else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
-        else if (job instanceof SecureValuesJob) return ((SecureValuesJob) job).getValues();
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 

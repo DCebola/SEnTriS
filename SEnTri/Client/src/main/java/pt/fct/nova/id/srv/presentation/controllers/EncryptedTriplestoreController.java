@@ -6,7 +6,10 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.clients.*;
+import pt.fct.nova.id.srv.application.clients.HTTPUtils;
+import pt.fct.nova.id.srv.application.clients.EncryptedTriplestoreClient;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.clients.VaultClient;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
@@ -28,7 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.*;
+import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INVALID_SYNTAX;
 
 @Path("triplestores/encrypted")
@@ -50,18 +53,18 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String issuer = form.getIssuer();
             try (CloseableHttpResponse response = IAMClient.createTriplestore(cookie, triplestoreID, issuer)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
             }
 
             String accessToken;
             try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, triplestoreID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
             }
             try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
             }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (form.getProtocolVersion()) {
@@ -73,12 +76,12 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                                 if (response2.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                                    return HttpUtils.buildResponse("Failure to delete triplestore. Error occurred while saving secrets: ", response2);
+                                    return HTTPUtils.buildResponse("Failure to delete triplestore. Error occurred while saving secrets: ", response2);
                                 }
                             }
                             IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                             IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                            return HttpUtils.buildResponse(response);
+                            return HTTPUtils.buildResponse(response);
                         }
                     }
 
@@ -88,7 +91,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(cookie, triplestoreID, p.getEncryptedT(), accessToken)) {
                         IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                         IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                        return HttpUtils.buildResponse(response);
+                        return HTTPUtils.buildResponse(response);
                     }
                 }
                 case V2 -> {
@@ -112,34 +115,34 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String accessToken;
             try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, triplestoreID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
             }
 
             try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
             }
 
             try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 }
             }
             try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 }
             }
             try (CloseableHttpResponse response = IAMClient.deleteTriplestore(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                     IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                     IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 }
             }
             return Response.ok(SUCCESSFUL_DELETION).build();
@@ -153,25 +156,25 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         try {
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
-            Map<String, String> secrets = ClientUtils.sanitizeSecrets(form.getSecrets());
+            Map<String, String> secrets = ParsingUtils.sanitizeSecrets(form.getSecrets());
 
             String accessToken;
             try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, issuer, triplestoreID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
             }
 
             if (secrets.isEmpty()) {
                 try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(cookie, triplestoreID, accessToken)) {
                     if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                        return HttpUtils.buildResponse(response);
-                    secrets = ClientUtils.parseSecrets(response.getEntity().toString());
+                        return HTTPUtils.buildResponse(response);
+                    secrets = ParsingUtils.parseSecrets(response.getEntity().toString());
                 }
             }
             try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(cookie, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
             }
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
@@ -190,7 +193,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(cookie, triplestoreID, p.getEncryptedT(), accessToken)) {
                         IAMClient.releaseTriplestoreLock(cookie, triplestoreID, accessToken);
                         IAMClient.deleteAccessToken(cookie, triplestoreID, accessToken);
-                        return HttpUtils.buildResponse(response);
+                        return HTTPUtils.buildResponse(response);
 
                     }
                 }
@@ -220,7 +223,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String triplestoreID = form.getTriplestoreID();
             try (CloseableHttpResponse response = IAMClient.createAccessToken(cookie, form.getIssuer(), triplestoreID)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HttpUtils.buildResponse(response);
+                    return HTTPUtils.buildResponse(response);
                 accessToken = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
             }
             /*
@@ -248,8 +251,8 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         List<String> keywordsTotals;
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(cookie, triplestoreID, trapdoors, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                return HttpUtils.buildResponse(response);
-            keywordsTotals = ClientUtils.parseSearchResults(EntityUtils.toString(response.getEntity()));
+                return HTTPUtils.buildResponse(response);
+            keywordsTotals = ParsingUtils.parseSearchResults(EntityUtils.toString(response.getEntity()));
         }
         protocol.updateKeywords(protocol.generateKeywordIVMap(keywords, keywordsTotals));
         return null;

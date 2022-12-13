@@ -7,7 +7,7 @@ import org.apache.http.client.utils.URIBuilder;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
-import pt.fct.nova.id.srv.presentation.controllers.ClientUtils;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,65 +36,65 @@ public class IAMClient {
 
 
     public static CloseableHttpResponse acquireTriplestoreLock(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(ACQUIRE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
+        return HTTPUtils.sendPOSTRequest(cookie, String.format(ACQUIRE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
     }
 
     public static void releaseTriplestoreLock(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(RELEASE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
+        CloseableHttpResponse r = HTTPUtils.sendDELETERequest(cookie, String.format(RELEASE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
         r.close();
     }
 
     public static CloseableHttpResponse createTriplestore(Cookie cookie, String triplestoreID, String username) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_TRIPLESTORE_URI, username),
-                ClientUtils.generateTriplestoreForm(username, triplestoreID));
+        return HTTPUtils.sendPOSTRequest(cookie, String.format(CREATE_TRIPLESTORE_URI, username),
+                ParsingUtils.generateTriplestoreForm(username, triplestoreID));
 
     }
 
     public static CloseableHttpResponse deleteTriplestore(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_TRIPLESTORE_URI, triplestoreID), accessToken);
+        return HTTPUtils.sendDELETERequest(cookie, String.format(DELETE_TRIPLESTORE_URI, triplestoreID), accessToken);
     }
 
     public static CloseableHttpResponse createAccessToken(Cookie cookie, String username, String triplestoreID) throws IOException {
         System.out.printf((CREATE_ACCESS_TOKEN_URI) + "%n", triplestoreID, username);
-        return HttpUtils.sendPOSTRequest(cookie, String.format(CREATE_ACCESS_TOKEN_URI, triplestoreID, username));
+        return HTTPUtils.sendPOSTRequest(cookie, String.format(CREATE_ACCESS_TOKEN_URI, triplestoreID, username));
     }
 
     public static void deleteAccessToken(Cookie cookie,String triplestoreID, String accessToken) throws IOException {
-        CloseableHttpResponse r = HttpUtils.sendDELETERequest(cookie, String.format(DELETE_ACCESS_TOKEN_URI, triplestoreID), accessToken);
+        CloseableHttpResponse r = HTTPUtils.sendDELETERequest(cookie, String.format(DELETE_ACCESS_TOKEN_URI, triplestoreID), accessToken);
         r.close();
     }
 
     public static CloseableHttpResponse authenticate(AuthForm credentialsForm) throws IOException {
-        return HttpUtils.sendPOSTRequest(AUTH_URI, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
+        return HTTPUtils.sendPOSTRequest(AUTH_URI, ParsingUtils.credentialsFormToHttpEntity(credentialsForm));
     }
 
     public static CloseableHttpResponse registerUser(AuthForm credentialsForm) throws IOException {
-        return HttpUtils.sendPOSTRequest(REGISTER_USER_URI, ClientUtils.credentialsFormToHttpEntity(credentialsForm));
+        return HTTPUtils.sendPOSTRequest(REGISTER_USER_URI, ParsingUtils.credentialsFormToHttpEntity(credentialsForm));
     }
 
     public static CloseableHttpResponse deleteUser(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendDELETERequest(cookie, String.format(DELETE_USER_URI, username));
+        return HTTPUtils.sendDELETERequest(cookie, String.format(DELETE_USER_URI, username));
     }
 
     public static CloseableHttpResponse issueUpgradeRequest(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ClientUtils.generateRoleRequest(username, Role.PRIVILEGED));
+        return HTTPUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ParsingUtils.generateRoleRequest(username, Role.PRIVILEGED));
     }
 
     public static CloseableHttpResponse issueDowngradeRequest(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ClientUtils.generateRoleRequest(username, Role.BASIC));
+        return HTTPUtils.sendPOSTRequest(cookie, String.format(ISSUE_ROLE_REQUEST_URI, username), ParsingUtils.generateRoleRequest(username, Role.BASIC));
     }
 
     public static CloseableHttpResponse listPendingRoleRequests(Cookie cookie, String username) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(LIST_PENDING_ROLE_REQUESTS, username));
+        return HTTPUtils.sendGETRequest(cookie, String.format(LIST_PENDING_ROLE_REQUESTS, username));
     }
 
     public static CloseableHttpResponse processRoleRequest(Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) throws URISyntaxException, IOException {
-        return HttpUtils.sendPUTRequest(cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID),
-                ClientUtils.requestDecisionFormToHttpEntity(decisionForm));
+        return HTTPUtils.sendPUTRequest(cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID),
+                ParsingUtils.requestDecisionFormToHttpEntity(decisionForm));
     }
 
     public static CloseableHttpResponse listTriplestores(Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
-        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_TRIPLESTORES_URI, issuer))
+        return HTTPUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_TRIPLESTORES_URI, issuer))
                 .addParameter("write", String.valueOf(write))
                 .addParameter("read", String.valueOf(read))
                 .addParameter("owns", String.valueOf(owns))
@@ -102,36 +102,36 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse requestAccess(Cookie cookie, String triplestoreID, String issuer, boolean write) throws IOException, URISyntaxException {
-        return HttpUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(REQUEST_ACCESS_URI, triplestoreID, issuer))
+        return HTTPUtils.sendPOSTRequest(cookie, new URIBuilder(String.format(REQUEST_ACCESS_URI, triplestoreID, issuer))
                         .addParameter("write", String.valueOf(write)).build());
     }
 
 
     public static CloseableHttpResponse grantAccess(Cookie cookie, String triplestoreID, String username, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendPUTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_URI, triplestoreID, username))
+        return HTTPUtils.sendPUTRequest(cookie, new URIBuilder(String.format(GRANT_ACCESS_URI, triplestoreID, username))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
     public static CloseableHttpResponse revokeAccess(Cookie cookie, String triplestoreID, String username, boolean write, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_URI, triplestoreID, username))
+        return HTTPUtils.sendDELETERequest(cookie, new URIBuilder(String.format(REVOKE_ACCESS_URI, triplestoreID, username))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
     public static CloseableHttpResponse updateTriplestoreOwner(Cookie cookie, String triplestoreID, String target, String accessToken) throws IOException {
-        return HttpUtils.sendPUTRequest(cookie, String.format(UPDATE_TRIPLESTORE_OWNER_URI, triplestoreID, target), accessToken);
+        return HTTPUtils.sendPUTRequest(cookie, String.format(UPDATE_TRIPLESTORE_OWNER_URI, triplestoreID, target), accessToken);
     }
 
     public static CloseableHttpResponse listUsersWithAccess(Cookie cookie, String triplestoreID, boolean write, String accessToken) throws URISyntaxException, IOException {
-        return HttpUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_USERS_WITH_ACCESS, triplestoreID))
+        return HTTPUtils.sendGETRequest(cookie, new URIBuilder(String.format(LIST_USERS_WITH_ACCESS, triplestoreID))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
     public static CloseableHttpResponse listPendingAccessRequests(Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return HttpUtils.sendGETRequest(cookie, String.format(LIST_PENDING_ACCESS_REQUESTS, triplestoreID), accessToken);
+        return HTTPUtils.sendGETRequest(cookie, String.format(LIST_PENDING_ACCESS_REQUESTS, triplestoreID), accessToken);
     }
 
     public static CloseableHttpResponse processAccessRequest(Cookie cookie, String triplestoreID, String requestID, boolean accept, String accessToken) throws IOException, URISyntaxException {
-        return HttpUtils.sendPUTRequest(cookie, new URIBuilder(String.format(PROCESS_ACCESS_REQUEST, triplestoreID, requestID))
+        return HTTPUtils.sendPUTRequest(cookie, new URIBuilder(String.format(PROCESS_ACCESS_REQUEST, triplestoreID, requestID))
                 .addParameter("accept", String.valueOf(accept)).build(), accessToken);
     }
 

@@ -27,3 +27,4 @@ cd ../Client
 docker-compose up --force-recreate --remove-orphans --detach
 wait
 unset DOCKER_REGISTRY
+docker ps

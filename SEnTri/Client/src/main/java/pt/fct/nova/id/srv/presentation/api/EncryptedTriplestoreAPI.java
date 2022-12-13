@@ -10,7 +10,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedUploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface EncryptedTriplestoreAPI {
     @POST

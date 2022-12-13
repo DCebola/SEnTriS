@@ -9,7 +9,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
-import static pt.fct.nova.id.srv.presentation.controllers.ClientUtils.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface UsersAPI {
     @POST

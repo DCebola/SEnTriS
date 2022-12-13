@@ -7,10 +7,9 @@ Please refer to this site for NTL documentation:
 http://www.shoup.net/ntl/doc/tour.html
 http://www.shoup.net/ntl/doc/ZZ.txt
 
-Credits to Andrew Quijano for code conversion 
+Credits to Andrew Quijano for code conversion
 and Samet Tonyali for helping on revising the code/debugging it.
 
-Feel free to use this code as you like.
  */
 
 import java.math.BigInteger;

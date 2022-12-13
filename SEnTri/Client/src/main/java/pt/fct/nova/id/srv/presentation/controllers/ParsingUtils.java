@@ -2,18 +2,22 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.EntityPart;
+import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
+import org.apache.http.util.EntityUtils;
+import org.apache.jena.graph.*;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
@@ -22,7 +26,6 @@ import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
@@ -34,8 +37,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -45,15 +50,16 @@ import java.util.*;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
 
-public class ClientUtils {
+public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
-    private static final String BLANK_IRI = "BLANK";
-    private static final String SIMPLE_IRI = "S".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String LITERAL_IRI = "L".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
-    private static final Gson gson = new Gson();
+    public static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
+    private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
+    private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
+    private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
 
+    private static final Gson gson = new Gson();
 
     public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
         List<NameValuePair> pairs = new ArrayList<>(2);
@@ -70,13 +76,19 @@ public class ClientUtils {
                 .build();
     }
 
+    public static Entity<GenericEntity<List<EntityPart>>> generateSecretsMultipartFormEntity(String triplestoreID, Map<String, String> secrets) throws IOException {
+        List<EntityPart> parts = Arrays.asList(
+                EntityPart.withName("triplestoreID").content(triplestoreID).mediaType(MediaType.TEXT_PLAIN).build(),
+                EntityPart.withName("secrets").content(secrets).mediaType(MediaType.APPLICATION_JSON).build());
+        return Entity.entity(new GenericEntity<>(parts) {}, MediaType.MULTIPART_FORM_DATA);
+    }
+
     public static HttpEntity credentialsFormToHttpEntity(AuthForm credentialsForm) {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));
         pairs.add(new BasicNameValuePair("password", credentialsForm.getPassword()));
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
-
 
     public static UrlEncodedFormEntity requestDecisionFormToHttpEntity(RequestDecisionForm decisionForm) {
         List<NameValuePair> pairs = new ArrayList<>(2);
@@ -104,8 +116,11 @@ public class ClientUtils {
         return new StringEntity(gson.toJson(trapdoors, List.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity queryExecutionPlanToHttpEntity(SimpleQueryExecutionPlan plan) {
-        return new StringEntity(gson.toJson(plan, SimpleQueryExecutionPlan.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity queryExecutionPlanToHttpEntity(SimpleQueryExecutionPlan plan) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(plan);
+            return new ByteArrayEntity(bos.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
+        }
     }
 
     public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
@@ -206,8 +221,6 @@ public class ClientUtils {
         else if (node.isLiteral())
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return BLANK_IRI;
+            return String.format(BLANK_IRI, node.getBlankNodeId());
     }
-
-
 }

@@ -6,7 +6,7 @@ import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
-import pt.fct.nova.id.srv.presentation.controllers.ClientUtils;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -90,9 +90,10 @@ public class Protocol1 implements EncryptionProtocol {
     private void encryptTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String s, p, o;
         for (Triple t : triples) {
-            s = ClientUtils.parseNodeIRI(t.getSubject());
-            p = ClientUtils.parseNodeIRI(t.getSubject());
-            o = ClientUtils.parseNodeIRI(t.getSubject());
+            //TODO: Handle blank nodes -> trapdoor must refer to constant value "BLANK", but encoded value must be blank node id.
+            s = ParsingUtils.parseNodeIRI(t.getSubject());
+            p = ParsingUtils.parseNodeIRI(t.getSubject());
+            o = ParsingUtils.parseNodeIRI(t.getSubject());
             encodeNode(k1, k2, k3, s, VariablesPattern.P, p);
             encodeNode(k1, k2, k3, s, VariablesPattern.O, o);
             encodeNode(k1, k2, k3, p, VariablesPattern.S, s);
@@ -124,9 +125,9 @@ public class Protocol1 implements EncryptionProtocol {
         Set<String> skip = new HashSet<>();
         String s, p, o, po, so, sp;
         for (Triple t : triples) {
-            s = ClientUtils.parseNodeIRI(t.getSubject());
-            p = ClientUtils.parseNodeIRI(t.getPredicate());
-            o = ClientUtils.parseNodeIRI(t.getObject());
+            s = ParsingUtils.parseNodeIRI(t.getSubject());
+            p = ParsingUtils.parseNodeIRI(t.getPredicate());
+            o = ParsingUtils.parseNodeIRI(t.getObject());
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);

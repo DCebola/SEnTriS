@@ -28,11 +28,11 @@ public interface TriplestoreAPI {
 
     @POST
     @Path("/query/{triplestoreID}")
-    @Consumes(APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                @PathParam("triplestoreID") String triplestoreID,
-                               SimpleQueryExecutionPlan queryExecutionPlan,
+                               byte[] queryExecutionPlan,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
