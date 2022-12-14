@@ -9,9 +9,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 
 public class HTTPClient {
-
     private static HttpClientBuilder httpClientBuilder;
-
 
     private static void createHttpClientBuilder() {
         PoolingHttpClientConnectionManager connPool = new PoolingHttpClientConnectionManager();

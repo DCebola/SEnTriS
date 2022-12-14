@@ -10,7 +10,7 @@ import java.util.List;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.application.clients.HttpUtils.COOKIE_PARAM;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.COOKIE_PARAM;
 
 public interface SecretsAPI {
 
