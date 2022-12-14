@@ -50,7 +50,8 @@ public class TriplestoreController implements TriplestoreAPI {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HttpUtils.buildResponse(response);
             }
-            storageEngine.saveTriples(triplestoreID, triples);
+            for (String[] triple : triples)
+                storageEngine.saveTriple(triplestoreID, triple);
             return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();

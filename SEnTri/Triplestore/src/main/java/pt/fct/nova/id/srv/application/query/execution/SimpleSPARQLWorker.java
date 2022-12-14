@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
@@ -17,6 +18,7 @@ import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +65,12 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
+        try {
+            System.out.println("Search [" + varPattern + "]: (" + var.getVarName() + ")->[" +
+                    storageEngine.parseNodeIRI(node1) + ", " + storageEngine.parseNodeIRI(node2) + "]");
+        } catch (InvalidNodeException e) {
+            throw new RuntimeException(e);
+        }
         if (varPattern == VariablesPattern.S) return storageEngine.findSubjects(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.P) return storageEngine.findPredicates(storeID, node1, node2, var);
         else if (varPattern == VariablesPattern.O) return storageEngine.findObjects(storeID, node1, node2, var);
@@ -70,6 +78,12 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
+        try {
+            System.out.println("Search [" + varPattern + "]: (" + var1.getVarName() + ", " +
+                    var2.getVarName() + ")->[" + storageEngine.parseNodeIRI(node) + "]");
+        } catch (InvalidNodeException e) {
+            throw new RuntimeException(e);
+        }
         if (varPattern == VariablesPattern.SP)
             return storageEngine.findSP(storeID, node, var1, var2);
         else if (varPattern == VariablesPattern.SO)
@@ -84,7 +98,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         Var var;
         Node node;
         Iterator<Var> vars;
-        for (Binding binding : job.getValues()) {
+        for (SerializableBinding binding : job.getValues()) {
             String p_idx = generateID();
             vars = binding.vars();
             while (vars.hasNext()) {
@@ -128,7 +142,11 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         resultType.setOrdered(true);
-        resultType.setSortConditions(job.getSortConditions());
+        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
+        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
+        for (SerializableSortCondition condition : serializableSortConditions)
+            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
+        resultType.setSortConditions(sortConditions);
         return prevJobResults;
     }
 
@@ -190,29 +208,29 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public Collection<Binding> generateBindings(IRITable jobResults) {
-            Collection<Binding> res;
-            boolean isDistinct = resultType.isDistinct();
-            boolean isOrdered = resultType.isOrdered();
-            if (isDistinct && isOrdered)
-                res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
-            else if (isDistinct)
-                res = generateBindings(new HashSet<>(), jobResults);
-            else {
-                res = generateBindings(new LinkedList<>(), jobResults);
-                if (isOrdered)
-                    res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
-            }
-            if (resultType.isSliced()) {
-                long offset = resultType.getOffset();
-                long length = resultType.getLength();
-                if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                    res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
-                else if (offset != Query.NOLIMIT)
-                    res = res.stream().skip(offset).collect(Collectors.toList());
-                else if (length != Query.NOLIMIT)
-                    res = res.stream().limit(length).collect(Collectors.toList());
-            }
-            return res;
+        Collection<Binding> res;
+        boolean isDistinct = resultType.isDistinct();
+        boolean isOrdered = resultType.isOrdered();
+        if (isDistinct && isOrdered)
+            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
+        else if (isDistinct)
+            res = generateBindings(new HashSet<>(), jobResults);
+        else {
+            res = generateBindings(new LinkedList<>(), jobResults);
+            if (isOrdered)
+                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
+        }
+        if (resultType.isSliced()) {
+            long offset = resultType.getOffset();
+            long length = resultType.getLength();
+            if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
+                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+            else if (offset != Query.NOLIMIT)
+                res = res.stream().skip(offset).collect(Collectors.toList());
+            else if (length != Query.NOLIMIT)
+                res = res.stream().limit(length).collect(Collectors.toList());
+        }
+        return res;
     }
 
     private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {
@@ -229,6 +247,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             bindings.add(builder.build());
             builder.reset();
         }
+
         return bindings;
     }
 }

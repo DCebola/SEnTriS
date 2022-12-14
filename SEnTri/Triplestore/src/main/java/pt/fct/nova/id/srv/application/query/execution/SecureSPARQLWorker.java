@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
@@ -33,7 +34,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob) return execSearch((SecureSearchJob) job);
-        //else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
+            //else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
@@ -78,7 +79,11 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         resultType.setOrdered(true);
-        resultType.setSortConditions(job.getSortConditions());
+        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
+        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
+        for (SerializableSortCondition condition : serializableSortConditions)
+            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
+        resultType.setSortConditions(sortConditions);
         return prevJobResults;
     }
 

@@ -4,6 +4,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
@@ -183,8 +184,23 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private void generateValuesJob(OpTable op) {
-        List<Binding> values = new LinkedList<>();
-        op.getTable().rows().forEachRemaining(values::add);
+        List<SerializableBinding> values = new LinkedList<>();
+        Iterator<Binding> rows = op.getTable().rows();
+        Binding row;
+        Iterator<Var> rowVars;
+        Var currentVar;
+        Map<Var, Node> collector;
+        while (rows.hasNext()) {
+            row = rows.next();
+            rowVars = row.vars();
+            collector = new HashMap<>();
+            while (rowVars.hasNext()) {
+                currentVar = rowVars.next();
+                collector.put(currentVar, row.get(currentVar));
+            }
+            values.add(new SerializableBinding(collector));
+
+        }
         String jobID = generateID();
         parsed_op.put(op, jobID);
         plan.pushJob(new ValuesJob(jobID, values));
@@ -269,7 +285,11 @@ public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private void generateOrderByJob(OpOrder op) {
         String jobID = generateID();
-        plan.pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), op.getConditions()));
+        List<SortCondition> conditions = op.getConditions();
+        List<SerializableSortCondition> serializableSortConditions = new ArrayList<>(conditions.size());
+        for (SortCondition sortCondition : conditions)
+            serializableSortConditions.add(new SerializableSortCondition(sortCondition.getExpression().asVar(), sortCondition.getDirection()));
+        plan.pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), serializableSortConditions));
         parsed_op.put(op, jobID);
     }
 

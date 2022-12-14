@@ -71,7 +71,52 @@ public class RStorageEngine implements StorageEngine {
     }
 
     @Override
-    public void saveTriples(String storeID, List<String[]> triples) {
+    public void saveTriple(String storeID, String[] triple) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            String s_iri = triple[0];
+            String p_iri = triple[1];
+            String o_iri = triple[2];
+
+            Pipeline p = jedis.pipelined();
+            Response<String> resp_s = getIndexFromIRI(p, S_IRIS, storeID, s_iri);
+            Response<String> resp_p = getIndexFromIRI(p, P_IRIS, storeID, p_iri);
+            Response<String> resp_o = getIndexFromIRI(p, O_IRIS, storeID, o_iri);
+            p.sync();
+
+            String s_idx = resp_s.get();
+            String p_idx = resp_p.get();
+            String o_idx = resp_o.get();
+
+            Transaction t = jedis.multi();
+
+            if (s_idx == null) {
+                s_idx = generateID();
+                putIRI(t, S_IRIS, storeID, s_iri, s_idx);
+            }
+            if (p_idx == null) {
+                p_idx = generateID();
+                putIRI(t, P_IRIS, storeID, p_iri, p_idx);
+            }
+            if (o_idx == null) {
+                o_idx = generateID();
+                putIRI(t, O_IRIS, storeID, o_iri, o_idx);
+            }
+
+            String sp_idx = generateComplementIndex(s_idx, p_idx);
+            String so_idx = generateComplementIndex(s_idx, o_idx);
+            String po_idx = generateComplementIndex(p_idx, o_idx);
+
+            putSimpleIndex(t, ALL_S, SINGLE_S, storeID, s_idx, po_idx);
+            putSimpleIndex(t, ALL_P, SINGLE_P, storeID, p_idx, so_idx);
+            putSimpleIndex(t, ALL_O, SINGLE_O, storeID, o_idx, sp_idx);
+
+            putCompoundIndex(t, SINGLE_SP, storeID, sp_idx, o_idx);
+            putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
+            putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
+
+            t.exec();
+        }
+        /*
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             List<Response<String>> s_idxs = new ArrayList<>(triples.size());
             List<Response<String>> p_idxs = new ArrayList<>(triples.size());
@@ -128,6 +173,7 @@ public class RStorageEngine implements StorageEngine {
 
             t.exec();
         }
+        */
     }
 
 
@@ -210,8 +256,8 @@ public class RStorageEngine implements StorageEngine {
             String idx_2 = resp_idx_2.get();
             if (idx_1 == null || idx_2 == null)
                 return res;
-
-            Set<String> idxs = jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR)).concat(idx_2));
+            System.out.printf(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx_2));
+            Set<String> idxs = jedis.smembers(String.format(compoundIdxKeyFormatter, storeID, idx_1.concat(COMPOUND_INDEX_SEPARATOR).concat(idx_2)));
             List<Response<String>> responses = new ArrayList<>(idxs.size());
 
             int i = 0;

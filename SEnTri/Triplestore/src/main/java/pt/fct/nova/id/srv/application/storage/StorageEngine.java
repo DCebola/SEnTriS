@@ -11,7 +11,7 @@ public interface StorageEngine {
 
     void deleteStore(String storeID);
 
-    void saveTriples(String storeID, List<String[]> triples) throws InvalidNodeException;
+    void saveTriple(String storeID, String[] triple) throws InvalidNodeException;
 
     IRITable findSubjects(String storeID, Node predicate, Node object, Var var);
 

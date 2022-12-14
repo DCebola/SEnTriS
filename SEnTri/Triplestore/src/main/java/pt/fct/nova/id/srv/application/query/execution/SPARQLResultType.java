@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.SortCondition;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 
 import java.util.List;
 
