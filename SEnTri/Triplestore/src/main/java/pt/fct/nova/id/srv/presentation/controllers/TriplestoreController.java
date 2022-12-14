@@ -76,7 +76,7 @@ public class TriplestoreController implements TriplestoreAPI {
                         .exec(new SimpleSPARQLWorker(triplestoreID, storageEngine));
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 ResultSetFormatter.outputAsJSON(out, res);
-                return Response.ok(res).build();
+                return Response.ok(out.toByteArray()).build();
             }
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();

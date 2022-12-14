@@ -6,12 +6,11 @@ import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
@@ -22,161 +21,143 @@ public class HTTPUtils {
     private static final String DOMAIN = System.getenv("DOMAIN");
     private static final String COOKIE_FORMAT = COOKIE_PARAM.concat("=%s; Path=/; Domain=").concat(DOMAIN).concat("; Secure; HttpOnly;");
 
-    public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri) throws IOException {
+    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, Cookie cookie, String uri) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri) throws IOException {
+    public static CloseableHttpResponse sendDELETERequest(HttpClient httpClient, Cookie cookie, String uri) throws IOException {
         HttpDelete request = new HttpDelete(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, String uri) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(String uri, HttpEntity body) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, String uri, HttpEntity body) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setEntity(body);
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, String uri, HttpEntity body) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setEntity(body);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, String uri, HttpEntity body) throws IOException {
+    public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, Cookie cookie, String uri, HttpEntity body) throws IOException {
         HttpPut request = new HttpPut(uri);
         request.setEntity(body);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendGETRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, String uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendDELETERequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpDelete request = new HttpDelete(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpPut request = new HttpPut(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, String uri, HttpEntity body, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         request.setEntity(body);
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri) throws IOException {
+    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, Cookie cookie, URI uri) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
 
-    public static CloseableHttpResponse sendGETRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendDELETERequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendDELETERequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpDelete request = new HttpDelete(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
 
-    public static CloseableHttpResponse sendPOSTRequest(Cookie cookie, URI uri) throws IOException {
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, URI uri) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPUTRequest(Cookie cookie, URI uri, String accessToken) throws IOException {
+    public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpPut request = new HttpPut(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        try (CloseableHttpClient client = HTTPClient.buildClient()) {
-            return client.execute(request);
-        }
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
     public static Response buildResponse(String prefix, CloseableHttpResponse response) throws IOException {
-        return Response.ok(prefix.concat(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)))
+        return Response.ok(prefix.concat(consumeResponseEntity(response)))
                 .status(response.getStatusLine().getStatusCode()).build();
     }
 
     public static Response buildResponse(CloseableHttpResponse response) throws IOException {
-        Header[] headers = response.getHeaders("Set-Cookie");
-        if (headers.length > 0)
-            return Response.ok(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8))
-                    .cookie(buildCookie(headers[0].getValue().split(";")[0].split("=")[1].replace("\"", "")))
-                    .status(response.getStatusLine().getStatusCode()).build();
-        return Response.ok(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8)).status(response.getStatusLine().getStatusCode()).build();
+        return Response.ok(consumeResponseEntity(response)).status(response.getStatusLine().getStatusCode()).build();
     }
 
+    public static String consumeResponseEntity(CloseableHttpResponse response) throws IOException {
+        String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        EntityUtils.consume(response.getEntity());
+        return responseBody;
+    }
+
+    public static Response buildResponse(NewCookie cookie, CloseableHttpResponse response) throws IOException {
+        return Response.ok(consumeResponseEntity(response))
+                .status(response.getStatusLine().getStatusCode())
+                .cookie(cookie)
+                .build();
+    }
+
+    public static NewCookie extractCookie(CloseableHttpResponse response) {
+        Header[] headers = response.getHeaders("Set-Cookie");
+        if (headers.length > 0)
+            return buildCookie(headers[0].getValue().split(";")[0].split("=")[1].replace("\"", ""));
+        return null;
+    }
 
     public static NewCookie buildCookie(String uid) {
         return new NewCookie.Builder(COOKIE_PARAM)

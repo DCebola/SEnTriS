@@ -284,3 +284,5 @@ SEnTri/*/target/
 SEnTri/Scripts/Triplestore/db_data/
 
 *.war
+
+*.rdb
