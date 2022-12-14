@@ -13,12 +13,12 @@ import org.apache.jena.query.ResultSetFormatter;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
-import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLWorker;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLWorker;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.DefaultStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 
 import java.io.ByteArrayInputStream;
@@ -37,7 +37,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String SUCCESSFUL_DELETION = "Store deleted.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private static final StorageEngine storageEngine = new RStorageEngine();
+    private static final StorageEngine storageEngine = new DefaultStorageEngine();
 
 
     @Override
@@ -73,8 +73,8 @@ public class TriplestoreController implements TriplestoreAPI {
 
             try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
-                ResultSet res = new SimpleSPARQLExecution((QueryExecutionPlan) ois.readObject())
-                        .exec(new SimpleSPARQLWorker(triplestoreID, storageEngine));
+                ResultSet res = new DefaultSPARQLExecution((QueryExecutionPlan) ois.readObject())
+                        .exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 ResultSetFormatter.outputAsJSON(out, res);
                 return Response.ok(out.toByteArray()).build();

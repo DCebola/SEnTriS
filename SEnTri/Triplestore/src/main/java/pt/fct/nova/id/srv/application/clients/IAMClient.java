@@ -18,7 +18,6 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse hasWriteAccess(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        System.out.printf((CHECK_TRIPLESTORE_WRITE_ACCESS_URI) + "%n", triplestoreID);
         return sendGETRequest(httpClient, cookie, String.format(CHECK_TRIPLESTORE_WRITE_ACCESS_URI, triplestoreID), accessToken);
     }
 

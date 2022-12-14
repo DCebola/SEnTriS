@@ -5,14 +5,14 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 import java.util.*;
 
-public class SimpleSPARQLExecution implements SPARQLExecution {
+public class DefaultSPARQLExecution implements SPARQLExecution {
 
 
 
@@ -25,7 +25,7 @@ public class SimpleSPARQLExecution implements SPARQLExecution {
     private final List<Var> vars;
 
 
-    public SimpleSPARQLExecution(QueryExecutionPlan plan) {
+    public DefaultSPARQLExecution(QueryExecutionPlan plan) {
         this.vars = plan.getVars();
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();

@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import redis.clients.jedis.Jedis;
@@ -16,7 +15,7 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
-public class EncryptedRStorageEngine implements EncryptedStorageEngine {
+public class EncryptedStorageEngine implements pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private final static String KEY_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");

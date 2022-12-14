@@ -19,7 +19,7 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
-public class RStorageEngine implements StorageEngine {
+public class DefaultStorageEngine implements StorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
@@ -116,64 +116,6 @@ public class RStorageEngine implements StorageEngine {
 
             t.exec();
         }
-        /*
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<Response<String>> s_idxs = new ArrayList<>(triples.size());
-            List<Response<String>> p_idxs = new ArrayList<>(triples.size());
-            List<Response<String>> o_idxs = new ArrayList<>(triples.size());
-            List<String> s_iris = new ArrayList<>(triples.size());
-            List<String> p_iris = new ArrayList<>(triples.size());
-            List<String> o_iris = new ArrayList<>(triples.size());
-            String s_iri, p_iri, o_iri;
-            Pipeline p = jedis.pipelined();
-            for (String[] triple : triples) {
-                s_iri = triple[0];
-                s_iris.add(s_iri);
-                p_iri = triple[1];
-                p_iris.add(p_iri);
-                o_iri = triple[2];
-                o_iris.add(o_iri);
-
-                s_idxs.add(getIndexFromIRI(p, S_IRIS, storeID, s_iri));
-                p_idxs.add(getIndexFromIRI(p, P_IRIS, storeID, p_iri));
-                o_idxs.add(getIndexFromIRI(p, O_IRIS, storeID, o_iri));
-            }
-            p.sync();
-            String s_idx, p_idx, o_idx;
-            Transaction t = jedis.multi();
-            for (int i = 0; i < triples.size(); i++) {
-                s_idx = s_idxs.get(i).get();
-                p_idx = p_idxs.get(i).get();
-                o_idx = o_idxs.get(i).get();
-                if (s_idx == null) {
-                    s_idx = generateID();
-                    putIRI(t, S_IRIS, storeID, s_iris.get(i), s_idx);
-                }
-                if (p_idx == null) {
-                    p_idx = generateID();
-                    putIRI(t, P_IRIS, storeID, p_iris.get(i), p_idx);
-                }
-                if (o_idx == null) {
-                    o_idx = generateID();
-                    putIRI(t, O_IRIS, storeID, o_iris.get(i), o_idx);
-                }
-
-                String sp_idx = generateComplementIndex(s_idx, p_idx);
-                String so_idx = generateComplementIndex(s_idx, o_idx);
-                String po_idx = generateComplementIndex(p_idx, o_idx);
-
-                putSimpleIndex(t, ALL_S, SINGLE_S, storeID, s_idx, po_idx);
-                putSimpleIndex(t, ALL_P, SINGLE_P, storeID, p_idx, so_idx);
-                putSimpleIndex(t, ALL_O, SINGLE_O, storeID, o_idx, sp_idx);
-
-                putCompoundIndex(t, SINGLE_SP, storeID, sp_idx, o_idx);
-                putCompoundIndex(t, SINGLE_SO, storeID, so_idx, p_idx);
-                putCompoundIndex(t, SINGLE_PO, storeID, po_idx, s_idx);
-            }
-
-            t.exec();
-        }
-        */
     }
 
 

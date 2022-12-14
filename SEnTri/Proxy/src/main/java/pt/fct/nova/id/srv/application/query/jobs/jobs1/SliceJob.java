@@ -1,7 +1,10 @@
 package pt.fct.nova.id.srv.application.query.jobs.jobs1;
 
-public class SliceJob extends BaseJob1 {
+import java.io.Serial;
 
+public class SliceJob extends BaseJob1 {
+    @Serial
+    private static final long serialVersionUID = 5545662348392523294L;
     private final Long length;
     private final Long offset;
 

@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
@@ -10,45 +11,49 @@ import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
-import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
+import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
+import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class SecureSPARQLWorker implements SPARQLWorker {
-    private final EncryptedStorageEngine storageEngine;
-    private final String storeID;
+
+    private final ProxyStorage proxyStorage;
     private final SPARQLResultType resultType;
 
-    public SecureSPARQLWorker(String storeID, EncryptedStorageEngine storageEngine) {
-        this.storeID = storeID;
-        this.storageEngine = storageEngine;
-        resultType = new SimpleSPARQLResultType();
+    public SecureSPARQLWorker(ProxyStorage proxyStorage) {
+        this.proxyStorage = proxyStorage;
+        resultType = new DefaultSPARQLResultType();
     }
 
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
-        if (job instanceof SecureSearchJob) return execSearch((SecureSearchJob) job);
+        if (job instanceof SecureSearchJob) return proxyStorage.search(((SecureSearchJob) job).getVars());
+        else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
-        else if (job instanceof SecureValuesJob) return ((SecureValuesJob) job).getValues();
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execSearch(SecureSearchJob job) {
-        List<Var> vars = job.getVars();
-        int numVars = vars.size();
-        if (numVars > 2 || numVars == 0)
-            throw new SecureSearchException(job.getClass().toString(), job.getID(), numVars);
-        else {
-            if (numVars == 2)
-                return storageEngine.search(storeID, vars.get(0), vars.get(1), job.getTrapdoors());
-            else
-                return storageEngine.search(storeID, vars.get(0), job.getTrapdoors());
+    private IRITable execSecureValues(EncryptedValuesJob job) {
+        IRITable res = new MemValuesTable();
+        Var var;
+        String encryptedNode;
+        Iterator<Var> vars;
+        for (EncryptedBinding binding : job.getValues()) {
+            String p_idx = generateID();
+            vars = binding.vars();
+            while (vars.hasNext()) {
+                var = vars.next();
+                encryptedNode = binding.get(var);
+                res.add(p_idx, var, encryptedNode);
+            }
         }
+        return res;
     }
 
     @Override
@@ -78,7 +83,11 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         resultType.setOrdered(true);
-        resultType.setSortConditions(job.getSortConditions());
+        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
+        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
+        for (SerializableSortCondition condition : serializableSortConditions)
+            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
+        resultType.setSortConditions(sortConditions);
         return prevJobResults;
     }
 
@@ -142,16 +151,11 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     public Collection<Binding> generateBindings(IRITable jobResults) {
         Collection<Binding> res;
         boolean isDistinct = resultType.isDistinct();
-        boolean isOrdered = resultType.isOrdered();
-        if (isDistinct && isOrdered)
-            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
-        else if (isDistinct)
+        if (isDistinct)
             res = generateBindings(new HashSet<>(), jobResults);
-        else {
+        else
             res = generateBindings(new LinkedList<>(), jobResults);
-            if (isOrdered)
-                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
-        }
+
         if (resultType.isSliced()) {
             long offset = resultType.getOffset();
             long length = resultType.getLength();

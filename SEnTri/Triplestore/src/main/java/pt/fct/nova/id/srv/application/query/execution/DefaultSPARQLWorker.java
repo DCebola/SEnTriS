@@ -2,11 +2,11 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.Utils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -23,16 +23,16 @@ import java.util.stream.Collectors;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
-public class SimpleSPARQLWorker implements SPARQLWorker {
+public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
     private final String storeID;
     private final SPARQLResultType resultType;
 
-    public SimpleSPARQLWorker(String storeID, StorageEngine storageEngine) {
+    public DefaultSPARQLWorker(String storeID, StorageEngine storageEngine) {
         this.storeID = storeID;
         this.storageEngine = storageEngine;
-        resultType = new SimpleSPARQLResultType();
+        resultType = new DefaultSPARQLResultType();
     }
 
     @Override
@@ -84,7 +84,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
         Var var;
         Node node;
         Iterator<Var> vars;
-        for (Binding binding : job.getValues()) {
+        for (SerializableBinding binding : job.getValues()) {
             String p_idx = generateID();
             vars = binding.vars();
             while (vars.hasNext()) {
@@ -128,7 +128,11 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         resultType.setOrdered(true);
-        resultType.setSortConditions(job.getSortConditions());
+        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
+        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
+        for (SerializableSortCondition condition : serializableSortConditions)
+            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
+        resultType.setSortConditions(sortConditions);
         return prevJobResults;
     }
 
@@ -190,29 +194,29 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
 
     @Override
     public Collection<Binding> generateBindings(IRITable jobResults) {
-            Collection<Binding> res;
-            boolean isDistinct = resultType.isDistinct();
-            boolean isOrdered = resultType.isOrdered();
-            if (isDistinct && isOrdered)
-                res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
-            else if (isDistinct)
-                res = generateBindings(new HashSet<>(), jobResults);
-            else {
-                res = generateBindings(new LinkedList<>(), jobResults);
-                if (isOrdered)
-                    res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
-            }
-            if (resultType.isSliced()) {
-                long offset = resultType.getOffset();
-                long length = resultType.getLength();
-                if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                    res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
-                else if (offset != Query.NOLIMIT)
-                    res = res.stream().skip(offset).collect(Collectors.toList());
-                else if (length != Query.NOLIMIT)
-                    res = res.stream().limit(length).collect(Collectors.toList());
-            }
-            return res;
+        Collection<Binding> res;
+        boolean isDistinct = resultType.isDistinct();
+        boolean isOrdered = resultType.isOrdered();
+        if (isDistinct && isOrdered)
+            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
+        else if (isDistinct)
+            res = generateBindings(new HashSet<>(), jobResults);
+        else {
+            res = generateBindings(new LinkedList<>(), jobResults);
+            if (isOrdered)
+                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
+        }
+        if (resultType.isSliced()) {
+            long offset = resultType.getOffset();
+            long length = resultType.getLength();
+            if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
+                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+            else if (offset != Query.NOLIMIT)
+                res = res.stream().skip(offset).collect(Collectors.toList());
+            else if (length != Query.NOLIMIT)
+                res = res.stream().limit(length).collect(Collectors.toList());
+        }
+        return res;
     }
 
     private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {
@@ -229,6 +233,7 @@ public class SimpleSPARQLWorker implements SPARQLWorker {
             bindings.add(builder.build());
             builder.reset();
         }
+
         return bindings;
     }
 }

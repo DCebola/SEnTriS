@@ -86,13 +86,14 @@ POST   Triplestore/api/query/{TriplestoreID}             #Execute a SPARQL query
 POST   Triplestore/api/encrypted/{TriplestoreID}         #Upload data to encrypted triplestore.          (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/delete  #Delete data from encrypted triplestore.        (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/search  #Search data from encrypted triplestore.        (Read Access)
+POST   Triplestore/api/encrypted/{TriplestoreID}/bind    #Prepare auxiliary bindings for SPARQL query.   (Read Access)
 DELETE Triplestore/api/encrypted/{TriplestoreID}         #Delete encrypted triplestore.                  (Owner)
 ```
 
 ### Proxy API
 ```perl
-GET    Proxy/api/ctrl/version           #Get service version.                                    (Basic)
+GET    Proxy/api/ctrl/version           #Get service version.                                         (Basic)
 
-POST   Proxy/api/queries                #Execute a SPARQL query.                                 (Read Access)
-POST   Proxy/api/queries/prepare        #Save auxiliary search values results associated.        (Read Access)
+POST   Proxy/api/queries                #Execute a SPARQL query.                                      (Read Access)
+POST   Proxy/api/queries/bindings       #Save auxiliary bindings associated w/ a query.               (Read Access)
 ```

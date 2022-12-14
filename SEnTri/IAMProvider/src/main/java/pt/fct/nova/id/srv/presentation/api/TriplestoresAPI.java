@@ -15,6 +15,7 @@ import static pt.fct.nova.id.srv.application.IAMStorage.COOKIE_PARAM;
 public interface TriplestoresAPI {
     @POST
     @Path("")
+    @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
     Response createTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                            @Form TriplestoreForm form);

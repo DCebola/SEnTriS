@@ -76,13 +76,6 @@ public class ParsingUtils {
                 .build();
     }
 
-    public static Entity<GenericEntity<List<EntityPart>>> generateSecretsMultipartFormEntity(String triplestoreID, Map<String, String> secrets) throws IOException {
-        List<EntityPart> parts = Arrays.asList(
-                EntityPart.withName("triplestoreID").content(triplestoreID).mediaType(MediaType.TEXT_PLAIN).build(),
-                EntityPart.withName("secrets").content(secrets).mediaType(MediaType.APPLICATION_JSON).build());
-        return Entity.entity(new GenericEntity<>(parts) {}, MediaType.MULTIPART_FORM_DATA);
-    }
-
     public static HttpEntity credentialsFormToHttpEntity(AuthForm credentialsForm) {
         List<NameValuePair> pairs = new ArrayList<>(2);
         pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));

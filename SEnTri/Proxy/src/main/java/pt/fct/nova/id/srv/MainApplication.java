@@ -1,8 +1,6 @@
 package pt.fct.nova.id.srv;
 
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
-import pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController;
-import pt.fct.nova.id.srv.presentation.controllers.TriplestoreController;
 
 import jakarta.ws.rs.core.Application;
 import java.util.HashSet;
