@@ -5,6 +5,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -28,13 +29,13 @@ public class IAMClient {
     private static final String REQUEST_ACCESS_URI = System.getenv("IAM_PROVIDER_REQUEST_ACCESS_URI");
     private static final String CREATE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
     private static final String DELETE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_DELETE_ACCESS_TOKEN_URI");
+    private static final String CREATE_EXPIRABLE_ACCESS_TOKENS = System.getenv("IAM_PROVIDER_CREATE_EXPIRABLE_ACCESS_TOKEN_URI");;
     private static final String ACQUIRE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_TRIPLESTORE_LOCK_URI");
     private static final String RELEASE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_TRIPLESTORE_LOCK_URI");
     private static final String UPDATE_TRIPLESTORE_OWNER_URI = System.getenv("IAM_PROVIDER_UPDATE_TRIPLESTORE_OWNER_URI");
     private static final String LIST_USERS_WITH_ACCESS = System.getenv("IAM_PROVIDER_LIST_USERS_WITH_ACCESS");
     private static final String LIST_PENDING_ACCESS_REQUESTS = System.getenv("IAM_PROVIDER_LIST_PENDING_ACCESS_REQUESTS");
     private static final String PROCESS_ACCESS_REQUEST = System.getenv("IAM_PROVIDER_PROCESS_ACCESS_REQUEST");
-
 
     public static CloseableHttpResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(ACQUIRE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
@@ -134,4 +135,8 @@ public class IAMClient {
     }
 
 
+    public static CloseableHttpResponse createExpirableAccessTokens(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, int total) throws URISyntaxException, IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, cookie, new URIBuilder(String.format(CREATE_EXPIRABLE_ACCESS_TOKENS, triplestoreID))
+                .addParameter("total", String.valueOf(total)).build(), accessToken);
+    }
 }

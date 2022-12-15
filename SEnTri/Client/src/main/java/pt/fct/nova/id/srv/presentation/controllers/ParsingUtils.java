@@ -2,9 +2,6 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.EntityPart;
-import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
@@ -15,9 +12,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.*;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
@@ -97,16 +92,16 @@ public class ParsingUtils {
         return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
     }
 
-    public static HttpEntity valuesMapToHttpEntity(Map<String, String> values) {
-        return new StringEntity(gson.toJson(values, Map.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity mapOfStringStringToHttpEntity(Map<String, String> map) {
+        return new StringEntity(gson.toJson(map, Map.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity triplesToHttpEntity(List<Triple> triples) throws InvalidNodeException {
-        return new StringEntity(gson.toJson(serializeTriples(triples), List.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity triplesListToHttpEntity(List<Triple> list) throws InvalidNodeException {
+        return new StringEntity(gson.toJson(serializeTriples(list), List.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity trapdoorsToHttpEntity(List<String> trapdoors) {
-        return new StringEntity(gson.toJson(trapdoors, List.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity stringListToHttpEntity(List<String> list) {
+        return new StringEntity(gson.toJson(list, List.class), ContentType.APPLICATION_JSON);
     }
 
     public static HttpEntity queryExecutionPlanToHttpEntity(SimpleQueryExecutionPlan plan) throws IOException {
@@ -115,6 +110,17 @@ public class ParsingUtils {
             return new ByteArrayEntity(bos.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
         }
     }
+
+    public static Map<String, String> parseMapOfStringString(String secrets) {
+        return gson.fromJson(secrets, new TypeToken<Map<String, String>>() {
+        }.getType());
+    }
+
+    public static List<String> parseListOfStrings(String results) {
+        return gson.fromJson(results, new TypeToken<List<String>>() {
+        }.getType());
+    }
+
 
     public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         SecretKey k1 = gson.fromJson(secrets.get(String.format(SECRETS_KEY, 1)), SecretKey.class);
@@ -172,16 +178,6 @@ public class ParsingUtils {
             throw new MalformedSecretsException();
     }
 
-    public static Map<String, String> parseSecrets(String secrets) {
-        return gson.fromJson(secrets, new TypeToken<Map<String, String>>() {
-        }.getType());
-    }
-
-    public static List<String> parseSearchResults(String results) {
-        return gson.fromJson(results, new TypeToken<List<String>>() {
-        }.getType());
-    }
-
     public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
         CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
@@ -216,4 +212,6 @@ public class ParsingUtils {
         else
             return String.format(BLANK_IRI, node.getBlankNodeId());
     }
+
+
 }

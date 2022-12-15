@@ -28,14 +28,14 @@ public class SecretsController implements SecretsAPI {
     private static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
 
     @Override
-    public Response createSecrets(Cookie cookie, SecretsForm form, List<String> authorizationHeaders) {
+    public Response createSecrets(SecretsForm form, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
         String triplestoreID = form.getTriplestoreID();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (Vault.exists(triplestoreID))
@@ -48,13 +48,13 @@ public class SecretsController implements SecretsAPI {
     }
 
     @Override
-    public Response getSecrets(Cookie cookie, String triplestoreID, List<String> authorizationHeaders) {
+    public Response getSecrets(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (!Vault.exists(triplestoreID))
@@ -66,13 +66,13 @@ public class SecretsController implements SecretsAPI {
     }
 
     @Override
-    public Response deleteSecrets(Cookie cookie, String triplestoreID, List<String> authorizationHeaders) {
+    public Response deleteSecrets(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (!Vault.exists(triplestoreID))

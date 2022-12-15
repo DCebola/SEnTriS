@@ -3,7 +3,6 @@ package pt.fct.nova.id.srv.application.clients;
 import jakarta.ws.rs.core.Cookie;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
@@ -20,7 +19,7 @@ public class TriplestoreClient {
     private static final String QUERY_URI = System.getenv("TRIPLESTORE_QUERY_URI");
 
     public static CloseableHttpResponse upload(HttpClient httpClient, Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.triplesToHttpEntity(triples), accessToken);
+        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.triplesListToHttpEntity(triples), accessToken);
     }
 
     public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String triplestoreID, SimpleQueryExecutionPlan plan, String accessToken) throws IOException {
@@ -32,7 +31,7 @@ public class TriplestoreClient {
     }
 
     public static CloseableHttpResponse deleteSome(HttpClient httpClient, Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.triplesToHttpEntity(triples), accessToken);
+        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.triplesListToHttpEntity(triples), accessToken);
     }
 
 }

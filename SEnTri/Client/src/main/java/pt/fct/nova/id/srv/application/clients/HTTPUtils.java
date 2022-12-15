@@ -39,6 +39,8 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
+
+
     public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, String uri, HttpEntity body) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setEntity(body);
@@ -80,6 +82,8 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
+
+
     public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
@@ -116,10 +120,16 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-
     public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, URI uri) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
+        return (CloseableHttpResponse) httpClient.execute(request);
+    }
+
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
