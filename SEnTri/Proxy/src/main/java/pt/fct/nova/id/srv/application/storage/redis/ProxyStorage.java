@@ -1,6 +1,8 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
 import org.apache.jena.sparql.core.Var;
+import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
+import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import redis.clients.jedis.Jedis;
@@ -8,6 +10,7 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
+import javax.crypto.SecretKey;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
@@ -16,7 +19,7 @@ public class ProxyStorage {
     private static final long BINDINGS_LIFETIME = Long.parseLong(System.getenv("BINDINGS_LIFETIME"));
     private static final Random rnd = new Random();
 
-    public void delete(List<Var> vars) {
+    public static void delete(List<Var> vars) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             vars.forEach(var -> t.del(var.getName()));
@@ -24,7 +27,7 @@ public class ProxyStorage {
         }
     }
 
-    public String save(List<String> encryptedNodes) {
+    public static String save(List<String> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String uuid = UUID.randomUUID().toString();
@@ -35,7 +38,7 @@ public class ProxyStorage {
         }
     }
 
-    public IRITable search(List<Var> vars) {
+    public static IRITable search(SecretKey key, List<Var> vars) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             MemIRITable res = new MemIRITable();
@@ -43,16 +46,19 @@ public class ProxyStorage {
             vars.forEach(var -> responses.add(p.lrange(var.getVarName(), 0, -1)));
             p.sync();
             Map<Var, List<String>> bindings = new HashMap<>();
-            for (int i = 0; i < vars.size(); i++)
+            for (int i = 0; i < vars.size(); i++) {
                 bindings.put(vars.get(i), responses.get(i).get());
+            }
             List<String> encryptedNodes = bindings.get(vars.get(rnd.nextInt(0, vars.size())));
             String p_idx;
             for (int i = 0; i < encryptedNodes.size(); i++) {
                 p_idx = generateID();
                 for (Var var : vars)
-                    res.add(p_idx, var, bindings.get(var).get(i));
+                    res.add(p_idx, var, SymmetricCipher.decrypt(key, bindings.get(var).get(i)));
             }
             return res;
+        } catch (Exception e) {
+            throw new SPARQLExecutionException(e.getMessage());
         }
     }
 }

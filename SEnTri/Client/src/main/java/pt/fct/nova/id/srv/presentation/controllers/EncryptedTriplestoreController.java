@@ -8,10 +8,19 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingComparator;
+import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedCreateForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedQueryForm;
@@ -22,11 +31,13 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
@@ -47,6 +58,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     private static final String MALFORMED_SECRETS = "Secrets malformed.";
     private static final String DELETE_ERROR_PREFIX = "Failure to delete triplestore. Error occurred while saving secrets: ";
 
+    private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new SecureSPARQLPlanner());
 
     @Override
     public Response create(Cookie cookie, EncryptedCreateForm form) {
@@ -284,15 +296,83 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     return HTTPUtils.buildResponse(response);
                 accessToken = HTTPUtils.consumeResponseEntity(response);
             }
+
+            Map<String, String> secrets = form.getSecrets();
             /*
-            try (CloseableHttpResponse response = SecureTriplestoreClient.query(httpClient, cookie, triplestoreID, queryEngine.getQueryPlan(form.getQuery()), accessToken)) {
-                return HttpUtils.buildResponse(response);
+             * TODO: 1) Preprocess query to extract inline trapdoors:
+             *         1.1) generate map[var->trapdoor]                                                    []
+             *       2) Calculate num of auxiliary tokens:                                                 []
+             *         2.2) s=1 if secrets are null, 0 otherwise
+             *              trapdoorInfo=1
+             *              prepareBindings=total of inline bindings
+             *              TOTAL = s + 1 + prepareBindings
+             *       3) Generate auxiliary tokens                                                          [x]
+             *       4) Get secrets                                                                        [x]
+             *       5) Get trapdoors info                                                                 []
+             *       6) Generate trapdoors, prepare bindings in Proxy, generate map[var->proxy_var_rdn_id] []
+             *       7) Generate query execution plan given generated map with randomized vars             []
+             *       8) Send query plan, process results (order if needed)                                 [x]
+             */
+            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
+            int extra = 0;
+            if (secrets.isEmpty())
+                extra = 1;
+            List<String> expirableAccessTokens;
+            try (CloseableHttpResponse response = IAMClient.createExpirableAccessTokens(httpClient, cookie, triplestoreID, accessToken, 1 + extra)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HTTPUtils.buildResponse(response);
+                expirableAccessTokens = ParsingUtils.parseListOfStrings(HTTPUtils.consumeResponseEntity(response));
             }
-            */
-            return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
-        } catch (IOException e) {
+
+            if (secrets.isEmpty()) {
+                try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(httpClient, cookie, triplestoreID, expirableAccessTokens.get(0))) {
+                    if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
+                        Response errorResponse = HTTPUtils.buildResponse(response);
+                        try (CloseableHttpResponse ignore = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
+                            return errorResponse;
+                        }
+                    }
+                    secrets = ParsingUtils.parseMapOfStringString(response.getEntity().toString());
+                }
+            }
+            switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
+                case V1 -> {
+                    Protocol1 p = initProtocol1(triplestoreID, secrets);
+                    try (CloseableHttpResponse response = ProxyClient.query(httpClient, p.getK2(), plan);
+                         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                        List<Var> vars = plan.getVars();
+                        SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(HTTPUtils.consumeResponseEntity(response));
+                        Collection<Binding> bindings = orderResultsIfNeeded(sparqlResult);
+
+                        ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
+                        CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                        return HTTPUtils.buildResponse(response);
+                    }
+                }
+                case V2 -> {
+                    //TODO: Create protocol v2
+                    return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
+                }
+                default ->
+                        throw new IllegalStateException("Unexpected value: " + ProtocolVersion.fromString(secrets.get(SECRETS_VERSION)));
+            }
+        } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private Collection<Binding> orderResultsIfNeeded(SPARQLResult sparqlResult) {
+        if (sparqlResult.isOrdered()) {
+            if (sparqlResult.isDistinct()) {
+                Collection<Binding> bindings = new TreeSet<>(new BindingComparator(sparqlResult.getSortConditions()));
+                bindings.addAll(sparqlResult.getBindings());
+                return bindings;
+            } else
+                return sparqlResult.getBindings()
+                        .stream().sorted(new BindingComparator(sparqlResult.getSortConditions()))
+                        .collect(Collectors.toList());
+        }
+        return sparqlResult.getBindings();
     }
 
 

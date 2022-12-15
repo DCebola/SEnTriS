@@ -8,7 +8,7 @@ import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.ProxyClient;
-import pt.fct.nova.id.srv.application.storage.redis.EncryptedStorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 
 import java.util.*;
@@ -21,7 +21,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 @Path("/encrypted")
 public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     private static final String SUCCESS_DELETE_BATCH = "Successful deletion of values from store.";
-    pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine storageEngine = new EncryptedStorageEngine();
+    private static final RedisEncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngine();
 
     @Override
     public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {

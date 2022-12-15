@@ -21,6 +21,7 @@ import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
@@ -111,16 +112,29 @@ public class ParsingUtils {
         }
     }
 
+    public static HttpEntity generateSecureQueryRequest(SecretKey key, DefaultQueryExecutionPlan plan) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(plan);
+            return MultipartEntityBuilder.create()
+                    .addBinaryBody("key", key.getEncoded())
+                    .addBinaryBody("queryExecutionPlan", bos.toByteArray())
+                    .build();
+        }
+
+    }
+
     public static Map<String, String> parseMapOfStringString(String secrets) {
         return gson.fromJson(secrets, new TypeToken<Map<String, String>>() {
         }.getType());
     }
 
     public static List<String> parseListOfStrings(String results) {
-        List<String> res = gson.fromJson(results, new TypeToken<List<String>>() {
+        return gson.fromJson(results, new TypeToken<List<String>>() {
         }.getType());
-        System.out.println(Arrays.toString(res.toArray()));
-        return res;
+    }
+
+    public static SPARQLResult parseSPARQLResult(String results) {
+        return gson.fromJson(results, SPARQLResult.class);
     }
 
 

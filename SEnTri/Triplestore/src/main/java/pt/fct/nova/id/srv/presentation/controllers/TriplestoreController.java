@@ -20,7 +20,7 @@ import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.storage.redis.DefaultStorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 
 import java.io.ByteArrayInputStream;
@@ -40,7 +40,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String SUCCESSFUL_DELETION = "Store deleted.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private static final StorageEngine storageEngine = new DefaultStorageEngine();
+    private static final StorageEngine storageEngine = new RedisDefaultStorageEngine();
 
 
     @Override

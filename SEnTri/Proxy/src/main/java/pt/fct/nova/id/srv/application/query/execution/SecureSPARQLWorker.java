@@ -15,6 +15,7 @@ import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 
+import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,17 +23,17 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class SecureSPARQLWorker implements SPARQLWorker {
 
-    private final ProxyStorage proxyStorage;
     private final SPARQLResult result;
+    private final SecretKey key;
 
-    public SecureSPARQLWorker(ProxyStorage proxyStorage) {
-        this.proxyStorage = proxyStorage;
+    public SecureSPARQLWorker(SecretKey key) {
         result = new DefaultSPARQLResult();
+        this.key = key;
     }
 
     @Override
-    public IRITable exec(Job job) throws SPARQLExecutionException {
-        if (job instanceof SecureSearchJob) return proxyStorage.search(((SecureSearchJob) job).getVars());
+    public IRITable exec(Job job) throws SPARQLExecutionException{
+        if (job instanceof SecureSearchJob) return ProxyStorage.search(key, ((SecureSearchJob) job).getVars());
         else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());

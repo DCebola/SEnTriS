@@ -19,7 +19,7 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
-public class DefaultStorageEngine implements StorageEngine {
+public class RedisDefaultStorageEngine implements StorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String COMPOUND_INDEX_SEPARATOR = System.getenv("COMPOUND_INDEX_SEPARATOR");
