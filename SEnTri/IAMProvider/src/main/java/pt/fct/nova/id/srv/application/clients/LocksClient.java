@@ -155,7 +155,7 @@ public class LocksClient {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             while (tries > 0) {
                 Long res = (Long) jedis.eval(script, keys, args);
-                System.out.println("Try n" + tries + "to acquire lock [" + lockID + "]: " + res);
+                System.out.println("Try n " + tries + "to acquire lock [" + lockID + "]: " + res);
                 if (res == 1L)
                     return lockID;
                 tries--;

@@ -3,7 +3,7 @@ package pt.fct.nova.id.srv.application.clients;
 import jakarta.ws.rs.core.Cookie;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(SEARCH_URI, storeID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String storeID, SimpleQueryExecutionPlan plan, String accessToken) throws IOException {
+    public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String storeID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(QUERY_URI, storeID), ParsingUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
     }
 

@@ -5,7 +5,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class TriplestoreClient {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.triplesListToHttpEntity(triples), accessToken);
     }
 
-    public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String triplestoreID, SimpleQueryExecutionPlan plan, String accessToken) throws IOException {
+    public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String triplestoreID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(QUERY_URI, triplestoreID), ParsingUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
     }
 

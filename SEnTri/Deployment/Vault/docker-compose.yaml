@@ -6,7 +6,7 @@ services:
       container_name: sentri-vault-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
-        - ./db_data:/data
+        - ./data:/data
         - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
         - ../SSL/vault-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
         - ../SSL/vault-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem

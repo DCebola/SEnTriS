@@ -102,7 +102,6 @@ public interface TriplestoresAPI {
                                @PathParam("target") String target);
 
 
-
     @DELETE
     @Path("/{triplestoreID}/access/tokens")
     @Produces(TEXT_PLAIN)
@@ -113,22 +112,19 @@ public interface TriplestoresAPI {
     @GET
     @Path("/{triplestoreID}/access/tokens/read")
     @Produces(TEXT_PLAIN)
-    Response checkReadAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                             @PathParam("triplestoreID") String triplestoreID,
+    Response checkReadAccess(@PathParam("triplestoreID") String triplestoreID,
                              @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
     @Path("/{triplestoreID}/access/tokens/write")
     @Produces(TEXT_PLAIN)
-    Response checkWriteAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("triplestoreID") String triplestoreID,
+    Response checkWriteAccess(@PathParam("triplestoreID") String triplestoreID,
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
     @Path("/{triplestoreID}/access/tokens/owner")
     @Produces(TEXT_PLAIN)
-    Response checkOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                              @PathParam("triplestoreID") String triplestoreID,
+    Response checkOwnerAccess(@PathParam("triplestoreID") String triplestoreID,
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST

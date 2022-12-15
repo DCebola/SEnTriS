@@ -22,17 +22,17 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.query.Utils.extractVariablesPattern;
 import static pt.fct.nova.id.srv.application.query.Utils.generateID;
 
-public class SimpleSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
+public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
-    final static Logger logger = LoggerFactory.getLogger(SimpleSPARQLPlanner.class);
+    final static Logger logger = LoggerFactory.getLogger(DefaultSPARQLPlanner.class);
 
     private final Map<Op, String> parsed_op;
 
-    private final SimpleQueryExecutionPlan plan;
+    private final DefaultQueryExecutionPlan plan;
 
-    public SimpleSPARQLPlanner() {
+    public DefaultSPARQLPlanner() {
         this.parsed_op = new HashMap<>();
-        this.plan = new SimpleQueryExecutionPlan();
+        this.plan = new DefaultQueryExecutionPlan();
     }
 
     public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {

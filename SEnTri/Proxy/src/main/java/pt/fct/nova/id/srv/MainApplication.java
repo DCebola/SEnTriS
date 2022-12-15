@@ -3,6 +3,8 @@ package pt.fct.nova.id.srv;
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
 
 import jakarta.ws.rs.core.Application;
+import pt.fct.nova.id.srv.presentation.controllers.QueriesController;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,8 +13,7 @@ public class MainApplication extends Application {
 
     public MainApplication() {
         resources.add(ControlController.class);
-        resources.add(EncryptedTriplestoreController.class);
-        resources.add(TriplestoreController.class);
+        resources.add(QueriesController.class);
     }
 
     @Override

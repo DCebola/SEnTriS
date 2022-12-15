@@ -50,7 +50,8 @@ public class IAMStorage {
     public static NewCookie cacheSession(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String key = String.format(SESSION, username);
-            String uuid = UUIDUtils.generateID();;
+            String uuid = UUIDUtils.generateID();
+            ;
             Transaction t = jedis.multi();
             t.del(key);
             t.set(key, uuid);
@@ -133,7 +134,8 @@ public class IAMStorage {
     public static void saveRoleRequest(String username, Role role) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            String requestID = UUIDUtils.generateID();;
+            String requestID = UUIDUtils.generateID();
+            ;
             t.rpush(PENDING_ROLE_REQUESTS, requestID);
             t.rpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.name());
             t.exec();
@@ -326,7 +328,8 @@ public class IAMStorage {
     public static void saveAccessRequest(String triplestoreID, String username, boolean write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            String requestID = UUIDUtils.generateID();;
+            String requestID = UUIDUtils.generateID();
+            ;
             t.rpush(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), requestID);
             t.rpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
             t.exec();
@@ -384,7 +387,8 @@ public class IAMStorage {
             String key2 = String.format(ACCESS_TOKEN_EXPIRABLE_TOKENS, accessTokenID);
             Transaction t = jedis.multi();
             for (int i = 0; i < total; i++) {
-                uuid = UUIDUtils.generateID();;
+                uuid = UUIDUtils.generateID();
+                ;
                 key = String.format(EXPIRABLE_ACCESS_TOKEN, uuid);
                 t.set(key, accessTokenID);
                 t.sadd(key2, uuid);
@@ -408,14 +412,15 @@ public class IAMStorage {
                 t.srem(String.format(ACCESS_TOKEN_EXPIRABLE_TOKENS, accessTokenID), expirableAccessTokenID);
                 t.exec();
             }
-            return jedis.get(String.format(ACCESS_TOKEN, accessTokenID));
+            return accessTokenID;
         }
     }
 
 
     public static String saveToken(String username, String store) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            String uuid = UUIDUtils.generateID();;
+            String uuid = UUIDUtils.generateID();
+            ;
             String key = String.format(ACCESS_TOKEN, uuid);
             Transaction t = jedis.multi();
             t.del(key);

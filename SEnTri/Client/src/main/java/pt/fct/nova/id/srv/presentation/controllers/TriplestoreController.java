@@ -14,8 +14,8 @@ import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.TriplestoreClient;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
-import pt.fct.nova.id.srv.application.query.plans.SimpleSPARQLPlanner;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
@@ -24,7 +24,6 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -37,7 +36,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-    private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new SimpleSPARQLPlanner());
+    private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new DefaultSPARQLPlanner());
 
     @Override
     public Response create(Cookie cookie, UploadForm form) {
@@ -117,7 +116,7 @@ public class TriplestoreController implements TriplestoreAPI {
             expirableAccessTokens = ParsingUtils.parseListOfStrings(HTTPUtils.consumeResponseEntity(response));
         }
 
-        try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(httpClient, cookie, triplestoreID, expirableAccessTokens.get(0))) {
+        try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                 Response errorResponse = HTTPUtils.buildResponse(response);
                 try (CloseableHttpResponse ignore = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
@@ -125,7 +124,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 }
             }
         }
-        try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, cookie, triplestoreID, triples, accessToken);
+        try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, cookie, triplestoreID, triples, expirableAccessTokens.get(0));
              CloseableHttpResponse ignored = IAMClient.releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
              CloseableHttpResponse ignored2 = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
             return HTTPUtils.buildResponse(response);
@@ -198,7 +197,7 @@ public class TriplestoreController implements TriplestoreAPI {
                     return HTTPUtils.buildResponse(response);
                 expirableAccessTokens = ParsingUtils.parseListOfStrings(HTTPUtils.consumeResponseEntity(response));
             }
-            SimpleQueryExecutionPlan plan = (SimpleQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
+            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
             try (CloseableHttpResponse response = TriplestoreClient.query(httpClient, cookie, triplestoreID, plan, expirableAccessTokens.get(0));
                  CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
                 return HTTPUtils.buildResponse(response);

@@ -91,6 +91,7 @@ public class TriplestoreController implements TriplestoreAPI {
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }

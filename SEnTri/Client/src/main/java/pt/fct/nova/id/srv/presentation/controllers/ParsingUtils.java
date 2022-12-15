@@ -21,7 +21,7 @@ import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.plans.SimpleQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -104,7 +104,7 @@ public class ParsingUtils {
         return new StringEntity(gson.toJson(list, List.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity queryExecutionPlanToHttpEntity(SimpleQueryExecutionPlan plan) throws IOException {
+    public static HttpEntity queryExecutionPlanToHttpEntity(DefaultQueryExecutionPlan plan) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(plan);
             return new ByteArrayEntity(bos.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
@@ -117,8 +117,10 @@ public class ParsingUtils {
     }
 
     public static List<String> parseListOfStrings(String results) {
-        return gson.fromJson(results, new TypeToken<List<String>>() {
+        List<String> res = gson.fromJson(results, new TypeToken<List<String>>() {
         }.getType());
+        System.out.println(Arrays.toString(res.toArray()));
+        return res;
     }
 
 
