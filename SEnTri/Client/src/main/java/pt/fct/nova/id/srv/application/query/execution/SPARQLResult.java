@@ -1,11 +1,15 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.SortCondition;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
+import org.apache.jena.sparql.engine.binding.Binding;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
-public interface SPARQLResultType {
+public interface SPARQLResult extends Serializable {
+
+    void setBindings(Collection<Binding> bindings);
 
     void setSortConditions(List<SortCondition> sortConditions);
 
@@ -30,4 +34,6 @@ public interface SPARQLResultType {
     Long getOffset();
 
     Long getLength();
+
+    Collection<Binding> getBindings();
 }

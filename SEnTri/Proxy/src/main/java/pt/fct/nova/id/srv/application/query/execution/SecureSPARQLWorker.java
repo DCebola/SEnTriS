@@ -6,7 +6,6 @@ import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.apache.jena.sparql.engine.binding.BindingComparator;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -24,11 +23,11 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 public class SecureSPARQLWorker implements SPARQLWorker {
 
     private final ProxyStorage proxyStorage;
-    private final SPARQLResultType resultType;
+    private final SPARQLResult result;
 
     public SecureSPARQLWorker(ProxyStorage proxyStorage) {
         this.proxyStorage = proxyStorage;
-        resultType = new DefaultSPARQLResultType();
+        result = new DefaultSPARQLResult();
     }
 
     @Override
@@ -82,24 +81,24 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
-        resultType.setOrdered(true);
+        result.setOrdered(true);
         List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
         List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
         for (SerializableSortCondition condition : serializableSortConditions)
             sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
-        resultType.setSortConditions(sortConditions);
+        result.setSortConditions(sortConditions);
         return prevJobResults;
     }
 
     private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
-        resultType.setSliced(true);
-        resultType.setLength(job.getLength());
-        resultType.setOffset(job.getOffset());
+        result.setSliced(true);
+        result.setLength(job.getLength());
+        result.setOffset(job.getOffset());
         return prevJobResults;
     }
 
     private IRITable execDistinct(IRITable prevJobResults) {
-        resultType.setDistinct(true);
+        result.setDistinct(true);
         return prevJobResults;
     }
 
@@ -148,25 +147,26 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public Collection<Binding> generateBindings(IRITable jobResults) {
-        Collection<Binding> res;
-        boolean isDistinct = resultType.isDistinct();
+    public SPARQLResult generateResults(IRITable jobResults) {
+        Collection<Binding> bindings;
+        boolean isDistinct = result.isDistinct();
         if (isDistinct)
-            res = generateBindings(new HashSet<>(), jobResults);
+            bindings = generateBindings(new HashSet<>(), jobResults);
         else
-            res = generateBindings(new LinkedList<>(), jobResults);
+            bindings = generateBindings(new LinkedList<>(), jobResults);
 
-        if (resultType.isSliced()) {
-            long offset = resultType.getOffset();
-            long length = resultType.getLength();
+        if (result.isSliced()) {
+            long offset = result.getOffset();
+            long length = result.getLength();
             if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+                bindings = bindings.stream().skip(offset).limit(length).collect(Collectors.toList());
             else if (offset != Query.NOLIMIT)
-                res = res.stream().skip(offset).collect(Collectors.toList());
+                bindings = bindings.stream().skip(offset).collect(Collectors.toList());
             else if (length != Query.NOLIMIT)
-                res = res.stream().limit(length).collect(Collectors.toList());
+                bindings = bindings.stream().limit(length).collect(Collectors.toList());
         }
-        return res;
+        result.setBindings(bindings);
+        return result;
     }
 
     private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {

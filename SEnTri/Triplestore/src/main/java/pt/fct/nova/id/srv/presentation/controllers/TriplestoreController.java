@@ -10,11 +10,15 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
+import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLWorker;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
@@ -24,6 +28,7 @@ import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
+import java.util.Iterator;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -72,11 +77,17 @@ public class TriplestoreController implements TriplestoreAPI {
                 return HTTPUtils.buildResponse(response);
 
             try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
-                 ObjectInputStream ois = new ObjectInputStream(bis)) {
-                ResultSet res = new DefaultSPARQLExecution((QueryExecutionPlan) ois.readObject())
-                        .exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                ResultSetFormatter.outputAsJSON(out, res);
+                 ObjectInputStream ois = new ObjectInputStream(bis);
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+                QueryExecutionPlan executionPlan = (QueryExecutionPlan) ois.readObject();
+
+                SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
+                execution.exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
+                List<Var> vars = executionPlan.getVars();
+                Iterator<Binding> bindings = execution.getResults().getBindings().iterator();
+
+                ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings));
                 return Response.ok(out.toByteArray()).build();
             }
         } catch (NotImplemented e) {

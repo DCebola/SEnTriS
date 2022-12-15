@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.storage.iri_tables;
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 import static org.apache.jena.sparql.algebra.JoinType.INNER;
@@ -159,6 +160,7 @@ public class MemIRITable implements IRITable {
 
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
+
 
         for (Var v : mutualVars) {
             iris_map = left.getIRIs(v);

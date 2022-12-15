@@ -8,14 +8,13 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import java.security.SecureRandom;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorage {
     private static final long BINDINGS_LIFETIME = Long.parseLong(System.getenv("BINDINGS_LIFETIME"));
-    SecureRandom random = new SecureRandom();
+    private static final Random rnd = new Random();
 
     public void delete(List<Var> vars) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -46,7 +45,7 @@ public class ProxyStorage {
             Map<Var, List<String>> bindings = new HashMap<>();
             for (int i = 0; i < vars.size(); i++)
                 bindings.put(vars.get(i), responses.get(i).get());
-            List<String> encryptedNodes = bindings.get(vars.get(random.nextInt(0, vars.size())));
+            List<String> encryptedNodes = bindings.get(vars.get(rnd.nextInt(0, vars.size())));
             String p_idx;
             for (int i = 0; i < encryptedNodes.size(); i++) {
                 p_idx = generateID();

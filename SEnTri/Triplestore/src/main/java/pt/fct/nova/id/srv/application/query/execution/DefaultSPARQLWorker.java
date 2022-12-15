@@ -27,12 +27,12 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
     private final String storeID;
-    private final SPARQLResultType resultType;
+    private final SPARQLResult result;
 
     public DefaultSPARQLWorker(String storeID, StorageEngine storageEngine) {
         this.storeID = storeID;
         this.storageEngine = storageEngine;
-        resultType = new DefaultSPARQLResultType();
+        result = new DefaultSPARQLResult();
     }
 
     @Override
@@ -127,24 +127,24 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
-        resultType.setOrdered(true);
+        result.setOrdered(true);
         List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
         List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
         for (SerializableSortCondition condition : serializableSortConditions)
             sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
-        resultType.setSortConditions(sortConditions);
+        result.setSortConditions(sortConditions);
         return prevJobResults;
     }
 
     private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
-        resultType.setSliced(true);
-        resultType.setLength(job.getLength());
-        resultType.setOffset(job.getOffset());
+        result.setSliced(true);
+        result.setLength(job.getLength());
+        result.setOffset(job.getOffset());
         return prevJobResults;
     }
 
     private IRITable execDistinct(IRITable prevJobResults) {
-        resultType.setDistinct(true);
+        result.setDistinct(true);
         return prevJobResults;
     }
 
@@ -193,30 +193,31 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public Collection<Binding> generateBindings(IRITable jobResults) {
-        Collection<Binding> res;
-        boolean isDistinct = resultType.isDistinct();
-        boolean isOrdered = resultType.isOrdered();
+    public SPARQLResult generateResults(IRITable jobResults) {
+        Collection<Binding> bindings;
+        boolean isDistinct = result.isDistinct();
+        boolean isOrdered = result.isOrdered();
         if (isDistinct && isOrdered)
-            res = generateBindings(new TreeSet<>(new BindingComparator(resultType.getSortConditions())), jobResults);
+            bindings = generateBindings(new TreeSet<>(new BindingComparator(result.getSortConditions())), jobResults);
         else if (isDistinct)
-            res = generateBindings(new HashSet<>(), jobResults);
+            bindings = generateBindings(new HashSet<>(), jobResults);
         else {
-            res = generateBindings(new LinkedList<>(), jobResults);
+            bindings = generateBindings(new LinkedList<>(), jobResults);
             if (isOrdered)
-                res = res.stream().sorted(new BindingComparator(resultType.getSortConditions())).collect(Collectors.toList());
+                bindings = bindings.stream().sorted(new BindingComparator(result.getSortConditions())).collect(Collectors.toList());
         }
-        if (resultType.isSliced()) {
-            long offset = resultType.getOffset();
-            long length = resultType.getLength();
+        if (result.isSliced()) {
+            long offset = result.getOffset();
+            long length = result.getLength();
             if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                res = res.stream().skip(offset).limit(length).collect(Collectors.toList());
+                bindings = bindings.stream().skip(offset).limit(length).collect(Collectors.toList());
             else if (offset != Query.NOLIMIT)
-                res = res.stream().skip(offset).collect(Collectors.toList());
+                bindings = bindings.stream().skip(offset).collect(Collectors.toList());
             else if (length != Query.NOLIMIT)
-                res = res.stream().limit(length).collect(Collectors.toList());
+                bindings = bindings.stream().limit(length).collect(Collectors.toList());
         }
-        return res;
+        result.setBindings(bindings);
+        return result;
     }
 
     private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {

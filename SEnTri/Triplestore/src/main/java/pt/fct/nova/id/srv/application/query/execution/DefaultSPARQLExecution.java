@@ -1,8 +1,5 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.ResultSetStream;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
@@ -21,12 +18,10 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
-    private ResultSet result;
-    private final List<Var> vars;
+    private SPARQLResult result;
 
 
     public DefaultSPARQLExecution(QueryExecutionPlan plan) {
-        this.vars = plan.getVars();
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
@@ -61,19 +56,18 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public ResultSet getResults() {
+    public SPARQLResult getResults() {
         return result;
     }
 
     @Override
-    public ResultSet exec(SPARQLWorker worker) throws SPARQLExecutionException{
+    public void exec(SPARQLWorker worker) throws SPARQLExecutionException{
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));
             finished.add(pending.poll());
         }
-        result = ResultSetStream.create(vars, worker.generateBindings(jobResults.get(current)).iterator());
-        return result;
+        result = worker.generateResults(jobResults.get(current));
     }
 
     private IRITable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
