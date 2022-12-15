@@ -9,6 +9,8 @@ import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SPARQLPlanner;
 
+import java.util.regex.Pattern;
+
 public class SPARQLQueryEngine implements QueryEngine {
 
     private final AlgebraGenerator algebraGenerator;
@@ -26,4 +28,7 @@ public class SPARQLQueryEngine implements QueryEngine {
         else throw new NotImplemented();
     }
 
+    public AlgebraGenerator getAlgebraGenerator() {
+        return algebraGenerator;
+    }
 }
