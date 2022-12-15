@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ProxyClient {
     private static final String SAVE_BINDINGS_URI = System.getenv("PROXY_SAVE_BINDINGS");
-    public static CloseableHttpResponse saveBindings(CloseableHttpClient httpClient, Cookie cookie, List<String> bindings, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, SAVE_BINDINGS_URI, ParsingUtils.bindingsToHttpEntity(bindings), accessToken);
+    public static CloseableHttpResponse saveBindings(CloseableHttpClient httpClient, List<String> bindings, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, SAVE_BINDINGS_URI, ParsingUtils.bindingsToHttpEntity(bindings), accessToken);
     }
 }

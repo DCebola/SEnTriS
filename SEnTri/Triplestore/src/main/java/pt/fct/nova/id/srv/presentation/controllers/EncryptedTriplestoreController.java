@@ -1,11 +1,9 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.jena.atlas.lib.NotImplemented;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -26,13 +24,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine storageEngine = new EncryptedStorageEngine();
 
     @Override
-    public Response upload(Cookie cookie, String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
+    public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.save(triplestoreID, encryptedNodes);
@@ -43,17 +41,17 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
-    public Response prepareSPARQLQueryBindings(Cookie cookie, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response prepareSPARQLQueryBindings(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, cookie, triplestoreID, accessToken)) {
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HTTPUtils.buildResponse(response);
             }
-            try (CloseableHttpResponse response = ProxyClient.saveBindings(httpClient, cookie, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
+            try (CloseableHttpResponse response = ProxyClient.saveBindings(httpClient, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
                 return HTTPUtils.buildResponse(response);
             }
         } catch (Exception e) {
@@ -62,13 +60,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
-    public Response search(Cookie cookie, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response search(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
 
@@ -79,13 +77,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
-    public Response delete(Cookie cookie, String triplestoreID, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID);
@@ -96,13 +94,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
-    public Response delete(Cookie cookie, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, cookie, triplestoreID, accessToken)) {
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID, trapdoors);

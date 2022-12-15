@@ -101,6 +101,8 @@ public interface TriplestoresAPI {
                                @PathParam("triplestoreID") String triplestoreID,
                                @PathParam("target") String target);
 
+
+
     @DELETE
     @Path("/{triplestoreID}/access/tokens")
     @Produces(TEXT_PLAIN)
@@ -128,6 +130,14 @@ public interface TriplestoresAPI {
     Response checkOwnerAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
                               @PathParam("triplestoreID") String triplestoreID,
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/access/expirable-tokens")
+    @Produces(APPLICATION_JSON)
+    Response createExpirableAccessTokens(@CookieParam(COOKIE_PARAM) Cookie cookie,
+                                         @PathParam("triplestoreID") String triplestoreID,
+                                         @DefaultValue("1") @QueryParam("total") int total,
+                                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
     @Path("/{triplestoreID}/access/locks")

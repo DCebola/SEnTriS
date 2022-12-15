@@ -63,6 +63,7 @@ GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/read          
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/write         #Check if has write access       (Basic)
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/owner         #Check if has owner access       (Basic)
 
+POST   IAMProvider/api/triplestores/{TriplestoreID}/access/expirable-tokens     #Create expirable access token.  (Basic)
 POST   IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Lock access to triplestore.    (Write access)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Unlock access to triplestore.  (Write access)
 ```

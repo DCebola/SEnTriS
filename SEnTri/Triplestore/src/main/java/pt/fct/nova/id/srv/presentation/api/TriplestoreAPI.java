@@ -9,7 +9,6 @@ import java.util.List;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.application.clients.HTTPUtils.COOKIE_PARAM;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 
 
@@ -19,8 +18,7 @@ public interface TriplestoreAPI {
     @Path("/{triplestoreID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("triplestoreID") String triplestoreID,
+    Response upload(@PathParam("triplestoreID") String triplestoreID,
                     List<String[]> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
@@ -28,24 +26,21 @@ public interface TriplestoreAPI {
     @Path("/query/{triplestoreID}")
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @PathParam("triplestoreID") String triplestoreID,
+    Response answerSPARQLQuery(@PathParam("triplestoreID") String triplestoreID,
                                byte[] queryExecutionPlan,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
     @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
-    Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("triplestoreID") String triplestoreID,
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
     @Path("/{triplestoreID}/delete")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @PathParam("triplestoreID") String triplestoreID,
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
                     List<Triple> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 

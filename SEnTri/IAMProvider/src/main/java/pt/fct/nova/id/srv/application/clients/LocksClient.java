@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.clients;
 
+import pt.fct.nova.id.srv.application.UUIDUtils;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.redis.Redis;
 import pt.fct.nova.id.srv.application.redis.Utils;
@@ -62,7 +63,7 @@ public class LocksClient {
 
     public static synchronized String acquireUserLock(String username) throws InterruptedException, TooManyLockRetriesException {
         String key = String.format(USER_LOCK, username);
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UUIDUtils.generateID();;
         List<String> keys = new ArrayList<>(1);
         List<String> args = new ArrayList<>(2);
         keys.add(key);
@@ -83,7 +84,7 @@ public class LocksClient {
 
 
     public static synchronized String acquireTriplestoreLock(String username, String triplestoreID) throws InterruptedException, TooManyLockRetriesException {
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UUIDUtils.generateID();;
         List<String> keys = new ArrayList<>(2);
         List<String> args = new ArrayList<>(2);
         keys.add(String.format(TRIPLESTORE_LOCK, triplestoreID));
