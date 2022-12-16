@@ -301,14 +301,14 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private HTTPResponse createTriplestoreAccessPolicy(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
+    public static HTTPResponse createTriplestoreAccessPolicy(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
         try (CloseableHttpResponse response = IAMClient.createTriplestore(httpClient, cookie, triplestoreID, issuer)) {
             return new HTTPResponse(response);
         }
     }
 
 
-    private HTTPResponse deleteTriplestoreAccessPolicy(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteTriplestoreAccessPolicy(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.deleteTriplestore(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
@@ -326,31 +326,31 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private HTTPResponse createAccessToken(CloseableHttpClient httpClient, Cookie cookie, String issuer, String triplestoreID) throws IOException {
+    public static HTTPResponse createAccessToken(CloseableHttpClient httpClient, Cookie cookie, String issuer, String triplestoreID) throws IOException {
         try (CloseableHttpResponse response = IAMClient.createAccessToken(httpClient, cookie, issuer, triplestoreID)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse createExpirableTokens(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, int total) throws IOException, URISyntaxException {
+    public static HTTPResponse createExpirableTokens(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, int total) throws IOException, URISyntaxException {
         try (CloseableHttpResponse response = IAMClient.createExpirableAccessTokens(httpClient, cookie, triplestoreID, accessToken, total)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse releaseTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse releaseTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteAccessToken(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteAccessToken(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
