@@ -39,8 +39,6 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-
-
     public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, String uri, HttpEntity body) throws IOException {
         HttpPost request = new HttpPost(uri);
         request.setEntity(body);
@@ -54,12 +52,7 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, Cookie cookie, String uri, HttpEntity body) throws IOException {
-        HttpPut request = new HttpPut(uri);
-        request.setEntity(body);
-        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        return (CloseableHttpResponse) httpClient.execute(request);
-    }
+
 
     public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, Cookie cookie, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
@@ -140,26 +133,29 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static Response buildResponse(String prefix, CloseableHttpResponse response) throws IOException {
-        return Response.ok(prefix.concat(consumeResponseEntity(response)))
-                .status(response.getStatusLine().getStatusCode()).build();
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, String uri, HttpEntity body, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        request.setEntity(body);
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static Response buildResponse(CloseableHttpResponse response) throws IOException {
-        return Response.ok(consumeResponseEntity(response)).status(response.getStatusLine().getStatusCode()).build();
+    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, String uri,  String accessToken) throws IOException {
+        HttpGet request = new HttpGet(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        return (CloseableHttpResponse) httpClient.execute(request);
+    }
+
+    public static CloseableHttpResponse sendDELETERequest(HttpClient httpClient, String uri,  String accessToken) throws IOException {
+        HttpDelete request = new HttpDelete(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        return (CloseableHttpResponse) httpClient.execute(request);
     }
 
     public static String consumeResponseEntity(CloseableHttpResponse response) throws IOException {
         String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         EntityUtils.consume(response.getEntity());
         return responseBody;
-    }
-
-    public static Response buildResponse(NewCookie cookie, CloseableHttpResponse response) throws IOException {
-        return Response.ok(consumeResponseEntity(response))
-                .status(response.getStatusLine().getStatusCode())
-                .cookie(cookie)
-                .build();
     }
 
     public static NewCookie extractCookie(CloseableHttpResponse response) {

@@ -5,8 +5,8 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedCreateForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedQueryForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedUploadForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
@@ -32,12 +32,12 @@ public interface EncryptedTriplestoreAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @MultipartForm EncryptedUploadForm form);
+                    @MultipartForm UploadForm form);
 
     @POST
     @Path("query/")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                               @MultipartForm EncryptedQueryForm form);
+                               @MultipartForm QueryForm form);
 }

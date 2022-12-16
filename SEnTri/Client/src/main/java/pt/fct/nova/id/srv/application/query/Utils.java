@@ -1,9 +1,13 @@
 package pt.fct.nova.id.srv.application.query;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Var;
+import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 
 import java.nio.ByteBuffer;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
@@ -25,6 +29,36 @@ public class Utils {
             return PO;
         else
             return SPO;
+    }
+
+    public static Set<Var> extractVars(SearchJob job) {
+        Node s = job.getSubject();
+        Node p = job.getPredicate();
+        Node o = job.getObject();
+        Set<Var> res = new HashSet<>();
+        switch (job.getVariablesPattern()) {
+            case S -> res.add(Var.alloc(s));
+            case P -> res.add(Var.alloc(p));
+            case O -> res.add(Var.alloc(o));
+            case SP -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+            }
+            case SO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(o));
+            }
+            case PO -> {
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+            case SPO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+        }
+        return res;
     }
 
     public static String generateID() {

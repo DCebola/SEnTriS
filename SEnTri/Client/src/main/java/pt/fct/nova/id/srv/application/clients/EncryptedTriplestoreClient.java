@@ -18,24 +18,24 @@ public class EncryptedTriplestoreClient {
     private static final String SEARCH_URI = System.getenv("ENCRYPTED_TRIPLESTORE_SEARCH_URI");
     private static final String QUERY_URI = System.getenv("ENCRYPTED_TRIPLESTORE_QUERY_URI");
 
-    public static CloseableHttpResponse upload(HttpClient httpClient, Cookie cookie, String storeID, Map<String, String> values, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(UPLOAD_URI, storeID), ParsingUtils.mapOfStringStringToHttpEntity(values), accessToken);
+    public static CloseableHttpResponse upload(HttpClient httpClient, String storeID, Map<String, String> values, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, storeID), ParsingUtils.mapOfStringStringToHttpEntity(values), accessToken);
     }
 
-    public static CloseableHttpResponse search(HttpClient httpClient, Cookie cookie, String storeID, List<String> trapdoors, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(SEARCH_URI, storeID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
+    public static CloseableHttpResponse search(HttpClient httpClient, String storeID, List<String> trapdoors, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, storeID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse query(HttpClient httpClient, Cookie cookie, String storeID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(QUERY_URI, storeID), ParsingUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
+    public static CloseableHttpResponse query(HttpClient httpClient, String storeID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(QUERY_URI, storeID), ParsingUtils.queryExecutionPlanToHttpEntity(plan), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(HttpClient httpClient, Cookie cookie, String storeID, List<String> trapdoors, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(DELETE_SOME_URI, storeID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
+    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String storeID, List<String> trapdoors, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, storeID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse deleteAll(HttpClient httpClient, Cookie cookie, String storeID, String accessToken) throws IOException {
-        return HTTPUtils.sendDELETERequest(httpClient, cookie, String.format(DELETE_ALL_URI, storeID), accessToken);
+    public static CloseableHttpResponse deleteAll(HttpClient httpClient, String storeID, String accessToken) throws IOException {
+        return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, storeID), accessToken);
     }
 
 

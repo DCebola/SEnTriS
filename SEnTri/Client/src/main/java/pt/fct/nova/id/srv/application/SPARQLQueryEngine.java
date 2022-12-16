@@ -27,8 +27,4 @@ public class SPARQLQueryEngine implements QueryEngine {
             return planner.generatePlan(algebraGenerator.compile(query), query.getResultVars());
         else throw new NotImplemented();
     }
-
-    public AlgebraGenerator getAlgebraGenerator() {
-        return algebraGenerator;
-    }
 }

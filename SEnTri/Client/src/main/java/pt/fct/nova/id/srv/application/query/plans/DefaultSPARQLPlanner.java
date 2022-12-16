@@ -19,8 +19,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.query.Utils.extractVariablesPattern;
-import static pt.fct.nova.id.srv.application.query.Utils.generateID;
+import static pt.fct.nova.id.srv.application.query.Utils.*;
 
 public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
@@ -153,35 +152,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         }
     }
 
-    private Set<Var> extractVars(SearchJob job) {
-        Node s = job.getSubject();
-        Node p = job.getPredicate();
-        Node o = job.getObject();
-        Set<Var> res = new HashSet<>();
-        switch (job.getVariablesPattern()) {
-            case S -> res.add(Var.alloc(s));
-            case P -> res.add(Var.alloc(p));
-            case O -> res.add(Var.alloc(o));
-            case SP -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(p));
-            }
-            case SO -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(o));
-            }
-            case PO -> {
-                res.add(Var.alloc(p));
-                res.add(Var.alloc(o));
-            }
-            case SPO -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(p));
-                res.add(Var.alloc(o));
-            }
-        }
-        return res;
-    }
+
 
     private void generateValuesJob(OpTable op) {
         List<SerializableBinding> values = new LinkedList<>();
