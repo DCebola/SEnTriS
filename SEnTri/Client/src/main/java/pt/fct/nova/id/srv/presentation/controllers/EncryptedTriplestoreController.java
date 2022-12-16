@@ -272,6 +272,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             List<String> expirableAccessTokens = ParsingUtils.parseListOfStrings(response.getBody());
 
             response = getProtocolSecrets(httpClient, triplestoreID, expirableAccessTokens.get(numExpireTokens));
+            //TODO: get proxy secret key
             numExpireTokens--;
             if (response.getStatus() != OK)
                 return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
@@ -284,8 +285,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
                     for (String searchJobID : searchJobVars.keySet()) {
                         //Generate prepare requests
-                        try (CloseableHttpResponse response =
-                                     EncryptedTriplestoreController.prepareBinding(httpClient, triplestoreID, expirableAccessTokens.get(numExpireTokens))) {
+                        try (CloseableHttpResponse response = EncryptedTriplestoreController.prepareBinding(httpClient, triplestoreID, expirableAccessTokens.get(numExpireTokens))) {
                             numExpireTokens--;
                             if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
                                 Response errorResponse = HTTPUtils.buildResponse(response);
