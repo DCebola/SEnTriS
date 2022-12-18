@@ -128,14 +128,6 @@ public interface TriplestoresAPI {
                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{triplestoreID}/access/expirable-tokens")
-    @Produces(APPLICATION_JSON)
-    Response createExpirableAccessTokens(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                         @PathParam("triplestoreID") String triplestoreID,
-                                         @DefaultValue("1") @QueryParam("total") int total,
-                                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @POST
     @Path("/{triplestoreID}/access/locks")
     @Produces(TEXT_PLAIN)
     Response acquireTriplestoreLock(@CookieParam(COOKIE_PARAM) Cookie cookie,

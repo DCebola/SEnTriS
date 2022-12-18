@@ -29,18 +29,15 @@ public class IAMStorage {
     private static final String TRIPLESTORE_WRITE_ACCESS = "TWA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String TRIPLESTORE_OWNER = "TO".concat(BASIC_SEPARATOR).concat("%s");
     private static final String TRIPLESTORES_PATTERN = "TO".concat(BASIC_SEPARATOR).concat("*");
-
     private static final String TRIPLESTORE_PENDING_ACCESS_REQUESTS = "TPA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ACCESS_REQUEST = "PA".concat(BASIC_SEPARATOR).concat("%s");
     private static final String PENDING_ROLE_REQUESTS = "PRR";
     private static final String PENDING_ROLE_REQUEST = "PR".concat(BASIC_SEPARATOR).concat("%s");
     private static final String STATUS = "STATUS";
     private static final String ACCESS_TOKEN = "AT".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String ACCESS_TOKEN_EXPIRABLE_TOKENS = "ATE".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String EXPIRABLE_ACCESS_TOKEN = "EAT".concat(BASIC_SEPARATOR).concat("%s");
     private static final long ACCESS_TOKEN_LIFETIME = Integer.toUnsignedLong(Integer.parseInt(System.getenv("ACCESS_TOKEN_LIFETIME")));
-    private static final long EXPIRABLE_ACCESS_TOKEN_LIFETIME = Integer.toUnsignedLong(Integer.parseInt(System.getenv("EXPIRABLE_ACCESS_TOKEN_LIFETIME")));
     public static final String TOKEN_USER_FIELD = "USER";
+    public static String TOKEN_SESSION_FIELD = "SESSION";
     public static final String TOKEN_TRIPLESTORE_FIELD = "TRIPLESTORE";
     public static final String TOKEN_LOCK_FIELD = "LOCK";
     private static final int PENDING_REQUEST_USER_IDX = 0;
@@ -208,7 +205,7 @@ public class IAMStorage {
         }
     }
 
-    public static boolean storeAccessPolicyExists(String triplestoreID) {
+    public static boolean triplestoreAccessPolicyExists(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             Response<Boolean> r1 = p.exists(String.format(TRIPLESTORE_OWNER, triplestoreID));
@@ -329,7 +326,6 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String requestID = UUIDUtils.generateID();
-            ;
             t.rpush(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), requestID);
             t.rpush(String.format(PENDING_ACCESS_REQUEST, requestID), username, String.valueOf(write));
             t.exec();
@@ -355,14 +351,14 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<String> requestIDs = jedis.lrange(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), 0, -1);
-            List<Response<List<String>>> storeRequestsResponses = new ArrayList<>(requestIDs.size());
+            List<Response<List<String>>> triplestoreIDRequestsResponses = new ArrayList<>(requestIDs.size());
             List<AccessRequest> pendingRequests = new ArrayList<>(requestIDs.size());
             for (String requestID : requestIDs)
-                storeRequestsResponses.add(p.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1));
+                triplestoreIDRequestsResponses.add(p.lrange(String.format(PENDING_ACCESS_REQUEST, requestID), 0, -1));
             p.sync();
             List<String> requestData;
-            for (int i = 0; i < storeRequestsResponses.size(); i++) {
-                Response<List<String>> response = storeRequestsResponses.get(i);
+            for (int i = 0; i < triplestoreIDRequestsResponses.size(); i++) {
+                Response<List<String>> response = triplestoreIDRequestsResponses.get(i);
                 requestData = response.get();
                 if (requestData != null && !requestData.isEmpty())
                     pendingRequests.add(buildAccessRequestData(requestIDs.get(i), requestData));
@@ -380,52 +376,16 @@ public class IAMStorage {
         }
     }
 
-    public static List<String> generateExpirableTokens(String accessTokenID, int total) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<String> expirableTokenIDs = new ArrayList<>(total);
-            String uuid, key;
-            String key2 = String.format(ACCESS_TOKEN_EXPIRABLE_TOKENS, accessTokenID);
-            Transaction t = jedis.multi();
-            for (int i = 0; i < total; i++) {
-                uuid = UUIDUtils.generateID();
-                ;
-                key = String.format(EXPIRABLE_ACCESS_TOKEN, uuid);
-                t.set(key, accessTokenID);
-                t.sadd(key2, uuid);
-                t.expire(key, EXPIRABLE_ACCESS_TOKEN_LIFETIME);
-                expirableTokenIDs.add(uuid);
-            }
-            t.expire(key2, EXPIRABLE_ACCESS_TOKEN_LIFETIME);
-            t.exec();
-            return expirableTokenIDs;
-        }
-    }
 
-    public static String getAccessTokenFromExpirable(String expirableAccessTokenID) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            String accessTokenID;
-            String key = String.format(EXPIRABLE_ACCESS_TOKEN, expirableAccessTokenID);
-            accessTokenID = jedis.get(key);
-            if (accessTokenID != null) {
-                Transaction t = jedis.multi();
-                t.del(key);
-                t.srem(String.format(ACCESS_TOKEN_EXPIRABLE_TOKENS, accessTokenID), expirableAccessTokenID);
-                t.exec();
-            }
-            return accessTokenID;
-        }
-    }
-
-
-    public static String saveToken(String username, String store) {
+    public static String saveToken(String username, String session, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String uuid = UUIDUtils.generateID();
-            ;
             String key = String.format(ACCESS_TOKEN, uuid);
             Transaction t = jedis.multi();
             t.del(key);
             t.hset(key, TOKEN_USER_FIELD, username);
-            t.hset(key, TOKEN_TRIPLESTORE_FIELD, store);
+            t.hset(key, TOKEN_SESSION_FIELD, session);
+            t.hset(key, TOKEN_TRIPLESTORE_FIELD, triplestoreID);
             t.expire(key, ACCESS_TOKEN_LIFETIME);
             t.exec();
             return uuid;
@@ -458,15 +418,7 @@ public class IAMStorage {
                         values.get(TOKEN_USER_FIELD),
                         values.get(TOKEN_TRIPLESTORE_FIELD),
                         lockID);
-
-            String key = String.format(ACCESS_TOKEN_EXPIRABLE_TOKENS, tokenID);
-            Set<String> temporaryTokenIDs = jedis.smembers(key);
-            Transaction t = jedis.multi();
-            for (String temporaryTokenID : temporaryTokenIDs)
-                t.del(String.format(EXPIRABLE_ACCESS_TOKEN, temporaryTokenID));
-            t.del(key);
-            t.del(String.format(ACCESS_TOKEN, tokenID));
-            t.exec();
+            jedis.del(String.format(ACCESS_TOKEN, tokenID));
         }
     }
 

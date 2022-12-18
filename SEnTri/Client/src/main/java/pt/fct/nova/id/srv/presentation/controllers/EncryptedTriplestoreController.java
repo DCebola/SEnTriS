@@ -6,7 +6,6 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.sparql.core.Var;
@@ -22,7 +21,6 @@ import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.query.Utils;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
-import pt.fct.nova.id.srv.application.query.jobs.SecureSearchJob;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
@@ -34,6 +32,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -51,16 +50,12 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     public static final String SECRETS_VERSION = System.getenv("SECRETS_PROTOCOL_VERSION");
     public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
     public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
-
-    public static final String SECRETS_PROXY_KEY = System.getenv("SECRETS_PROXY_KEY");
     private static final String INTERNAL_ERROR = "Internal error.";
-
     public static final String SUCCESSFUL_CREATION = "Successful creation.";
     public static final String EMPTY_UPLOAD = "No content to upload.";
     public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
-    private static final String DELETE_ERROR_PREFIX = "Failure to delete triplestore. Error occurred while saving secrets: ";
 
     private static final QueryEngine queryEngine = new SPARQLQueryEngine(new DefaultSPARQLPlanner());
 
@@ -79,30 +74,20 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String accessToken = response.getBody();
 
             response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
 
             if (form.getContents() == null)
                 return Response.ok(SUCCESSFUL_CREATION).build();
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
 
-
-            int totalExpirableTokens = 1;
-            if (triples.isEmpty())
-                totalExpirableTokens += 1;
-
-            response = createExpirableTokens(httpClient, cookie, triplestoreID, accessToken, totalExpirableTokens);
-            if (response.getStatus() != OK)
-                return response.build();
-            List<String> expirableAccessTokens = ParsingUtils.parseListOfStrings(response.getBody());
-
-
             switch (form.getProtocolVersion()) {
                 case V1 -> {
                     Protocol1 p = new Protocol1(triplestoreID);
 
-                    response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(p), expirableAccessTokens.get(totalExpirableTokens));
-                    totalExpirableTokens--;
+                    response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(p), accessToken);
                     if (response.getStatus() != OK) {
                         HTTPResponse response2 = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
                         if (response2.getStatus() != OK)
@@ -115,7 +100,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     Collections.shuffle(triples);
                     p.exec(triples);
 
-                    response = uploadEncryptedTriplestoreContents(httpClient, triplestoreID, p.getEncryptedT(), expirableAccessTokens.get(totalExpirableTokens));
+                    response = uploadEncryptedTriplestoreContents(httpClient, triplestoreID, p.getEncryptedT(), accessToken);
                     releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
@@ -144,20 +129,17 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String accessToken = response.getBody();
 
             response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
-
-            response = createExpirableTokens(httpClient, cookie, triplestoreID, accessToken, 2);
-            if (response.getStatus() != OK)
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
-            List<String> expirableAccessTokens = ParsingUtils.parseListOfStrings(response.getBody());
+            }
 
-            response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, expirableAccessTokens.get(0));
+            response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             }
-            response = deleteProtocolSecrets(httpClient, triplestoreID, expirableAccessTokens.get(1));
+            response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -186,8 +168,10 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             String accessToken = response.getBody();
 
             response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
 
             if (form.getContents() == null)
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
@@ -196,33 +180,29 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             if (!triples.isEmpty())
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
 
-
-            response = createExpirableTokens(httpClient, cookie, triplestoreID, accessToken, 3);
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
-            List<String> expirableAccessTokens = ParsingUtils.parseListOfStrings(response.getBody());
-
-            response = getProtocolSecrets(httpClient, triplestoreID, expirableAccessTokens.get(0));
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+            response = getProtocolSecrets(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
 
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
-                    Protocol1 p = initProtocol1(triplestoreID, secrets);
+                    Protocol1 protocol = initProtocol1(triplestoreID, secrets);
                     Collections.shuffle(triples);
 
 
-                    response = fetchAndUpdateKeywords(httpClient, triplestoreID, p.generateKeywordTrapdoorMap(triples), p, expirableAccessTokens.get(2));
+                    response = fetchAndUpdateKeywords(httpClient, triplestoreID, protocol.generateKeywordTrapdoorMap(triples), protocol, accessToken);
                     if (response != null && response.getStatus() != OK) {
                         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     }
 
                     Collections.shuffle(triples);
-                    p.exec(triples);
+                    protocol.exec(triples);
 
-                    response = uploadEncryptedTriplestoreContents(httpClient, triplestoreID, p.getEncryptedT(), expirableAccessTokens.get(2));
+                    response = uploadEncryptedTriplestoreContents(httpClient, triplestoreID, protocol.getEncryptedT(), accessToken);
                     releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
@@ -231,7 +211,6 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     //TODO: Create protocol v2
                     return Response.ok(NOT_IMPLEMENTED).status(Response.Status.NOT_IMPLEMENTED).build();
                 }
-
                 default ->
                         throw new IllegalStateException("Unexpected value: " + ProtocolVersion.fromString(secrets.get(SECRETS_VERSION)));
             }
@@ -264,58 +243,40 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                             searchJobVars.put(id, Utils.extractVars((SearchJob) j));
                     }
             );
-            int numExpireTokens = 3 + (searchJobVars.size() * 2);
 
-            response = createExpirableTokens(httpClient, cookie, triplestoreID, accessToken, numExpireTokens);
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
-            List<String> expirableAccessTokens = ParsingUtils.parseListOfStrings(response.getBody());
-
-            response = getProtocolSecrets(httpClient, triplestoreID, expirableAccessTokens.get(numExpireTokens));
-            //TODO: get proxy secret key
-            numExpireTokens--;
-            if (response.getStatus() != OK)
-                return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+            response = getProtocolSecrets(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
 
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
-                    Protocol1 p = initProtocol1(triplestoreID, secrets);
+                    Protocol1 protocol = initProtocol1(triplestoreID, secrets);
                     //TODO: Generate trapdoor to get keyword info
 
                     for (String searchJobID : searchJobVars.keySet()) {
-                        //Generate prepare requests
-                        try (CloseableHttpResponse response = EncryptedTriplestoreController.prepareBinding(httpClient, triplestoreID, expirableAccessTokens.get(numExpireTokens))) {
-                            numExpireTokens--;
-                            if (response.getStatusLine().getStatusCode() != OK.getStatusCode()) {
-                                Response errorResponse = HTTPUtils.buildResponse(response);
-                                try (CloseableHttpResponse ignore = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
-                                    return errorResponse;
-                                }
-                            }
-                        }
+                        //TODO: Check if binding is already prepared in proxy, update job else generate trapdoors
+                        response = prepareSPARQLQueryBindings(httpClient, triplestoreID, null, accessToken);
+                        if (response.getStatus() != OK)
+                            return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+                        //TODO: save results to aux map & update job
                     }
 
-
-                    //TODO: prepare search jobs
-                    plan.getJobs().replaceAll(
-                            (id, j) -> {
-                                if (j instanceof SearchJob) {
-                                    return new SecureSearchJob(id, Utils.extractVars((SearchJob) j));
-                                }
-                                return j;
-                            }
-                    );
-
-                    try (CloseableHttpResponse response = ProxyClient.query(httpClient, p.getK2(), plan);
-                         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    response = query(httpClient, protocol.getK2(), plan, accessToken);
+                    if (response.getStatus() != OK) {
+                        deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                        return response.build();
+                    }
+                    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                         List<Var> vars = plan.getVars();
-                        SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(HTTPUtils.consumeResponseEntity(response));
+                        SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
                         Collection<Binding> bindings = orderResultsIfNeeded(sparqlResult);
-
+                        //TODO: Decrypt bindings & change to readable vars
                         ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
                         CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                        return HTTPUtils.buildResponse(response);
+                        return Response.ok(out.toByteArray()).build();
                     }
                 }
                 case V2 -> {
@@ -327,6 +288,18 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             }
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private HTTPResponse query(CloseableHttpClient httpClient, SecretKey secretKey, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = ProxyClient.query(httpClient, secretKey, plan, accessToken)) {
+            return new HTTPResponse(response);
+        }
+    }
+
+    private HTTPResponse prepareSPARQLQueryBindings(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSPARQLQueryBindings(httpClient, triplestoreID, trapdoors, accessToken)) {
+            return new HTTPResponse(response);
         }
     }
 
@@ -364,38 +337,38 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         return null;
     }
 
-    private HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String triplestoreID, List<String> trapdoors, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, triplestoreID, trapdoors, expirableAccessToken)) {
+    private HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse getProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(httpClient, triplestoreID, expirableAccessToken)) {
+    private HTTPResponse getProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse uploadEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> encryptedT, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, triplestoreID, encryptedT, expirableAccessToken)) {
+    private HTTPResponse uploadEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> encryptedT, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, triplestoreID, encryptedT, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(httpClient, triplestoreID, secrets, expirableAccessToken)) {
+    private HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(httpClient, triplestoreID, secrets, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(httpClient, triplestoreID, expirableAccessToken)) {
+    private HTTPResponse deleteProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, String expirableAccessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(httpClient, triplestoreID, expirableAccessToken)) {
+    private HTTPResponse deleteEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }

@@ -25,12 +25,18 @@ public class Utils {
     private static final String SESSION_VALUE_MISMATCH = "Invalid session for user.";
 
     public static void authCheck(Cookie cookie, String username) throws InvalidCookieException, NoSessionFoundException, InvalidSessionException {
-        if (cookie == null || cookie.getValue() == null)
+        if (cookie == null)
             throw new InvalidCookieException();
-        String s = IAMStorage.getSession(username);
-        if (s == null || s.length() == 0)
+        authCheck(cookie.getValue(), username);
+    }
+
+    public static void authCheck(String cookieValue, String username) throws NoSessionFoundException, InvalidSessionException, InvalidCookieException {
+        if (cookieValue == null)
+            throw new InvalidCookieException();
+        String session = IAMStorage.getSession(username);
+        if (session == null || session.length() == 0)
             throw new NoSessionFoundException();
-        if (!s.equals(cookie.getValue()))
+        if (!session.equals(cookieValue))
             throw new InvalidSessionException();
     }
 

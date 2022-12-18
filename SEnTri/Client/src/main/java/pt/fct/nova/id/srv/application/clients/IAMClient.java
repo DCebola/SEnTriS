@@ -29,7 +29,6 @@ public class IAMClient {
     private static final String REQUEST_ACCESS_URI = System.getenv("IAM_PROVIDER_REQUEST_ACCESS_URI");
     private static final String CREATE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_CREATE_ACCESS_TOKEN_URI");
     private static final String DELETE_ACCESS_TOKEN_URI = System.getenv("IAM_PROVIDER_DELETE_ACCESS_TOKEN_URI");
-    private static final String CREATE_EXPIRABLE_ACCESS_TOKENS = System.getenv("IAM_PROVIDER_CREATE_EXPIRABLE_ACCESS_TOKEN_URI");;
     private static final String ACQUIRE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_TRIPLESTORE_LOCK_URI");
     private static final String RELEASE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_TRIPLESTORE_LOCK_URI");
     private static final String UPDATE_TRIPLESTORE_OWNER_URI = System.getenv("IAM_PROVIDER_UPDATE_TRIPLESTORE_OWNER_URI");
@@ -88,8 +87,7 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse processRoleRequest(HttpClient httpClient, Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) throws URISyntaxException, IOException {
-        return HTTPUtils.sendPUTRequest(httpClient, cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID),
-                ParsingUtils.requestDecisionFormToHttpEntity(decisionForm));
+        return HTTPUtils.sendPUTRequest(httpClient, cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID), ParsingUtils.requestDecisionFormToHttpEntity(decisionForm));
     }
 
     public static CloseableHttpResponse listTriplestores(HttpClient httpClient, Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
@@ -134,9 +132,4 @@ public class IAMClient {
                 .addParameter("accept", String.valueOf(accept)).build(), accessToken);
     }
 
-
-    public static CloseableHttpResponse createExpirableAccessTokens(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, int total) throws URISyntaxException, IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, cookie, new URIBuilder(String.format(CREATE_EXPIRABLE_ACCESS_TOKENS, triplestoreID))
-                .addParameter("total", String.valueOf(total)).build(), accessToken);
-    }
 }

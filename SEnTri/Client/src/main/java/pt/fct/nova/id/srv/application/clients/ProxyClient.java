@@ -11,7 +11,7 @@ import java.io.IOException;
 public class ProxyClient {
     private static final String QUERY_URI = System.getenv("PROXY_QUERY_URI");
 
-    public static CloseableHttpResponse query(HttpClient httpClient, SecretKey key, DefaultQueryExecutionPlan plan) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, QUERY_URI, ParsingUtils.generateSecureQueryRequest(key, plan));
+    public static CloseableHttpResponse query(HttpClient httpClient, SecretKey key, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, QUERY_URI, ParsingUtils.generateSecureQueryRequest(key, plan), accessToken);
     }
 }
