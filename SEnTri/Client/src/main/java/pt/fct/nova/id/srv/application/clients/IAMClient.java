@@ -5,7 +5,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -19,8 +18,8 @@ public class IAMClient {
     private static final String REGISTER_USER_URI = System.getenv("IAM_PROVIDER_REGISTER_USER_URI");
     private static final String DELETE_USER_URI = System.getenv("IAM_PROVIDER_DELETE_USER_URI");
     private static final String ISSUE_ROLE_REQUEST_URI = System.getenv("IAM_PROVIDER_ISSUE_ROLE_REQUEST_URI");
-    private static final String LIST_PENDING_ROLE_REQUESTS = System.getenv("IAM_PROVIDER_LIST_PENDING_ROLE_REQUESTS");
-    private static final String PROCESS_ROLE_REQUEST = System.getenv("IAM_PROVIDER_PROCESS_ROLE_REQUEST");
+    private static final String LIST_PENDING_ROLE_REQUESTS_URI = System.getenv("IAM_PROVIDER_LIST_PENDING_ROLE_REQUESTS_URI");
+    private static final String PROCESS_ROLE_REQUEST_URI = System.getenv("IAM_PROVIDER_PROCESS_ROLE_REQUEST_URI");
     private static final String CREATE_TRIPLESTORE_URI = System.getenv("IAM_PROVIDER_CREATE_TRIPLESTORE_URI");
     private static final String LIST_TRIPLESTORES_URI = System.getenv("IAM_PROVIDER_LIST_TRIPLESTORES_URI");
     private static final String DELETE_TRIPLESTORE_URI = System.getenv("IAM_PROVIDER_DELETE_TRIPLESTORE_URI");
@@ -32,9 +31,9 @@ public class IAMClient {
     private static final String ACQUIRE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_ACQUIRE_TRIPLESTORE_LOCK_URI");
     private static final String RELEASE_TRIPLESTORE_LOCK_URI = System.getenv("IAM_PROVIDER_RELEASE_TRIPLESTORE_LOCK_URI");
     private static final String UPDATE_TRIPLESTORE_OWNER_URI = System.getenv("IAM_PROVIDER_UPDATE_TRIPLESTORE_OWNER_URI");
-    private static final String LIST_USERS_WITH_ACCESS = System.getenv("IAM_PROVIDER_LIST_USERS_WITH_ACCESS");
-    private static final String LIST_PENDING_ACCESS_REQUESTS = System.getenv("IAM_PROVIDER_LIST_PENDING_ACCESS_REQUESTS");
-    private static final String PROCESS_ACCESS_REQUEST = System.getenv("IAM_PROVIDER_PROCESS_ACCESS_REQUEST");
+    private static final String LIST_USERS_WITH_ACCESS_URI = System.getenv("IAM_PROVIDER_LIST_USERS_WITH_ACCESS_URI");
+    private static final String LIST_PENDING_ACCESS_REQUESTS_URI = System.getenv("IAM_PROVIDER_LIST_PENDING_ACCESS_REQUESTS_URI");
+    private static final String PROCESS_ACCESS_REQUEST_URI = System.getenv("IAM_PROVIDER_PROCESS_ACCESS_REQUEST_URI");
 
     public static CloseableHttpResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, cookie, String.format(ACQUIRE_TRIPLESTORE_LOCK_URI, triplestoreID), accessToken);
@@ -83,11 +82,11 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse listPendingRoleRequests(HttpClient httpClient, Cookie cookie, String username) throws IOException {
-        return HTTPUtils.sendGETRequest(httpClient, cookie, String.format(LIST_PENDING_ROLE_REQUESTS, username));
+        return HTTPUtils.sendGETRequest(httpClient, cookie, String.format(LIST_PENDING_ROLE_REQUESTS_URI, username));
     }
 
     public static CloseableHttpResponse processRoleRequest(HttpClient httpClient, Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) throws URISyntaxException, IOException {
-        return HTTPUtils.sendPUTRequest(httpClient, cookie, String.format(PROCESS_ROLE_REQUEST, username, requestID), ParsingUtils.requestDecisionFormToHttpEntity(decisionForm));
+        return HTTPUtils.sendPUTRequest(httpClient, cookie, String.format(PROCESS_ROLE_REQUEST_URI, username, requestID), ParsingUtils.requestDecisionFormToHttpEntity(decisionForm));
     }
 
     public static CloseableHttpResponse listTriplestores(HttpClient httpClient, Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws URISyntaxException, IOException {
@@ -119,16 +118,16 @@ public class IAMClient {
     }
 
     public static CloseableHttpResponse listUsersWithAccess(HttpClient httpClient, Cookie cookie, String triplestoreID, boolean write, String accessToken) throws URISyntaxException, IOException {
-        return HTTPUtils.sendGETRequest(httpClient, cookie, new URIBuilder(String.format(LIST_USERS_WITH_ACCESS, triplestoreID))
+        return HTTPUtils.sendGETRequest(httpClient, cookie, new URIBuilder(String.format(LIST_USERS_WITH_ACCESS_URI, triplestoreID))
                 .addParameter("write", String.valueOf(write)).build(), accessToken);
     }
 
     public static CloseableHttpResponse listPendingAccessRequests(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
-        return HTTPUtils.sendGETRequest(httpClient, cookie, String.format(LIST_PENDING_ACCESS_REQUESTS, triplestoreID), accessToken);
+        return HTTPUtils.sendGETRequest(httpClient, cookie, String.format(LIST_PENDING_ACCESS_REQUESTS_URI, triplestoreID), accessToken);
     }
 
     public static CloseableHttpResponse processAccessRequest(HttpClient httpClient, Cookie cookie, String triplestoreID, String requestID, boolean accept, String accessToken) throws IOException, URISyntaxException {
-        return HTTPUtils.sendPUTRequest(httpClient, cookie, new URIBuilder(String.format(PROCESS_ACCESS_REQUEST, triplestoreID, requestID))
+        return HTTPUtils.sendPUTRequest(httpClient, cookie, new URIBuilder(String.format(PROCESS_ACCESS_REQUEST_URI, triplestoreID, requestID))
                 .addParameter("accept", String.valueOf(accept)).build(), accessToken);
     }
 
