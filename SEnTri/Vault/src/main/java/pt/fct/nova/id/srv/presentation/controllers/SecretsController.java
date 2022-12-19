@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -10,15 +9,16 @@ import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.presentation.api.SecretsAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 
-@Path("secrets")
+@Path("/secrets")
 public class SecretsController implements SecretsAPI {
     private static final String INTERNAL_ERROR = "Internal error.";
     private static final String SECRETS_ALREADY_EXIST = "Triplestore secrets already exists.";
@@ -28,19 +28,17 @@ public class SecretsController implements SecretsAPI {
     private static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
 
     @Override
-    public Response createSecrets(SecretsForm form, List<String> authorizationHeaders) {
+    public Response createSecrets(String triplestoreID, Map<String, String> secrets, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-        String triplestoreID = form.getTriplestoreID();
-
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (Vault.exists(triplestoreID))
                 return Response.ok(SECRETS_ALREADY_EXIST).status(NOT_FOUND).build();
-            Vault.saveSecrets(triplestoreID, form.getSecrets());
+            Vault.saveSecrets(triplestoreID, secrets);
             return Response.ok(SUCCESSFUL_SECRETS_CREATION).build();
         } catch (IOException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

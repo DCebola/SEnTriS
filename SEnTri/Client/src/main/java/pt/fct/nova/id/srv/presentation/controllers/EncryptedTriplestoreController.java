@@ -72,15 +72,15 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 return response.build();
             String accessToken = response.getBody();
 
+            if (form.getContents() == null)
+                return Response.ok(SUCCESSFUL_CREATION).build();
+            List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
+
             response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-
-            if (form.getContents() == null)
-                return Response.ok(SUCCESSFUL_CREATION).build();
-            List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
 
             switch (form.getProtocolVersion()) {
                 case V1 -> {
@@ -111,10 +111,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 default -> throw new IllegalStateException("Unexpected value: " + form.getProtocolVersion());
             }
         } catch (UnknownRDFLanguageException e) {
+            e.printStackTrace();
             return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
+            e.printStackTrace();
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -307,6 +310,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         Var var;
         SecureSearchJob secureSearchJob;
         Map<String, Job> jobs = plan.getJobs();
+        List<String> trapdoors;
         for (String jobID : searchJobsIDs) {
             secureSearchJob = (SecureSearchJob) plan.getJobs().get(jobID);
             for (Map.Entry<Var, String> entry : secureSearchJob.getSearches().entrySet()) {
@@ -314,7 +318,9 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 keyword = entry.getValue();
                 searchID = preparedSearches.get(keyword);
                 if (searchID == null) {
-                    response = prepareSearch(httpClient, triplestoreID, protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword)), accessToken);
+                    trapdoors = protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword));
+                    Collections.shuffle(trapdoors);
+                    response = prepareSearch(httpClient, triplestoreID, trapdoors, accessToken);
                     if (response.getStatus() != OK)
                         return response;
                     searchID = response.getBody();

@@ -122,7 +122,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
-        prevJobResults.project(job.getVariables());
+        prevJobResults.project(job.getVars());
         return prevJobResults;
     }
 

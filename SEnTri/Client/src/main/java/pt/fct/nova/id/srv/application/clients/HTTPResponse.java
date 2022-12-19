@@ -16,23 +16,26 @@ public class HTTPResponse {
     public HTTPResponse(NewCookie cookie, CloseableHttpResponse response) throws IOException {
         this.status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
         this.body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        System.out.println("BODY: " );
         this.response =  Response.ok(body)
                 .status(status)
                 .cookie(cookie)
                 .build();
     }
 
-    public HTTPResponse(String prefix, CloseableHttpResponse response) throws IOException {
+    public HTTPResponse(CloseableHttpResponse response) throws IOException {
         this.status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
         this.body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        this.response =  Response.ok(prefix.concat(body))
+        this.response =  Response.ok(body)
                 .status(status)
                 .build();
     }
 
-    public HTTPResponse(CloseableHttpResponse response) throws IOException {
+    public HTTPResponse(CloseableHttpResponse response, boolean log) throws IOException {
         this.status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
         this.body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        if (log)
+            System.out.println("BODY: " + body);
         this.response =  Response.ok(body)
                 .status(status)
                 .build();

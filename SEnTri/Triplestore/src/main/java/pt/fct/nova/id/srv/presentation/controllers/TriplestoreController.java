@@ -84,7 +84,6 @@ public class TriplestoreController implements TriplestoreAPI {
                 execution.exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
                 List<Var> vars = executionPlan.getVars();
                 Iterator<Binding> bindings = execution.getResults().getBindings().iterator();
-
                 ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings));
                 return Response.ok(out.toByteArray()).build();
             }

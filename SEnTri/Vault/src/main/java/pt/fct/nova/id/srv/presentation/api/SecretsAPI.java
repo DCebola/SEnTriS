@@ -2,10 +2,9 @@ package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import org.jboss.resteasy.annotations.Form;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecretsForm;
 
 import java.util.List;
+import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
@@ -13,10 +12,11 @@ import static jakarta.ws.rs.core.MediaType.*;
 public interface SecretsAPI {
 
     @POST
-    @Path("")
-    @Consumes(MULTIPART_FORM_DATA)
+    @Path("/{triplestoreID}")
+    @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    Response createSecrets(@Form SecretsForm secrets,
+    Response createSecrets(@PathParam("triplestoreID") String triplestoreID,
+                           Map<String, String> secrets,
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET

@@ -42,7 +42,14 @@ public final class DGKPrivateKey implements DGK_Key, Serializable, PrivateKey {
     }
 
     public byte[] getEncoded() {
-        return null;
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(this);
+            oos.flush();
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

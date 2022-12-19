@@ -3,6 +3,12 @@ package pt.fct.nova.id.srv.application.query.execution;
 import org.apache.jena.query.ResultSet;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
 public interface SPARQLExecution {
@@ -19,5 +25,5 @@ public interface SPARQLExecution {
 
     SPARQLResult getResults();
 
-    void exec(SPARQLWorker worker) throws SPARQLExecutionException;
+    void exec(SPARQLWorker worker) throws SPARQLExecutionException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 }
