@@ -113,6 +113,8 @@ public class Protocol1 implements EncryptionProtocol {
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
             NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
+        if (keyword.equals("S:S<:>http://www.w3.org/1999/02/22-rdf-syntax-ns#type:S<:>http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Department"))
+            System.out.println(node);
         byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
         encryptedT.put(
@@ -126,7 +128,6 @@ public class Protocol1 implements EncryptionProtocol {
             BadPaddingException, InvalidKeyException {
         for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
             Pair<Integer, byte[]> value = entry.getValue();
-            System.out.println(entry.getKey());
             byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
             byte[] ct = generateRNDLayer(k2, Utils.integerToByteArray(value.getLeft()));
             encryptedT.put(
@@ -187,7 +188,7 @@ public class Protocol1 implements EncryptionProtocol {
     private byte[] getKeywordIV(String keyword) {
         Pair<Integer, byte[]> entry = keywords.get(keyword);
         if (entry == null) {
-            entry = new Pair<>(0, SymmetricCipher.incrementIV(iv));
+            entry = new Pair<>(1, SymmetricCipher.incrementIV(iv));
             keywords.put(keyword, entry);
         } else
             keywords.put(keyword, new Pair<>(entry.getLeft() + 1, SymmetricCipher.incrementIV(entry.getRight())));

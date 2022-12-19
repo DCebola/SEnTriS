@@ -343,13 +343,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<Binding> bindings, Map<String, String> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private Collection<Binding> decryptBindings(Collection<Binding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (Binding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                builder.add(Var.alloc(obfuscationMap.get(var.getVarName())), generateNode(new String(protocol.decryptRNDLayer(binding.get(var).getURI()))));
+                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptRNDLayer(binding.get(var).getURI()))));
             }
             decryptedBindings.add(builder.build());
             builder.reset();

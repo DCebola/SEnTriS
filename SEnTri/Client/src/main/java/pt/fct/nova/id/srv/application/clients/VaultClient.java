@@ -14,7 +14,6 @@ public class VaultClient {
     private static final String DELETE_SECRETS_URI = System.getenv("VAULT_DELETE_SECRETS_URI");
 
     public static CloseableHttpResponse saveProtocolSecrets(HttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
-        System.out.printf((CREATE_SECRETS_URI) + "%n", triplestoreID);
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(CREATE_SECRETS_URI, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(secrets), accessToken);
     }
 
