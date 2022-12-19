@@ -7,19 +7,22 @@ import pt.fct.nova.id.srv.presentation.api.dtos.SecureSPARQLQueryForm;
 
 import java.util.List;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 
-public interface ProxyAPI {
+public interface QueriesAPI {
 
     @POST
     @Path("/")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    Response answerSPARQLQuery(@MultipartForm SecureSPARQLQueryForm form);
+    Response answerSPARQLQuery(@MultipartForm SecureSPARQLQueryForm form,
+                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/bindings")
+    @Path("/prepare")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response saveBinding(List<String> encryptedNodes);
+    Response saveSearchResults(List<String> encryptedNodes,
+                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

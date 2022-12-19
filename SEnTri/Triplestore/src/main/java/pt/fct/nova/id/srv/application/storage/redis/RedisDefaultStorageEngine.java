@@ -34,17 +34,16 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     private final static String ALL_S = "%s".concat(BASIC_SEPARATOR).concat("S");
     private final static String ALL_P = "%s".concat(BASIC_SEPARATOR).concat("P");
     private final static String ALL_O = "%s".concat(BASIC_SEPARATOR).concat("O");
-
     private final static String SINGLE_S = "%s".concat(BASIC_SEPARATOR).concat("S").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_P = "%s".concat(BASIC_SEPARATOR).concat("P").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_O = "%s".concat(BASIC_SEPARATOR).concat("O").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_SP = "%s".concat(BASIC_SEPARATOR).concat("SP").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_SO = "%s".concat(BASIC_SEPARATOR).concat("SO").concat(BASIC_SEPARATOR).concat("%s");
     private final static String SINGLE_PO = "%s".concat(BASIC_SEPARATOR).concat("PO").concat(BASIC_SEPARATOR).concat("%s");
-    private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
     private static final String BLANK_IRI_PREFIX = "B";
-    private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
+    private final static String BLANK_IRI = BLANK_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final String SIMPLE_IRI_PREFIX = "S";
+    private static final String SIMPLE_IRI = SIMPLE_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;

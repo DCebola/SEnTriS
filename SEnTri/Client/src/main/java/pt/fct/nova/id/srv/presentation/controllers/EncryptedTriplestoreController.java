@@ -11,18 +11,18 @@ import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.QueryEngine;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.application.query.Utils;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
+import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
-import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedCreateForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
@@ -35,6 +35,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -56,8 +57,6 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED = "Not implemented.";
-
-    private static final QueryEngine queryEngine = new SPARQLQueryEngine(new DefaultSPARQLPlanner());
 
     @Override
     public Response create(Cookie cookie, EncryptedCreateForm form) {
@@ -192,8 +191,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                     Protocol1 protocol = initProtocol1(triplestoreID, secrets);
                     Collections.shuffle(triples);
 
-
-                    response = fetchAndUpdateKeywords(httpClient, triplestoreID, protocol.generateKeywordTrapdoorMap(triples), protocol, accessToken);
+                    response = fetchAndUpdateKeywords(httpClient, triplestoreID, protocol, protocol.generateKeywordTrapdoorMap(triples).entrySet(), accessToken);
                     if (response != null && response.getStatus() != OK) {
                         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -234,16 +232,6 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 return response.build();
             String accessToken = response.getBody();
 
-            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
-
-            Map<String, Set<Var>> searchJobVars = new HashMap<>();
-            plan.getJobs().forEach(
-                    (id, j) -> {
-                        if (j instanceof SearchJob)
-                            searchJobVars.put(id, Utils.extractVars((SearchJob) j));
-                    }
-            );
-
             response = getProtocolSecrets(httpClient, triplestoreID, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -254,14 +242,33 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
                     Protocol1 protocol = initProtocol1(triplestoreID, secrets);
-                    //TODO: Generate trapdoor to get keyword info
+                    SecureSPARQLPlanner planner = new SecureSPARQLPlanner(protocol);
+                    DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
 
-                    for (String searchJobID : searchJobVars.keySet()) {
-                        //TODO: Check if binding is already prepared in proxy, update job else generate trapdoors
-                        response = prepareSPARQLQueryBindings(httpClient, triplestoreID, null, accessToken);
-                        if (response.getStatus() != OK)
-                            return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
-                        //TODO: save results to aux map & update job
+                    Set<String> keywords = planner.getKeywords();
+                    List<String> keywordList = new ArrayList<>(keywords.size());
+                    List<String> trapdoors = new ArrayList<>(keywords.size());
+                    for (String keyword : keywords) {
+                        keywordList.add(keyword);
+                        trapdoors.add(protocol.generateTrapdoor(keyword));
+                    }
+
+                    response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
+                    if (response.getStatus() != OK)
+                        return response.build();
+
+                    List<String> encryptedKeywordsInfo = ParsingUtils.parseListOfStrings(response.getBody());
+                    Map<String, Integer> keywordsInfo = new HashMap<>(encryptedKeywordsInfo.size());
+                    ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+                    for (int i = 0; i < encryptedKeywordsInfo.size(); i++) {
+                        keywordsInfo.put(keywordList.get(i), buffer.put(protocol.decryptRNDLayer(encryptedKeywordsInfo.get(i))).rewind().getInt());
+                        buffer.reset();
+                    }
+
+                    response = prepareSearches(httpClient, protocol, triplestoreID, plan, planner.getSearchJobsIDs(), keywordsInfo, accessToken);
+                    if (response != null && response.getStatus() != OK) {
+                        deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                        return response.build();
                     }
 
                     response = query(httpClient, protocol.getK2(), plan, accessToken);
@@ -273,7 +280,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                         List<Var> vars = plan.getVars();
                         SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
                         Collection<Binding> bindings = orderResultsIfNeeded(sparqlResult);
-                        //TODO: Decrypt bindings & change to readable vars
+                        bindings = decryptBindings(bindings, planner.getObfuscationMap(), protocol);
                         ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
                         CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                         return Response.ok(out.toByteArray()).build();
@@ -289,6 +296,50 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol,
+                                         String triplestoreID, QueryExecutionPlan plan, Set<String> searchJobsIDs,
+                                         Map<String, Integer> keywordsInfo, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        HTTPResponse response;
+        Map<String, String> preparedSearches = new HashMap<>();
+        String keyword, searchID;
+        Var var;
+        SecureSearchJob secureSearchJob;
+        Map<String, Job> jobs = plan.getJobs();
+        for (String jobID : searchJobsIDs) {
+            secureSearchJob = (SecureSearchJob) plan.getJobs().get(jobID);
+            for (Map.Entry<Var, String> entry : secureSearchJob.getSearches().entrySet()) {
+                var = entry.getKey();
+                keyword = entry.getValue();
+                searchID = preparedSearches.get(keyword);
+                if (searchID == null) {
+                    response = prepareSPARQLQueryBindings(httpClient, triplestoreID,
+                            protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword)), accessToken);
+                    if (response.getStatus() != OK)
+                        return response;
+                    searchID = response.getBody();
+                    preparedSearches.put(keyword, searchID);
+                }
+                secureSearchJob.prepareSearch(var, searchID);
+            }
+            jobs.replace(jobID, secureSearchJob);
+        }
+        return null;
+    }
+
+    private Collection<Binding> decryptBindings(Collection<Binding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Collection<Binding> decryptedBindings = new LinkedList<>();
+        BindingBuilder builder = Binding.builder();
+        for (Binding binding : bindings) {
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                Var var = it.next();
+                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptRNDLayer(binding.get(var).getURI()))));
+            }
+            decryptedBindings.add(builder.build());
+            builder.reset();
+        }
+        return decryptedBindings;
     }
 
     private HTTPResponse query(CloseableHttpClient httpClient, SecretKey secretKey, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
@@ -318,11 +369,11 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
 
-    private HTTPResponse fetchAndUpdateKeywords(HttpClient httpClient, String triplestoreID, Map<String, String> keywordTrapdoorMap, Protocol1 protocol, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
-        List<String> trapdoors = new ArrayList<>(keywordTrapdoorMap.size());
-        List<String> keywords = new ArrayList<>(keywordTrapdoorMap.size());
+    private HTTPResponse fetchAndUpdateKeywords(HttpClient httpClient, String triplestoreID, Protocol1 protocol, Set<Map.Entry<String, String>> keywordTrapdoors, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
+        List<String> trapdoors = new ArrayList<>(keywordTrapdoors.size());
+        List<String> keywords = new ArrayList<>(keywordTrapdoors.size());
         int i = 0;
-        for (Map.Entry<String, String> entry : keywordTrapdoorMap.entrySet()) {
+        for (Map.Entry<String, String> entry : keywordTrapdoors) {
             trapdoors.add(entry.getKey());
             keywords.add(i, entry.getValue());
             i++;

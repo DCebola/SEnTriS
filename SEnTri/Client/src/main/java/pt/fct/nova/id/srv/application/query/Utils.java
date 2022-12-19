@@ -1,16 +1,19 @@
 package pt.fct.nova.id.srv.application.query;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Utils {
@@ -56,6 +59,32 @@ public class Utils {
                 res.add(Var.alloc(s));
                 res.add(Var.alloc(p));
                 res.add(Var.alloc(o));
+            }
+        }
+        return res;
+    }
+
+    public static Map<Var, String> generateKeywordMap(Node subject, Node predicate, Node object, VariablesPattern pattern) throws InvalidNodeException {
+        String s, p, o;
+        s = ParsingUtils.parseNodeIRI(subject);
+        p = ParsingUtils.parseNodeIRI(predicate);
+        o = ParsingUtils.parseNodeIRI(object);
+        Map<Var, String> res = new HashMap<>();
+        switch (pattern) {
+            case S -> res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, PO, String.format(COMPOUND_KEYWORD, p, o)));
+            case P -> res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, SO, String.format(COMPOUND_KEYWORD, s, o)));
+            case O -> res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, SP, String.format(COMPOUND_KEYWORD, s, p)));
+            case SP -> {
+                res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, O, o));
+                res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, O, o));
+            }
+            case SO -> {
+                res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, P, p));
+                res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, P, p));
+            }
+            case PO -> {
+                res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, S, s));
+                res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, S, s));
             }
         }
         return res;

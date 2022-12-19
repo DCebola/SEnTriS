@@ -43,7 +43,7 @@ public class TriplestoresController implements TriplestoresAPI {
     private static final String SUCCESSFUL_ACCESS_TOKEN_DELETION = "Successful deletion of access token.";
     private static final String SUCCESSFUL_LOCK_RELEASE = "Successful lock release.";
     public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
-    private static final String ACCESS_ALLOWED = "Access allowed.";
+    public static final String ACCESS_ALLOWED = "Access allowed.";
     public static final String ACCESS_FORBIDDEN = "Access forbidden.";
     private static final String CANNOT_REVOKE_OWNER_OR_ADMIN_ACCESS = "Cannot revoke admin or owner access.";
 

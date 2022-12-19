@@ -19,10 +19,10 @@ public class ProxyStorage {
     private static final long BINDINGS_LIFETIME = Long.parseLong(System.getenv("BINDINGS_LIFETIME"));
     private static final Random rnd = new Random();
 
-    public static void delete(List<Var> vars) {
+    public static void delete(Set<String> searchIDs) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            vars.forEach(var -> t.del(var.getName()));
+            searchIDs.forEach(t::del);
             t.exec();
         }
     }
@@ -38,17 +38,17 @@ public class ProxyStorage {
         }
     }
 
-    public static IRITable search(SecretKey key, List<Var> vars) throws SPARQLExecutionException {
+    public static IRITable search(SecretKey key, List<Var> vars, List<String> searchIDs) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             MemIRITable res = new MemIRITable();
             List<Response<List<String>>> responses = new ArrayList<>(vars.size());
-            vars.forEach(var -> responses.add(p.lrange(var.getVarName(), 0, -1)));
+            searchIDs.forEach(searchID -> responses.add(p.lrange(searchID, 0, -1)));
             p.sync();
             Map<Var, List<String>> bindings = new HashMap<>();
-            for (int i = 0; i < vars.size(); i++) {
+            for (int i = 0; i < vars.size(); i++)
                 bindings.put(vars.get(i), responses.get(i).get());
-            }
+
             List<String> encryptedNodes = bindings.get(vars.get(rnd.nextInt(0, vars.size())));
             String p_idx;
             for (int i = 0; i < encryptedNodes.size(); i++) {

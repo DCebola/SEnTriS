@@ -44,6 +44,7 @@ DELETE IAMProvider/api/users/{username}                                         
 POST   IAMProvider/api/users/{username}/role/requests                           #Grant or issue role request.    (Admin)
 GET    IAMProvider/api/users/{username}/role/requests                           #List pending role requests.     (Admin)
 PUT    IAMProvider/api/users/{username}/role/requests/{requestID}               #Process pending role request.   (Admin)
+GET    IAMProvider/api/users/tokens/active                         #Check if access token belongs to active user (Basic)
 
 POST   IAMProvider/api/triplestores                                             #Create triplestore.             (Privileged)
 GET    IAMProvider/api/triplestores/{issuer}                                    #List triplestores.              (Basic)
@@ -86,7 +87,7 @@ POST   Triplestore/api/query/{TriplestoreID}             #Execute a SPARQL query
 POST   Triplestore/api/encrypted/{TriplestoreID}         #Upload data to encrypted triplestore.          (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/delete  #Delete data from encrypted triplestore.        (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/search  #Search data from encrypted triplestore.        (Read Access)
-POST   Triplestore/api/encrypted/{TriplestoreID}/bind    #Prepare auxiliary bindings for SPARQL query.   (Read Access)
+POST   Triplestore/api/encrypted/proxy/{TriplestoreID}/search  #Prepare auxiliary search for SPARQL query. (Read Access)
 DELETE Triplestore/api/encrypted/{TriplestoreID}         #Delete encrypted triplestore.                  (Owner)
 ```
 
@@ -95,5 +96,5 @@ DELETE Triplestore/api/encrypted/{TriplestoreID}         #Delete encrypted tripl
 GET    Proxy/api/ctrl/version           #Get service version.                                         (Basic)
 
 POST   Proxy/api/queries                #Execute a SPARQL query.                                      (Read Access)
-POST   Proxy/api/queries/bindings       #Save auxiliary bindings associated w/ a query.               (Read Access)
+POST   Proxy/api/queries/prepare        #Save auxiliary search results associated w/ a query.         (Read Access)
 ```

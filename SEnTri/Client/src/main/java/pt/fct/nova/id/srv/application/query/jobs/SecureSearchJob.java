@@ -3,21 +3,25 @@ package pt.fct.nova.id.srv.application.query.jobs;
 import org.apache.jena.sparql.core.Var;
 
 import java.io.Serial;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SecureSearchJob  extends BaseJob {
+public class SecureSearchJob extends BaseJob {
     @Serial
     private static final long serialVersionUID = 6345655033367727692L;
 
-    private final Set<Var> vars;
+    private final Map<Var, String> searches;
 
-    public SecureSearchJob(String jobID, Set<Var> vars) {
+    public SecureSearchJob(String jobID, Map<Var, String> searches) {
         super(jobID);
-        this.vars = vars;
+        this.searches = new HashMap<>();
     }
 
-    public Set<Var> getVars() {
-        return vars;
+    public Map<Var, String> getSearches() {
+        return searches;
     }
 
+    public void prepareSearch(Var var, String searchID) {
+        searches.put(var, searchID);
+    }
 }

@@ -16,7 +16,7 @@ public class ProjectJob extends BaseJob1 {
         this.variables = variables;
     }
 
-    public List<Var> getVariables() {
+    public List<Var> getVars() {
         return variables;
     }
 

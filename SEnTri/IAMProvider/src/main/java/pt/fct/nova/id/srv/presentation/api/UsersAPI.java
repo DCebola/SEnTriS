@@ -6,6 +6,9 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import pt.fct.nova.id.srv.presentation.api.dtos.*;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.application.IAMStorage.COOKIE_PARAM;
 
@@ -51,4 +54,9 @@ public interface UsersAPI {
                                 @PathParam("username") String username,
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
+
+    @PUT
+    @Path("/tokens/active")
+    @Produces(TEXT_PLAIN)
+    Response checkIfActive(@HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

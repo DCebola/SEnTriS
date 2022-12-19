@@ -13,31 +13,68 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
+import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.JoinJob;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.MinusJob;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.OptionalJob;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.Utils.*;
+import static pt.fct.nova.id.srv.application.query.Utils.generateID;
 
-public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
+public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
     final static Logger logger = LoggerFactory.getLogger(DefaultSPARQLPlanner.class);
-
     private final Map<Op, String> parsed_op;
-
     private final DefaultQueryExecutionPlan plan;
+    private final HashMap<Var, Var> obfuscationMap;
+    private final Set<String> keywords;
+    private final EncryptionProtocol protocol;
+    private final Set<String> searchJobsIDs;
 
-    public DefaultSPARQLPlanner() {
+    public SecureSPARQLPlanner(EncryptionProtocol protocol) {
+        this.protocol = protocol;
+        this.keywords = new HashSet<>();
         this.parsed_op = new HashMap<>();
+        this.obfuscationMap = new HashMap<>();
         this.plan = new DefaultQueryExecutionPlan();
+        this.searchJobsIDs = new HashSet<>();
     }
 
     public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
         OpWalker.walk(op, this);
-        plan.setVars(generateVars(resultVarNames));
+        List<Var> vars = generateVars(resultVarNames);
+        List<Var> obfuscatedVars = new ArrayList<>(vars.size());
+        for (Var var : vars)
+            obfuscatedVars.add(obfuscateVar(var));
+        plan.setVars(obfuscatedVars);
         return plan;
+    }
+
+    public Set<String> getKeywords() {
+        return keywords;
+    }
+
+    public Set<String> getSearchJobsIDs() {
+        return searchJobsIDs;
+    }
+
+    public Map<Var, Var> getObfuscationMap() {
+        return obfuscationMap;
     }
 
     private List<Var> generateVars(List<String> resultVarNames) {
@@ -46,43 +83,69 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return vars;
     }
 
+    private Var obfuscateVar(Var var) {
+        Var obfuscatedVar = obfuscationMap.get(var);
+        if (obfuscatedVar == null) {
+            obfuscatedVar = Var.alloc(generateID());
+            obfuscationMap.put(var, obfuscatedVar);
+            obfuscationMap.put(obfuscatedVar, var);
+        }
+        return obfuscatedVar;
+    }
+
     @Override
     public void visit0(Op0 op) {
         logger.info("OP0: {}", op);
-        if (op instanceof OpBGP opBGP) {
-            generateGetJobs(opBGP);
-        } else if (op instanceof OpTriple opTriple) {
-            generateGetJobs(opTriple.asBGP());
-        } else if (op instanceof OpTable opTable) {
-            generateValuesJob(opTable);
-        } else {
-            throw new NotImplemented();
+        try {
+            if (op instanceof OpBGP opBGP) {
+                generateGetJobs(opBGP);
+            } else if (op instanceof OpTriple opTriple) {
+                generateGetJobs(opTriple.asBGP());
+            } else if (op instanceof OpTable opTable) {
+                generateValuesJob(opTable);
+            } else {
+                throw new NotImplemented();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private void generateGetJobs(OpBGP op) {
+    private void generateGetJobs(OpBGP op) throws InvalidNodeException {
         List<Triple> patterns = op.getPattern().getList();
         int total_patterns = patterns.size();
-        List<SearchJob> searchJobs = new ArrayList<>(total_patterns);
-
-        patterns.forEach(
-                t -> {
-                    Node s = t.getSubject();
-                    Node p = t.getPredicate();
-                    Node o = t.getObject();
-                    String jobID = generateID();
-                    if (total_patterns == 1) {
-                        parsed_op.put(op, jobID);
-                        plan.pushJob(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
-                    } else
-                        searchJobs.add(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
-                }
-        );
+        List<SecureSearchJob> searchJobs = new ArrayList<>(total_patterns);
+        Node s, p, o;
+        Var var;
+        String jobID, keyword;
+        Map<Var, String> searches;
+        Map<Var, String> obfuscatedSearches;
+        for (Triple t : patterns) {
+            s = t.getSubject();
+            p = t.getPredicate();
+            o = t.getObject();
+            jobID = generateID();
+            searches = generateKeywordMap(s, p, o, extractVariablesPattern(s, p, o));
+            obfuscatedSearches = new HashMap<>();
+            for (Map.Entry<Var, String> entry : searches.entrySet()) {
+                var = entry.getKey();
+                keyword = entry.getValue();
+                obfuscatedSearches.put(obfuscateVar(var), keyword);
+                keywords.add(keyword);
+            }
+            searchJobsIDs.add(jobID);
+            if (total_patterns == 1) {
+                parsed_op.put(op, jobID);
+                plan.pushJob(new SecureSearchJob(jobID, obfuscatedSearches));
+            } else
+                searchJobs.add(new SecureSearchJob(jobID, obfuscatedSearches));
+        }
         if (total_patterns >= 2)
             generateJoinPipeline(op, searchJobs);
     }
 
-    private void generateJoinPipeline(OpBGP op, List<SearchJob> searchJobs) {
+    private void generateJoinPipeline(OpBGP op, List<SecureSearchJob> searchJobs) {
+        //TODO: Should be a one random walk from all of the valid possibilities
         int num_jobs = searchJobs.size();
         Set<Var> all_vars = new HashSet<>();
         List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
@@ -92,7 +155,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
         Set<Var> vars;
         for (int i = 0; i < num_jobs; i++) {
-            vars = extractVars(searchJobs.get(i));
+            vars = searchJobs.get(i).getSearches().keySet();
             all_vars.addAll(vars);
             result_vars.add(vars);
             to_be_processed.add(i);
@@ -153,27 +216,31 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
 
-    private void generateValuesJob(OpTable op) {
-        List<SerializableBinding> values = new LinkedList<>();
+    private void generateValuesJob(OpTable op) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        List<EncryptedBinding> values = new LinkedList<>();
         Iterator<Binding> rows = op.getTable().rows();
         Binding row;
         Iterator<Var> rowVars;
         Var currentVar;
-        Map<Var, Node> collector;
+        Map<Var, String> collector;
         while (rows.hasNext()) {
             row = rows.next();
             rowVars = row.vars();
             collector = new HashMap<>();
             while (rowVars.hasNext()) {
                 currentVar = rowVars.next();
-                collector.put(currentVar, row.get(currentVar));
+                if (protocol instanceof Protocol1 p1)
+                    collector.put(obfuscateVar(currentVar),
+                            new String(p1.encryptDET(ParsingUtils.parseNodeIRI(row.get(currentVar)).getBytes(StandardCharsets.UTF_8))));
+                else
+                    throw new NotImplemented();
             }
-            values.add(new SerializableBinding(collector));
+            values.add(new EncryptedBinding(collector));
 
         }
         String jobID = generateID();
         parsed_op.put(op, jobID);
-        plan.pushJob(new ValuesJob(jobID, values));
+        plan.pushJob(new EncryptedValuesJob(jobID, values));
     }
 
     @Override
@@ -182,28 +249,14 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         if (op instanceof OpExtendAssign) {
             throw new NotImplemented();
         } else if (op instanceof OpFilter) {
-            //generateBindJob((OpExtendAssign) op);
             throw new NotImplemented();
         } else if (op instanceof OpGroup) {
-            //generateFilterJob((OpFilter) op);
             throw new NotImplemented();
         } else if (op instanceof OpModifier opModifier) {
-            //generateGroupJob((OpGroup) op);
             visitOpModifier(opModifier);
         } else {
             throw new NotImplemented();
         }
-    }
-
-
-    private void generateBindJob(OpExtendAssign op) {
-        String prevJobID = getPrevJobID(op.getSubOp());
-        String jobID = generateID();
-        op.getVarExprList().getExprs().forEach(
-                (var, expr) -> plan.pushJob(new BindJob(jobID, prevJobID, var, expr))
-        );
-        parsed_op.put(op, jobID);
-
     }
 
     private String getPrevJobID(Op subOp) {
@@ -212,20 +265,6 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
             throw new QueryBuildException();
         return prevJobID;
     }
-
-    private void generateFilterJob(OpFilter op) {
-        String jobID = generateID();
-        plan.pushJob(new FilterJob(jobID, getPrevJobID(op.getSubOp()), op.getExprs().getList()));
-        parsed_op.put(op, jobID);
-    }
-
-
-    private void generateGroupJob(OpGroup op) {
-        String jobID = generateID();
-        plan.pushJob(new GroupJob(jobID, getPrevJobID(op.getSubOp()), op.getAggregators()));
-        parsed_op.put(op, jobID);
-    }
-
 
     private void visitOpModifier(OpModifier op) {
         if (op instanceof OpDistinctReduced opDistinctReduced) {
@@ -243,7 +282,11 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private void generateProjectJob(OpProject op) {
         String jobID = generateID();
-        plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), op.getVars()));
+        List<Var> vars = op.getVars();
+        List<Var> obfuscatedVars = new ArrayList<>(vars.size());
+        for (Var var : vars)
+            obfuscatedVars.add(obfuscateVar(var));
+        plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), obfuscatedVars));
         parsed_op.put(op, jobID);
     }
 
@@ -258,7 +301,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         List<SortCondition> conditions = op.getConditions();
         List<SerializableSortCondition> serializableSortConditions = new ArrayList<>(conditions.size());
         for (SortCondition sortCondition : conditions)
-            serializableSortConditions.add(new SerializableSortCondition(sortCondition.getExpression().asVar(), sortCondition.getDirection()));
+            serializableSortConditions.add(new SerializableSortCondition(obfuscateVar(sortCondition.getExpression().asVar()), sortCondition.getDirection()));
         plan.pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), serializableSortConditions));
         parsed_op.put(op, jobID);
     }

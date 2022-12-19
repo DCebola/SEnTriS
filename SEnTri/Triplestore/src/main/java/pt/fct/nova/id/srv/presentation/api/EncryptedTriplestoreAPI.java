@@ -20,12 +20,12 @@ public interface EncryptedTriplestoreAPI {
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/{triplestoreID}/bind")
+    @Path("proxy/{triplestoreID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response prepareSPARQLQueryBindings(@PathParam("triplestoreID") String triplestoreID,
-                                        List<String> trapdoors,
-                                        @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+    Response prepareSPARQLSearch(@PathParam("triplestoreID") String triplestoreID,
+                                 List<String> trapdoors,
+                                 @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
     @Path("{triplestoreID}/search")

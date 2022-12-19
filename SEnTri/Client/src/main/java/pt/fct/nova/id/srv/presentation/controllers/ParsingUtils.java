@@ -12,6 +12,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
@@ -53,9 +54,14 @@ public class ParsingUtils {
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-    private final static String BLANK_IRI = "B".concat(IRI_SEPARATOR).concat("%s");
-    private static final String SIMPLE_IRI = "S".concat(IRI_SEPARATOR).concat("%s");
+    private static final String BLANK_IRI_PREFIX = "B";
+    private static final String SIMPLE_IRI_PREFIX = "S";
+    private final static String BLANK_IRI = BLANK_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
+    private static final String SIMPLE_IRI = SIMPLE_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
+    private static final int IRI_PREFIX_POS = 0;
+    private static final int IRI_VALUE_POS = 1;
+    private static final int LITERAL_IRI_DATATYPE_POS = 2;
 
     private static final Gson gson = new Gson();
 
@@ -160,42 +166,6 @@ public class ParsingUtils {
         return secrets;
     }
 
-    public static Map<String, String> sanitizeSecrets(Map<String, String> secrets) throws MalformedSecretsException {
-        Map<String, String> sanitizedSecrets = new HashMap<>();
-        if (secrets == null)
-            return sanitizedSecrets;
-        ProtocolVersion version;
-        try {
-            version = ProtocolVersion.valueOf(secrets.get(SECRETS_VERSION));
-        } catch (IllegalArgumentException e) {
-            throw new MalformedSecretsException();
-        }
-        switch (version) {
-            case V1 -> {
-                String k1 = String.format(SECRETS_KEY, 1);
-                String k2 = String.format(SECRETS_KEY, 2);
-                String k3 = String.format(SECRETS_KEY, 3);
-                sanitizedSecrets.put(SECRETS_VERSION, secrets.get(SECRETS_VERSION));
-                putIfFound(sanitizedSecrets, k1, secrets.get(k1));
-                putIfFound(sanitizedSecrets, k2, secrets.get(k2));
-                putIfFound(sanitizedSecrets, k3, secrets.get(k3));
-                putIfFound(sanitizedSecrets, SECRETS_IV, new String(decodeBase64(secrets.get(SECRETS_IV))));
-            }
-            case V2 -> {
-                //TODO: Implemented v2.
-            }
-        }
-
-        return sanitizedSecrets;
-    }
-
-    private static void putIfFound(Map<String, String> sanitizedSecrets, String key, String val) throws MalformedSecretsException {
-        if (val != null)
-            sanitizedSecrets.put(key, val);
-        else
-            throw new MalformedSecretsException();
-    }
-
     public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
         CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
@@ -229,6 +199,18 @@ public class ParsingUtils {
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
             return String.format(BLANK_IRI, node.getBlankNodeId());
+    }
+
+    public static Node generateNode(String iri) {
+        String[] split_iri = iri.split(IRI_SEPARATOR);
+        if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
+            return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
+        else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
+            return NodeFactory.createURI(split_iri[IRI_VALUE_POS]);
+        else
+            return NodeFactory.createLiteral(
+                    split_iri[IRI_VALUE_POS],
+                    TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
 
 

@@ -17,12 +17,17 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownUserException;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
+import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static pt.fct.nova.id.srv.application.IAMStorage.TOKEN_SESSION_FIELD;
+import static pt.fct.nova.id.srv.application.IAMStorage.TOKEN_USER_FIELD;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
 import static pt.fct.nova.id.srv.presentation.api.dtos.Role.*;
 import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoresController.*;
 
 @Path("/users")
 public class UsersController implements UsersAPI {
@@ -185,5 +190,22 @@ public class UsersController implements UsersAPI {
         }
     }
 
+    @Override
+    public Response checkIfActive(List<String> authorizationHeaders) {
+        String tokenID = extractAccessToken(authorizationHeaders);
+        if (tokenID == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+        Map<String, String> token = IAMStorage.getToken(tokenID);
+        if (token == null || token.isEmpty())
+            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
 
+        String username = token.get(TOKEN_USER_FIELD);
+        try {
+            Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
+        } catch (SessionException e) {
+            IAMStorage.deleteAccessToken(tokenID, token);
+            return handleSessionException(e);
+        }
+        return Response.ok(ACCESS_ALLOWED).build();
+    }
 }

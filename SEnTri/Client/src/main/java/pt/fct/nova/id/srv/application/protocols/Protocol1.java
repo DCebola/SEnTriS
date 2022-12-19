@@ -153,12 +153,28 @@ public class Protocol1 implements EncryptionProtocol {
         );
     }
 
-    private byte[] generateRNDLayer(SecretKey key, byte[] deterministicCiphertext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public List<String> generateTrapdoors(String keyword, int total)
+            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        byte[] st;
+        List<String> trapdoors = new ArrayList<>(total);
+        for (int i = 1; i < total; i++) {
+            st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
+            trapdoors.add(encodeBase64URLSafeString(st));
+        }
+        return trapdoors;
+    }
+
+    public byte[] generateRNDLayer(SecretKey key, byte[] deterministicCiphertext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return SymmetricCipher.encrypt(deterministicCiphertext, key);
     }
 
-    private byte[] generateDETLayer(SecretKey key, byte[] plaintext, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] generateDETLayer(SecretKey key, byte[] plaintext, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return SymmetricCipher.encrypt(plaintext, key, iv);
+    }
+
+    public byte[] encryptDET(byte[] plaintext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return generateDETLayer(k3, plaintext, iv);
     }
 
     private byte[] getKeywordIV(String keyword) {
@@ -201,11 +217,17 @@ public class Protocol1 implements EncryptionProtocol {
         return res;
     }
 
-    private String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         return encodeBase64URLSafeString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
+    }
+
+    public byte[] decryptRNDLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return SymmetricCipher.decrypt(k2, decodeBase64(ciphertext));
     }
 
     public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
         keywords.putAll(values);
     }
+
+
 }

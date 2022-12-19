@@ -25,16 +25,33 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     private final SPARQLResult result;
     private final SecretKey key;
+    private final Set<String> allSearchIDs;
 
     public SecureSPARQLWorker(SecretKey key) {
         result = new DefaultSPARQLResult();
         this.key = key;
+        allSearchIDs = new HashSet<>();
+    }
+
+    public Set<String> getAllSearchIDs() {
+        return allSearchIDs;
     }
 
     @Override
-    public IRITable exec(Job job) throws SPARQLExecutionException{
-        if (job instanceof SecureSearchJob) return ProxyStorage.search(key, ((SecureSearchJob) job).getVars());
-        else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
+    public IRITable exec(Job job) throws SPARQLExecutionException {
+        if (job instanceof SecureSearchJob secureSearchJob) {
+            Map<Var, String> searches = secureSearchJob.getSearches();
+            List<Var> vars = new ArrayList<>(searches.size());
+            List<String> searchIDs = new ArrayList<>(searches.size());
+            searches.forEach(
+                    (var, searchID) -> {
+                        vars.add(var);
+                        searchIDs.add(searchID);
+                        allSearchIDs.add(searchID);
+                    }
+            );
+            return ProxyStorage.search(key, vars, searchIDs);
+        } else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
@@ -77,7 +94,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
-        prevJobResults.project(job.getVariables());
+        prevJobResults.project(job.getVars());
         return prevJobResults;
     }
 
