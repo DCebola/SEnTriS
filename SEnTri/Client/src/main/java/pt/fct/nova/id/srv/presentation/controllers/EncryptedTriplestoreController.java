@@ -314,8 +314,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 keyword = entry.getValue();
                 searchID = preparedSearches.get(keyword);
                 if (searchID == null) {
-                    response = prepareSPARQLQueryBindings(httpClient, triplestoreID,
-                            protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword)), accessToken);
+                    response = prepareSearch(httpClient, triplestoreID, protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword)), accessToken);
                     if (response.getStatus() != OK)
                         return response;
                     searchID = response.getBody();
@@ -348,8 +347,8 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    private HTTPResponse prepareSPARQLQueryBindings(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSPARQLQueryBindings(httpClient, triplestoreID, trapdoors, accessToken)) {
+    private HTTPResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSearch(httpClient, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }
