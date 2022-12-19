@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.protocols;
 
 import org.apache.jena.atlas.lib.Pair;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
@@ -88,21 +89,27 @@ public class Protocol1 implements EncryptionProtocol {
 
 
     private void encryptTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        String s, p, o;
+        Node s, p, o;
+        String s_iri, p_iri, o_iri, s_keyword, p_keyword, o_keyword;
         for (Triple t : triples) {
-            //TODO: Handle blank nodes -> trapdoor must refer to constant value "BLANK", but encoded value must be blank node id.
-            s = ParsingUtils.parseNodeIRI(t.getSubject());
-            p = ParsingUtils.parseNodeIRI(t.getSubject());
-            o = ParsingUtils.parseNodeIRI(t.getSubject());
-            encodeNode(k1, k2, k3, s, VariablesPattern.P, p);
-            encodeNode(k1, k2, k3, s, VariablesPattern.O, o);
-            encodeNode(k1, k2, k3, p, VariablesPattern.S, s);
-            encodeNode(k1, k2, k3, p, VariablesPattern.O, o);
-            encodeNode(k1, k2, k3, o, VariablesPattern.S, s);
-            encodeNode(k1, k2, k3, o, VariablesPattern.P, p);
-            encodeNode(k1, k2, k3, s, VariablesPattern.PO, String.format(COMPOUND_KEYWORD, p, o));
-            encodeNode(k1, k2, k3, p, VariablesPattern.SO, String.format(COMPOUND_KEYWORD, s, o));
-            encodeNode(k1, k2, k3, o, VariablesPattern.SP, String.format(COMPOUND_KEYWORD, s, p));
+            s = t.getSubject();
+            p = t.getPredicate();
+            o = t.getObject();
+            s_iri = ParsingUtils.parseNodeIRI(s);
+            p_iri = ParsingUtils.parseNodeIRI(p);
+            o_iri = ParsingUtils.parseNodeIRI(o);
+            s_keyword = ParsingUtils.parseKeyword(s);
+            p_keyword = ParsingUtils.parseKeyword(p);
+            o_keyword = ParsingUtils.parseKeyword(o);
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.P, p_keyword);
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.O, o_keyword);
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.S, s_keyword);
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.O, p_keyword);
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.S, s_keyword);
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.P, p_keyword);
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.PO, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword));
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.SO, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword));
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.SP, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword));
         }
     }
 
@@ -125,9 +132,9 @@ public class Protocol1 implements EncryptionProtocol {
         Set<String> skip = new HashSet<>();
         String s, p, o, po, so, sp;
         for (Triple t : triples) {
-            s = ParsingUtils.parseNodeIRI(t.getSubject());
-            p = ParsingUtils.parseNodeIRI(t.getPredicate());
-            o = ParsingUtils.parseNodeIRI(t.getObject());
+            s = ParsingUtils.parseKeyword(t.getSubject());
+            p = ParsingUtils.parseKeyword(t.getPredicate());
+            o = ParsingUtils.parseKeyword(t.getObject());
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);

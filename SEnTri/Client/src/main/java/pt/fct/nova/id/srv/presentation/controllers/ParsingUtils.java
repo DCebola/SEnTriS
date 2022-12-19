@@ -64,6 +64,7 @@ public class ParsingUtils {
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
 
     private static final Gson gson = new Gson();
+    private static final String BLANK = "BLANK";
 
     public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
         List<NameValuePair> pairs = new ArrayList<>(2);
@@ -199,6 +200,17 @@ public class ParsingUtils {
             return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
             return String.format(BLANK_IRI, node.getBlankNodeId());
+    }
+
+    public static String parseKeyword(Node node) throws InvalidNodeException {
+        if (!node.isConcrete())
+            throw new InvalidNodeException();
+        if (node.isURI())
+            return String.format(SIMPLE_IRI, node.getURI());
+        else if (node.isLiteral())
+            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+        else
+            return BLANK;
     }
 
     public static Node generateNode(String iri) {
