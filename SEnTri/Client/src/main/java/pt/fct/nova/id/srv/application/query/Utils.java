@@ -66,25 +66,37 @@ public class Utils {
 
     public static Map<Var, String> generateKeywordMap(Node subject, Node predicate, Node object, VariablesPattern pattern) throws InvalidNodeException {
         String s, p, o;
-        s = ParsingUtils.parseNodeIRI(subject);
-        p = ParsingUtils.parseNodeIRI(predicate);
-        o = ParsingUtils.parseNodeIRI(object);
         Map<Var, String> res = new HashMap<>();
         switch (pattern) {
-            case S -> res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, PO, String.format(COMPOUND_KEYWORD, p, o)));
-            case P -> res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, SO, String.format(COMPOUND_KEYWORD, s, o)));
-            case O -> res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, SP, String.format(COMPOUND_KEYWORD, s, p)));
+            case S -> {
+                p = ParsingUtils.parseKeyword(predicate);
+                o = ParsingUtils.parseKeyword(object);
+                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, String.format(COMPOUND_KEYWORD, p, o)));
+            }
+            case P -> {
+                s = ParsingUtils.parseKeyword(subject);
+                o = ParsingUtils.parseKeyword(object);
+                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, String.format(COMPOUND_KEYWORD, s, o)));
+            }
+            case O -> {
+                s = ParsingUtils.parseKeyword(subject);
+                p = ParsingUtils.parseKeyword(predicate);
+                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, String.format(COMPOUND_KEYWORD, s, p)));
+            }
             case SP -> {
-                res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, O, o));
-                res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, O, o));
+                o = ParsingUtils.parseKeyword(object);
+                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, o));
+                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, o));
             }
             case SO -> {
-                res.put(Var.alloc(s), String.format(KEYWORD_FORMAT, P, p));
-                res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, P, p));
+                p = ParsingUtils.parseKeyword(predicate);
+                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, p));
+                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, p));
             }
             case PO -> {
-                res.put(Var.alloc(p), String.format(KEYWORD_FORMAT, S, s));
-                res.put(Var.alloc(o), String.format(KEYWORD_FORMAT, S, s));
+                s = ParsingUtils.parseKeyword(subject);
+                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, s));
+                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, s));
             }
         }
         return res;

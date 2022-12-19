@@ -16,6 +16,7 @@ import org.apache.jena.sparql.engine.binding.BindingComparator;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
+import pt.fct.nova.id.srv.application.protocols.Utils;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
@@ -35,7 +36,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -84,8 +84,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
             switch (form.getProtocolVersion()) {
                 case V1 -> {
-                    Protocol1 p = new Protocol1(triplestoreID);
-
+                    Protocol1 p = new Protocol1();
                     response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(p), accessToken);
                     if (response.getStatus() != OK) {
                         HTTPResponse response2 = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
@@ -191,7 +190,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
-                    Protocol1 protocol = initProtocol1(triplestoreID, secrets);
+                    Protocol1 protocol = initProtocol1(secrets);
                     Collections.shuffle(triples);
 
                     response = fetchAndUpdateKeywords(httpClient, triplestoreID, protocol, protocol.generateKeywordTrapdoorMap(triples).entrySet(), accessToken);
@@ -244,7 +243,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
             switch (ProtocolVersion.fromString(secrets.get(SECRETS_VERSION))) {
                 case V1 -> {
-                    Protocol1 protocol = initProtocol1(triplestoreID, secrets);
+                    Protocol1 protocol = initProtocol1(secrets);
                     SecureSPARQLPlanner planner = new SecureSPARQLPlanner(protocol);
                     DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
 
@@ -255,17 +254,26 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                         keywordList.add(keyword);
                         trapdoors.add(protocol.generateTrapdoor(keyword));
                     }
-
+                    trapdoors.forEach(System.out::println);
                     response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
                     if (response.getStatus() != OK)
                         return response.build();
 
                     List<String> encryptedKeywordsInfo = ParsingUtils.parseListOfStrings(response.getBody());
                     Map<String, Integer> keywordsInfo = new HashMap<>(encryptedKeywordsInfo.size());
-                    ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+                    String info;
                     for (int i = 0; i < encryptedKeywordsInfo.size(); i++) {
-                        keywordsInfo.put(keywordList.get(i), buffer.put(protocol.decryptRNDLayer(encryptedKeywordsInfo.get(i))).rewind().getInt());
-                        buffer.reset();
+                        info = encryptedKeywordsInfo.get(i);
+                        if (info != null) {
+                            int total = Utils.integerFromByteArray(protocol.decryptRNDLayer(info));
+                            System.out.println("KEYWORD " + keywordList.get(i));
+                            System.out.println("TOTAL " + total);
+                            keywordsInfo.put(keywordList.get(i), total);
+                        } else {
+                            System.out.println("KEYWORD " + keywordList.get(i));
+                            System.out.println("FOUND null");
+                        }
+
                     }
 
                     response = prepareSearches(httpClient, protocol, triplestoreID, plan, planner.getSearchJobsIDs(), keywordsInfo, accessToken);
@@ -297,6 +305,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                         throw new IllegalStateException("Unexpected value: " + ProtocolVersion.fromString(secrets.get(SECRETS_VERSION)));
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -311,6 +320,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         SecureSearchJob secureSearchJob;
         Map<String, Job> jobs = plan.getJobs();
         List<String> trapdoors;
+        System.out.println(Arrays.toString(plan.getJobs().entrySet().toArray()));
         for (String jobID : searchJobsIDs) {
             secureSearchJob = (SecureSearchJob) plan.getJobs().get(jobID);
             for (Map.Entry<Var, String> entry : secureSearchJob.getSearches().entrySet()) {
@@ -333,13 +343,13 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<Binding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private Collection<Binding> decryptBindings(Collection<Binding> bindings, Map<String, String> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (Binding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptRNDLayer(binding.get(var).getURI()))));
+                builder.add(Var.alloc(obfuscationMap.get(var.getVarName())), generateNode(new String(protocol.decryptRNDLayer(binding.get(var).getURI()))));
             }
             decryptedBindings.add(builder.build());
             builder.reset();

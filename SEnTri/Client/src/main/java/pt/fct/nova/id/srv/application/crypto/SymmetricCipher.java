@@ -10,7 +10,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Base64;
 
 public class SymmetricCipher {
     private static final String ALGORITHM = System.getenv("SYMMETRIC_KEY_ALGORITHM");
@@ -35,8 +34,8 @@ public class SymmetricCipher {
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(Arrays.copyOf(cipherText, IV_SIZE)));
-        return cipher.doFinal(Base64.getDecoder().decode(cipherText));
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cipherText, 0, IV_SIZE));
+        return cipher.doFinal(Arrays.copyOfRange(cipherText, IV_SIZE, cipherText.length));
     }
 
     public static byte[] encrypt(byte[] input, SecretKey key) throws NoSuchPaddingException,
@@ -52,7 +51,7 @@ public class SymmetricCipher {
     }
 
     public static SecretKey parseKey(byte[] contents) {
-        return new SecretKeySpec(contents, 0, KEY_SIZE, ALGORITHM);
+        return new SecretKeySpec(contents, 0, contents.length, ALGORITHM);
     }
 
     public static byte[] generateIV() {

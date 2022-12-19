@@ -13,7 +13,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -23,36 +22,33 @@ import java.util.*;
 import static org.apache.commons.codec.binary.Base64.*;
 
 public class Protocol1 implements EncryptionProtocol {
-
-    private final String storeID;
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
     private final Map<String, String> encryptedT;
     private final Map<String, Pair<Integer, byte[]>> keywords;
+    private final Base64.Decoder base64Decoder;
+    private final Base64.Encoder base64Encoder;
 
-    public Protocol1(String storeID, SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public Protocol1(SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
         this.iv = iv;
         this.k1 = k1;
         this.k2 = k2;
         this.k3 = k3;
-        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
-
+        this.base64Decoder = Base64.getUrlDecoder();
+        this.base64Encoder = Base64.getUrlEncoder();
     }
 
-    public Protocol1(String storeID) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public Protocol1() throws NoSuchAlgorithmException {
         this.iv = SymmetricCipher.generateIV();
         this.k1 = SymmetricCipher.generateKey();
         this.k2 = SymmetricCipher.generateKey();
         this.k3 = SymmetricCipher.generateKey();
-        this.storeID = encodeBase64URLSafeString(generateDETLayer(k1, storeID.getBytes(StandardCharsets.UTF_8), iv));
         this.encryptedT = new HashMap<>();
         this.keywords = new HashMap<>();
-    }
-
-    public String getStoreID() {
-        return storeID;
+        this.base64Decoder = Base64.getUrlDecoder();
+        this.base64Encoder = Base64.getUrlEncoder();
     }
 
     public byte[] getIv() {
@@ -101,16 +97,28 @@ public class Protocol1 implements EncryptionProtocol {
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.P, p_keyword);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.O, o_keyword);
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.S, s_keyword);
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.O, p_keyword);
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.S, s_keyword);
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.P, p_keyword);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.PO, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword));
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.SO, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword));
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.SP, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword));
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, p_keyword);
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, o_keyword);
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, s_keyword);
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, o_keyword);
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, s_keyword);
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, p_keyword);
+            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword));
+            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword));
+            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword));
         }
+    }
+
+    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, VariablesPattern pattern, String keyword)
+            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
+        byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
+        byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
+        encryptedT.put(
+                base64Encoder.encodeToString(st),
+                base64Encoder.encodeToString(ct)
+        );
     }
 
     private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
@@ -118,11 +126,12 @@ public class Protocol1 implements EncryptionProtocol {
             BadPaddingException, InvalidKeyException {
         for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
             Pair<Integer, byte[]> value = entry.getValue();
+            System.out.println(entry.getKey());
             byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
-            byte[] ct = generateRNDLayer(k2, ByteBuffer.allocate(Integer.BYTES).putInt(value.getLeft()).array());
+            byte[] ct = generateRNDLayer(k2, Utils.integerToByteArray(value.getLeft()));
             encryptedT.put(
-                    encodeBase64URLSafeString(st),
-                    encodeBase64URLSafeString(ct)
+                    base64Encoder.encodeToString(st),
+                    base64Encoder.encodeToString(ct)
             );
         }
     }
@@ -138,26 +147,17 @@ public class Protocol1 implements EncryptionProtocol {
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.S, s);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.P, p);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.O, o);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.PO, po);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.SO, so);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.SP, sp);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.P, s);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.O, s);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.S, p);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.O, p);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.S, o);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.P, o);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.S, po);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.P, so);
+            generateKeywordTrapdoor(res, skip, VariablesPattern.O, sp);
         }
         return res;
-    }
-
-    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, VariablesPattern pattern, String keyword)
-            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
-            NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
-        byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
-        byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
-        encryptedT.put(
-                encodeBase64URLSafeString(st),
-                encodeBase64URLSafeString(ct)
-        );
     }
 
     public List<String> generateTrapdoors(String keyword, int total)
@@ -167,7 +167,7 @@ public class Protocol1 implements EncryptionProtocol {
         List<String> trapdoors = new ArrayList<>(total);
         for (int i = 1; i < total; i++) {
             st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
-            trapdoors.add(encodeBase64URLSafeString(st));
+            trapdoors.add(base64Encoder.encodeToString(st));
         }
         return trapdoors;
     }
@@ -207,12 +207,10 @@ public class Protocol1 implements EncryptionProtocol {
         int max = -1;
         int total;
         Map<Integer, byte[]> generatedIvs = new HashMap<>();
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         Map<String, Pair<Integer, byte[]>> res = new HashMap<>();
         int i = 0;
         for (String encTotal : keywordsTotals) {
-            total = buffer.put(SymmetricCipher.decrypt(k2, decodeBase64(encTotal))).rewind().getInt();
-            buffer.reset();
+            total = Utils.integerFromByteArray(SymmetricCipher.decrypt(k2, base64Decoder.decode(encTotal)));
             if (total > max) {
                 for (int j = 0; j < total - max; j++)
                     generatedIvs.put(total - j, SymmetricCipher.incrementIV(iv));
@@ -225,11 +223,11 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     public String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return encodeBase64URLSafeString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
+        return base64Encoder.encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
     }
 
     public byte[] decryptRNDLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return SymmetricCipher.decrypt(k2, decodeBase64(ciphertext));
+        return SymmetricCipher.decrypt(k2, base64Decoder.decode(ciphertext));
     }
 
     public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {

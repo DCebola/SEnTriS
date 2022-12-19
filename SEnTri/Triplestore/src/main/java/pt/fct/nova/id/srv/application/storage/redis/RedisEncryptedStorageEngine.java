@@ -13,7 +13,6 @@ import redis.clients.jedis.resps.ScanResult;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
 public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
@@ -23,10 +22,10 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
     private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
     @Override
-    public void delete(String storeID) {
+    public void delete(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             ScanParams params = new ScanParams();
-            params.match(String.format(STORE_DATA_PATTERN, storeID));
+            params.match(String.format(STORE_DATA_PATTERN, triplestoreID));
             String cursor = SCAN_POINTER_START;
             Set<String> collector = new HashSet<>();
             do {
@@ -42,82 +41,37 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
     }
 
     @Override
-    public void delete(String storeID, List<String> trapdoors) {
+    public void delete(String triplestoreID, List<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, storeID, trapdoor)));
+            trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, triplestoreID, trapdoor)));
             t.exec();
         }
     }
 
     @Override
-    public void save(String storeID, Map<String, String> encryptedNodes) {
+    public void save(String triplestoreID, Map<String, String> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                t.set(String.format(KEY_FORMAT, storeID, key), value);
+                t.set(String.format(KEY_FORMAT, triplestoreID, key), value);
             }
             t.exec();
         }
     }
 
     @Override
-    public List<String> search(String storeID, List<String> trapdoors) {
+    public List<String> search(String triplestoreID, List<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<String> res = new LinkedList<>();
             List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, storeID, key))));
+            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
             p.sync();
-            String c;
-            for (Response<String> r : responses) {
-                c = r.get();
-                if (c != null)
-                    res.add(c);
-            }
-            return res;
-        }
-    }
-
-    @Override
-    public IRITable search(String storeID, Var var1, Var var2, List<String> trapdoors) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-            MemIRITable res = new MemIRITable();
-            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, storeID, key))));
-            p.sync();
-            String c1, c2, p_idx;
-            for (int i = 0; i < responses.size(); i += 2) {
-                c1 = responses.get(i).get();
-                c2 = responses.get(i + 1).get();
-                if (c1 != null && c2 != null) {
-                    p_idx = generateID();
-                    res.add(p_idx, var1, c1);
-                    res.add(p_idx, var2, c2);
-                }
-            }
-            return res;
-        }
-    }
-
-    @Override
-    public IRITable search(String storeID, Var var, List<String> trapdoors) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-            MemIRITable res = new MemIRITable();
-            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, storeID, key))));
-            p.sync();
-            String c;
-            for (Response<String> r : responses) {
-                c = r.get();
-                if (c != null) {
-                    res.add(generateID(), var, c);
-                }
-            }
+            for (Response<String> r : responses)
+                res.add(r.get());
             return res;
         }
     }

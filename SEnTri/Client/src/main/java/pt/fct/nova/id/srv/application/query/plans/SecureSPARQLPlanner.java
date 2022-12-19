@@ -41,7 +41,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     final static Logger logger = LoggerFactory.getLogger(DefaultSPARQLPlanner.class);
     private final Map<Op, String> parsed_op;
     private final DefaultQueryExecutionPlan plan;
-    private final HashMap<Var, Var> obfuscationMap;
+    private final HashMap<String, String> obfuscationMap;
     private final Set<String> keywords;
     private final EncryptionProtocol protocol;
     private final Set<String> searchJobsIDs;
@@ -60,7 +60,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         List<Var> vars = generateVars(resultVarNames);
         List<Var> obfuscatedVars = new ArrayList<>(vars.size());
         for (Var var : vars)
-            obfuscatedVars.add(obfuscateVar(var));
+            obfuscatedVars.add(Var.alloc(obfuscateVar(var.getVarName())));
         plan.setVars(obfuscatedVars);
         return plan;
     }
@@ -73,7 +73,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return searchJobsIDs;
     }
 
-    public Map<Var, Var> getObfuscationMap() {
+    public Map<String, String> getObfuscationMap() {
         return obfuscationMap;
     }
 
@@ -83,10 +83,10 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return vars;
     }
 
-    private Var obfuscateVar(Var var) {
-        Var obfuscatedVar = obfuscationMap.get(var);
+    private String obfuscateVar(String var) {
+        String obfuscatedVar = obfuscationMap.get(var);
         if (obfuscatedVar == null) {
-            obfuscatedVar = Var.alloc(generateID());
+            obfuscatedVar = generateID();
             obfuscationMap.put(var, obfuscatedVar);
             obfuscationMap.put(obfuscatedVar, var);
         }
@@ -130,7 +130,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             for (Map.Entry<Var, String> entry : searches.entrySet()) {
                 var = entry.getKey();
                 keyword = entry.getValue();
-                obfuscatedSearches.put(obfuscateVar(var), keyword);
+                obfuscatedSearches.put(Var.alloc(obfuscateVar(var.getVarName())), keyword);
                 keywords.add(keyword);
             }
             searchJobsIDs.add(jobID);
@@ -230,7 +230,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             while (rowVars.hasNext()) {
                 currentVar = rowVars.next();
                 if (protocol instanceof Protocol1 p1)
-                    collector.put(obfuscateVar(currentVar),
+                    collector.put(Var.alloc(obfuscateVar(currentVar.getVarName())),
                             new String(p1.encryptDET(ParsingUtils.parseNodeIRI(row.get(currentVar)).getBytes(StandardCharsets.UTF_8))));
                 else
                     throw new NotImplemented();
@@ -245,7 +245,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit1(Op1 op) {
-        logger.info("OP1: {}", op);
+        // logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
             throw new NotImplemented();
         } else if (op instanceof OpFilter) {
@@ -285,7 +285,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         List<Var> vars = op.getVars();
         List<Var> obfuscatedVars = new ArrayList<>(vars.size());
         for (Var var : vars)
-            obfuscatedVars.add(obfuscateVar(var));
+            obfuscatedVars.add(Var.alloc(obfuscateVar(var.getVarName())));
         plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), obfuscatedVars));
         parsed_op.put(op, jobID);
     }
@@ -301,7 +301,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         List<SortCondition> conditions = op.getConditions();
         List<SerializableSortCondition> serializableSortConditions = new ArrayList<>(conditions.size());
         for (SortCondition sortCondition : conditions)
-            serializableSortConditions.add(new SerializableSortCondition(obfuscateVar(sortCondition.getExpression().asVar()), sortCondition.getDirection()));
+            serializableSortConditions.add(new SerializableSortCondition(Var.alloc(obfuscateVar(sortCondition.getExpression().asVar().getVarName())), sortCondition.getDirection()));
         plan.pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), serializableSortConditions));
         parsed_op.put(op, jobID);
     }
@@ -315,7 +315,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit2(Op2 op) {
-        logger.info("OP2: {}", op);
+        //logger.info("OP2: {}", op);
         if (op instanceof OpJoin opJoin) {
             generateJoinJob(opJoin);
         } else if (op instanceof OpLeftJoin opLeftJoin) {

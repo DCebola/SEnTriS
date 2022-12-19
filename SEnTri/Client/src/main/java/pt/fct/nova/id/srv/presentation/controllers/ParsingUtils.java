@@ -2,8 +2,6 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import jakarta.ws.rs.core.MediaType;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -18,36 +16,26 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
-import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
-import pt.fct.nova.id.srv.presentation.exceptions.MalformedSecretsException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
 
 public class ParsingUtils {
@@ -66,6 +54,8 @@ public class ParsingUtils {
 
     private static final Gson gson = new Gson();
     private static final String BLANK = "BLANK";
+    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
         List<NameValuePair> pairs = new ArrayList<>(2);
@@ -140,22 +130,23 @@ public class ParsingUtils {
     }
 
 
-    public static Protocol1 initProtocol1(String triplestoreID, Map<String, String> secrets) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        SecretKey k1 = SymmetricCipher.parseKey(Base64.decodeBase64(secrets.get(String.format(SECRETS_KEY, 1))));
-        SecretKey k2 = SymmetricCipher.parseKey(Base64.decodeBase64(secrets.get(String.format(SECRETS_KEY, 2))));
-        SecretKey k3 = SymmetricCipher.parseKey(Base64.decodeBase64(secrets.get(String.format(SECRETS_KEY, 3))));
-        byte[] iv = decodeBase64(secrets.get(SECRETS_IV));
-        return new Protocol1(triplestoreID, k1, k2, k3, iv);
+    public static Protocol1 initProtocol1(Map<String, String> secrets) {
+        System.out.println(Arrays.toString(secrets.entrySet().toArray()));
+        SecretKey k1 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
+        SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
+        SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
+        byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
+        return new Protocol1(k1, k2, k3, iv);
     }
 
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
         Map<String, String> secrets = new HashMap<>();
         if (p instanceof Protocol1 p1) {
             secrets.put(SECRETS_VERSION, ProtocolVersion.V1.toString());
-            secrets.put(String.format(SECRETS_KEY, 1), Base64.encodeBase64URLSafeString(p1.getK1().getEncoded()));
-            secrets.put(String.format(SECRETS_KEY, 2), Base64.encodeBase64URLSafeString(p1.getK1().getEncoded()));
-            secrets.put(String.format(SECRETS_KEY, 3), Base64.encodeBase64URLSafeString(p1.getK1().getEncoded()));
-            secrets.put(SECRETS_IV, Base64.encodeBase64URLSafeString(p1.getIv()));
+            secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getK1().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getK2().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getK3().getEncoded()));
+            secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIv()));
         }
         return secrets;
     }
