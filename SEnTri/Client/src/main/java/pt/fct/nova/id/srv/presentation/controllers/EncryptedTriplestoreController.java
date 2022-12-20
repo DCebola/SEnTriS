@@ -254,7 +254,6 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                         keywordList.add(keyword);
                         trapdoors.add(protocol.generateTrapdoor(keyword));
                     }
-                    trapdoors.forEach(System.out::println);
                     response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
                     if (response.getStatus() != OK)
                         return response.build();

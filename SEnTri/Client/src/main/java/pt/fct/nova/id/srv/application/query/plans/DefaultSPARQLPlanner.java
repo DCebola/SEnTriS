@@ -29,9 +29,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private final DefaultQueryExecutionPlan plan;
 
+    private Random rnd;
+
     public DefaultSPARQLPlanner() {
         this.parsed_op = new HashMap<>();
         this.plan = new DefaultQueryExecutionPlan();
+        this.rnd = new Random();
     }
 
     public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
@@ -79,8 +82,96 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 }
         );
         if (total_patterns >= 2)
-            generateJoinPipeline(op, searchJobs);
+            generateRandomJoinPipeline(op, searchJobs);
     }
+
+
+    private void generateRandomJoinPipeline(OpBGP op, List<SearchJob> searchJobs) {
+        int numJobs = searchJobs.size();
+        Map<Integer, List<Integer>> graph = new HashMap<>(numJobs);
+        List<Integer> edges, jobs = new ArrayList<>(numJobs);
+        Set<Var> v1, v2, allVars = new HashSet<>();
+        SearchJob job1, job2;
+        for (int i = 0; i < numJobs; i++) {
+            job1 = searchJobs.get(i);
+            jobs.add(i);
+            v1 = extractVars(job1);
+            allVars.addAll(v1);
+            edges = new ArrayList<>(numJobs);
+            for (int j = 0; j < numJobs; j++) {
+                job2 = searchJobs.get(j);
+                v2 = extractVars(job2);
+                if (i != j) {
+                    for (Var v : v1) {
+                        if (v2.contains(v)) {
+                            edges.add(j);
+                            break;
+                        }
+                    }
+                }
+            }
+            graph.put(i, edges);
+        }
+
+        List<Integer> walk = new ArrayList<>(numJobs);
+        Set<Integer> sampled = new HashSet<>();
+        int next;
+        while (sampled.size() < numJobs) {
+            next = rndSample(jobs, sampled);
+            sampled.add(next);
+            randomWalk(next, graph, walk, numJobs);
+            if (walk.size() == numJobs)
+                break;
+        }
+        if (walk.size() == numJobs) {
+            List<Job> joins = new LinkedList<>();
+            for (int i = 0; i < numJobs; i += 2) {
+                job1 = searchJobs.get(i);
+                job2 = searchJobs.get(i + 1);
+                plan.pushJob(job1);
+                plan.pushJob(job2);
+                joins.add(new JoinJob(generateID(), job1.getID(), job2.getID()));
+            }
+            while (joins.size() > 1) {
+                job1 = searchJobs.remove(0);
+                job2 = searchJobs.remove(0);
+                plan.pushJob(job1);
+                plan.pushJob(job2);
+                joins.add(new JoinJob(generateID(), job1.getID(), job2.getID()));
+            }
+            plan.pushJob(joins.get(0));
+            parsed_op.put(op, joins.get(0).getID());
+        } else {
+            String jobID = generateID();
+            plan.pushJob(new EmptyResJob(jobID, allVars));
+            parsed_op.put(op, jobID);
+        }
+    }
+
+    private void randomWalk(int root, Map<Integer, List<Integer>> adjacencyMatrix, List<Integer> visited, int depth) {
+        if (visited.size() < depth) {
+            List<Integer> neighbours = new ArrayList<>(adjacencyMatrix.get(root));
+            neighbours.removeAll(visited);
+            int next;
+            Set<Integer> sampled = new HashSet<>();
+            while (sampled.size() < neighbours.size()) {
+                next = rndSample(neighbours, sampled);
+                sampled.add(next);
+                visited.add(next);
+                randomWalk(next, adjacencyMatrix, visited, depth);
+            }
+        }
+    }
+
+    private int rndSample(List<Integer> values, Set<Integer> exclude) {
+        int i;
+        do {
+            i = rnd.nextInt(values.size());
+        } while (exclude.contains(i));
+        return values.get(i);
+    }
+
+
 
     private void generateJoinPipeline(OpBGP op, List<SearchJob> searchJobs) {
         int num_jobs = searchJobs.size();
