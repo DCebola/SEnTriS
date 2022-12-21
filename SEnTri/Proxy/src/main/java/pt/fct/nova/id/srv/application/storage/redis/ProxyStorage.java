@@ -16,8 +16,10 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorage {
-    private static final long BINDINGS_LIFETIME = Long.parseLong(System.getenv("BINDINGS_LIFETIME"));
+    private static final long SEARCH_DATA_LIFETIME = Long.parseLong(System.getenv("SEARCH_DATA_LIFETIME"));
     private static final Random rnd = new Random();
+    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static void delete(Set<String> searchIDs) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -30,9 +32,9 @@ public class ProxyStorage {
     public static String save(List<String> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            String uuid = UUID.randomUUID().toString();
+            String uuid = generateID();
             encryptedNodes.forEach(n -> t.rpush(uuid, n));
-            t.expire(uuid, BINDINGS_LIFETIME);
+            t.expire(uuid, SEARCH_DATA_LIFETIME);
             t.exec();
             return uuid;
         }
@@ -45,16 +47,15 @@ public class ProxyStorage {
             List<Response<List<String>>> responses = new ArrayList<>(vars.size());
             searchIDs.forEach(searchID -> responses.add(p.lrange(searchID, 0, -1)));
             p.sync();
-            Map<Var, List<String>> bindings = new HashMap<>();
+            Map<Var, List<String>> searchResults = new HashMap<>();
             for (int i = 0; i < vars.size(); i++)
-                bindings.put(vars.get(i), responses.get(i).get());
-
-            List<String> encryptedNodes = bindings.get(vars.get(rnd.nextInt(0, vars.size())));
+                searchResults.put(vars.get(i), responses.get(i).get());
+            List<String> encryptedNodes = searchResults.get(vars.get(rnd.nextInt(vars.size())));
             String p_idx;
             for (int i = 0; i < encryptedNodes.size(); i++) {
                 p_idx = generateID();
                 for (Var var : vars)
-                    res.add(p_idx, var, SymmetricCipher.decrypt(key, bindings.get(var).get(i)));
+                    res.add(p_idx, var, base64Encoder.encodeToString(SymmetricCipher.decrypt(key, base64Decoder.decode(searchResults.get(var).get(i)))));
             }
             return res;
         } catch (Exception e) {

@@ -19,8 +19,8 @@ import org.apache.jena.riot.lang.CollectorStreamTriples;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.application.protocols.ProtocolVersion;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
@@ -29,14 +29,11 @@ import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
@@ -125,13 +122,14 @@ public class ParsingUtils {
         }.getType());
     }
 
-    public static SPARQLResult parseSPARQLResult(String results) {
-        return gson.fromJson(results, SPARQLResult.class);
+    public static SPARQLResult parseSPARQLResult(String results) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream is = new ByteArrayInputStream(base64Decoder.decode(results));
+             ObjectInputStream ois = new ObjectInputStream(is)) {
+            return (DefaultSPARQLResult) ois.readObject();
+        }
     }
 
-
     public static Protocol1 initProtocol1(Map<String, String> secrets) {
-        System.out.println(Arrays.toString(secrets.entrySet().toArray()));
         SecretKey k1 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
         SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
@@ -142,7 +140,6 @@ public class ParsingUtils {
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
         Map<String, String> secrets = new HashMap<>();
         if (p instanceof Protocol1 p1) {
-            secrets.put(SECRETS_VERSION, ProtocolVersion.V1.toString());
             secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getK1().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getK2().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getK3().getEncoded()));

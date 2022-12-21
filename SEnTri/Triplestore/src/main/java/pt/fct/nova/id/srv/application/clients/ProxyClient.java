@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ProxyClient {
     private static final String PREPARE_SEARCH_URI = System.getenv("PROXY_PREPARE_SEARCH_URI");
-    public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, List<String> bindings, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, PREPARE_SEARCH_URI, ParsingUtils.bindingsToHttpEntity(bindings), accessToken);
+    public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, List<String> searchResults, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, PREPARE_SEARCH_URI, ParsingUtils.listToHttpEntity(searchResults), accessToken);
     }
 }

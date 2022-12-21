@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
@@ -89,7 +90,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
             vars = binding.vars();
             while (vars.hasNext()) {
                 var = vars.next();
-                node = binding.get(var);
+                node = NodeFactory.createURI(binding.get(var));
                 try {
                     res.add(p_idx, var, storageEngine.parseNodeIRI(node));
                 } catch (InvalidNodeException e) {
@@ -98,6 +99,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
                 }
             }
         }
+        System.out.println(res.getPatterns());
         return res;
     }
 

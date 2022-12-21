@@ -3,7 +3,7 @@ package pt.fct.nova.id.srv.application.query.jobs;
 import org.apache.jena.sparql.core.Var;
 
 import java.io.Serial;
-import java.util.HashMap;
+
 import java.util.Map;
 
 public class SecureSearchJob extends BaseJob {
@@ -14,7 +14,7 @@ public class SecureSearchJob extends BaseJob {
 
     public SecureSearchJob(String jobID, Map<Var, String> searches) {
         super(jobID);
-        this.searches = new HashMap<>();
+        this.searches = searches;
     }
 
     public Map<Var, String> getSearches() {

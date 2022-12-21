@@ -55,7 +55,7 @@ public interface UsersAPI {
                                 @PathParam("requestID") String requestID,
                                 @Form RequestDecisionForm requestDecisionForm);
 
-    @PUT
+    @GET
     @Path("/tokens/active")
     @Produces(TEXT_PLAIN)
     Response checkIfActive(@HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);

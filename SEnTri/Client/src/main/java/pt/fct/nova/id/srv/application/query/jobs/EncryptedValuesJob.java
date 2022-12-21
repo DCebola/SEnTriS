@@ -7,15 +7,15 @@ public class EncryptedValuesJob extends BaseJob {
     @Serial
     private static final long serialVersionUID = 3345654478562467694L;
 
-    private final List<EncryptedBinding> values;
+    private final List<SerializableBinding> values;
 
-    public EncryptedValuesJob(String jobID, List<EncryptedBinding> values) {
+    public EncryptedValuesJob(String jobID, List<SerializableBinding> values) {
         super(jobID);
         this.values = values;
 
     }
 
-    public List<EncryptedBinding> getValues() {
+    public List<SerializableBinding> getValues() {
         return values;
     }
 

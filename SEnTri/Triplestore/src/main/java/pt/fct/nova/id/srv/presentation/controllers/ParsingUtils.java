@@ -10,7 +10,7 @@ import java.util.List;
 public class ParsingUtils {
     private static final Gson gson = new Gson();
 
-    public static HttpEntity bindingsToHttpEntity(List<String> bindings) {
-        return new StringEntity(gson.toJson(bindings, List.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity listToHttpEntity(List<String> searchResults) {
+        return new StringEntity(gson.toJson(searchResults, List.class), ContentType.APPLICATION_JSON);
     }
 }

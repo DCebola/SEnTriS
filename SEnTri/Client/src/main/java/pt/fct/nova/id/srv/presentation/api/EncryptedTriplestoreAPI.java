@@ -4,7 +4,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.EncryptedCreateForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
@@ -18,7 +17,7 @@ public interface EncryptedTriplestoreAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response create(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @MultipartForm EncryptedCreateForm form);
+                    @MultipartForm UploadForm form);
 
     @DELETE
     @Path("/{triplestoreID}/{issuer}")

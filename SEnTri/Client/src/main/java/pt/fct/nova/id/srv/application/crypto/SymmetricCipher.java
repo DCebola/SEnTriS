@@ -62,8 +62,8 @@ public class SymmetricCipher {
 
     public static byte[] incrementIV(byte[] iv) {
         BigInteger ivAsBigInt = new BigInteger(iv);
-        return ivAsBigInt.add(BigInteger.ONE).toByteArray();
+        BigInteger plusOne = ivAsBigInt.add(BigInteger.ONE);
+        System.out.println(ivAsBigInt);
+        return plusOne.toByteArray();
     }
-
-
 }

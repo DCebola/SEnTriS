@@ -4,16 +4,21 @@ import org.apache.jena.sparql.core.Var;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class EncryptedBinding implements Serializable {
+public class SerializableBinding implements Serializable {
     @Serial
     private static final long serialVersionUID = 3345654444362467694L;
     private final Map<Var, String> values;
 
-    public EncryptedBinding(Map<Var, String> values) {
+    public SerializableBinding(Map<Var, String> values) {
         this.values = values;
+    }
+
+    public SerializableBinding() {
+        this.values = new HashMap<>();
     }
 
     public Iterator<Var> vars() {
@@ -22,5 +27,9 @@ public class EncryptedBinding implements Serializable {
 
     public String get(Var var) {
         return values.get(var);
+    }
+
+    public Map<Var, String> getValues() {
+        return values;
     }
 }

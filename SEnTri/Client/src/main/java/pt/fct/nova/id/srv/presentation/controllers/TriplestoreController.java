@@ -24,14 +24,14 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 
 
 @Path("triplestores")
 public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
-    private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
+    static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new DefaultSPARQLPlanner());
 

@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
@@ -150,14 +151,77 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private void generateRandomJoinPipeline(OpBGP op, List<SecureSearchJob> searchJobs) {
         int numJobs = searchJobs.size();
         Map<Integer, List<Integer>> graph = new HashMap<>(numJobs);
-        List<Integer> edges, jobs = new ArrayList<>(numJobs);
-        Set<Var> v1, v2, allVars = new HashSet<>();
+        List<Integer> jobs = new ArrayList<>(numJobs);
+        Set<Var> allVars = new HashSet<>();
+        generateAdjacencyMatrix(searchJobs, numJobs, graph, jobs, allVars);
+
+        List<Integer> walk = new ArrayList<>(numJobs);
+        Set<Integer> sampled = new HashSet<>();
+        int next;
+        boolean stop = false;
+        System.out.println("Total jobs:" + numJobs);
+        while (sampled.size() < numJobs && !stop) {
+            next = rndSample(jobs, sampled);
+            sampled.add(next);
+            randomWalk(next, graph, walk, numJobs);
+            if (walk.size() == numJobs)
+                stop = true;
+        }
+        System.out.println(Arrays.toString(walk.toArray()));
+        if (walk.size() == numJobs) {
+            SecureSearchJob job1, job2;
+            List<JoinJob> joins = new LinkedList<>();
+            int j1, j2;
+            String joinID;
+            for (int i = 0; i < numJobs - 1; i += 2) {
+                j1 = walk.get(i);
+                j2 = walk.get(i + 1);
+                job1 = searchJobs.get(j1);
+                job2 = searchJobs.get(j2);
+                plan.pushJob(job1);
+                plan.pushJob(job2);
+                joinID = generateID();
+                joins.add(new JoinJob(joinID, job1.getID(), job2.getID()));
+                System.out.println("[" + joinID + "] - (" + j1 + "," + j2 + ")");
+            }
+            if (numJobs % 2 == 1) {
+                job1 = searchJobs.get(walk.get(searchJobs.size() - 1));
+                JoinJob join = joins.remove(joins.size() - 1);
+                plan.pushJob(job1);
+                plan.pushJob(join);
+                joinID = generateID();
+                joins.add(new JoinJob(joinID, job1.getID(), join.getID()));
+                System.out.println("[" + joinID + "] - (" + walk.get(searchJobs.size() - 1) + "," + join.getID() + ")");
+            }
+            JoinJob join1, join2;
+            while (joins.size() > 1) {
+                join1 = joins.remove(0);
+                join2 = joins.remove(0);
+                plan.pushJob(join1);
+                plan.pushJob(join2);
+                joinID = generateID();
+                joins.add(new JoinJob(joinID, join1.getID(), join2.getID()));
+                System.out.println("[" + joinID + "] - (" + join1.getID() + "," + join2.getID() + ")");
+            }
+            plan.pushJob(joins.get(0));
+            parsed_op.put(op, joins.get(0).getID());
+        } else {
+            String jobID = generateID();
+            plan.pushJob(new EmptyResJob(jobID, allVars));
+            parsed_op.put(op, jobID);
+        }
+    }
+
+    private static void generateAdjacencyMatrix(List<SecureSearchJob> searchJobs, int numJobs, Map<Integer, List<Integer>> graph, List<Integer> jobs, Set<Var> allVars) {
         SecureSearchJob job1, job2;
+        List<Integer> edges;
+        Set<Var> v2, v1;
         for (int i = 0; i < numJobs; i++) {
             job1 = searchJobs.get(i);
             jobs.add(i);
             v1 = job1.getSearches().keySet();
             allVars.addAll(v1);
+            System.out.println("[" + i + "] - " + Arrays.toString(v1.toArray()));
             edges = new ArrayList<>(numJobs);
             for (int j = 0; j < numJobs; j++) {
                 job2 = searchJobs.get(j);
@@ -173,45 +237,13 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             }
             graph.put(i, edges);
         }
-
-        List<Integer> walk = new ArrayList<>(numJobs);
-        Set<Integer> sampled = new HashSet<>();
-        int next;
-        while (sampled.size() < numJobs) {
-            next = rndSample(jobs, sampled);
-            sampled.add(next);
-            randomWalk(next, graph, walk, numJobs);
-            if (walk.size() == numJobs)
-                break;
-        }
-        if (walk.size() == numJobs) {
-            List<Job> joins = new LinkedList<>();
-            for (int i = 0; i < numJobs; i += 2) {
-                job1 = searchJobs.get(i);
-                job2 = searchJobs.get(i + 1);
-                plan.pushJob(job1);
-                plan.pushJob(job2);
-                joins.add(new JoinJob(generateID(), job1.getID(), job2.getID()));
-            }
-            while (joins.size() > 1) {
-                job1 = searchJobs.remove(0);
-                job2 = searchJobs.remove(0);
-                plan.pushJob(job1);
-                plan.pushJob(job2);
-                joins.add(new JoinJob(generateID(), job1.getID(), job2.getID()));
-            }
-            plan.pushJob(joins.get(0));
-            parsed_op.put(op, joins.get(0).getID());
-        } else {
-            String jobID = generateID();
-            plan.pushJob(new EmptyResJob(jobID, allVars));
-            parsed_op.put(op, jobID);
-        }
+        graph.forEach((j, l) -> System.out.println("[" + j + "] - " + Arrays.toString(l.toArray())));
     }
 
 
     private void randomWalk(int root, Map<Integer, List<Integer>> adjacencyMatrix, List<Integer> visited, int depth) {
-        if (visited.size() < depth) {
+        if (visited.size() < depth && !visited.contains(root)) {
+            visited.add(root);
             List<Integer> neighbours = new ArrayList<>(adjacencyMatrix.get(root));
             neighbours.removeAll(visited);
             int next;
@@ -219,7 +251,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             while (sampled.size() < neighbours.size()) {
                 next = rndSample(neighbours, sampled);
                 sampled.add(next);
-                visited.add(next);
                 randomWalk(next, adjacencyMatrix, visited, depth);
             }
         }
@@ -305,7 +336,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
 
     private void generateValuesJob(OpTable op) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        List<EncryptedBinding> values = new LinkedList<>();
+        List<SerializableBinding> values = new LinkedList<>();
         Iterator<Binding> rows = op.getTable().rows();
         Binding row;
         Iterator<Var> rowVars;
@@ -323,7 +354,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                 else
                     throw new NotImplemented();
             }
-            values.add(new EncryptedBinding(collector));
+            values.add(new SerializableBinding(collector));
 
         }
         String jobID = generateID();

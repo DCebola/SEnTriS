@@ -10,11 +10,11 @@ import java.util.Map;
 
 public class SerializableBinding implements Serializable {
     @Serial
-    private static final long serialVersionUID = 1345655033362467694L;
-    private final Map<Var, Node> values;
+    private static final long serialVersionUID = 3345654444362467694L;
+    private final Map<Var, String> values;
 
 
-    public SerializableBinding(Map<Var, Node> values) {
+    public SerializableBinding(Map<Var, String> values) {
         this.values = values;
     }
 
@@ -22,7 +22,7 @@ public class SerializableBinding implements Serializable {
         return values.keySet().iterator();
     }
 
-    public Node get(Var var) {
+    public String get(Var var) {
         return values.get(var);
     }
 }

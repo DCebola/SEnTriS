@@ -21,8 +21,8 @@ public interface QueriesAPI {
 
     @POST
     @Path("/prepare")
-    @Consumes(APPLICATION_FORM_URLENCODED)
-    @Produces(TEXT_PLAIN)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
     Response saveSearchResults(List<String> encryptedNodes,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

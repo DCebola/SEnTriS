@@ -19,8 +19,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static org.apache.commons.codec.binary.Base64.*;
-
 public class Protocol1 implements EncryptionProtocol {
     private final byte[] iv;
     private final SecretKey k1, k2, k3;
@@ -113,8 +111,6 @@ public class Protocol1 implements EncryptionProtocol {
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
             NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
-        if (keyword.equals("S:S<:>http://www.w3.org/1999/02/22-rdf-syntax-ns#type:S<:>http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Department"))
-            System.out.println(node);
         byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
         encryptedT.put(
@@ -166,7 +162,7 @@ public class Protocol1 implements EncryptionProtocol {
             NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         byte[] st;
         List<String> trapdoors = new ArrayList<>(total);
-        for (int i = 1; i < total; i++) {
+        for (int i = 0; i < total; i++) {
             st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
             trapdoors.add(base64Encoder.encodeToString(st));
         }
@@ -229,6 +225,10 @@ public class Protocol1 implements EncryptionProtocol {
 
     public byte[] decryptRNDLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         return SymmetricCipher.decrypt(k2, base64Decoder.decode(ciphertext));
+    }
+
+    public byte[] decryptDETLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return SymmetricCipher.decrypt(k3, base64Decoder.decode(ciphertext));
     }
 
     public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {

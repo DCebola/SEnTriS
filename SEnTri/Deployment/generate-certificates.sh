@@ -46,7 +46,7 @@ wait
 wait
 
 #Proxy certificates
-generate_cert proxy sentri-proxy
+generate_cert proxy sentri-proxy-api
 wait
 generate_cert proxy-redis sentri-proxy-db
 wait

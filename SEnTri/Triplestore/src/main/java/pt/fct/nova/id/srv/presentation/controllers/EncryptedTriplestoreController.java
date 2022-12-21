@@ -51,10 +51,12 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                     return HTTPUtils.buildResponse(response);
             }
+
             try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
                 return HTTPUtils.buildResponse(response);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

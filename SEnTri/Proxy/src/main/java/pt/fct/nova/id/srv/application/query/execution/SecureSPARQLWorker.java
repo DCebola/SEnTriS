@@ -1,11 +1,9 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
-import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -43,13 +41,14 @@ public class SecureSPARQLWorker implements SPARQLWorker {
             Map<Var, String> searches = secureSearchJob.getSearches();
             List<Var> vars = new ArrayList<>(searches.size());
             List<String> searchIDs = new ArrayList<>(searches.size());
-            searches.forEach(
-                    (var, searchID) -> {
-                        vars.add(var);
-                        searchIDs.add(searchID);
-                        allSearchIDs.add(searchID);
-                    }
-            );
+            for (Map.Entry<Var, String> entry : searches.entrySet()) {
+                vars.add(entry.getKey());
+                searchIDs.add(entry.getValue());
+                allSearchIDs.add(entry.getValue());
+            }
+            System.out.println("Executing job: " + job.getID());
+            System.out.println("Vars: " + Arrays.toString(vars.toArray()));
+            System.out.println("Search IDs: " + searchIDs);
             return ProxyStorage.search(key, vars, searchIDs);
         } else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
@@ -61,7 +60,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
         Var var;
         String encryptedNode;
         Iterator<Var> vars;
-        for (EncryptedBinding binding : job.getValues()) {
+        for (SerializableBinding binding : job.getValues()) {
             String p_idx = generateID();
             vars = binding.vars();
             while (vars.hasNext()) {
@@ -94,17 +93,15 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
+        System.out.println("PROJECT: " + Arrays.toString(job.getVars().toArray()));
         prevJobResults.project(job.getVars());
+        System.out.println("TABLE " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         return prevJobResults;
     }
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         result.setOrdered(true);
-        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
-        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
-        for (SerializableSortCondition condition : serializableSortConditions)
-            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
-        result.setSortConditions(sortConditions);
+        result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
@@ -149,24 +146,44 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execJoin(IRITable left, IRITable right) {
-        return left.join(right);
+        IRITable join = left.join(right);
+        System.out.println("JOIN");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(join.getPatterns().size());
+        return join;
     }
 
     private IRITable execUnion(IRITable left, IRITable right) {
-        return left.union(right);
+        IRITable union = left.union(right);
+        System.out.println("UNION");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(union.getPatterns().size());
+        return union;
     }
 
     private IRITable execOptional(IRITable left, IRITable right) {
-        return left.leftOuterJoin(right);
+        IRITable optional = left.leftOuterJoin(right);
+        System.out.println("OPTIONAL");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(optional.getPatterns().size());
+        return optional;
     }
 
     private IRITable execMinus(IRITable left, IRITable right) {
-        return left.minus(right);
+        IRITable minus = left.minus(right);
+        System.out.println("Minus");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(minus.getPatterns().size());
+        return minus;
     }
 
     @Override
     public SPARQLResult generateResults(IRITable jobResults) {
-        Collection<Binding> bindings;
+        Collection<SerializableBinding> bindings;
         boolean isDistinct = result.isDistinct();
         if (isDistinct)
             bindings = generateBindings(new HashSet<>(), jobResults);
@@ -187,19 +204,19 @@ public class SecureSPARQLWorker implements SPARQLWorker {
         return result;
     }
 
-    private Collection<Binding> generateBindings(Collection<Binding> bindings, IRITable jobResults) {
+    private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, IRITable jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
-        BindingBuilder builder = Binding.builder();
         int i;
+        HashMap<Var, String> values;
         for (List<String> p_values : jobResults.getPatterns()) {
+            values = new HashMap<>();
             i = 0;
             for (String val : p_values) {
                 if (val != null)
-                    builder.add(vars.get(i), NodeFactory.createURI(val));
+                    values.put(vars.get(i), val);
                 i++;
             }
-            bindings.add(builder.build());
-            builder.reset();
+            bindings.add(new SerializableBinding(values));
         }
         return bindings;
     }

@@ -1,8 +1,8 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.Query;
-import org.apache.jena.query.SortCondition;
-import org.apache.jena.sparql.engine.binding.Binding;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 
 import java.io.Serial;
 import java.util.Collection;
@@ -11,16 +11,16 @@ import java.util.List;
 public class DefaultSPARQLResult implements SPARQLResult {
     @Serial
     private static final long serialVersionUID = 5345654479992467695L;
-    private List<SortCondition> sortConditions;
+    private List<SerializableSortCondition> sortConditions;
     private boolean isDistinct;
     private boolean isOrdered;
     private boolean isSliced;
     private Long offset;
     private Long length;
 
-    private Collection<Binding> bindings;
+    private Collection<SerializableBinding> bindings;
 
-    public DefaultSPARQLResult(List<SortCondition> sortConditions, boolean isDistinct, boolean isOrdered, boolean isSliced, Long offset, Long length) {
+    public DefaultSPARQLResult(List<SerializableSortCondition> sortConditions, boolean isDistinct, boolean isOrdered, boolean isSliced, Long offset, Long length) {
         this.sortConditions = sortConditions;
         this.isDistinct = isDistinct;
         this.isOrdered = isOrdered;
@@ -40,11 +40,11 @@ public class DefaultSPARQLResult implements SPARQLResult {
     }
 
     @Override
-    public void setBindings(Collection<Binding> bindings) {
+    public void setBindings(Collection<SerializableBinding> bindings) {
         this.bindings = bindings;
     }
 
-    public void setSortConditions(List<SortCondition> conditions) {
+    public void setSortConditions(List<SerializableSortCondition> conditions) {
         if (sortConditions != null)
             sortConditions.addAll(conditions);
         else
@@ -71,7 +71,7 @@ public class DefaultSPARQLResult implements SPARQLResult {
         this.length = length;
     }
     @Override
-    public List<SortCondition> getSortConditions() {
+    public List<SerializableSortCondition> getSortConditions() {
         return sortConditions;
     }
     @Override
@@ -96,7 +96,7 @@ public class DefaultSPARQLResult implements SPARQLResult {
     }
 
     @Override
-    public Collection<Binding> getBindings() {
+    public Collection<SerializableBinding> getBindings() {
         return bindings;
     }
 }
