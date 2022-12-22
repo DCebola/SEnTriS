@@ -30,6 +30,8 @@ import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 
 @Path("triplestores")
 public class TriplestoreController implements TriplestoreAPI {
+    public static final String SUCCESSFUL_DELETION = "Successful deletion.";
+    public static final String INTERNAL_ERROR = "Internal error.";
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";

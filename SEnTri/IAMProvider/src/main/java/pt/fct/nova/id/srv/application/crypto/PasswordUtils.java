@@ -38,7 +38,7 @@ public final class PasswordUtils {
 
     private static void initKeyFactory() throws NoSuchAlgorithmException {
         if (keyFactory == null)
-            keyFactory = SecretKeyFactory.getInstance(System.getenv("PASSWORD_KEY_ALGORITHM"));
+            keyFactory = SecretKeyFactory.getInstance(System.getenv("KEY_DERIVATION_ALGORITHM"));
     }
 
     private static byte[] generateRandomSalt() {

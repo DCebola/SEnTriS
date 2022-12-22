@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.api;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
@@ -27,31 +28,31 @@ public interface UsersAPI {
     @DELETE
     @Path("/{username}")
     @Produces(TEXT_PLAIN)
-    Response deleteUser(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response deleteUser(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                         @PathParam("username") String username);
 
     @POST
     @Path("/{username}/upgrade")
     @Produces(TEXT_PLAIN)
-    Response issueUpgradeRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response issueUpgradeRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                  @PathParam("username") String username);
 
     @POST
     @Path("/{username}/downgrade")
     @Produces(TEXT_PLAIN)
-    Response issueDowngradeRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response issueDowngradeRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username);
 
     @GET
     @Path("{username}/requests")
     @Produces(TEXT_PLAIN)
-    Response listPendingRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listPendingRequests(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                  @PathParam("username") String username);
 
     @PUT
     @Path("{username}/requests/{requestID}")
     @Produces(TEXT_PLAIN)
-    Response processPendingRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response processPendingRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID,
                                    @Form RequestDecisionForm decisionForm);

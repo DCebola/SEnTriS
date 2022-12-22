@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.protocols;
 
-import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
@@ -20,53 +19,62 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Protocol1 implements EncryptionProtocol {
-    private final byte[] iv;
-    private final SecretKey k1, k2, k3;
+    private final byte[] ivDET;
+    private final byte[] ivRND;
+    private final SecretKey kMASTER, kRND, kDET;
     private final Map<String, String> encryptedT;
-    private final Map<String, Pair<Integer, byte[]>> keywords;
+    private final Map<String, Integer> keywordFrequency;
+    private final Map<String, byte[]> keywordsIVs;
+    private final Map<String, SecretKey> keywordDerivedKeys;
     private final Base64.Decoder base64Decoder;
     private final Base64.Encoder base64Encoder;
 
-    public Protocol1(SecretKey k1, SecretKey k2, SecretKey k3, byte[] iv) {
-        this.iv = iv;
-        this.k1 = k1;
-        this.k2 = k2;
-        this.k3 = k3;
+    public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv) {
+        this.ivDET = iv;
+        this.ivRND = SymmetricCipher.generateZeroFilledIV();
+        this.kMASTER = kMASTER;
+        this.kRND = kRND;
+        this.kDET = kDET;
         this.encryptedT = new HashMap<>();
-        this.keywords = new HashMap<>();
+        this.keywordFrequency = new HashMap<>();
+        this.keywordDerivedKeys = new HashMap<>();
+        this.keywordsIVs = new HashMap<>();
         this.base64Decoder = Base64.getUrlDecoder();
         this.base64Encoder = Base64.getUrlEncoder();
     }
 
     public Protocol1() throws NoSuchAlgorithmException {
-        this.iv = SymmetricCipher.generateIV();
-        this.k1 = SymmetricCipher.generateKey();
-        this.k2 = SymmetricCipher.generateKey();
-        this.k3 = SymmetricCipher.generateKey();
+        this.ivDET = SymmetricCipher.generateRandomIV();
+        this.ivRND = SymmetricCipher.generateZeroFilledIV();
+        this.kMASTER = SymmetricCipher.generateKey();
+        this.kRND = SymmetricCipher.generateKey();
+        this.kDET = SymmetricCipher.generateKey();
         this.encryptedT = new HashMap<>();
-        this.keywords = new HashMap<>();
+        this.keywordFrequency = new HashMap<>();
+        this.keywordDerivedKeys = new HashMap<>();
+        this.keywordsIVs = new HashMap<>();
         this.base64Decoder = Base64.getUrlDecoder();
         this.base64Encoder = Base64.getUrlEncoder();
     }
 
-    public byte[] getIv() {
-        return iv;
+    public byte[] getIvDET() {
+        return ivDET;
     }
 
-    public SecretKey getK1() {
-        return k1;
+    public SecretKey getKeywordsMasterKey() {
+        return kMASTER;
     }
 
-    public SecretKey getK2() {
-        return k2;
+    public SecretKey getRNDKey() {
+        return kRND;
     }
 
-    public SecretKey getK3() {
-        return k3;
+    public SecretKey getDETKey() {
+        return kDET;
     }
 
-    public Map<String, Pair<Integer, byte[]>> getKeywords() {
-        return keywords;
+    public Map<String, Integer> getKeywordFrequency() {
+        return keywordFrequency;
     }
 
     public Map<String, String> getEncryptedT() {
@@ -95,37 +103,37 @@ public class Protocol1 implements EncryptionProtocol {
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, p_keyword);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, o_keyword);
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, s_keyword);
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, o_keyword);
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, s_keyword);
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, p_keyword);
-            encodeNode(k1, k2, k3, s_iri, VariablesPattern.S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword));
-            encodeNode(k1, k2, k3, p_iri, VariablesPattern.P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword));
-            encodeNode(k1, k2, k3, o_iri, VariablesPattern.O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword));
+            encodeNode(s_iri, VariablesPattern.S, p_keyword);
+            encodeNode(s_iri, VariablesPattern.S, o_keyword);
+            encodeNode(p_iri, VariablesPattern.P, s_keyword);
+            encodeNode(p_iri, VariablesPattern.P, o_keyword);
+            encodeNode(o_iri, VariablesPattern.O, s_keyword);
+            encodeNode(o_iri, VariablesPattern.O, p_keyword);
+            encodeNode(s_iri, VariablesPattern.S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword));
+            encodeNode(p_iri, VariablesPattern.P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword));
+            encodeNode(o_iri, VariablesPattern.O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword));
         }
     }
 
-    private void encodeNode(SecretKey k1, SecretKey k2, SecretKey k3, String node, VariablesPattern pattern, String keyword)
+    private void encodeNode(String node, VariablesPattern pattern, String keyword)
             throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
             NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
-        byte[] st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
-        byte[] ct = generateRNDLayer(k2, generateDETLayer(k3, node.getBytes(StandardCharsets.UTF_8), iv));
+        byte[] st = generateDETLayer(getKeywordDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
+        byte[] ct = generateRNDLayer(generateDETLayer(kDET, node.getBytes(StandardCharsets.UTF_8), ivDET));
         encryptedT.put(
                 base64Encoder.encodeToString(st),
                 base64Encoder.encodeToString(ct)
         );
+        incrementKeywordFrequency(keyword);
     }
 
     private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
             BadPaddingException, InvalidKeyException {
-        for (Map.Entry<String, Pair<Integer, byte[]>> entry : keywords.entrySet()) {
-            Pair<Integer, byte[]> value = entry.getValue();
-            byte[] st = generateDETLayer(k1, entry.getKey().getBytes(StandardCharsets.UTF_8), iv);
-            byte[] ct = generateRNDLayer(k2, Utils.integerToByteArray(value.getLeft()));
+        for (String keyword : keywordFrequency.keySet()) {
+            byte[] st = generateDETLayer(keywordDerivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.generateZeroFilledIV());
+            byte[] ct = generateRNDLayer(Utils.integerToByteArray(keywordFrequency.get(keyword)));
             encryptedT.put(
                     base64Encoder.encodeToString(st),
                     base64Encoder.encodeToString(ct)
@@ -133,9 +141,62 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    public Map<String, String> generateKeywordTrapdoorMap(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        HashMap<String, String> res = new HashMap<>();
-        Set<String> skip = new HashSet<>();
+    public byte[] generateRNDLayer(byte[] deterministicCiphertext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        byte[] ciphertext = SymmetricCipher.encrypt(deterministicCiphertext, kRND, ivRND);
+        SymmetricCipher.incrementIV(ivRND);
+        return ciphertext;
+    }
+
+    public byte[] generateDETLayer(SecretKey key, byte[] plaintext, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return SymmetricCipher.encrypt(plaintext, key, iv);
+    }
+
+    public byte[] encryptDET(byte[] plaintext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return generateDETLayer(kDET, plaintext, ivDET);
+    }
+
+    public String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return base64Encoder.encodeToString(generateDETLayer(getKeywordDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword)));
+    }
+
+    public byte[] decryptRNDLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return SymmetricCipher.decrypt(kRND, base64Decoder.decode(ciphertext));
+    }
+
+    public byte[] decryptDETLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return SymmetricCipher.decrypt(kDET, base64Decoder.decode(ciphertext));
+    }
+
+    private SecretKey getKeywordDerivedKey(String keyword) {
+        SecretKey keywordDerivedKey = keywordDerivedKeys.get(keyword);
+        if (keywordDerivedKey == null) {
+            keywordDerivedKey = SymmetricCipher.generateKey(kMASTER, keyword.getBytes(StandardCharsets.UTF_8));
+            keywordDerivedKeys.put(keyword, keywordDerivedKey);
+        }
+        return keywordDerivedKey;
+    }
+
+    private byte[] getKeywordIV(String keyword) {
+        byte[] keywordIV = keywordsIVs.get(keyword);
+        if (keywordIV == null) {
+            keywordIV = SymmetricCipher.generateZeroFilledIV();
+            keywordsIVs.put(keyword, keywordIV);
+        } else
+            SymmetricCipher.incrementIV(keywordIV);
+        return keywordIV;
+    }
+
+    private void incrementKeywordFrequency(String keyword) {
+        Integer keywordCount = keywordFrequency.get(keyword);
+        if (keywordCount == null) {
+            keywordCount = 0;
+            keywordFrequency.put(keyword, keywordCount);
+        } else
+            keywordFrequency.put(keyword, keywordCount + 1);
+    }
+
+    public Map<String, String> init(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        HashMap<String, String> trapdoors = new HashMap<>();
         String s, p, o, po, so, sp;
         for (Triple t : triples) {
             s = ParsingUtils.parseKeyword(t.getSubject());
@@ -144,96 +205,44 @@ public class Protocol1 implements EncryptionProtocol {
             po = String.format(COMPOUND_KEYWORD, p, o);
             so = String.format(COMPOUND_KEYWORD, s, o);
             sp = String.format(COMPOUND_KEYWORD, s, p);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.P, s);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.O, s);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.S, p);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.O, p);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.S, o);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.P, o);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.S, po);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.P, so);
-            generateKeywordTrapdoor(res, skip, VariablesPattern.O, sp);
-        }
-        return res;
-    }
-
-    public List<String> generateTrapdoors(String keyword, int total)
-            throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException,
-            NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        byte[] st;
-        List<String> trapdoors = new ArrayList<>(total);
-        for (int i = 0; i < total; i++) {
-            st = generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
-            trapdoors.add(base64Encoder.encodeToString(st));
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, s);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, s);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, p);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, p);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, o);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, o);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, po);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, so);
+            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, sp);
         }
         return trapdoors;
     }
 
-    public byte[] generateRNDLayer(SecretKey key, byte[] deterministicCiphertext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return SymmetricCipher.encrypt(deterministicCiphertext, key);
-    }
-
-    public byte[] generateDETLayer(SecretKey key, byte[] plaintext, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return SymmetricCipher.encrypt(plaintext, key, iv);
-    }
-
-    public byte[] encryptDET(byte[] plaintext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return generateDETLayer(k3, plaintext, iv);
-    }
-
-    private byte[] getKeywordIV(String keyword) {
-        Pair<Integer, byte[]> entry = keywords.get(keyword);
-        if (entry == null) {
-            entry = new Pair<>(1, SymmetricCipher.incrementIV(iv));
-            keywords.put(keyword, entry);
-        } else
-            keywords.put(keyword, new Pair<>(entry.getLeft() + 1, SymmetricCipher.incrementIV(entry.getRight())));
-        return entry.getRight();
-    }
-
-
-    private void generateKeywordTrapdoor(Map<String, String> trapdoors, Set<String> skip, VariablesPattern pattern, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private void generateDistinctKeywordTrapdoor(HashMap<String, String> trapdoors, VariablesPattern pattern, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
-        if (!skip.contains(keyword)) {
+        if (!trapdoors.containsKey(keyword))
             trapdoors.put(keyword, generateTrapdoor(keyword));
-            skip.add(keyword);
-        }
     }
 
-    public Map<String, Pair<Integer, byte[]>> generateKeywordIVMap(List<String> keywords, List<String> keywordsTotals) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public void update(List<String> keywords, List<String> keywordFrequency) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         int max = -1;
-        int total;
+        int frequency;
+        byte[] iv = SymmetricCipher.generateZeroFilledIV();
         Map<Integer, byte[]> generatedIvs = new HashMap<>();
-        Map<String, Pair<Integer, byte[]>> res = new HashMap<>();
+        generatedIvs.put(0, iv);
         int i = 0;
-        for (String encTotal : keywordsTotals) {
-            total = Utils.integerFromByteArray(SymmetricCipher.decrypt(k2, base64Decoder.decode(encTotal)));
-            if (total > max) {
-                for (int j = 0; j < total - max; j++)
-                    generatedIvs.put(total - j, SymmetricCipher.incrementIV(iv));
-                max = total;
+        for (String f : keywordFrequency) {
+            frequency = Utils.integerFromByteArray(decryptRNDLayer(f));
+            if (frequency > max) {
+                for (int j = 0; j < frequency - max; j++) {
+                    SymmetricCipher.incrementIV(iv);
+                    generatedIvs.put(frequency - j, iv.clone());
+                }
+                max = frequency;
             }
-            res.put(keywords.get(i), new Pair<>(total, generatedIvs.get(total)));
+            keywordsIVs.put(keywords.get(i), generatedIvs.get(frequency).clone());
+            this.keywordFrequency.put(keywords.get(i), frequency);
             i++;
         }
-        return res;
     }
-
-    public String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return base64Encoder.encodeToString(generateDETLayer(k1, keyword.getBytes(StandardCharsets.UTF_8), iv));
-    }
-
-    public byte[] decryptRNDLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return SymmetricCipher.decrypt(k2, base64Decoder.decode(ciphertext));
-    }
-
-    public byte[] decryptDETLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return SymmetricCipher.decrypt(k3, base64Decoder.decode(ciphertext));
-    }
-
-    public void updateKeywords(Map<String, Pair<Integer, byte[]>> values) {
-        keywords.putAll(values);
-    }
-
-
 }

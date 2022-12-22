@@ -1,9 +1,12 @@
 package pt.fct.nova.id.srv.application.crypto;
 
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
+import org.bouncycastle.crypto.params.HKDFParameters;
+
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -38,32 +41,40 @@ public class SymmetricCipher {
         return cipher.doFinal(Arrays.copyOfRange(cipherText, IV_SIZE, cipherText.length));
     }
 
-    public static byte[] encrypt(byte[] input, SecretKey key) throws NoSuchPaddingException,
-            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
-            IllegalBlockSizeException, BadPaddingException {
-        return encrypt(input, key, generateIV());
-    }
-
     public static SecretKey generateKey() throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
         keyGenerator.init(KEY_SIZE);
         return keyGenerator.generateKey();
     }
 
+    public static SecretKey generateKey(SecretKey masterKey, byte[] info) {
+        int keyLength = KEY_SIZE / Byte.SIZE;
+        byte[] keyBytes = new byte[keyLength];
+        HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA256Digest());
+        hkdf.init(HKDFParameters.skipExtractParameters(masterKey.getEncoded(), info));
+        hkdf.generateBytes(keyBytes, 0, keyLength);
+        return new SecretKeySpec(keyBytes, ALGORITHM);
+    }
+
     public static SecretKey parseKey(byte[] contents) {
         return new SecretKeySpec(contents, 0, contents.length, ALGORITHM);
     }
 
-    public static byte[] generateIV() {
+    public static byte[] generateRandomIV() {
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);
         return iv;
     }
 
-    public static byte[] incrementIV(byte[] iv) {
-        BigInteger ivAsBigInt = new BigInteger(iv);
-        BigInteger plusOne = ivAsBigInt.add(BigInteger.ONE);
-        System.out.println(ivAsBigInt);
-        return plusOne.toByteArray();
+    public static void incrementIV(byte[] iv) {
+        for (int i = iv.length - 1; i >= 0; --i) {
+            iv[i] += 1;
+            if (iv[i] != 0)
+                break;
+        }
+    }
+
+    public static byte[] generateZeroFilledIV() {
+        return new byte[IV_SIZE];
     }
 }

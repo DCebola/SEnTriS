@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -10,11 +11,9 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
-import pt.fct.nova.id.srv.application.clients.EncryptedTriplestoreClient;
-import pt.fct.nova.id.srv.application.clients.HTTPResponse;
-import pt.fct.nova.id.srv.application.clients.ProxyClient;
-import pt.fct.nova.id.srv.application.clients.VaultClient;
-import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.clients.*;
+import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
+
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
@@ -32,8 +31,40 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.OK;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.deleteAccessToken;
 
 public class EncryptedTriplestoreController {
+    public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
+            HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
+            if (response.getStatus() != OK)
+                return response;
+            String accessToken = response.getBody();
+
+            response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response;
+            }
+
+            response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            }
+            response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            }
+            response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response;
+            }
+            return response;
+    }
 
     public Response getEmptySPARQLQueryResult(DefaultQueryExecutionPlan plan, Map<Var, Var> obfuscationMap) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -41,7 +72,7 @@ public class EncryptedTriplestoreController {
             for (Var var : plan.getVars())
                 vars.add(obfuscationMap.get(var));
             List<Binding> emptyRes = new ArrayList<>(0);
-            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(plan.getVars(), emptyRes.iterator()));
+            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, emptyRes.iterator()));
             return Response.ok(out.toByteArray()).build();
         }
     }
@@ -63,11 +94,11 @@ public class EncryptedTriplestoreController {
         return bindings;
     }
 
-    public HTTPResponse fetchAndUpdateKeywords(HttpClient httpClient, String triplestoreID, Protocol1 protocol, Set<Map.Entry<String, String>> keywordTrapdoors, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
+    public HTTPResponse fetchKeywordsFrequencyAndUpdateProtocol(HttpClient httpClient, String triplestoreID, EncryptionProtocol protocol, Map<String, String> keywordTrapdoors, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
         List<String> trapdoors = new ArrayList<>(keywordTrapdoors.size());
         List<String> keywords = new ArrayList<>(keywordTrapdoors.size());
         int i = 0;
-        for (Map.Entry<String, String> entry : keywordTrapdoors) {
+        for (Map.Entry<String, String> entry : keywordTrapdoors.entrySet()) {
             trapdoors.add(entry.getKey());
             keywords.add(i, entry.getValue());
             i++;
@@ -77,8 +108,8 @@ public class EncryptedTriplestoreController {
         if (response.getStatus() != OK)
             return response;
 
-        List<String> keywordsTotals = ParsingUtils.parseListOfStrings(response.getBody());
-        protocol.updateKeywords(protocol.generateKeywordIVMap(keywords, keywordsTotals));
+        List<String> keywordFrequency = ParsingUtils.parseListOfStrings(response.getBody());
+        protocol.update(keywords, keywordFrequency);
         return null;
     }
 
@@ -118,13 +149,13 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse deleteProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public HTTPResponse deleteEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteEncryptedTriplestoreContents(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }

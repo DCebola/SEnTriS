@@ -39,16 +39,14 @@ import java.util.*;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
 
 @Path("triplestores/v1/encrypted")
 public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
-    public static final String SECRETS_VERSION = System.getenv("SECRETS_PROTOCOL_VERSION");
     public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
     public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
-    private static final String INTERNAL_ERROR = "Internal error.";
     public static final String SUCCESSFUL_CREATION = "Successful creation.";
     public static final String EMPTY_UPLOAD = "No content to upload.";
-    public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
 
     @Override
@@ -56,6 +54,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
+            //TODO: obfuscate triplestore name
             HTTPResponse response = createTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, issuer);
             if (response.getStatus() != OK)
                 return response.build();
@@ -108,33 +107,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     @Override
     public Response delete(Cookie cookie, String triplestoreID, String issuer) {
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
+            HTTPResponse response = EncryptedTriplestoreController.deleteEncryptedTriplestore(httpClient, cookie, triplestoreID, issuer);
             if (response.getStatus() != OK)
                 return response.build();
-            String accessToken = response.getBody();
-
-            response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
-
-            response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            }
-            response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            }
-            response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -162,7 +137,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
 
             List<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
-            if (!triples.isEmpty())
+            if (triples.isEmpty())
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
 
             response = getProtocolSecrets(httpClient, triplestoreID, accessToken);
@@ -172,10 +147,10 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
 
-            Protocol1 protocol = initProtocol1(secrets);
+            Protocol1 protocol = getProtocol1(secrets);
             Collections.shuffle(triples);
-
-            response = fetchAndUpdateKeywords(httpClient, triplestoreID, protocol, protocol.generateKeywordTrapdoorMap(triples).entrySet(), accessToken);
+            Map<String, String> trapdoors = protocol.init(triples);
+            response = fetchKeywordsFrequencyAndUpdateProtocol(httpClient, triplestoreID, protocol, trapdoors, accessToken);
             if (response != null && response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -215,7 +190,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
 
-            Protocol1 protocol = initProtocol1(secrets);
+            Protocol1 protocol = getProtocol1(secrets);
             SecureSPARQLPlanner planner = new SecureSPARQLPlanner(protocol);
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
 
@@ -233,25 +208,25 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             if (response.getStatus() != OK)
                 return response.build();
             Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
-            List<String> encryptedKeywordsInfo = ParsingUtils.parseListOfStrings(response.getBody());
-            Map<String, Integer> keywordsInfo = new HashMap<>(encryptedKeywordsInfo.size());
+            List<String> encryptedKeywordsFrequencies = ParsingUtils.parseListOfStrings(response.getBody());
+            Map<String, Integer> keywordsFrequency = new HashMap<>(encryptedKeywordsFrequencies.size());
             String info;
-            for (int i = 0; i < encryptedKeywordsInfo.size(); i++) {
-                info = encryptedKeywordsInfo.get(i);
+            for (int i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
+                info = encryptedKeywordsFrequencies.get(i);
                 if (info != null) {
                     int total = Utils.integerFromByteArray(protocol.decryptRNDLayer(info));
-                    keywordsInfo.put(keywordList.get(i), total);
+                    keywordsFrequency.put(keywordList.get(i), total);
                 } else
                     return getEmptySPARQLQueryResult(plan, obfuscationMap);
             }
 
-            response = prepareSearches(httpClient, protocol, triplestoreID, plan, planner.getSearchJobsIDs(), keywordsInfo, accessToken);
+            response = prepareSearches(httpClient, protocol, triplestoreID, plan, planner.getSearchJobsIDs(), keywordsFrequency, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
 
-            response = query(httpClient, protocol.getK2(), plan, accessToken);
+            response = query(httpClient, protocol.getRNDKey(), plan, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
@@ -279,7 +254,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol,
                                          String triplestoreID, QueryExecutionPlan plan, Set<String> searchJobsIDs,
-                                         Map<String, Integer> keywordsInfo, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+                                         Map<String, Integer> keywordsFrequency, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         HTTPResponse response;
         Map<String, String> preparedSearches = new HashMap<>();
         String keyword, searchID;
@@ -287,27 +262,25 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         SecureSearchJob secureSearchJob;
         Map<String, Job> jobs = plan.getJobs();
         List<String> trapdoors;
-        for (String id : plan.getExecutionOrder()) {
-            System.out.println(plan.getJobs().get(id));
-        }
+        int keywordFrequency;
         for (String jobID : searchJobsIDs) {
             secureSearchJob = (SecureSearchJob) jobs.get(jobID);
-            System.out.println("Preparing: " + jobID);
             for (Map.Entry<Var, String> entry : secureSearchJob.getSearches().entrySet()) {
                 var = entry.getKey();
                 keyword = entry.getValue();
                 searchID = preparedSearches.get(keyword);
                 if (searchID == null) {
-                    trapdoors = protocol.generateTrapdoors(keyword, keywordsInfo.get(keyword));
+                    keywordFrequency = keywordsFrequency.get(keyword);
+                    trapdoors = new ArrayList<>(keywordFrequency);
+                    for (int i = 0; i < keywordFrequency; i++)
+                        trapdoors.add(protocol.generateTrapdoor(keyword));
                     Collections.shuffle(trapdoors);
                     response = prepareSearch(httpClient, triplestoreID, trapdoors, accessToken);
-                    if (response.getStatus() != OK) {
+                    if (response.getStatus() != OK)
                         return response;
-                    }
                     searchID = response.getBody();
                     preparedSearches.put(keyword, searchID);
                 }
-                System.out.println(var + "->" + searchID);
                 secureSearchJob.prepareSearch(var, searchID);
             }
         }
@@ -327,4 +300,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
         return decryptedBindings;
     }
+
+
 }

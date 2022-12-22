@@ -129,7 +129,7 @@ public class ParsingUtils {
         }
     }
 
-    public static Protocol1 initProtocol1(Map<String, String> secrets) {
+    public static Protocol1 getProtocol1(Map<String, String> secrets) {
         SecretKey k1 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
         SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
@@ -140,10 +140,10 @@ public class ParsingUtils {
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
         Map<String, String> secrets = new HashMap<>();
         if (p instanceof Protocol1 p1) {
-            secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getK1().getEncoded()));
-            secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getK2().getEncoded()));
-            secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getK3().getEncoded()));
-            secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIv()));
+            secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getKeywordsMasterKey().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getRNDKey().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
+            secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
         }
         return secrets;
     }

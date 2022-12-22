@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.api;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
@@ -19,13 +20,13 @@ public interface TriplestoreAPI {
     @Path("")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response create(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response create(@NotNull @NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                     @MultipartForm UploadForm form);
 
     @GET
     @Path("/{issuer}")
     @Produces(TEXT_PLAIN)
-    Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listTriplestores(@NotNull @NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                               @PathParam("issuer") String issuer,
                               @DefaultValue("false") @QueryParam("write") boolean write,
                               @DefaultValue("false") @QueryParam("read") boolean read,
@@ -35,13 +36,13 @@ public interface TriplestoreAPI {
     @Path("/upload")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response upload(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response upload(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                     @MultipartForm UploadForm form);
 
     @DELETE
     @Path("/{triplestoreID}/{issuer}")
     @Produces(TEXT_PLAIN)
-    Response delete(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response delete(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                     @PathParam("triplestoreID") String triplestoreID,
                     @PathParam("issuer") String issuer);
 
@@ -49,13 +50,13 @@ public interface TriplestoreAPI {
     @Path("/query")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response answerSPARQLQuery(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                @Form QueryForm form);
 
     @PUT
     @Path("/{triplestoreID}/{issuer}/access/{target}")
     @Produces(TEXT_PLAIN)
-    Response grantAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response grantAccess(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                          @PathParam("triplestoreID") String triplestoreID,
                          @PathParam("issuer") String issuer,
                          @PathParam("target") String target,
@@ -65,7 +66,7 @@ public interface TriplestoreAPI {
     @DELETE
     @Path("/{triplestoreID}/{issuer}/access/{target}")
     @Produces(TEXT_PLAIN)
-    Response revokeAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response revokeAccess(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                           @PathParam("triplestoreID") String triplestoreID,
                           @PathParam("issuer") String issuer,
                           @PathParam("target") String target,
@@ -75,7 +76,7 @@ public interface TriplestoreAPI {
     @POST
     @Path("/{triplestoreID}/{issuer}/access/requests")
     @Produces(TEXT_PLAIN)
-    Response issueAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response issueAccessRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                 @PathParam("triplestoreID") String triplestoreID,
                                 @PathParam("issuer") String issuer,
                                 @DefaultValue("false") @QueryParam("write") boolean write);
@@ -84,7 +85,7 @@ public interface TriplestoreAPI {
     @Path("/{triplestoreID}/{issuer}/owner/{target}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response updateTriplestoreOwner(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response updateTriplestoreOwner(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                     @PathParam("triplestoreID") String triplestoreID,
                                     @PathParam("issuer") String issuer,
                                     @PathParam("target") String target);
@@ -92,7 +93,7 @@ public interface TriplestoreAPI {
     @GET
     @Path("/{triplestoreID}/{issuer}/access/users")
     @Produces(TEXT_PLAIN)
-    Response listUsersWithAccess(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listUsersWithAccess(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                  @PathParam("triplestoreID") String triplestoreID,
                                  @PathParam("issuer") String issuer,
                                  @DefaultValue("false") @QueryParam("write") boolean write);
@@ -100,7 +101,7 @@ public interface TriplestoreAPI {
     @GET
     @Path("/{triplestoreID}/{issuer}/access/requests")
     @Produces(TEXT_PLAIN)
-    Response listPendingAccessRequests(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listPendingAccessRequests(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                        @PathParam("triplestoreID") String triplestoreID,
                                        @PathParam("issuer") String issuer);
 
@@ -108,7 +109,7 @@ public interface TriplestoreAPI {
     @Path("/{triplestoreID}/{issuer}/access/requests/{requestID}")
     @Consumes(APPLICATION_FORM_URLENCODED)
     @Produces(TEXT_PLAIN)
-    Response processPendingAccessRequest(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response processPendingAccessRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                          @PathParam("triplestoreID") String triplestoreID,
                                          @PathParam("issuer") String issuer,
                                          @PathParam("requestID") String requestID,
