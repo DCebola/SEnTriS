@@ -46,7 +46,9 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final Set<String> keywords;
     private final EncryptionProtocol protocol;
     private final Set<String> searchJobsIDs;
-    private Random rnd;
+    private final Random rnd;
+
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public SecureSPARQLPlanner(EncryptionProtocol protocol) {
         this.protocol = protocol;
@@ -348,10 +350,12 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             collector = new HashMap<>();
             while (rowVars.hasNext()) {
                 currentVar = rowVars.next();
-                if (protocol instanceof Protocol1 p1)
-                    collector.put(obfuscateVar(currentVar),
-                            new String(p1.encryptDET(ParsingUtils.parseNodeIRI(row.get(currentVar)).getBytes(StandardCharsets.UTF_8))));
-                else
+                if (protocol instanceof Protocol1 p1) {
+                    String iri = ParsingUtils.parseNodeIRI(row.get(currentVar));
+                    String value = base64Encoder.encodeToString(p1.encryptDET(iri.getBytes(StandardCharsets.UTF_8)));
+                    System.out.println(iri + " | " + value);
+                    collector.put(obfuscateVar(currentVar), value);
+                } else
                     throw new NotImplemented();
             }
             values.add(new SerializableBinding(collector));

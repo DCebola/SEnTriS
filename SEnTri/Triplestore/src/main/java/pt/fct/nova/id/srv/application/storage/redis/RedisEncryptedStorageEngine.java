@@ -1,9 +1,6 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
-import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -68,7 +65,7 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
             Pipeline p = jedis.pipelined();
             List<String> res = new LinkedList<>();
             List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            System.out.println(trapdoors.size());
+            System.out.println("PREPARE SEARCH:" + trapdoors.size());
             trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
             p.sync();
             for (Response<String> r : responses)

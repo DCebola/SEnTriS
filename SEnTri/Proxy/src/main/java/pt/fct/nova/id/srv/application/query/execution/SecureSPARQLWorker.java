@@ -4,6 +4,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.Var;
+import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -13,7 +14,13 @@ import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +31,8 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     private final SPARQLResult result;
     private final SecretKey key;
     private final Set<String> allSearchIDs;
+    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public SecureSPARQLWorker(SecretKey key) {
         result = new DefaultSPARQLResult();
@@ -46,9 +55,6 @@ public class SecureSPARQLWorker implements SPARQLWorker {
                 searchIDs.add(entry.getValue());
                 allSearchIDs.add(entry.getValue());
             }
-            System.out.println("Executing job: " + job.getID());
-            System.out.println("Vars: " + Arrays.toString(vars.toArray()));
-            System.out.println("Search IDs: " + searchIDs);
             return ProxyStorage.search(key, vars, searchIDs);
         } else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
@@ -69,6 +75,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
                 res.add(p_idx, var, encryptedNode);
             }
         }
+        System.out.println("VALUES: " + res.getPatterns().size());
         return res;
     }
 
@@ -147,37 +154,33 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     private IRITable execJoin(IRITable left, IRITable right) {
         IRITable join = left.join(right);
-        System.out.println("JOIN");
+        System.out.println("JOIN" + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(join.getPatterns().size());
         return join;
     }
 
     private IRITable execUnion(IRITable left, IRITable right) {
         IRITable union = left.union(right);
-        System.out.println("UNION");
+        System.out.println("UNION: " + union.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(union.getPatterns().size());
         return union;
     }
 
     private IRITable execOptional(IRITable left, IRITable right) {
         IRITable optional = left.leftOuterJoin(right);
-        System.out.println("OPTIONAL");
+        System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(optional.getPatterns().size());
         return optional;
     }
 
     private IRITable execMinus(IRITable left, IRITable right) {
         IRITable minus = left.minus(right);
-        System.out.println("Minus");
+        System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(minus.getPatterns().size());
         return minus;
     }
 

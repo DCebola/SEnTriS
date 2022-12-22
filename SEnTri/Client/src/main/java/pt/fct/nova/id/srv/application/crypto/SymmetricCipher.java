@@ -33,6 +33,10 @@ public class SymmetricCipher {
                 .array();
     }
 
+    public static byte[] encrypt(byte[] input,SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return encrypt(input, key, generateRandomIV());
+    }
+
     public static byte[] decrypt(SecretKey key, byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {

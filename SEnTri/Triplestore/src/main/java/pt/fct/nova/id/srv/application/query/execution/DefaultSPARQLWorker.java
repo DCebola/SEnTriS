@@ -60,7 +60,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
         };
         if (res == null)
             throw new SearchJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
-        System.out.println("GET: " + res.getPatterns().size());
         return res;
     }
 
@@ -100,7 +99,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
                 }
             }
         }
-        System.out.println(res.getPatterns());
+        System.out.println("VALUES: " + res.getPatterns().size());
         return res;
     }
 
@@ -181,37 +180,33 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private IRITable execJoin(IRITable left, IRITable right) {
         IRITable join = left.join(right);
-        System.out.println("JOIN");
+        System.out.println("JOIN" + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(join.getPatterns().size());
         return join;
     }
 
     private IRITable execUnion(IRITable left, IRITable right) {
         IRITable union = left.union(right);
-        System.out.println("UNION");
+        System.out.println("UNION: " + union.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(union.getPatterns().size());
         return union;
     }
 
     private IRITable execOptional(IRITable left, IRITable right) {
         IRITable optional = left.leftOuterJoin(right);
-        System.out.println("OPTIONAL");
+        System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(optional.getPatterns().size());
         return optional;
     }
 
     private IRITable execMinus(IRITable left, IRITable right) {
         IRITable minus = left.minus(right);
-        System.out.println("Minus");
+        System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
-        System.out.println(minus.getPatterns().size());
         return minus;
     }
 
