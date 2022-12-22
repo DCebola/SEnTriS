@@ -158,7 +158,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
             Collections.shuffle(triples);
             protocol.exec(triples);
-
             response = uploadEncryptedTriplestoreContents(httpClient, triplestoreID, protocol.getEncryptedT(), accessToken);
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -201,7 +200,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
             for (String keyword : keywords) {
                 keywordList.add(keyword);
-                trapdoors.add(protocol.generateTrapdoor(keyword));
+                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
             }
 
             response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);

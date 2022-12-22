@@ -33,7 +33,10 @@ public class ProxyStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String uuid = generateID();
-            encryptedNodes.forEach(n -> t.rpush(uuid, n));
+            for (String n : encryptedNodes) {
+                if (n != null)
+                    t.rpush(uuid, n);
+            }
             t.expire(uuid, SEARCH_DATA_LIFETIME);
             t.exec();
             return uuid;

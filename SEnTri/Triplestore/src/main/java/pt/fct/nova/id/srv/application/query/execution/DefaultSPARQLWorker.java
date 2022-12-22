@@ -60,6 +60,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
         };
         if (res == null)
             throw new SearchJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
+        System.out.println("GET: " + res.getPatterns().size());
         return res;
     }
 
@@ -179,19 +180,39 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execJoin(IRITable left, IRITable right) {
-        return left.join(right);
+        IRITable join = left.join(right);
+        System.out.println("JOIN");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(join.getPatterns().size());
+        return join;
     }
 
     private IRITable execUnion(IRITable left, IRITable right) {
-        return left.union(right);
+        IRITable union = left.union(right);
+        System.out.println("UNION");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(union.getPatterns().size());
+        return union;
     }
 
     private IRITable execOptional(IRITable left, IRITable right) {
-        return left.leftOuterJoin(right);
+        IRITable optional = left.leftOuterJoin(right);
+        System.out.println("OPTIONAL");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(optional.getPatterns().size());
+        return optional;
     }
 
     private IRITable execMinus(IRITable left, IRITable right) {
-        return left.minus(right);
+        IRITable minus = left.minus(right);
+        System.out.println("Minus");
+        System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
+        System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
+        System.out.println(minus.getPatterns().size());
+        return minus;
     }
 
     @Override

@@ -155,6 +155,10 @@ public class Protocol1 implements EncryptionProtocol {
         return generateDETLayer(kDET, plaintext, ivDET);
     }
 
+    public String generateKeywordsFrequencyTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return base64Encoder.encodeToString(generateDETLayer(getKeywordDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.generateZeroFilledIV()));
+    }
+
     public String generateTrapdoor(String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         return base64Encoder.encodeToString(generateDETLayer(getKeywordDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword)));
     }
@@ -180,6 +184,7 @@ public class Protocol1 implements EncryptionProtocol {
         byte[] keywordIV = keywordsIVs.get(keyword);
         if (keywordIV == null) {
             keywordIV = SymmetricCipher.generateZeroFilledIV();
+            SymmetricCipher.incrementIV(keywordIV);
             keywordsIVs.put(keyword, keywordIV);
         } else
             SymmetricCipher.incrementIV(keywordIV);
@@ -189,7 +194,7 @@ public class Protocol1 implements EncryptionProtocol {
     private void incrementKeywordFrequency(String keyword) {
         Integer keywordCount = keywordFrequency.get(keyword);
         if (keywordCount == null) {
-            keywordCount = 0;
+            keywordCount = 1;
             keywordFrequency.put(keyword, keywordCount);
         } else
             keywordFrequency.put(keyword, keywordCount + 1);
