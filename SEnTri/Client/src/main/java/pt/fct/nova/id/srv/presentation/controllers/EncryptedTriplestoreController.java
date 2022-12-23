@@ -24,6 +24,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -36,34 +37,34 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 
 public class EncryptedTriplestoreController {
     public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
-            HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
-            if (response.getStatus() != OK)
-                return response;
-            String accessToken = response.getBody();
-
-            response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response;
-            }
-
-            response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            }
-            response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            }
-            response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response;
-            }
+        HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
+        if (response.getStatus() != OK)
             return response;
+        String accessToken = response.getBody();
+
+        response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+        if (response.getStatus() != OK) {
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response;
+        }
+
+        response = deleteEncryptedTriplestoreContents(httpClient, triplestoreID, accessToken);
+        if (response.getStatus() != OK) {
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+        }
+        response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
+        if (response.getStatus() != OK) {
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+        }
+        response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
+        if (response.getStatus() != OK) {
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response;
+        }
+        return response;
     }
 
     public Response getEmptySPARQLQueryResult(DefaultQueryExecutionPlan plan, Map<Var, Var> obfuscationMap) throws IOException {
@@ -119,7 +120,7 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+    public HTTPResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException, URISyntaxException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSearch(httpClient, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }

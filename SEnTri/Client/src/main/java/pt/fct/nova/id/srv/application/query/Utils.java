@@ -64,44 +64,6 @@ public class Utils {
         return res;
     }
 
-    public static Map<Var, String> generateKeywordMap(Node subject, Node predicate, Node object, VariablesPattern pattern) throws InvalidNodeException {
-        String s, p, o;
-        Map<Var, String> res = new HashMap<>();
-        switch (pattern) {
-            case S -> {
-                p = ParsingUtils.parseKeyword(predicate);
-                o = ParsingUtils.parseKeyword(object);
-                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, String.format(COMPOUND_KEYWORD, p, o)));
-            }
-            case P -> {
-                s = ParsingUtils.parseKeyword(subject);
-                o = ParsingUtils.parseKeyword(object);
-                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, String.format(COMPOUND_KEYWORD, s, o)));
-            }
-            case O -> {
-                s = ParsingUtils.parseKeyword(subject);
-                p = ParsingUtils.parseKeyword(predicate);
-                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, String.format(COMPOUND_KEYWORD, s, p)));
-            }
-            case SP -> {
-                o = ParsingUtils.parseKeyword(object);
-                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, o));
-                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, o));
-            }
-            case SO -> {
-                p = ParsingUtils.parseKeyword(predicate);
-                res.put(Var.alloc(subject), String.format(KEYWORD_FORMAT, S, p));
-                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, p));
-            }
-            case PO -> {
-                s = ParsingUtils.parseKeyword(subject);
-                res.put(Var.alloc(predicate), String.format(KEYWORD_FORMAT, P, s));
-                res.put(Var.alloc(object), String.format(KEYWORD_FORMAT, O, s));
-            }
-        }
-        return res;
-    }
-
     public static String generateID() {
         return uuidToBase64(UUID.randomUUID().toString());
     }

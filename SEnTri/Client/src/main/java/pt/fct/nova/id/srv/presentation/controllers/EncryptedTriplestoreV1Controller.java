@@ -31,6 +31,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -253,40 +254,50 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol,
                                          String triplestoreID, QueryExecutionPlan plan, Set<String> searchJobsIDs,
-                                         Map<String, Integer> keywordsFrequency, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+                                         Map<String, Integer> keywordsFrequency, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException {
         HTTPResponse response;
-        Map<String, String> preparedSearches = new HashMap<>();
-        String keyword, searchID;
-        Var var;
+        String keyword;
         SecureSearchJob secureSearchJob;
         Map<String, Job> jobs = plan.getJobs();
-        List<String> trapdoors;
+        String[][] trapdoors;
+        Var[] vars;
+        List<Integer> shuffledIdxs;
         int keywordFrequency;
         for (String jobID : searchJobsIDs) {
             secureSearchJob = (SecureSearchJob) jobs.get(jobID);
-            for (Map.Entry<Var, String> entry : secureSearchJob.getSearches().entrySet()) {
-                var = entry.getKey();
-                keyword = entry.getValue();
-                searchID = preparedSearches.get(keyword);
-                if (searchID == null) {
-                    keywordFrequency = keywordsFrequency.get(keyword);
-                    trapdoors = new ArrayList<>(keywordFrequency);
-                    for (int i = 0; i < keywordFrequency; i++)
-                        trapdoors.add(protocol.generateTrapdoor(keyword));
-                    Collections.shuffle(trapdoors);
-                    response = prepareSearch(httpClient, triplestoreID, trapdoors, accessToken);
-                    if (response.getStatus() != OK)
-                        return response;
-                    searchID = response.getBody();
-                    preparedSearches.put(keyword, searchID);
-                }
-                secureSearchJob.prepareSearch(var, searchID);
+            vars = secureSearchJob.getVars();
+            keyword = secureSearchJob.getSearches().get(vars[0]);
+            keywordFrequency = keywordsFrequency.get(keyword);
+
+            shuffledIdxs = shuffledIdxs(keywordFrequency / vars.length);
+            trapdoors = new String[vars.length][keywordFrequency / vars.length];
+            for (int i = 0; i < keywordFrequency / vars.length; i++) {
+                for (int j = 0; j < vars.length; j++)
+                    trapdoors[j][shuffledIdxs.get(i)] = protocol.generateTrapdoor(keyword);
+            }
+
+            for (int i = 0; i < vars.length; i++) {
+                response = prepareSearch(httpClient, triplestoreID, List.of(trapdoors[i]), accessToken);
+                if (response.getStatus() != OK)
+                    return response;
+                String searchID = response.getBody();
+                secureSearchJob.prepareSearch(vars[i], searchID);
+                System.out.println("[ " + vars[i] + " ] - " + trapdoors[i].length + " | " + searchID + " | " + keyword);
             }
         }
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private List<Integer> shuffledIdxs(int total) {
+        List<Integer> idxs = new ArrayList<>(total);
+        for (int i = 0; i < total; i++) idxs.add(i);
+        //Collections.shuffle(idxs);
+        return idxs;
+    }
+
+    private Collection<Binding> decryptBindings
+            (Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws
+            InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (SerializableBinding binding : bindings) {
@@ -299,6 +310,4 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
         return decryptedBindings;
     }
-
-
 }

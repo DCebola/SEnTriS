@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.presentation.api;
 
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 

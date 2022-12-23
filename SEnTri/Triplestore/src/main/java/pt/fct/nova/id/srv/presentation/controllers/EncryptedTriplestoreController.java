@@ -4,10 +4,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
-import pt.fct.nova.id.srv.application.clients.HTTPClient;
-import pt.fct.nova.id.srv.application.clients.HTTPUtils;
-import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.clients.ProxyClient;
+import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 

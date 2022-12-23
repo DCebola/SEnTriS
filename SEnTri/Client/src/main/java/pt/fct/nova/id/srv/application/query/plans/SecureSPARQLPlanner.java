@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
@@ -34,8 +33,11 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
 import static pt.fct.nova.id.srv.application.query.Utils.*;
 import static pt.fct.nova.id.srv.application.query.Utils.generateID;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
@@ -119,34 +121,60 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private void generateGetJobs(OpBGP op) throws InvalidNodeException {
         List<Triple> patterns = op.getPattern().getList();
         int total_patterns = patterns.size();
-        List<SecureSearchJob> searchJobs = new ArrayList<>(total_patterns);
+        List<SecureSearchJob> searchJobs = new ArrayList<>(2 * total_patterns);
         Node s, p, o;
-        Var var;
-        String jobID, keyword;
-        Map<Var, String> searches;
-        Map<Var, String> obfuscatedSearches;
         for (Triple t : patterns) {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            jobID = generateID();
-            searches = generateKeywordMap(s, p, o, extractVariablesPattern(s, p, o));
-            obfuscatedSearches = new HashMap<>();
-            for (Map.Entry<Var, String> entry : searches.entrySet()) {
-                var = entry.getKey();
-                keyword = entry.getValue();
-                obfuscatedSearches.put(obfuscateVar(var), keyword);
-                keywords.add(keyword);
+            switch (extractVariablesPattern(s, p, o)) {
+                case S -> generateSecureSearchJob(searchJobs, Var.alloc(s), p, o, S);
+                case P -> generateSecureSearchJob(searchJobs, Var.alloc(p), s, o, P);
+                case O -> generateSecureSearchJob(searchJobs, Var.alloc(o), s, p, O);
+                case SP -> generateSecureSearchJobs(searchJobs, Var.alloc(s), Var.alloc(p), o, S, SP);
+                case SO -> generateSecureSearchJobs(searchJobs, Var.alloc(s), Var.alloc(o), p, S, SO);
+                case PO -> generateSecureSearchJobs(searchJobs, Var.alloc(p), Var.alloc(o), s, P, PO);
             }
-            searchJobsIDs.add(jobID);
-            if (total_patterns == 1) {
-                parsed_op.put(op, jobID);
-                plan.pushJob(new SecureSearchJob(jobID, obfuscatedSearches));
-            } else
-                searchJobs.add(new SecureSearchJob(jobID, obfuscatedSearches));
         }
-        if (total_patterns >= 2)
+        if (searchJobs.size() > 1)
             generateRandomJoinPipeline(op, searchJobs);
+        else {
+            parsed_op.put(op, searchJobs.get(0).getID());
+            plan.pushJob(searchJobs.get(0));
+        }
+    }
+
+    private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
+        Map<Var, String> searches = new HashMap<>();
+        String jobID = generateID();
+        String keyword = String.format(KEYWORD_FORMAT, pattern, String.format(COMPOUND_KEYWORD, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3)));
+        searches.put(obfuscateVar(var), keyword);
+        keywords.add(keyword);
+        searchJobsIDs.add(jobID);
+        secureSearchJobs.add(new SecureSearchJob(jobID, new Var[]{var}, searches));
+    }
+
+    private void generateSecureSearchJobs(List<SecureSearchJob> secureSearchJobs, Var var1, Var var2, Node node1, VariablesPattern pattern1, VariablesPattern pattern2) throws InvalidNodeException {
+        Map<Var, String> searches = new HashMap<>();
+        String nodeKeyword = ParsingUtils.parseKeyword(node1);
+        String jobID1, jobID2;
+        String keyword1, keyword2;
+        jobID1 = generateID();
+        jobID2 = generateID();
+        keyword1 = String.format(KEYWORD_FORMAT, pattern1, nodeKeyword);
+        keyword2 = String.format(KEYWORD_FORMAT, pattern2, nodeKeyword);
+        keywords.add(keyword1);
+        keywords.add(keyword2);
+        searchJobsIDs.add(jobID1);
+        searchJobsIDs.add(jobID2);
+        var1 = obfuscateVar(var1);
+        var2 = obfuscateVar(var2);
+        searches.put(var1, keyword1);
+        secureSearchJobs.add(new SecureSearchJob(jobID1, new Var[]{var1}, searches));
+        searches = new HashMap<>();
+        searches.put(var1, keyword2);
+        searches.put(var2, keyword2);
+        secureSearchJobs.add(new SecureSearchJob(jobID2, new Var[]{var1, var2}, searches));
     }
 
 
@@ -244,13 +272,14 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
 
     private void randomWalk(int root, Map<Integer, List<Integer>> adjacencyMatrix, List<Integer> visited, int depth) {
+        System.out.println("[" + root + " ," + depth + " ]" + Arrays.toString(visited.toArray()));
         if (visited.size() < depth && !visited.contains(root)) {
             visited.add(root);
             List<Integer> neighbours = new ArrayList<>(adjacencyMatrix.get(root));
             neighbours.removeAll(visited);
             int next;
             Set<Integer> sampled = new HashSet<>();
-            while (sampled.size() < neighbours.size()) {
+            while (!visited.containsAll(neighbours)) {
                 next = rndSample(neighbours, sampled);
                 sampled.add(next);
                 randomWalk(next, adjacencyMatrix, visited, depth);

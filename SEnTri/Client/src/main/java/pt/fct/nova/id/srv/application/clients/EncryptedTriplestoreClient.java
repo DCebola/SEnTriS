@@ -2,10 +2,12 @@ package pt.fct.nova.id.srv.application.clients;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+    public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException, URISyntaxException {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(PREPARE_SEARCH_URI, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 

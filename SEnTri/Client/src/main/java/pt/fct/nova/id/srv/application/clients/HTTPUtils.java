@@ -8,6 +8,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -114,13 +115,6 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
-        HttpPost request = new HttpPost(uri);
-        request.setHeader(HttpHeaders.COOKIE, buildCookieHeader(cookie));
-        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
-        return (CloseableHttpResponse) httpClient.execute(request);
-    }
-
     public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, Cookie cookie, URI uri, String accessToken) throws IOException {
         HttpPut request = new HttpPut(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
@@ -144,6 +138,14 @@ public class HTTPUtils {
     public static CloseableHttpResponse sendDELETERequest(HttpClient httpClient, String uri, String accessToken) throws IOException {
         HttpDelete request = new HttpDelete(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        return (CloseableHttpResponse) httpClient.execute(request);
+    }
+
+
+    public static CloseableHttpResponse sendPOSTRequest(HttpClient httpClient, URI uri, HttpEntity body, String accessToken) throws IOException {
+        HttpPost request = new HttpPost(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        request.setEntity(body);
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
@@ -172,6 +174,7 @@ public class HTTPUtils {
     private static String buildCookieHeader(Cookie cookie) {
         return String.format(COOKIE_FORMAT, cookie.getValue());
     }
+
 
 
 }

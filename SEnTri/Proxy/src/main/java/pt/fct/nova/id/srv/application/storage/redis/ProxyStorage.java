@@ -43,23 +43,28 @@ public class ProxyStorage {
         }
     }
 
-    public static IRITable search(SecretKey key, List<Var> vars, List<String> searchIDs) throws SPARQLExecutionException {
+    public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             MemIRITable res = new MemIRITable();
-            List<Response<List<String>>> responses = new ArrayList<>(vars.size());
-            searchIDs.forEach(searchID -> responses.add(p.lrange(searchID, 0, -1)));
+            List<Response<List<String>>> responses = new ArrayList<>(searches.size());
+            for (String searchID : searches.values())
+                responses.add(p.lrange(searchID, 0, -1));
             p.sync();
             Map<Var, List<String>> searchResults = new HashMap<>();
-            for (int i = 0; i < vars.size(); i++)
-                searchResults.put(vars.get(i), responses.get(i).get());
-            List<String> encryptedNodes = searchResults.get(vars.get(rnd.nextInt(vars.size())));
+
+            for (int i = 0; i < vars.length; i++)
+                searchResults.put(vars[i], responses.get(i).get());
+            List<String> encryptedNodes = searchResults.get(vars[rnd.nextInt(vars.length)]);
             String p_idx;
             for (int i = 0; i < encryptedNodes.size(); i++) {
                 p_idx = generateID();
-                for (Var var : vars)
+                for (Var var : vars) {
                     res.add(p_idx, var, base64Encoder.encodeToString(SymmetricCipher.decrypt(key, base64Decoder.decode(searchResults.get(var).get(i)))));
+                }
             }
+            System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;
         } catch (Exception e) {
             throw new SPARQLExecutionException(e.getMessage());

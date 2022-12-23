@@ -14,13 +14,7 @@ import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import javax.crypto.SecretKey;;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,8 +25,6 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     private final SPARQLResult result;
     private final SecretKey key;
     private final Set<String> allSearchIDs;
-    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public SecureSPARQLWorker(SecretKey key) {
         result = new DefaultSPARQLResult();
@@ -48,14 +40,8 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     public IRITable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
             Map<Var, String> searches = secureSearchJob.getSearches();
-            List<Var> vars = new ArrayList<>(searches.size());
-            List<String> searchIDs = new ArrayList<>(searches.size());
-            for (Map.Entry<Var, String> entry : searches.entrySet()) {
-                vars.add(entry.getKey());
-                searchIDs.add(entry.getValue());
-                allSearchIDs.add(entry.getValue());
-            }
-            return ProxyStorage.search(key, vars, searchIDs);
+            allSearchIDs.addAll(searches.values());
+            return ProxyStorage.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
@@ -100,9 +86,8 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
-        System.out.println("PROJECT: " + Arrays.toString(job.getVars().toArray()));
         prevJobResults.project(job.getVars());
-        System.out.println("TABLE " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
+        System.out.println("PROJECT: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         return prevJobResults;
     }
 
@@ -154,7 +139,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     private IRITable execJoin(IRITable left, IRITable right) {
         IRITable join = left.join(right);
-        System.out.println("JOIN" + join.getPatterns().size());
+        System.out.println("JOIN: " + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return join;
