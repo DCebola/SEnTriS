@@ -184,8 +184,10 @@ public class UsersController implements UsersAPI {
         } catch (SessionException e) {
             return handleSessionException(e);
         } catch (TooManyLockRetriesException e) {
+            e.printStackTrace();
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
         } catch (InterruptedException e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }

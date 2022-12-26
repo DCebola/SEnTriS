@@ -89,6 +89,7 @@ public class UsersController implements UsersAPI {
                 return new HTTPResponse(response).build();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -15,6 +15,8 @@ public final class PasswordUtils {
     private static final int s = Integer.parseInt(System.getenv("SALT_LENGTH")); //32
     private static final int k = Integer.parseInt(System.getenv("PASSWORD_HASH_LENGTH")); //256
     private static final int i = Integer.parseInt(System.getenv("PASSWORD_HASHING_ITERATIONS")); //10000
+
+    private static final String KEY_DERIVATION_ALGORITHM = System.getenv("KEY_DERIVATION_ALGORITHM");
     private static final DigestRandomGenerator generator = new DigestRandomGenerator(new SHA3Digest(k));
     private static SecretKeyFactory keyFactory;
 
@@ -38,7 +40,7 @@ public final class PasswordUtils {
 
     private static void initKeyFactory() throws NoSuchAlgorithmException {
         if (keyFactory == null)
-            keyFactory = SecretKeyFactory.getInstance(System.getenv("KEY_DERIVATION_ALGORITHM"));
+            keyFactory = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM);
     }
 
     private static byte[] generateRandomSalt() {

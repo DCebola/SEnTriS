@@ -49,8 +49,8 @@ public class ProxyStorage {
             Pipeline p = jedis.pipelined();
             MemIRITable res = new MemIRITable();
             List<Response<List<String>>> responses = new ArrayList<>(searches.size());
-            for (String searchID : searches.values())
-                responses.add(p.lrange(searchID, 0, -1));
+            for (Var value : vars)
+                responses.add(p.lrange(searches.get(value), 0, -1));
             p.sync();
             Map<Var, List<String>> searchResults = new HashMap<>();
 

@@ -103,9 +103,6 @@ public class Protocol1 implements EncryptionProtocol {
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
-            encodeNode(s_iri, VariablesPattern.S, o_keyword);
-            encodeNode(s_iri, VariablesPattern.S, p_keyword);
-            encodeNode(p_iri, VariablesPattern.P, s_keyword);
             encodeNode(p_iri, VariablesPattern.PO, s_keyword);
             encodeNode(o_iri, VariablesPattern.PO, s_keyword);
             encodeNode(s_iri, VariablesPattern.SO, p_keyword);

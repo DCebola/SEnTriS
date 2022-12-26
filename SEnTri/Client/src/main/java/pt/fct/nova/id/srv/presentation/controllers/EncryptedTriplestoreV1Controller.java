@@ -262,27 +262,39 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         String[][] trapdoors;
         Var[] vars;
         List<Integer> shuffledIdxs;
+        Map<String, List<String>> preparedKeywords = new HashMap<>();
+        List<String> searchIDs;
         int keywordFrequency;
         for (String jobID : searchJobsIDs) {
             secureSearchJob = (SecureSearchJob) jobs.get(jobID);
             vars = secureSearchJob.getVars();
             keyword = secureSearchJob.getSearches().get(vars[0]);
-            keywordFrequency = keywordsFrequency.get(keyword);
+            searchIDs = preparedKeywords.get(keyword);
+            if (searchIDs == null) {
+                searchIDs = new ArrayList<>(vars.length);
+                keywordFrequency = keywordsFrequency.get(keyword);
+                shuffledIdxs = shuffledIdxs(keywordFrequency / vars.length);
+                trapdoors = new String[vars.length][keywordFrequency / vars.length];
+                for (int i = 0; i < keywordFrequency / vars.length; i++) {
+                    for (int j = 0; j < vars.length; j++)
+                        trapdoors[j][shuffledIdxs.get(i)] = protocol.generateTrapdoor(keyword);
+                }
 
-            shuffledIdxs = shuffledIdxs(keywordFrequency / vars.length);
-            trapdoors = new String[vars.length][keywordFrequency / vars.length];
-            for (int i = 0; i < keywordFrequency / vars.length; i++) {
-                for (int j = 0; j < vars.length; j++)
-                    trapdoors[j][shuffledIdxs.get(i)] = protocol.generateTrapdoor(keyword);
-            }
-
-            for (int i = 0; i < vars.length; i++) {
-                response = prepareSearch(httpClient, triplestoreID, List.of(trapdoors[i]), accessToken);
-                if (response.getStatus() != OK)
-                    return response;
-                String searchID = response.getBody();
-                secureSearchJob.prepareSearch(vars[i], searchID);
-                System.out.println("[ " + vars[i] + " ] - " + trapdoors[i].length + " | " + searchID + " | " + keyword);
+                for (int i = 0; i < vars.length; i++) {
+                    response = prepareSearch(httpClient, triplestoreID, List.of(trapdoors[i]), accessToken);
+                    if (response.getStatus() != OK)
+                        return response;
+                    String searchID = response.getBody();
+                    searchIDs.add(searchID);
+                    secureSearchJob.prepareSearch(vars[i], searchID);
+                    System.out.println("[ " + vars[i] + " ] - " + trapdoors[i].length + " | " + searchID + " | " + keyword);
+                }
+                preparedKeywords.put(keyword, searchIDs);
+            } else {
+                for (int i = 0; i < vars.length; i++) {
+                    secureSearchJob.prepareSearch(vars[i], searchIDs.get(i));
+                    System.out.println("[ " + vars[i] + " ] - " + " | " + searchIDs.get(i) + " | " + keyword);
+                }
             }
         }
         return null;
@@ -291,7 +303,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     private List<Integer> shuffledIdxs(int total) {
         List<Integer> idxs = new ArrayList<>(total);
         for (int i = 0; i < total; i++) idxs.add(i);
-        //Collections.shuffle(idxs);
+        Collections.shuffle(idxs);
         return idxs;
     }
 

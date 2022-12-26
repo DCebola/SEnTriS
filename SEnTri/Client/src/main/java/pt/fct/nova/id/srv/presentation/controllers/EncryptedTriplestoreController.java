@@ -72,8 +72,7 @@ public class EncryptedTriplestoreController {
             List<Var> vars = new LinkedList<>();
             for (Var var : plan.getVars())
                 vars.add(obfuscationMap.get(var));
-            List<Binding> emptyRes = new ArrayList<>(0);
-            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, emptyRes.iterator()));
+            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, Collections.emptyIterator()));
             return Response.ok(out.toByteArray()).build();
         }
     }
@@ -89,8 +88,7 @@ public class EncryptedTriplestoreController {
                 res.addAll(bindings);
                 return res;
             } else
-                return bindings.stream().sorted(new BindingComparator(sortConditions))
-                        .collect(Collectors.toList());
+                return bindings.stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
         }
         return bindings;
     }

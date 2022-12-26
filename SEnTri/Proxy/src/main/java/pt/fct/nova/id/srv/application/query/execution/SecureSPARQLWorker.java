@@ -48,6 +48,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execSecureValues(EncryptedValuesJob job) {
+        System.out.println("EXECUTING VALUES");
         IRITable res = new MemValuesTable();
         Var var;
         String encryptedNode;

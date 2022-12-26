@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
@@ -93,7 +94,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private Var obfuscateVar(Var var) {
         Var obfuscatedVar = obfuscationMap.get(var);
         if (obfuscatedVar == null) {
-            obfuscatedVar = var;//Var.alloc(generateID());
+            obfuscatedVar = var;//Var.alloc(NodeFactory.createVariable(generateID()));//Var.alloc(generateID());
             obfuscationMap.put(var, obfuscatedVar);
             obfuscationMap.put(obfuscatedVar, var);
         }
@@ -131,9 +132,9 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                 case S -> generateSecureSearchJob(searchJobs, Var.alloc(s), p, o, S);
                 case P -> generateSecureSearchJob(searchJobs, Var.alloc(p), s, o, P);
                 case O -> generateSecureSearchJob(searchJobs, Var.alloc(o), s, p, O);
-                case SP -> generateSecureSearchJobs(searchJobs, Var.alloc(s), Var.alloc(p), o, S, SP);
-                case SO -> generateSecureSearchJobs(searchJobs, Var.alloc(s), Var.alloc(o), p, S, SO);
-                case PO -> generateSecureSearchJobs(searchJobs, Var.alloc(p), Var.alloc(o), s, P, PO);
+                case SP -> generateSecureSearchJob(searchJobs, Var.alloc(s), Var.alloc(p), o, SP);
+                case SO -> generateSecureSearchJob(searchJobs, Var.alloc(s), Var.alloc(o), p, SO);
+                case PO -> generateSecureSearchJob(searchJobs, Var.alloc(p), Var.alloc(o), s, PO);
             }
         }
         if (searchJobs.size() > 1)
@@ -146,35 +147,27 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
         Map<Var, String> searches = new HashMap<>();
+        var = obfuscateVar(var);
         String jobID = generateID();
         String keyword = String.format(KEYWORD_FORMAT, pattern, String.format(COMPOUND_KEYWORD, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3)));
-        searches.put(obfuscateVar(var), keyword);
+        searches.put(var, keyword);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
         secureSearchJobs.add(new SecureSearchJob(jobID, new Var[]{var}, searches));
     }
 
-    private void generateSecureSearchJobs(List<SecureSearchJob> secureSearchJobs, Var var1, Var var2, Node node1, VariablesPattern pattern1, VariablesPattern pattern2) throws InvalidNodeException {
+    private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
         Map<Var, String> searches = new HashMap<>();
-        String nodeKeyword = ParsingUtils.parseKeyword(node1);
-        String jobID1, jobID2;
-        String keyword1, keyword2;
-        jobID1 = generateID();
-        jobID2 = generateID();
-        keyword1 = String.format(KEYWORD_FORMAT, pattern1, nodeKeyword);
-        keyword2 = String.format(KEYWORD_FORMAT, pattern2, nodeKeyword);
-        keywords.add(keyword1);
-        keywords.add(keyword2);
-        searchJobsIDs.add(jobID1);
-        searchJobsIDs.add(jobID2);
+        String nodeKeyword = ParsingUtils.parseKeyword(node);
+        String jobID = generateID();
+        String keyword = String.format(KEYWORD_FORMAT, pattern, nodeKeyword);
+        keywords.add(keyword);
+        searchJobsIDs.add(jobID);
         var1 = obfuscateVar(var1);
         var2 = obfuscateVar(var2);
-        searches.put(var1, keyword1);
-        secureSearchJobs.add(new SecureSearchJob(jobID1, new Var[]{var1}, searches));
-        searches = new HashMap<>();
-        searches.put(var1, keyword2);
-        searches.put(var2, keyword2);
-        secureSearchJobs.add(new SecureSearchJob(jobID2, new Var[]{var1, var2}, searches));
+        searches.put(var1, keyword);
+        searches.put(var2, keyword);
+        secureSearchJobs.add(new SecureSearchJob(jobID, new Var[]{var1, var2}, searches));
     }
 
 
@@ -197,6 +190,10 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             if (walk.size() == numJobs)
                 stop = true;
         }
+        walk = new ArrayList<>(numJobs);
+        walk.add(0);
+        walk.add(1);
+        walk.add(2);
         System.out.println(Arrays.toString(walk.toArray()));
         if (walk.size() == numJobs) {
             SecureSearchJob job1, job2;
@@ -287,6 +284,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         }
     }
 
+
     private int rndSample(List<Integer> values, Set<Integer> exclude) {
         int i;
         do {
@@ -294,77 +292,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         } while (exclude.contains(i));
         return values.get(i);
     }
-
-    private void generateJoinPipeline(OpBGP op, List<SecureSearchJob> searchJobs) {
-        int num_jobs = searchJobs.size();
-        Set<Var> all_vars = new HashSet<>();
-        List<Set<Var>> result_vars = new ArrayList<>(num_jobs * 2);
-        List<Job> joins = new ArrayList<>(num_jobs);
-        List<Job> pipeline = new ArrayList<>(num_jobs * 2);
-        Set<Integer> to_be_processed = new HashSet<>();
-
-        Set<Var> vars;
-        for (int i = 0; i < num_jobs; i++) {
-            vars = searchJobs.get(i).getSearches().keySet();
-            all_vars.addAll(vars);
-            result_vars.add(vars);
-            to_be_processed.add(i);
-        }
-
-        int current, last = num_jobs, compatible = -1;
-        boolean stop;
-        Job l, r, join;
-        Set<Var> vars2, resVars;
-        while (!to_be_processed.isEmpty()) {
-            stop = false;
-            current = to_be_processed.iterator().next();
-            for (Integer i : to_be_processed) {
-                if (current != i) {
-                    vars = result_vars.get(current);
-                    vars2 = result_vars.get(i);
-                    resVars = new HashSet<>(vars2);
-                    for (Var v : vars) {
-                        if (!vars2.isEmpty() && vars2.contains(v)) {
-                            compatible = i;
-                            if (current < num_jobs) l = searchJobs.get(current);
-                            else l = joins.get(current - num_jobs);
-                            if (i < num_jobs) r = searchJobs.get(i);
-                            else r = joins.get(i - num_jobs);
-                            pipeline.add(l);
-                            pipeline.add(r);
-                            join = new JoinJob(generateID(), l.getID(), r.getID());
-                            pipeline.add(join);
-                            resVars.addAll(vars);
-                            joins.add(last - num_jobs, join);
-                            result_vars.add(last, resVars);
-                            vars2.remove(v);
-                            stop = true;
-                            break;
-                        }
-                    }
-                }
-                if (stop) break;
-            }
-            if (compatible < 0) {
-                String jobID = generateID();
-                plan.pushJob(new EmptyResJob(jobID, all_vars));
-                parsed_op.put(op, jobID);
-                return;
-            }
-            to_be_processed.remove(current);
-            to_be_processed.remove(compatible);
-            if (!to_be_processed.isEmpty())
-                to_be_processed.add(last);
-            last++;
-            compatible = -1;
-        }
-        if (!pipeline.isEmpty()) {
-            for (Job j : pipeline)
-                plan.pushJob(j);
-            parsed_op.put(op, pipeline.get(pipeline.size() - 1).getID());
-        }
-    }
-
 
     private void generateValuesJob(OpTable op) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         List<SerializableBinding> values = new LinkedList<>();
