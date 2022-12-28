@@ -77,12 +77,12 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Collection<Binding> orderResultsIfNeeded(boolean isOrdered, boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Collection<Binding> bindings) {
+    public Collection<Binding> orderResultsIfNeeded(boolean isOrdered, boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
         if (isOrdered) {
             List<SortCondition> sortConditions = new LinkedList<>();
-            for (SerializableSortCondition condition : serializableSortConditions) {
-                sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
-            }
+            for (SerializableSortCondition condition : serializableSortConditions)
+                sortConditions.add(new SortCondition(obfuscationMap.get(condition.getVar()), condition.getDir()));
+
             if (isDistinct) {
                 Collection<Binding> res = new TreeSet<>(new BindingComparator(sortConditions));
                 res.addAll(bindings);
