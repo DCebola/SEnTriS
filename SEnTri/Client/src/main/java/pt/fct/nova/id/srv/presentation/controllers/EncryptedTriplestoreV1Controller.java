@@ -241,6 +241,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                         sparqlResult.isOrdered(),
                         sparqlResult.isDistinct(),
                         sparqlResult.getSortConditions(),
+                        obfuscationMap,
                         bindings);
                 ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
                 CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

@@ -48,21 +48,25 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execSecureValues(EncryptedValuesJob job) {
-        System.out.println("EXECUTING VALUES");
         IRITable res = new MemValuesTable();
         Var var;
-        String encryptedNode;
         Iterator<Var> vars;
         for (SerializableBinding binding : job.getValues()) {
             String p_idx = generateID();
             vars = binding.vars();
             while (vars.hasNext()) {
                 var = vars.next();
-                encryptedNode = binding.get(var);
-                res.add(p_idx, var, encryptedNode);
+                res.add(p_idx, var, binding.get(var));
             }
         }
-        System.out.println("VALUES: " + res.getPatterns().size());
+        System.out.println("VALUES: " + res.getVars());
+        res.getPatterns().forEach(System.out::println);
+        System.out.println("VALUES: " + res.getVars());
+        res.getPatterns().forEach(System.out::println);
+        System.out.println("VALUES: " + res.getVars());
+        res.getPatterns().forEach(System.out::println);
+        System.out.println("VALUES: " + res.getVars());
+        res.getPatterns().forEach(System.out::println);
         return res;
     }
 

@@ -94,7 +94,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private Var obfuscateVar(Var var) {
         Var obfuscatedVar = obfuscationMap.get(var);
         if (obfuscatedVar == null) {
-            obfuscatedVar = var;//Var.alloc(NodeFactory.createVariable(generateID()));//Var.alloc(generateID());
+            obfuscatedVar = Var.alloc(generateID());
+            System.out.println("Obfuscation: "+ var + " | " + obfuscatedVar);
             obfuscationMap.put(var, obfuscatedVar);
             obfuscationMap.put(obfuscatedVar, var);
         }
