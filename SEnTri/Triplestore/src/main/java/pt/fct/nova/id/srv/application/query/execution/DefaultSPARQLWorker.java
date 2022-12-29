@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
@@ -13,15 +12,11 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class DefaultSPARQLWorker implements SPARQLWorker {
@@ -40,7 +35,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     public IRITable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SearchJob) return execGet((SearchJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
-        else if (job instanceof ValuesJob) return execValues((ValuesJob) job);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
@@ -80,29 +74,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
         return null;
     }
 
-    private IRITable execValues(ValuesJob job) {
-        IRITable res = new MemValuesTable();
-        Var var;
-        Node node;
-        Iterator<Var> vars;
-        for (SerializableBinding binding : job.getValues()) {
-            String p_idx = generateID();
-            vars = binding.vars();
-            while (vars.hasNext()) {
-                var = vars.next();
-                node = NodeFactory.createURI(binding.get(var));
-                try {
-                    res.add(p_idx, var, storageEngine.parseNodeIRI(node));
-                } catch (InvalidNodeException e) {
-                    e.printStackTrace();
-                    throw new ValuesNodeException(job.getClass().toString(), job.getID(), node);
-                }
-            }
-        }
-        System.out.println("VALUES: " + res.getPatterns().size());
-        return res;
-    }
-
     @Override
     public IRITable exec(Job1 job, IRITable prevJobResults) {
         if (job instanceof ProjectJob)
@@ -113,12 +84,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
             return execDistinct(prevJobResults);
         else if (job instanceof SliceJob)
             return execSlice((SliceJob) job, prevJobResults);
-        else if (job instanceof GroupJob)
-            return execGroup((GroupJob) job, prevJobResults);
-        else if (job instanceof BindJob)
-            return execBind((BindJob) job, prevJobResults);
-        else if (job instanceof FilterJob)
-            return execFilter((FilterJob) job, prevJobResults);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
 
     }
@@ -148,21 +113,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     private IRITable execDistinct(IRITable prevJobResults) {
         result.setDistinct(true);
         return prevJobResults;
-    }
-
-    private IRITable execBind(BindJob job, IRITable prevJobResults) {
-        //TODO Execute BindJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
-    }
-
-    private IRITable execFilter(FilterJob job, IRITable prevJobResults) {
-        //TODO Execute FilterJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
-    }
-
-    private IRITable execGroup(GroupJob job, IRITable prevJobResults) {
-        //TODO Execute GroupJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
     }
 
     @Override

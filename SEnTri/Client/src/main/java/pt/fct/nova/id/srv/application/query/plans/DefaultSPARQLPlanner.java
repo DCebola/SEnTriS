@@ -10,7 +10,6 @@ import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
@@ -56,8 +55,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
             generateGetJobs(opBGP);
         } else if (op instanceof OpTriple opTriple) {
             generateGetJobs(opTriple.asBGP());
-        } else if (op instanceof OpTable opTable) {
-            generateValuesJob(opTable);
+        } else if (op instanceof OpTable) {
+            throw new NotImplemented();
         } else {
             throw new NotImplemented();
         }
@@ -202,61 +201,20 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return values.get(i);
     }
 
-
-
-
-
-    private void generateValuesJob(OpTable op) {
-        List<SerializableBinding> values = new LinkedList<>();
-        Iterator<Binding> rows = op.getTable().rows();
-        Binding row;
-        Iterator<Var> rowVars;
-        Var currentVar;
-        Map<Var, String> collector;
-        while (rows.hasNext()) {
-            row = rows.next();
-            rowVars = row.vars();
-            collector = new HashMap<>();
-            while (rowVars.hasNext()) {
-                currentVar = rowVars.next();
-                collector.put(currentVar, row.get(currentVar).getURI());
-            }
-            values.add(new SerializableBinding(collector));
-
-        }
-        String jobID = generateID();
-        parsed_op.put(op, jobID);
-        plan.pushJob(new ValuesJob(jobID, values));
-    }
-
     @Override
     public void visit1(Op1 op) {
         logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
             throw new NotImplemented();
         } else if (op instanceof OpFilter) {
-            //generateBindJob((OpExtendAssign) op);
             throw new NotImplemented();
         } else if (op instanceof OpGroup) {
-            //generateFilterJob((OpFilter) op);
             throw new NotImplemented();
         } else if (op instanceof OpModifier opModifier) {
-            //generateGroupJob((OpGroup) op);
             visitOpModifier(opModifier);
         } else {
             throw new NotImplemented();
         }
-    }
-
-
-    private void generateBindJob(OpExtendAssign op) {
-        String prevJobID = getPrevJobID(op.getSubOp());
-        String jobID = generateID();
-        op.getVarExprList().getExprs().forEach(
-                (var, expr) -> plan.pushJob(new BindJob(jobID, prevJobID, var, expr))
-        );
-        parsed_op.put(op, jobID);
-
     }
 
     private String getPrevJobID(Op subOp) {
@@ -264,19 +222,6 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         if (prevJobID == null)
             throw new QueryBuildException();
         return prevJobID;
-    }
-
-    private void generateFilterJob(OpFilter op) {
-        String jobID = generateID();
-        plan.pushJob(new FilterJob(jobID, getPrevJobID(op.getSubOp()), op.getExprs().getList()));
-        parsed_op.put(op, jobID);
-    }
-
-
-    private void generateGroupJob(OpGroup op) {
-        String jobID = generateID();
-        plan.pushJob(new GroupJob(jobID, getPrevJobID(op.getSubOp()), op.getAggregators()));
-        parsed_op.put(op, jobID);
     }
 
 

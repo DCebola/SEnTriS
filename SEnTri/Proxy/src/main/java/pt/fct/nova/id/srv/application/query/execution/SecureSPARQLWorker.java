@@ -1,24 +1,16 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemValuesTable;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 
-import javax.crypto.SecretKey;;
+import javax.crypto.SecretKey;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class SecureSPARQLWorker implements SPARQLWorker {
 
@@ -42,32 +34,8 @@ public class SecureSPARQLWorker implements SPARQLWorker {
             Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorage.search(key, secureSearchJob.getVars(), searches);
-        } else if (job instanceof EncryptedValuesJob) return execSecureValues((EncryptedValuesJob) job);
-        else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
+        } else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
-    }
-
-    private IRITable execSecureValues(EncryptedValuesJob job) {
-        IRITable res = new MemValuesTable();
-        Var var;
-        Iterator<Var> vars;
-        for (SerializableBinding binding : job.getValues()) {
-            String p_idx = generateID();
-            vars = binding.vars();
-            while (vars.hasNext()) {
-                var = vars.next();
-                res.add(p_idx, var, binding.get(var));
-            }
-        }
-        System.out.println("VALUES: " + res.getVars());
-        res.getPatterns().forEach(System.out::println);
-        System.out.println("VALUES: " + res.getVars());
-        res.getPatterns().forEach(System.out::println);
-        System.out.println("VALUES: " + res.getVars());
-        res.getPatterns().forEach(System.out::println);
-        System.out.println("VALUES: " + res.getVars());
-        res.getPatterns().forEach(System.out::println);
-        return res;
     }
 
     @Override
@@ -80,12 +48,6 @@ public class SecureSPARQLWorker implements SPARQLWorker {
             return execDistinct(prevJobResults);
         else if (job instanceof SliceJob)
             return execSlice((SliceJob) job, prevJobResults);
-        else if (job instanceof GroupJob)
-            return execGroup((GroupJob) job, prevJobResults);
-        else if (job instanceof BindJob)
-            return execBind((BindJob) job, prevJobResults);
-        else if (job instanceof FilterJob)
-            return execFilter((FilterJob) job, prevJobResults);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
 
     }
@@ -112,21 +74,6 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     private IRITable execDistinct(IRITable prevJobResults) {
         result.setDistinct(true);
         return prevJobResults;
-    }
-
-    private IRITable execBind(BindJob job, IRITable prevJobResults) {
-        //TODO Execute BindJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
-    }
-
-    private IRITable execFilter(FilterJob job, IRITable prevJobResults) {
-        //TODO Execute FilterJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
-    }
-
-    private IRITable execGroup(GroupJob job, IRITable prevJobResults) {
-        //TODO Execute GroupJob
-        throw new JobNotImplementedException(job.getClass().toString(), job.getID());
     }
 
     @Override
@@ -182,17 +129,6 @@ public class SecureSPARQLWorker implements SPARQLWorker {
             bindings = generateBindings(new HashSet<>(), jobResults);
         else
             bindings = generateBindings(new LinkedList<>(), jobResults);
-
-        if (result.isSliced()) {
-            long offset = result.getOffset();
-            long length = result.getLength();
-            if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                bindings = bindings.stream().skip(offset).limit(length).collect(Collectors.toList());
-            else if (offset != Query.NOLIMIT)
-                bindings = bindings.stream().skip(offset).collect(Collectors.toList());
-            else if (length != Query.NOLIMIT)
-                bindings = bindings.stream().limit(length).collect(Collectors.toList());
-        }
         result.setBindings(bindings);
         return result;
     }

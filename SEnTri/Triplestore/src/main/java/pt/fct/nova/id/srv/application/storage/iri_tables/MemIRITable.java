@@ -151,11 +151,7 @@ public class MemIRITable implements IRITable {
         l_vars.removeAll(right.getVars());
         r_vars.removeAll(left.getVars());
 
-        IRITable res;
-        if (left instanceof MemValuesTable && right instanceof MemValuesTable)
-            res = new MemValuesTable(vars);
-        else
-            res = new MemIRITable(vars);
+        IRITable res = new MemIRITable(vars);
 
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
@@ -209,19 +205,12 @@ public class MemIRITable implements IRITable {
         for (Var v : mutualVars) {
             leftIRI = left.getPatternIdxs(v).get(leftPattern);
             rightIRI = right.getPatternIdxs(v).get(rightPattern);
-
-            if (left instanceof MemValuesTable || right instanceof MemValuesTable) {
-                if (leftIRI != null && rightIRI != null && !leftIRI.equals(rightIRI)) {
-                    return false;
-                }
-            } else {
-                if (leftIRI == null && rightIRI != null)
-                    return false;
-                else if (leftIRI != null && rightIRI == null)
-                    return false;
-                else if (leftIRI != null && !leftIRI.equals(rightIRI))
-                    return false;
-            }
+            if (leftIRI == null && rightIRI != null)
+                return false;
+            else if (leftIRI != null && rightIRI == null)
+                return false;
+            else if (leftIRI != null && !leftIRI.equals(rightIRI))
+                return false;
         }
         return true;
     }

@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.query.plans;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
@@ -11,11 +10,9 @@ import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
-import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -24,14 +21,6 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.MinusJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.OptionalJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
@@ -50,8 +39,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final EncryptionProtocol protocol;
     private final Set<String> searchJobsIDs;
     private final Random rnd;
-
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public SecureSPARQLPlanner(EncryptionProtocol protocol) {
         this.protocol = protocol;
@@ -95,7 +82,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         Var obfuscatedVar = obfuscationMap.get(var);
         if (obfuscatedVar == null) {
             obfuscatedVar = Var.alloc(generateID());
-            System.out.println("Obfuscation: "+ var + " | " + obfuscatedVar);
+            System.out.println("Obfuscation: " + var + " | " + obfuscatedVar);
             obfuscationMap.put(var, obfuscatedVar);
             obfuscationMap.put(obfuscatedVar, var);
         }
@@ -110,8 +97,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                 generateGetJobs(opBGP);
             } else if (op instanceof OpTriple opTriple) {
                 generateGetJobs(opTriple.asBGP());
-            } else if (op instanceof OpTable opTable) {
-                generateValuesJob(opTable);
+            } else if (op instanceof OpTable) {
+                throw new NotImplemented();
             } else {
                 throw new NotImplemented();
             }
@@ -191,10 +178,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             if (walk.size() == numJobs)
                 stop = true;
         }
-        walk = new ArrayList<>(numJobs);
-        walk.add(0);
-        walk.add(1);
-        walk.add(2);
         System.out.println(Arrays.toString(walk.toArray()));
         if (walk.size() == numJobs) {
             SecureSearchJob job1, job2;
@@ -292,35 +275,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             i = rnd.nextInt(values.size());
         } while (exclude.contains(i));
         return values.get(i);
-    }
-
-    private void generateValuesJob(OpTable op) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        List<SerializableBinding> values = new LinkedList<>();
-        Iterator<Binding> rows = op.getTable().rows();
-        Binding row;
-        Iterator<Var> rowVars;
-        Var currentVar;
-        Map<Var, String> collector;
-        while (rows.hasNext()) {
-            row = rows.next();
-            rowVars = row.vars();
-            collector = new HashMap<>();
-            while (rowVars.hasNext()) {
-                currentVar = rowVars.next();
-                if (protocol instanceof Protocol1 p1) {
-                    String iri = ParsingUtils.parseNodeIRI(row.get(currentVar));
-                    String value = base64Encoder.encodeToString(p1.encryptDET(iri.getBytes(StandardCharsets.UTF_8)));
-                    System.out.println(iri + " | " + value);
-                    collector.put(obfuscateVar(currentVar), value);
-                } else
-                    throw new NotImplemented();
-            }
-            values.add(new SerializableBinding(collector));
-
-        }
-        String jobID = generateID();
-        parsed_op.put(op, jobID);
-        plan.pushJob(new EncryptedValuesJob(jobID, values));
     }
 
     @Override

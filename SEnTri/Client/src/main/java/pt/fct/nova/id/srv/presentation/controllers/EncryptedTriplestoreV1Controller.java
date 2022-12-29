@@ -237,12 +237,10 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     vars.add(obfuscationMap.get(var));
                 SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
                 Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
-                bindings = orderResultsIfNeeded(
-                        sparqlResult.isOrdered(),
-                        sparqlResult.isDistinct(),
-                        sparqlResult.getSortConditions(),
-                        obfuscationMap,
-                        bindings);
+                if (sparqlResult.isOrdered())
+                    bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
+                if (sparqlResult.isSliced())
+                    bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
                 ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
                 CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return Response.ok(out.toByteArray()).build();

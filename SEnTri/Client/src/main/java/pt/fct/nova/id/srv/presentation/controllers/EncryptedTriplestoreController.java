@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.core.Var;
@@ -77,20 +78,27 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Collection<Binding> orderResultsIfNeeded(boolean isOrdered, boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
-        if (isOrdered) {
-            List<SortCondition> sortConditions = new LinkedList<>();
-            for (SerializableSortCondition condition : serializableSortConditions)
-                sortConditions.add(new SortCondition(obfuscationMap.get(condition.getVar()), condition.getDir()));
+    public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
+        List<SortCondition> sortConditions = new LinkedList<>();
+        for (SerializableSortCondition condition : serializableSortConditions)
+            sortConditions.add(new SortCondition(obfuscationMap.get(condition.getVar()), condition.getDir()));
 
-            if (isDistinct) {
-                Collection<Binding> res = new TreeSet<>(new BindingComparator(sortConditions));
-                res.addAll(bindings);
-                return res;
-            } else
-                return bindings.stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
-        }
-        return bindings;
+        if (isDistinct) {
+            Collection<Binding> res = new TreeSet<>(new BindingComparator(sortConditions));
+            res.addAll(bindings);
+            return res;
+        } else
+            return bindings.stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
+    }
+
+    public Collection<Binding> sliceResults(Long offset, Long length, Collection<Binding> bindings) {
+        if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
+            return bindings.stream().skip(offset).limit(length).collect(Collectors.toList());
+        else if (offset != Query.NOLIMIT)
+            return bindings.stream().skip(offset).collect(Collectors.toList());
+        else if (length != Query.NOLIMIT)
+            return bindings.stream().limit(length).collect(Collectors.toList());
+        else return bindings;
     }
 
     public HTTPResponse fetchKeywordsFrequencyAndUpdateProtocol(HttpClient httpClient, String triplestoreID, EncryptionProtocol protocol, Map<String, String> keywordTrapdoors, String accessToken) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
