@@ -1,8 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
-import org.apache.jena.query.ResultSet;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
-import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
 import java.util.Iterator;
 
@@ -18,7 +16,7 @@ public interface SPARQLExecution {
 
     boolean isFinished(String jobID);
 
-    ResultSet getResults();
+    SPARQLResult getResults();
 
-    ResultSet exec(SPARQLWorker worker) throws SPARQLExecutionException;
+    void exec(SPARQLWorker worker) throws SPARQLExecutionException;
 }

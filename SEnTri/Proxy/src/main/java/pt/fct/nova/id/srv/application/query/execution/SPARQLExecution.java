@@ -2,8 +2,13 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.ResultSet;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
-import pt.fct.nova.id.srv.application.storage.StorageEngine;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
 public interface SPARQLExecution {
@@ -18,7 +23,7 @@ public interface SPARQLExecution {
 
     boolean isFinished(String jobID);
 
-    ResultSet getResults();
+    SPARQLResult getResults();
 
-    ResultSet exec(String storeID, StorageEngine storageEngine) throws SPARQLExecutionException;
+    void exec(SPARQLWorker worker) throws SPARQLExecutionException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 }

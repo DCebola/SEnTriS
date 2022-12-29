@@ -3,140 +3,129 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.lang.CollectorStreamTriples;
-import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
+import org.apache.jena.sparql.engine.binding.Binding;
+import pt.fct.nova.id.srv.application.clients.HTTPClient;
+import pt.fct.nova.id.srv.application.clients.HTTPUtils;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLWorker;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
+import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
+import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
-import pt.fct.nova.id.srv.application.storage.redis.RStorageEngine;
-import pt.fct.nova.id.srv.application.triplestores.TriplestoreImpl;
-import pt.fct.nova.id.srv.application.triplestores.Triplestore;
+import pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
-import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.util.Iterator;
 import java.util.List;
 
+import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 
-@Path("triplestore")
+@Path("")
 public class TriplestoreController implements TriplestoreAPI {
-    private static final String INVALID_SYNTAX_MSG = "Invalid syntax: %s";
-    private static final String PARSING_ERROR_MSG = "Error while parsing the file contents.";
-    private static final String DOWNLOAD_ERROR_MSG = "Error while downloading the dataset.";
-    private static final String SUCCESS_UPLOAD = "Successful upload.";
-    private static final String NOT_IMPLEMENTED = "Operation not yet supported.";
-    private static final String QUERY_ERROR_MSG = "Error while executing query.";
-    private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
-    private static final String STORE_NOT_FOUND = "Store %s not found.";
+    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
+    public static final String INTERNAL_ERROR = "Internal error.";
+    public static final String SUCCESSFUL_UPLOAD = "Successful upload.";
+    public static final String SUCCESSFUL_DELETION = "Store deleted.";
+    public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private static final String SUCCESS_DELETE = "Store %s deleted.";
+    private static final StorageEngine storageEngine = new RedisDefaultStorageEngine();
 
-    private final Triplestore triplestore = new TriplestoreImpl(new RStorageEngine(), new SPARQLQueryEngine());
 
     @Override
-    public Response create(String storeID, UploadForm form) {
-        try {
+    public Response upload(String triplestoreID, List<String[]> triples, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-            triplestore.createDataset(
-                    storeID,
-                    parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
-                    form.getNamespaces()
-            );
-            return Response.ok(SUCCESS_UPLOAD).build();
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            for (String[] triple : triples)
+                storageEngine.saveTriple(triplestoreID, triple);
+            return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();
-        } catch (StoreAlreadyExistsException e) {
-            return Response.ok(String.format(STORE_ALREADY_EXISTS, storeID)).status(Status.BAD_REQUEST).build();
-        } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
         } catch (Exception e) {
-            return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
+
     }
 
-    private Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
-        Lang l = RDFLanguages.nameToLang(syntax);
-        if (l == null)
-            throw new UnknownRDFLanguageException();
-        return l;
-    }
+    public Response answerSPARQLQuery(String triplestoreID, byte[] data, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-    private List<Triple> parseTriples(InputStream content, Lang lang) {
-        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
-        RDFParser.source(content).lang(lang).parse(tripleCollector);
-        return tripleCollector.getCollected();
-    }
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
 
-    @Override
-    public Response upload(String storeID, UploadForm form) {
-        try {
-            triplestore.uploadData(
-                    storeID,
-                    parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax())),
-                    form.getNamespaces()
-            );
-            return Response.ok(SUCCESS_UPLOAD).build();
-        } catch (InvalidNodeException e) {
-            return Response.ok(BAD_NODE).status(Status.BAD_REQUEST).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
-        } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, form.getSyntax())).status(Status.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return Response.ok(PARSING_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                 ObjectInputStream ois = new ObjectInputStream(bis);
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-    @Override
-    public Response download(String storeID, String syntax) {
-        try {
-            Model m = triplestore.getDatasetModel(storeID);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            RDFDataMgr.write(out, m, parseRDFLanguage(syntax));
-            return Response.ok(out.toByteArray()).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
-        } catch (UnknownRDFLanguageException e) {
-            return Response.ok(String.format(INVALID_SYNTAX_MSG, syntax)).status(Status.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return Response.ok(DOWNLOAD_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+                QueryExecutionPlan executionPlan = (QueryExecutionPlan) ois.readObject();
 
-    public Response answerSPARQLQuery(String storeID, String query) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ResultSet res = triplestore.executeQuery(storeID, query);
-            ResultSetFormatter.outputAsJSON(out, res);
-            return Response.ok(out.toByteArray()).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
+                SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
+                execution.exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
+                List<Var> vars = executionPlan.getVars();
+                Iterator<Binding> bindings = execution.getResults().getBindings().iterator();
+                ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings));
+                return Response.ok(out.toByteArray()).build();
+            }
         } catch (NotImplemented e) {
-            return Response.ok(NOT_IMPLEMENTED).status(Status.NOT_IMPLEMENTED).build();
+            return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
         } catch (Exception e) {
-            return Response.ok(QUERY_ERROR_MSG).status(Status.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response delete(String storeID) {
-        try {
-            triplestore.delete(storeID);
-            return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Status.NOT_FOUND).build();
+    public Response delete(String triplestoreID, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.deleteStore(triplestoreID);
+            return Response.ok(SUCCESSFUL_DELETION).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
+
     }
 
+    @Override
+    public Response delete(String triplestoreID, List<Triple> triples, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            return Response.ok(NOT_IMPLEMENTED_ERROR).status(Status.NOT_IMPLEMENTED).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

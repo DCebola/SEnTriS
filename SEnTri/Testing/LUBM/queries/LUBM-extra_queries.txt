@@ -1,0 +1,57 @@
+#Query 15: Test UNION
+#Find all graduate and undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+SELECT ?graduate ?undergraduate
+WHERE
+{
+ {
+  ?graduate rdf:type ub:GraduateStudent
+ } 
+UNION 
+ {
+  ?undergraduate rdf:type ub:UndergraduateStudent
+ }
+}
+ORDER BY ASC(?graduate) ASC(?undergraduate)
+
+#Query 16: Test MINUS
+#Find all members of departments which are not undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+SELECT ?member ?department
+WHERE
+{
+  {
+    ?member rdf:type ?Z .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+MINUS
+  {
+    ?member rdf:type ub:UndergraduateStudent .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+} 
+ORDER BY ASC(?member) ASC(?department)
+
+#Query 17: Test OPTIONAL
+#Find all members of departments, if they are taking a graduate course, show the course.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+SELECT ?member ?graduateCourse
+WHERE
+{
+  {
+    ?member rdf:type ?Z .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+OPTIONAL
+  {
+    ?member ub:takesCourse ?graduateCourse .
+    ?graduateCourse rdf:type ub:GraduateCourse
+  }
+} 
+ORDER BY ASC(?member) ASC(?graduateCourse)

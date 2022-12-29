@@ -1,10 +1,13 @@
 package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
+import org.apache.jena.graph.Triple;
 
+import java.util.List;
+
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 
@@ -12,42 +15,33 @@ import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 public interface TriplestoreAPI {
 
     @POST
-    @Path("create/{storeID}")
-    @Consumes(MULTIPART_FORM_DATA)
+    @Path("/{triplestoreID}")
+    @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response create(
-            @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form);
+    Response upload(@PathParam("triplestoreID") String triplestoreID,
+                    List<String[]> triples,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("upload/{storeID}")
-    @Consumes(MULTIPART_FORM_DATA)
-    @Produces(TEXT_PLAIN)
-    Response upload(
-            @PathParam("storeID") String storeID,
-            @MultipartForm UploadForm form);
-
-    @GET
-    @Path("/download/{storeID}")
-    @Produces({TEXT_TURTLE,
-            RDF_XML,
-            N_TRIPLES,
-            TRIG,
-            N_QUADS,
-            TRIX_XML,
-            RDF_THRIFT,
-            RDF_PROTOBUF})
-    Response download(@PathParam("storeID") String storeID, @DefaultValue("TTL") @QueryParam("syntax") String syntax);
-
-    @POST
-    @Path("/query/{storeID}")
-    @Consumes(SPARQL_QUERY)
+    @Path("/query/{triplestoreID}")
+    @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID, String query);
+    Response answerSPARQLQuery(@PathParam("triplestoreID") String triplestoreID,
+                               byte[] queryExecutionPlan,
+                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/delete/{storeID}")
+    @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
-    Response delete(@PathParam("storeID") String storeID);
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/delete")
+    @Consumes(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
+                    List<Triple> triples,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

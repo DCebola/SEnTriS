@@ -1,55 +1,52 @@
 package pt.fct.nova.id.srv.presentation.api;
 
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.presentation.api.dtos.SearchBody;
 
 import java.util.List;
 import java.util.Map;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
 
 public interface EncryptedTriplestoreAPI {
 
     @POST
-    @Path("create/{storeID}")
+    @Path("{triplestoreID}")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response create(@PathParam("storeID") String storeID,
-                    Map<String, String> encryptedNodes);
+    Response upload(@PathParam("triplestoreID") String triplestoreID,
+                    Map<String, String> encryptedNodes,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("upload/{storeID}")
+    @Path("proxy/{triplestoreID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response upload(@PathParam("storeID") String storeID,
-                    Map<String, String> encryptedNodes);
+    Response prepareSPARQLSearch(@PathParam("triplestoreID") String triplestoreID,
+                                 List<String> trapdoors,
+                                 @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/query/{storeID}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(SPARQL_JSON_RESULTS)
-    Response answerSPARQLQuery(@PathParam("storeID") String storeID,
-                               QueryExecutionPlan queryExecutionPlan);
-
-    @POST
-    @Path("/search/{storeID}")
+    @Path("{triplestoreID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    Response search(@PathParam("storeID") String storeID,
-                    List<String> trapdoors);
+    Response search(@PathParam("triplestoreID") String triplestoreID,
+                    List<String> trapdoors,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @DELETE
-    @Path("/delete/{storeID}")
+    @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
-    Response delete(@PathParam("storeID") String storeID);
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("/delete/{storeID}")
+    @Path("/{triplestoreID}/delete")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response delete(@PathParam("storeID") String storeID,
-                    List<String> trapdoors);
+    Response delete(@PathParam("triplestoreID") String triplestoreID,
+                    List<String> trapdoors,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

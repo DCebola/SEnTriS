@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.application.storage.iri_tables;
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 import static org.apache.jena.sparql.algebra.JoinType.INNER;
@@ -19,7 +20,7 @@ public class MemIRITable implements IRITable {
         patterns = new HashMap<>();
     }
 
-    public MemIRITable(Set<Var> vars) {
+    public MemIRITable(Iterable<Var> vars) {
         iris = new HashMap<>();
         patterns = new HashMap<>();
         for (Var v : vars) {
@@ -151,14 +152,11 @@ public class MemIRITable implements IRITable {
         l_vars.removeAll(right.getVars());
         r_vars.removeAll(left.getVars());
 
-        IRITable res;
-        if (left instanceof MemValuesTable && right instanceof MemValuesTable)
-            res = new MemValuesTable(vars);
-        else
-            res = new MemIRITable(vars);
+        IRITable res = new MemIRITable(vars);
 
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> iris_map, iris_map2;
+
 
         for (Var v : mutualVars) {
             iris_map = left.getIRIs(v);
@@ -206,22 +204,16 @@ public class MemIRITable implements IRITable {
 
     private boolean equalPatterns(Set<Var> mutualVars, IRITable left, String leftPattern, IRITable right, String rightPattern) {
         String leftIRI, rightIRI;
+
         for (Var v : mutualVars) {
             leftIRI = left.getPatternIdxs(v).get(leftPattern);
             rightIRI = right.getPatternIdxs(v).get(rightPattern);
-
-            if (left instanceof MemValuesTable || right instanceof MemValuesTable) {
-                if (leftIRI != null && rightIRI != null && !leftIRI.equals(rightIRI)) {
-                    return false;
-                }
-            } else {
-                if (leftIRI == null && rightIRI != null)
-                    return false;
-                else if (leftIRI != null && rightIRI == null)
-                    return false;
-                else if (leftIRI != null && !leftIRI.equals(rightIRI))
-                    return false;
-            }
+            if (leftIRI == null && rightIRI != null)
+                return false;
+            else if (leftIRI != null && rightIRI == null)
+                return false;
+            else if (leftIRI != null && !leftIRI.equals(rightIRI))
+                return false;
         }
         return true;
     }

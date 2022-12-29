@@ -273,14 +273,16 @@ TSWLatexianTemp*
 *.xwm
 SEnTri/*/.idea/
 
-SEnTri/Scripts/SSL/
+SEnTri/*/SSL/
 
-SEnTri/Scripts/Secrets/
+SEnTri/*/Secrets/
 
-SEnTri/Scripts/db_data/
+SEnTri/*/db_data/
 
 SEnTri/*/target/
 
 SEnTri/Scripts/Triplestore/db_data/
 
 *.war
+
+*.rdb

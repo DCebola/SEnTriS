@@ -2,106 +2,110 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.atlas.lib.NotImplemented;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
-import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorker;
-import pt.fct.nova.id.srv.application.query.execution.SimpleSPARQLExecution;
-import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreAlreadyExistsException;
-import pt.fct.nova.id.srv.application.storage.exceptions.StoreNotFoundException;
-import pt.fct.nova.id.srv.application.storage.redis.EncryptedRStorageEngine;
-import pt.fct.nova.id.srv.application.triplestores.EncryptedTriplestore;
-import pt.fct.nova.id.srv.application.triplestores.EncryptedTriplestoreImpl;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
+import pt.fct.nova.id.srv.application.clients.*;
+import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 
-import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
+import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 
 
-@Path("secure-triplestore")
+@Path("/encrypted")
 public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
-    private static final String SAVE_ERROR_MSG = "Error saving encrypted contents.";
-    private static final String SUCCESS_UPLOAD = "Successful upload.";
-    private static final String QUERY_ERROR_MSG = "Error while executing query.";
-    private static final String STORE_ALREADY_EXISTS = "Store %s already exists.";
-    private static final String STORE_NOT_FOUND = "Store %s not found.";
-    private static final String SUCCESS_DELETE = "Store %s deleted.";
-    private static final String SUCCESS_DELETE_BATCH = "Successful deletion of values at store %s.";
-
-    EncryptedStorageEngine storageEngine = new EncryptedRStorageEngine();
-    EncryptedTriplestore encryptedTriplestore = new EncryptedTriplestoreImpl(storageEngine);
+    private static final String SUCCESS_DELETE_BATCH = "Successful deletion of values from store.";
+    private static final RedisEncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngine();
 
     @Override
-    public Response create(String storeID, Map<String, String> encryptedNodes) {
-        try {
-            encryptedTriplestore.createDataset(storeID, encryptedNodes);
-            return Response.ok(SUCCESS_UPLOAD).build();
-        } catch (StoreAlreadyExistsException e) {
-            return Response.ok(String.format(STORE_ALREADY_EXISTS, storeID)).status(Response.Status.BAD_REQUEST).build();
+    public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.save(triplestoreID, encryptedNodes);
+            return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (Exception e) {
-            return Response.ok(SAVE_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response upload(String storeID, Map<String, String> encryptedNodes) {
-        try {
-            encryptedTriplestore.uploadData(storeID, encryptedNodes);
-            return Response.ok(SUCCESS_UPLOAD).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
+    public Response prepareSPARQLSearch(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HTTPUtils.buildResponse(response);
+            }
+
+            try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
+                return HTTPUtils.buildResponse(response);
+            }
         } catch (Exception e) {
-            return Response.ok(SAVE_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response answerSPARQLQuery(String storeID, QueryExecutionPlan queryExecutionPlan) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ResultSet res = new SimpleSPARQLExecution(queryExecutionPlan).exec(new SecureSPARQLWorker(storeID, storageEngine));
-            ResultSetFormatter.outputAsJSON(out, res);
-            return Response.ok(out.toByteArray()).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
-        } catch (NotImplemented e) {
-            return Response.ok(NOT_IMPLEMENTED).status(NOT_IMPLEMENTED).build();
+    public Response search(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+
+            return Response.ok(storageEngine.search(triplestoreID, trapdoors)).build();
         } catch (Exception e) {
-            return Response.ok(QUERY_ERROR_MSG).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response search(String storeID, List<String> trapdoors) {
-        try {
-            encryptedTriplestore.search(storeID, trapdoors);
-            return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
+    public Response delete(String triplestoreID, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.delete(triplestoreID);
+            return Response.ok(SUCCESS_DELETE_BATCH).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
-    public Response delete(String storeID) {
-        try {
-            encryptedTriplestore.delete(storeID);
-            return Response.ok(String.format(SUCCESS_DELETE_BATCH, storeID)).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
-        }
-    }
+    public Response delete(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
 
-    @Override
-    public Response delete(String storeID, List<String> trapdoors) {
-        try {
-            encryptedTriplestore.delete(storeID, trapdoors);
-            return Response.ok(String.format(SUCCESS_DELETE, storeID)).build();
-        } catch (StoreNotFoundException e) {
-            return Response.ok(String.format(STORE_NOT_FOUND, storeID)).status(Response.Status.NOT_FOUND).build();
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.delete(triplestoreID, trapdoors);
+            return Response.ok(SUCCESSFUL_DELETION).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+    triplestore-db:
+      image: redis:latest
+      container_name: sentri-triplestore-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./data:/data
+        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ../SSL/triplestore-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/triplestore-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/triplestore-redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      expose:
+        - "6379"
+      networks:
+        - sentri-triplestore-backend
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    triplestore-api:
+      depends_on:
+        - triplestore-db
+      image: ${DOCKER_REGISTRY}/sentri-triplestore-api
+      container_name: sentri-triplestore-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/triplestore-truststore.ks:/usr/local/tomcat/ssl/triplestore-truststore.ks
+        - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
+        - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      expose:
+        - "8443"
+      networks:
+        - sentri-triplestore-backend
+        - sentri-triplestore-frontend
+        - sentri-iam-provider-frontend
+        - sentri-vault-frontend
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/triplestore-secrets.env
+
+volumes:
+    data:
+
+networks:
+  sentri-triplestore-backend:
+    name: sentri-triplestore-backend
+    driver: bridge
+  sentri-triplestore-frontend:
+    name: sentri-triplestore-frontend
+    driver: bridge
+  sentri-iam-provider-frontend:
+    name: sentri-iam-provider-frontend
+    external: true
+  sentri-vault-frontend:
+    name: sentri-vault-frontend
+    external: true
