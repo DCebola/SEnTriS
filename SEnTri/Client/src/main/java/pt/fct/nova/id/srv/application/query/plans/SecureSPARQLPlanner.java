@@ -6,14 +6,15 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
+import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
@@ -59,6 +60,11 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             obfuscatedVars.add(obfuscateVar(var));
         plan.setVars(obfuscatedVars);
         return plan;
+    }
+
+    @Override
+    public QueryExecutionPlan generatePlan(Update op, AlgebraGenerator algebraGenerator) throws NotImplemented {
+        return null;
     }
 
     @Override

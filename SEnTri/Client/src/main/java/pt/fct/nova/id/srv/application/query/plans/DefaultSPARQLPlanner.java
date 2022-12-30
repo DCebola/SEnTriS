@@ -6,11 +6,14 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
+import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.modify.request.*;
+import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.query.jobs.*;
@@ -47,7 +50,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     @Override
-    public void setQueryType(QueryType queryType){
+    public void setQueryType(QueryType queryType) {
         this.queryType = queryType;
     }
 
@@ -69,6 +72,23 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         plan.setVars(generateVars(resultVarNames));
         return plan;
     }
+
+    @Override
+    public QueryExecutionPlan generatePlan(Update update, AlgebraGenerator algebraGenerator) throws NotImplemented {
+        if (update instanceof UpdateDataInsert op) {
+            visitUpdate(op);
+        } else if (update instanceof UpdateDataDelete op) {
+            visitUpdate(op);
+        } else if (update instanceof UpdateDeleteWhere op) {
+            visitUpdate(op);
+        } else if (update instanceof UpdateModify op) {
+            visitUpdate(op, algebraGenerator);
+        } else {
+            throw new IllegalStateException("Unexpected value: " + update);
+        }
+        return null;
+    }
+
 
     private List<Var> generateVars(List<String> resultVarNames) {
         List<Var> vars = new LinkedList<>();
@@ -337,13 +357,13 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     @Override
-    protected void visitFilter(OpFilter opFilter) {
-        this.visit1(opFilter);
+    protected void visitFilter(OpFilter op) {
+        this.visit1(op);
     }
 
     @Override
-    protected void visitLeftJoin(OpLeftJoin opLeftJoin) {
-        this.visit2(opLeftJoin);
+    protected void visitLeftJoin(OpLeftJoin op) {
+        this.visit2(op);
     }
 
     @Override
@@ -351,5 +371,24 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         throw new NotImplemented();
     }
 
+    public void visitUpdate(UpdateDataInsert op) {
+        System.out.println(Arrays.toString(op.getQuads().toArray()));
+    }
 
+    public void visitUpdate(UpdateDataDelete op) {
+        System.out.println(Arrays.toString(op.getQuads().toArray()));
+    }
+
+    public void visitUpdate(UpdateDeleteWhere op) {
+        System.out.println(Arrays.toString(op.getQuads().toArray()));
+    }
+
+    public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {
+        System.out.println(op.getWherePattern().toString());
+        if (op.hasInsertClause())
+            System.out.println(Arrays.toString(op.getInsertQuads().toArray()));
+        if (op.hasDeleteClause())
+            System.out.println(Arrays.toString(op.getInsertQuads().toArray()));
+        OpWalker.walk(algebraGenerator.compile(op.getWherePattern()), this);
+    }
 }
