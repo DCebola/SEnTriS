@@ -17,6 +17,7 @@ import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class DefaultSPARQLWorker implements SPARQLWorker {
@@ -96,10 +97,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         result.setOrdered(true);
         List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
-        List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
-        for (SerializableSortCondition condition : serializableSortConditions)
-            sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
-        result.setSortConditions(sortConditions);
+        result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
@@ -162,29 +160,38 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
 
     @Override
     public SPARQLResult generateResults(IRITable jobResults) {
-        Collection<Binding> bindings;
+        Collection<SerializableBinding> serializableBindings;
         boolean isDistinct = result.isDistinct();
         boolean isOrdered = result.isOrdered();
-        if (isDistinct && isOrdered)
-            bindings = generateBindings(new TreeSet<>(new BindingComparator(result.getSortConditions())), jobResults);
-        else if (isDistinct)
-            bindings = generateBindings(new HashSet<>(), jobResults);
-        else {
-            bindings = generateBindings(new LinkedList<>(), jobResults);
-            if (isOrdered)
-                bindings = bindings.stream().sorted(new BindingComparator(result.getSortConditions())).collect(Collectors.toList());
+
+        if (isOrdered) {
+            List<SerializableSortCondition> serializableSortConditions = result.getSortConditions();
+            List<SortCondition> sortConditions = new ArrayList<>(serializableSortConditions.size());
+            Collection<Binding> bindings;
+            for (SerializableSortCondition condition : serializableSortConditions)
+                sortConditions.add(new SortCondition(condition.getVar(), condition.getDir()));
+            if (isDistinct)
+                bindings = generateBindings(new TreeSet<>(new BindingComparator(sortConditions)), jobResults);
+            else
+                bindings = generateBindings(new LinkedList<>(), jobResults).stream().sorted(new BindingComparator(sortConditions)).collect(Collectors.toList());
+            serializableBindings = generateSerializableBindings(bindings);
+        } else {
+            if (isDistinct)
+                serializableBindings = generateSerializableBindings(new HashSet<>(), jobResults);
+            else
+                serializableBindings = generateSerializableBindings(new LinkedList<>(), jobResults);
         }
         if (result.isSliced()) {
             long offset = result.getOffset();
             long length = result.getLength();
             if (offset != Query.NOLIMIT && length != Query.NOLIMIT)
-                bindings = bindings.stream().skip(offset).limit(length).collect(Collectors.toList());
+                serializableBindings = serializableBindings.stream().skip(offset).limit(length).collect(Collectors.toList());
             else if (offset != Query.NOLIMIT)
-                bindings = bindings.stream().skip(offset).collect(Collectors.toList());
+                serializableBindings = serializableBindings.stream().skip(offset).collect(Collectors.toList());
             else if (length != Query.NOLIMIT)
-                bindings = bindings.stream().limit(length).collect(Collectors.toList());
+                serializableBindings = serializableBindings.stream().limit(length).collect(Collectors.toList());
         }
-        result.setBindings(bindings);
+        result.setBindings(serializableBindings);
         return result;
     }
 
@@ -202,7 +209,37 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
             bindings.add(builder.build());
             builder.reset();
         }
+        return bindings;
+    }
 
+    private Collection<SerializableBinding> generateSerializableBindings(Collection<Binding> bindings) {
+        List<SerializableBinding> serializableBindings = new ArrayList<>(bindings.size());
+        HashMap<Var, String> values;
+        for (Binding binding : bindings) {
+            values = new HashMap<>();
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                Var var = it.next();
+                values.put(var, binding.get(var).getURI());
+            }
+            serializableBindings.add(new SerializableBinding(values));
+        }
+        return serializableBindings;
+    }
+
+    private Collection<SerializableBinding> generateSerializableBindings(Collection<SerializableBinding> bindings, IRITable jobResults) {
+        List<Var> vars = new ArrayList<>(jobResults.getVars());
+        int i;
+        HashMap<Var, String> values;
+        for (List<String> p_values : jobResults.getPatterns()) {
+            values = new HashMap<>();
+            i = 0;
+            for (String val : p_values) {
+                if (val != null)
+                    values.put(vars.get(i), val);
+                i++;
+            }
+            bindings.add(new SerializableBinding(values));
+        }
         return bindings;
     }
 }

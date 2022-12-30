@@ -23,7 +23,6 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorage {
     private static final long SEARCH_DATA_LIFETIME = Long.parseLong(System.getenv("SEARCH_DATA_LIFETIME"));
-    private static final Random rnd = new Random();
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 

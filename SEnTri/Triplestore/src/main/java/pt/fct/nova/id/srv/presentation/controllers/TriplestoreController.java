@@ -26,7 +26,8 @@ import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
-import java.util.Iterator;
+import java.io.ObjectOutputStream;
+import java.util.Base64;
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.*;
@@ -41,6 +42,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final StorageEngine storageEngine = new RedisDefaultStorageEngine();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
 
     @Override
@@ -76,16 +78,13 @@ public class TriplestoreController implements TriplestoreAPI {
 
             try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
                  ObjectInputStream ois = new ObjectInputStream(bis);
-                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-
+                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
                 QueryExecutionPlan executionPlan = (QueryExecutionPlan) ois.readObject();
-
                 SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
                 execution.exec(new DefaultSPARQLWorker(triplestoreID, storageEngine));
-                List<Var> vars = executionPlan.getVars();
-                Iterator<Binding> bindings = execution.getResults().getBindings().iterator();
-                ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings));
-                return Response.ok(out.toByteArray()).build();
+                oos.writeObject(execution.getResults());
+                return Response.ok(base64Encoder.encodeToString(bos.toByteArray())).build();
             }
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();

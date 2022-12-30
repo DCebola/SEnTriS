@@ -4,6 +4,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
+import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
@@ -36,12 +37,12 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final DefaultQueryExecutionPlan plan;
     private final HashMap<Var, Var> obfuscationMap;
     private final Set<String> keywords;
-    private final EncryptionProtocol protocol;
     private final Set<String> searchJobsIDs;
     private final Random rnd;
+    private QueryType queryType;
+    private List<Triple> constructTemplate;
 
-    public SecureSPARQLPlanner(EncryptionProtocol protocol) {
-        this.protocol = protocol;
+    public SecureSPARQLPlanner() {
         this.keywords = new HashSet<>();
         this.parsed_op = new HashMap<>();
         this.obfuscationMap = new HashMap<>();
@@ -58,6 +59,29 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             obfuscatedVars.add(obfuscateVar(var));
         plan.setVars(obfuscatedVars);
         return plan;
+    }
+
+    @Override
+    public QueryType getQueryType() {
+        return queryType;
+    }
+
+    @Override
+    public void setQueryType(QueryType queryType){
+        this.queryType = queryType;
+    }
+
+    @Override
+    public void setConstructTemplate(List<Triple> constructTemplate) {
+        if (queryType.equals(QueryType.CONSTRUCT))
+            this.constructTemplate = constructTemplate;
+    }
+
+    @Override
+    public List<Triple> getConstructTemplate() {
+        if (queryType.equals(QueryType.CONSTRUCT))
+            return constructTemplate;
+        else throw new QueryBuildException();
     }
 
     public Set<String> getKeywords() {

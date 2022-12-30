@@ -16,12 +16,16 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
@@ -205,6 +209,7 @@ public class ParsingUtils {
                     split_iri[IRI_VALUE_POS],
                     TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
+
 
 
 }

@@ -1,10 +1,15 @@
 package pt.fct.nova.id.srv.application.query;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
@@ -76,4 +81,103 @@ public class Utils {
         return encodeBase64URLSafeString(bb.array());
     }
 
+    public static Graph generateGraphFromBindings(List<Triple> constructTemplate, Collection<Binding> bindings) {
+        Graph g = GraphFactory.createDefaultGraph();
+        Node s, p, o;
+        Node n1, n2;
+        for (Binding binding : bindings) {
+            for (Triple t : constructTemplate) {
+                s = t.getSubject();
+                p = t.getPredicate();
+                o = t.getObject();
+                switch (pt.fct.nova.id.srv.application.query.Utils.extractVariablesPattern(s, p, o)) {
+                    case S -> {
+                        n1 = binding.get(Var.alloc(s));
+                        if (n1 != null)
+                            g.add(Triple.create(n1, p, o));
+                    }
+                    case P -> {
+                        n1 = binding.get(Var.alloc(p));
+                        if (n1 != null)
+                            g.add(Triple.create(s, n1, o));
+                    }
+                    case O -> {
+                        n1 = binding.get(Var.alloc(o));
+                        if (n1 != null)
+                            g.add(Triple.create(s, p, n1));
+                    }
+                    case SP -> {
+                        n1 = binding.get(Var.alloc(s));
+                        n2 = binding.get(Var.alloc(p));
+                        if (n1 != null && n2 != null)
+                            g.add(Triple.create(n1, n2, o));
+                    }
+                    case SO -> {
+                        n1 = binding.get(Var.alloc(s));
+                        n2 = binding.get(Var.alloc(o));
+                        if (n1 != null && n2 != null)
+                            g.add(Triple.create(n1, p, n2));
+                    }
+                    case PO -> {
+                        n1 = binding.get(Var.alloc(p));
+                        n2 = binding.get(Var.alloc(o));
+                        if (n1 != null && n2 != null)
+                            g.add(Triple.create(s, n1, n2));
+                    }
+                    case SPO -> g.add(t);
+                }
+            }
+        }
+        return g;
+    }
+
+    public static Graph generateGraphFromSerializableBindings(List<Triple> constructTemplate, Collection<SerializableBinding> bindings) {
+        Graph g = GraphFactory.createDefaultGraph();
+        Node s, p, o;
+        String val1, val2;
+        for (SerializableBinding binding : bindings) {
+            for (Triple t : constructTemplate) {
+                s = t.getSubject();
+                p = t.getPredicate();
+                o = t.getObject();
+                switch (Utils.extractVariablesPattern(s, p, o)) {
+                    case S -> {
+                        val1 = binding.get(Var.alloc(s));
+                        if (val1 != null)
+                            g.add(Triple.create(NodeFactory.createURI(val1), p, o));
+                    }
+                    case P -> {
+                        val1 = binding.get(Var.alloc(p));
+                        if (val1 != null)
+                            g.add(Triple.create(s, NodeFactory.createURI(val1), o));
+                    }
+                    case O -> {
+                        val1 = binding.get(Var.alloc(o));
+                        if (val1 != null)
+                            g.add(Triple.create(s, p, NodeFactory.createURI(val1)));
+                    }
+                    case SP -> {
+                        val1 = binding.get(Var.alloc(s));
+                        val2 = binding.get(Var.alloc(p));
+                        if (val1 != null && val2 != null)
+                            g.add(Triple.create(NodeFactory.createURI(val1), NodeFactory.createURI(val2), o));
+                    }
+                    case SO -> {
+                        val1 = binding.get(Var.alloc(s));
+                        val2 = binding.get(Var.alloc(o));
+                        if (val1 != null && val2 != null)
+                            g.add(Triple.create(NodeFactory.createURI(val1), p, NodeFactory.createURI(val2)));
+                    }
+                    case PO -> {
+                        val1 = binding.get(Var.alloc(p));
+                        val2 = binding.get(Var.alloc(o));
+                        if (val1 != null && val2 != null)
+                            g.add(Triple.create(s, NodeFactory.createURI(val1), NodeFactory.createURI(val2)));
+                    }
+                    case SPO -> g.add(t);
+                }
+            }
+        }
+        return g;
+    }
 }

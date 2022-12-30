@@ -3,14 +3,18 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QueryType;
 import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.Utils;
@@ -38,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
+import static org.apache.jena.query.QueryType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
@@ -191,7 +196,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
 
             Protocol1 protocol = getProtocol1(secrets);
-            SecureSPARQLPlanner planner = new SecureSPARQLPlanner(protocol);
+            SecureSPARQLPlanner planner = new SecureSPARQLPlanner();
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
 
             Set<String> keywords = planner.getKeywords();
@@ -231,23 +236,66 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
+
+
+            QueryType queryType = planner.getQueryType();
+            Response res;
+            if (queryType.equals(SELECT) || queryType.equals(CONSTRUCT)) {
                 List<Var> vars = new LinkedList<>();
                 for (Var var : plan.getVars())
                     vars.add(obfuscationMap.get(var));
-                SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
                 Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
                 if (sparqlResult.isOrdered())
                     bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
                 if (sparqlResult.isSliced())
                     bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
-                ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
-                CloseableHttpResponse ignored = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return Response.ok(out.toByteArray()).build();
-            }
+                if (queryType.equals(SELECT))
+                    res = generateSELECTResults(vars, bindings);
+                else
+                    res = generateCONSTRUCTResults(planner.getConstructTemplate(), bindings);
+            } else if (queryType.equals(ASK))
+                res = generateASKResults(sparqlResult);
+            else if (queryType.equals(DESCRIBE))
+                res = generateDESCRIBEResults(plan.getVars(), obfuscationMap, sparqlResult);
+            else
+                res = Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return res;
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult sparqlResult) {
+        Map<Var, Integer> frequencies = new HashMap<>();
+        for (Var v : vars)
+            frequencies.put(v, 0);
+        for (SerializableBinding binding : sparqlResult.getBindings()) {
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                Var v = it.next();
+                frequencies.put(v, frequencies.get(v) + 1);
+            }
+        }
+        JSONObject responseBody = new JSONObject();
+        for (Var v : vars)
+            responseBody = responseBody.put(obfuscationMap.get(v).getVarName(), frequencies.get(v));
+        return Response.ok(responseBody.toString()).build();
+    }
+
+    private Response generateCONSTRUCTResults(List<Triple> constructTemplate, Collection<Binding> bindings) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Graph g = pt.fct.nova.id.srv.application.query.Utils.generateGraphFromBindings(constructTemplate, bindings);
+            RDFWriter.create(g).lang(Lang.JSONLD).output(out);
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    private Response generateSELECTResults(List<Var> vars, Collection<Binding> bindings) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
+            return Response.ok(out.toByteArray()).build();
         }
     }
 

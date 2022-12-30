@@ -6,10 +6,11 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryType;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
-import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.application.query.plans.SPARQLPlanner;
+import pt.fct.nova.id.srv.application.query.plans.*;
 
 import java.util.regex.Pattern;
+
+import static org.apache.jena.query.QueryType.*;
 
 public class SPARQLQueryEngine implements QueryEngine {
 
@@ -23,8 +24,9 @@ public class SPARQLQueryEngine implements QueryEngine {
 
     public QueryExecutionPlan getQueryPlan(String queryString) throws NotImplemented {
         Query query = QueryFactory.create(queryString);
-        if (query.queryType().equals(QueryType.SELECT))
-            return planner.generatePlan(algebraGenerator.compile(query), query.getResultVars());
-        else throw new NotImplemented();
+       planner.setQueryType(query.queryType());
+        if (planner.getQueryType() == CONSTRUCT)
+            planner.setConstructTemplate(query.getConstructTemplate().getTriples());
+        return planner.generatePlan(algebraGenerator.compile(query), query.getResultVars());
     }
 }

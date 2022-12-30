@@ -4,6 +4,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
+import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
@@ -28,12 +29,39 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private final DefaultQueryExecutionPlan plan;
 
-    private Random rnd;
+    private final Random rnd;
+
+    private QueryType queryType;
+    private List<Triple> constructTemplate;
 
     public DefaultSPARQLPlanner() {
         this.parsed_op = new HashMap<>();
         this.plan = new DefaultQueryExecutionPlan();
         this.rnd = new Random();
+        this.constructTemplate = new LinkedList<>();
+    }
+
+    @Override
+    public QueryType getQueryType() {
+        return queryType;
+    }
+
+    @Override
+    public void setQueryType(QueryType queryType){
+        this.queryType = queryType;
+    }
+
+    @Override
+    public void setConstructTemplate(List<Triple> constructTemplate) {
+        if (queryType.equals(QueryType.CONSTRUCT))
+            this.constructTemplate = constructTemplate;
+    }
+
+    @Override
+    public List<Triple> getConstructTemplate() {
+        if (queryType.equals(QueryType.CONSTRUCT))
+            return constructTemplate;
+        else throw new QueryBuildException();
     }
 
     public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
@@ -322,5 +350,6 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     public void visitN(OpN op) {
         throw new NotImplemented();
     }
+
 
 }

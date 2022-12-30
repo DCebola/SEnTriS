@@ -7,10 +7,23 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QueryType;
+import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ResultSetStream;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
@@ -18,10 +31,11 @@ import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
@@ -34,8 +48,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
-    private static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-    private static final SPARQLQueryEngine queryEngine = new SPARQLQueryEngine(new DefaultSPARQLPlanner());
+    public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
 
     @Override
     public Response create(Cookie cookie, UploadForm form) {
@@ -157,17 +170,80 @@ public class TriplestoreController implements TriplestoreAPI {
             if (response.getStatus() != OK)
                 return response.build();
             String accessToken = response.getBody();
-
-            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) queryEngine.getQueryPlan(form.getQuery());
+            DefaultSPARQLPlanner planner = new DefaultSPARQLPlanner();
+            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
             response = query(httpClient, triplestoreID, plan, accessToken);
+            SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
+            Response res;
+            QueryType queryType = planner.getQueryType();
+            System.out.println(queryType);
+            if (queryType == QueryType.SELECT)
+                res = generateSELECTResults(plan.getVars(), sparqlResult);
+            else if (queryType == QueryType.CONSTRUCT)
+                res = generateCONSTRUCTResults(planner.getConstructTemplate(), sparqlResult);
+            else if (queryType == QueryType.ASK)
+                res = generateASKResults(sparqlResult);
+            else if (queryType == QueryType.DESCRIBE)
+                res = generateDESCRIBEResults(plan.getVars(), sparqlResult);
+            else
+                res = Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            return response.build();
+            return res;
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    public static Response generateASKResults(SPARQLResult sparqlResult) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ResultSetFormatter.outputAsJSON(out, !sparqlResult.getBindings().isEmpty());
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult sparqlResult) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Graph g = pt.fct.nova.id.srv.application.query.Utils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings());
+            RDFWriter.create(g).lang(Lang.JSONLD).output(out);
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    private Response generateSELECTResults(List<Var> vars, SPARQLResult sparqlResult) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Collection<Binding> bindings = new LinkedList<>();
+            BindingBuilder builder = Binding.builder();
+            for (SerializableBinding binding : sparqlResult.getBindings()) {
+                for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                    Var var = it.next();
+                    builder.add(var, NodeFactory.createURI(binding.get(var)));
+                }
+                bindings.add(builder.build());
+                builder.reset();
+            }
+            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    private Response generateDESCRIBEResults(List<Var> vars, SPARQLResult sparqlResult) {
+        Map<Var, Integer> frequencies = new HashMap<>();
+        for (Var v : vars)
+            frequencies.put(v, 0);
+        for (SerializableBinding binding : sparqlResult.getBindings()) {
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                Var v = it.next();
+                frequencies.put(v, frequencies.get(v) + 1);
+            }
+        }
+        JSONObject responseBody = new JSONObject();
+        for (Var v : vars)
+            responseBody = responseBody.put(v.getVarName(), frequencies.get(v));
+        return Response.ok(responseBody.toString()).build();
+    }
+
 
     @Override
     public Response updateTriplestoreOwner(Cookie cookie, String triplestoreID, String issuer, String target) {
