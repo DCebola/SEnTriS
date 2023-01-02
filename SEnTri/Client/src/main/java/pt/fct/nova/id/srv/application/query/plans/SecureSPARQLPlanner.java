@@ -4,7 +4,6 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryBuildException;
-import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import org.apache.jena.sparql.algebra.Op;
@@ -16,6 +15,7 @@ import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.JoinJob;
@@ -52,13 +52,13 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.rnd = new Random();
     }
 
-    public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
+    public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
-        List<Var> vars = generateVars(resultVarNames);
-        List<Var> obfuscatedVars = new ArrayList<>(vars.size());
-        for (Var var : vars)
-            obfuscatedVars.add(obfuscateVar(var));
-        plan.setVars(obfuscatedVars);
+        //List<Var> vars = generateVars(resultVarNames);
+        //List<Var> obfuscatedVars = new ArrayList<>(vars.size());
+        //for (Var var : vars)
+        //    obfuscatedVars.add(obfuscateVar(var));
+        //plan.setVars(obfuscatedVars);
         return plan;
     }
 
@@ -88,6 +88,16 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         if (queryType.equals(QueryType.CONSTRUCT))
             return constructTemplate;
         else throw new QueryBuildException();
+    }
+
+    @Override
+    public List<Triple> getUploadTemplate() {
+        return null;
+    }
+
+    @Override
+    public List<Triple> getDeleteTemplate() {
+        return null;
     }
 
     public Set<String> getKeywords() {
@@ -350,6 +360,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         List<Var> obfuscatedVars = new ArrayList<>(vars.size());
         for (Var var : vars)
             obfuscatedVars.add(obfuscateVar(var));
+        plan.setVars(obfuscatedVars);
         plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), obfuscatedVars));
         parsed_op.put(op, jobID);
     }

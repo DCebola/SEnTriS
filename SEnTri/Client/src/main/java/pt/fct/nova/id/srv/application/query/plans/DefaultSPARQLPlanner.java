@@ -3,19 +3,19 @@ package pt.fct.nova.id.srv.application.query.plans;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryBuildException;
-import org.apache.jena.query.QueryType;
 import org.apache.jena.query.SortCondition;
-import org.apache.jena.sparql.algebra.AlgebraGenerator;
-import org.apache.jena.sparql.algebra.Op;
-import org.apache.jena.sparql.algebra.OpVisitorByType;
-import org.apache.jena.sparql.algebra.OpWalker;
+import org.apache.jena.sparql.algebra.*;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.modify.request.*;
 import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
@@ -33,6 +33,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     private final DefaultQueryExecutionPlan plan;
 
     private final Random rnd;
+    private final List<Triple> uploadTemplate;
+    private final List<Triple> deleteTemplate;
 
     private QueryType queryType;
     private List<Triple> constructTemplate;
@@ -42,6 +44,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         this.plan = new DefaultQueryExecutionPlan();
         this.rnd = new Random();
         this.constructTemplate = new LinkedList<>();
+        this.uploadTemplate = new LinkedList<>();
+        this.deleteTemplate = new LinkedList<>();
     }
 
     @Override
@@ -67,9 +71,18 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         else throw new QueryBuildException();
     }
 
-    public QueryExecutionPlan generatePlan(Op op, List<String> resultVarNames) {
+    @Override
+    public List<Triple> getUploadTemplate() {
+        return uploadTemplate;
+    }
+
+    @Override
+    public List<Triple> getDeleteTemplate() {
+        return deleteTemplate;
+    }
+
+    public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
-        plan.setVars(generateVars(resultVarNames));
         return plan;
     }
 
@@ -79,21 +92,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
             visitUpdate(op);
         } else if (update instanceof UpdateDataDelete op) {
             visitUpdate(op);
-        } else if (update instanceof UpdateDeleteWhere op) {
-            visitUpdate(op);
         } else if (update instanceof UpdateModify op) {
             visitUpdate(op, algebraGenerator);
         } else {
             throw new IllegalStateException("Unexpected value: " + update);
         }
-        return null;
-    }
-
-
-    private List<Var> generateVars(List<String> resultVarNames) {
-        List<Var> vars = new LinkedList<>();
-        resultVarNames.forEach(v -> vars.add(Var.alloc(v)));
-        return vars;
+        return plan;
     }
 
     @Override
@@ -289,7 +293,9 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private void generateProjectJob(OpProject op) {
         String jobID = generateID();
-        plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), op.getVars()));
+        List<Var> vars = op.getVars();
+        plan.setVars(vars);
+        plan.pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), vars));
         parsed_op.put(op, jobID);
     }
 
@@ -372,23 +378,41 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     public void visitUpdate(UpdateDataInsert op) {
-        System.out.println(Arrays.toString(op.getQuads().toArray()));
+        setQueryType(QueryType.INSERT_DATA);
+        Triple triple;
+        for (Quad quad : op.getQuads()) {
+            triple = quad.asTriple();
+            uploadTemplate.add(triple);
+        }
     }
 
     public void visitUpdate(UpdateDataDelete op) {
-        System.out.println(Arrays.toString(op.getQuads().toArray()));
-    }
-
-    public void visitUpdate(UpdateDeleteWhere op) {
-        System.out.println(Arrays.toString(op.getQuads().toArray()));
+        setQueryType(QueryType.DELETE_DATA);
+        Triple triple;
+        for (Quad quad : op.getQuads()) {
+            triple = quad.asTriple();
+            deleteTemplate.add(triple);
+        }
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {
-        System.out.println(op.getWherePattern().toString());
-        if (op.hasInsertClause())
-            System.out.println(Arrays.toString(op.getInsertQuads().toArray()));
-        if (op.hasDeleteClause())
-            System.out.println(Arrays.toString(op.getInsertQuads().toArray()));
-        OpWalker.walk(algebraGenerator.compile(op.getWherePattern()), this);
+        setQueryType(QueryType.MODIFY);
+        List<Var> vars = new LinkedList<>();
+        Triple triple;
+        if (op.hasInsertClause()) {
+            for (Quad quad : op.getInsertQuads()) {
+                triple = quad.asTriple();
+                uploadTemplate.add(triple);
+                vars.addAll(extractVars(triple));
+            }
+        }
+        if (op.hasDeleteClause()) {
+            for (Quad quad : op.getDeleteQuads()) {
+                triple = quad.asTriple();
+                deleteTemplate.add(triple);
+                vars.addAll(extractVars(triple));
+            }
+        }
+        OpWalker.walk(new OpProject(algebraGenerator.compile(op.getWherePattern()), vars), this);
     }
 }

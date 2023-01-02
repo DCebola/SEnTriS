@@ -4,21 +4,18 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
-import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
-import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Utils {
@@ -37,6 +34,37 @@ public class Utils {
             return PO;
         else
             return SPO;
+    }
+
+    public static List<Var> extractVars(Triple triple) {
+        Node s = triple.getSubject();
+        Node p = triple.getPredicate();
+        Node o = triple.getObject();
+        List<Var> res = new LinkedList<>();
+        switch (extractVariablesPattern(s, p, o)) {
+            case S -> res.add(Var.alloc(s));
+            case P -> res.add(Var.alloc(p));
+            case O -> res.add(Var.alloc(o));
+            case SP -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+            }
+            case SO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(o));
+            }
+            case PO -> {
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+            case SPO -> {
+                res.add(Var.alloc(s));
+                res.add(Var.alloc(p));
+                res.add(Var.alloc(o));
+            }
+        }
+        return res;
+
     }
 
     public static Set<Var> extractVars(SearchJob job) {
@@ -81,12 +109,24 @@ public class Utils {
         return encodeBase64URLSafeString(bb.array());
     }
 
-    public static Graph generateGraphFromBindings(List<Triple> constructTemplate, Collection<Binding> bindings) {
+    public static QueryType convertQueryType(org.apache.jena.query.QueryType queryType) {
+        if (queryType == org.apache.jena.query.QueryType.SELECT)
+            return QueryType.SELECT;
+        else if (queryType == org.apache.jena.query.QueryType.CONSTRUCT)
+            return QueryType.CONSTRUCT;
+        else if (queryType == org.apache.jena.query.QueryType.ASK)
+            return QueryType.ASK;
+        else if (queryType == org.apache.jena.query.QueryType.DESCRIBE)
+            return QueryType.DESCRIBE;
+        else throw new QueryParseException("Unknown type: ".concat(queryType.name()), 0, 0);
+    }
+
+    public static Graph generateGraphFromBindings(List<Triple> template, Collection<Binding> bindings) {
         Graph g = GraphFactory.createDefaultGraph();
         Node s, p, o;
         Node n1, n2;
         for (Binding binding : bindings) {
-            for (Triple t : constructTemplate) {
+            for (Triple t : template) {
                 s = t.getSubject();
                 p = t.getPredicate();
                 o = t.getObject();
@@ -131,12 +171,12 @@ public class Utils {
         return g;
     }
 
-    public static Graph generateGraphFromSerializableBindings(List<Triple> constructTemplate, Collection<SerializableBinding> bindings) {
+    public static Graph generateGraphFromSerializableBindings(List<Triple> template, Collection<SerializableBinding> bindings) {
         Graph g = GraphFactory.createDefaultGraph();
         Node s, p, o;
         String val1, val2;
         for (SerializableBinding binding : bindings) {
-            for (Triple t : constructTemplate) {
+            for (Triple t : template) {
                 s = t.getSubject();
                 p = t.getPredicate();
                 o = t.getObject();
@@ -179,5 +219,55 @@ public class Utils {
             }
         }
         return g;
+    }
+
+    public static List<Triple> generateTriplesFromSerializableBindings(List<Triple> template, Collection<SerializableBinding> bindings) {
+        List<Triple> triples = new LinkedList<>();
+        Node s, p, o;
+        String val1, val2;
+        for (SerializableBinding binding : bindings) {
+            for (Triple t : template) {
+                s = t.getSubject();
+                p = t.getPredicate();
+                o = t.getObject();
+                switch (Utils.extractVariablesPattern(s, p, o)) {
+                    case S -> {
+                        val1 = binding.get(Var.alloc(s));
+                        if (val1 != null)
+                            triples.add(Triple.create(NodeFactory.createURI(val1), p, o));
+                    }
+                    case P -> {
+                        val1 = binding.get(Var.alloc(p));
+                        if (val1 != null)
+                            triples.add(Triple.create(s, NodeFactory.createURI(val1), o));
+                    }
+                    case O -> {
+                        val1 = binding.get(Var.alloc(o));
+                        if (val1 != null)
+                            triples.add(Triple.create(s, p, NodeFactory.createURI(val1)));
+                    }
+                    case SP -> {
+                        val1 = binding.get(Var.alloc(s));
+                        val2 = binding.get(Var.alloc(p));
+                        if (val1 != null && val2 != null)
+                            triples.add(Triple.create(NodeFactory.createURI(val1), NodeFactory.createURI(val2), o));
+                    }
+                    case SO -> {
+                        val1 = binding.get(Var.alloc(s));
+                        val2 = binding.get(Var.alloc(o));
+                        if (val1 != null && val2 != null)
+                            triples.add(Triple.create(NodeFactory.createURI(val1), p, NodeFactory.createURI(val2)));
+                    }
+                    case PO -> {
+                        val1 = binding.get(Var.alloc(p));
+                        val2 = binding.get(Var.alloc(o));
+                        if (val1 != null && val2 != null)
+                            triples.add(Triple.create(s, NodeFactory.createURI(val1), NodeFactory.createURI(val2)));
+                    }
+                    case SPO -> triples.add(t);
+                }
+            }
+        }
+        return triples;
     }
 }

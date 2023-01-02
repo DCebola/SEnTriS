@@ -6,7 +6,6 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.QueryType;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFWriter;
@@ -20,6 +19,7 @@ import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.Utils;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
@@ -42,7 +42,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static org.apache.jena.query.QueryType.*;
+import static pt.fct.nova.id.srv.application.query.QueryType.ASK;
+import static pt.fct.nova.id.srv.application.query.QueryType.CONSTRUCT;
+import static pt.fct.nova.id.srv.application.query.QueryType.DESCRIBE;
+import static pt.fct.nova.id.srv.application.query.QueryType.SELECT;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
@@ -241,7 +244,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
             QueryType queryType = planner.getQueryType();
             Response res;
-            if (queryType.equals(SELECT) || queryType.equals(CONSTRUCT)) {
+            if (queryType == SELECT || queryType == CONSTRUCT) {
                 List<Var> vars = new LinkedList<>();
                 for (Var var : plan.getVars())
                     vars.add(obfuscationMap.get(var));
@@ -250,13 +253,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
                 if (sparqlResult.isSliced())
                     bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
-                if (queryType.equals(SELECT))
+                if (queryType == SELECT)
                     res = generateSELECTResults(vars, bindings);
                 else
                     res = generateCONSTRUCTResults(planner.getConstructTemplate(), bindings);
-            } else if (queryType.equals(ASK))
+            } else if (queryType == ASK)
                 res = generateASKResults(sparqlResult);
-            else if (queryType.equals(DESCRIBE))
+            else if (queryType == DESCRIBE)
                 res = generateDESCRIBEResults(plan.getVars(), obfuscationMap, sparqlResult);
             else
                 res = Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();

@@ -3,16 +3,13 @@ package pt.fct.nova.id.srv.application;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.query.*;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
-import org.apache.jena.sparql.lang.SPARQLParser;
-import org.apache.jena.sparql.modify.request.UpdateVisitorBase;
-import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
+import pt.fct.nova.id.srv.application.query.Utils;
 import pt.fct.nova.id.srv.application.query.plans.*;
 
-import java.util.regex.Pattern;
+import static pt.fct.nova.id.srv.application.query.QueryType.CONSTRUCT;
 
-import static org.apache.jena.query.QueryType.*;
 
 public class SPARQLQueryEngine implements QueryEngine {
 
@@ -27,15 +24,14 @@ public class SPARQLQueryEngine implements QueryEngine {
     public QueryExecutionPlan getQueryPlan(String queryString) throws NotImplemented {
         try {
             Query query = QueryFactory.create(queryString);
-            planner.setQueryType(query.queryType());
+            planner.setQueryType(Utils.convertQueryType(query.queryType()));
             if (planner.getQueryType() == CONSTRUCT)
                 planner.setConstructTemplate(query.getConstructTemplate().getTriples());
-            return planner.generatePlan(algebraGenerator.compile(query), query.getResultVars());
+            return planner.generatePlan(algebraGenerator.compile(query));
         } catch (QueryParseException e){
+            System.out.println(e.getMessage());
             UpdateRequest update = UpdateFactory.create(queryString);
-            planner.generatePlan(update.getOperations().get(0), algebraGenerator);
-
+            return planner.generatePlan(update.getOperations().get(0), algebraGenerator);
         }
-        return null;
     }
 }
