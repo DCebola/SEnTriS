@@ -5,34 +5,20 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
 
 import java.util.*;
-
-import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 
 public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private final static String KEY_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
-    private static final String STORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
+    private static final String TRIPLESTORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
 
     @Override
     public void delete(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            ScanParams params = new ScanParams();
-            params.match(String.format(STORE_DATA_PATTERN, triplestoreID));
-            String cursor = SCAN_POINTER_START;
-            Set<String> collector = new HashSet<>();
-            do {
-                ScanResult<String> scanResult = jedis.scan(cursor, params);
-                List<String> res = scanResult.getResult();
-                collector.addAll(res);
-                cursor = scanResult.getCursor();
-            } while (!cursor.equals(SCAN_POINTER_START));
             Transaction t = jedis.multi();
-            collector.forEach(t::del);
+            Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
             t.exec();
         }
     }
@@ -66,13 +52,8 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
             List<Response<String>> responses = new ArrayList<>(trapdoors.size());
             trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
             p.sync();
-
             List<String> res = new ArrayList<>(trapdoors.size());
-
-            for (int i = 0; i < responses.size(); i++)
-                res.add(responses.get(i).get());
-            System.out.println("Prepared Search: " + res.size());
-
+            for (Response<String> r : responses) res.add(r.get());
             return res;
         }
     }

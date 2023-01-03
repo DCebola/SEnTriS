@@ -9,25 +9,23 @@ import java.util.List;
 
 public interface StorageEngine {
 
-    void deleteStore(String storeID);
+    void delete(String triplestoreID);
 
-    void saveTriple(String storeID, String[] triple) throws InvalidNodeException;
+    void delete(String triplestoreID, List<String[]> triples);
 
-    IRITable findSubjects(String storeID, Node predicate, Node object, Var var);
+    void save(String triplestoreID, List<String[]> triples);
 
-    IRITable findPredicates(String storeID, Node subject, Node object, Var var);
+    IRITable findS(String triplestoreID, Node predicate, Node object, Var subject) throws InvalidNodeException;
 
-    IRITable findObjects(String storeID, Node subject, Node predicate, Var var);
+    IRITable findP(String triplestoreID, Node subject, Node object, Var predicate) throws InvalidNodeException;
 
-    IRITable findSP(String storeID, Node object, Var var1, Var var2);
+    IRITable findO(String triplestoreID, Node subject, Node predicate, Var object) throws InvalidNodeException;
 
-    IRITable findSO(String storeID, Node predicate, Var var1, Var var2);
+    IRITable findSP(String triplestoreID, Node object, Var subject, Var predicate) throws InvalidNodeException;
 
-    IRITable findPO(String storeID, Node subject, Var var1, Var var2);
+    IRITable findSO(String triplestoreID, Node predicate, Var subject, Var object) throws InvalidNodeException;
 
-    IRITable findAll(String storeID, Var var1, Var var2, Var var3);
-
-    String parseNodeIRI(Node node) throws InvalidNodeException;
+    IRITable findPO(String triplestoreID, Node subject, Var predicate, Var object) throws InvalidNodeException;
 
     Node generateNode(String iri);
 

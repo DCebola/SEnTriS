@@ -3,7 +3,6 @@ package pt.fct.nova.id.srv.application.clients;
 import pt.fct.nova.id.srv.application.UUIDUtils;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.redis.Redis;
-import pt.fct.nova.id.srv.application.redis.Utils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 
@@ -128,13 +127,13 @@ public class LocksClient {
 
     public static synchronized void deleteUserTriplestoreLock(String username, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            deleteUserLocks(jedis, Utils.scan(jedis, String.format(USER_TRIPLESTORE_LOCK_PATTERN, username, triplestoreID)));
+            deleteUserLocks(jedis, Redis.scan(jedis, String.format(USER_TRIPLESTORE_LOCK_PATTERN, username, triplestoreID)));
         }
     }
 
     public static synchronized void deleteAllUserLocks(String username) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            deleteUserLocks(jedis, Utils.scan(jedis, String.format(USER_ALL_LOCKS_PATTERN, username)));
+            deleteUserLocks(jedis, Redis.scan(jedis, String.format(USER_ALL_LOCKS_PATTERN, username)));
         }
     }
 

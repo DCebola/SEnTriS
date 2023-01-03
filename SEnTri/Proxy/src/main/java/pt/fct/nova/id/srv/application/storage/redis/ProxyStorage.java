@@ -48,6 +48,24 @@ public class ProxyStorage {
         }
     }
 
+    public static List<Integer> getSearchIntersection(SecretKey key, List<String> encryptedValues, String searchID) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            List<String> encryptedNodes = jedis.lrange(searchID, 0, -1);
+            List<String> nodes = new ArrayList<>(encryptedNodes.size());
+            Set<String> values = new HashSet<>();
+            for (String value : encryptedValues)
+                values.add(decrypt(key, value));
+            for (String node : encryptedNodes)
+                nodes.add(decrypt(key, node));
+            List<Integer> res = new LinkedList<>();
+            for (int i = 0; i < nodes.size(); i++) {
+                if (values.contains(nodes.get(i)))
+                    res.add(i);
+            }
+            return res;
+        }
+    }
+
     public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
@@ -75,7 +93,7 @@ public class ProxyStorage {
         }
     }
 
-    private static String decrypt(SecretKey key, String encryptedNode) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return base64Encoder.encodeToString(SymmetricCipher.decrypt(key, base64Decoder.decode(encryptedNode)));
+    private static String decrypt(SecretKey key, String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return base64Encoder.encodeToString(SymmetricCipher.decrypt(key, base64Decoder.decode(ciphertext)));
     }
 }

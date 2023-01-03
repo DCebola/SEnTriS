@@ -41,7 +41,7 @@ public interface TriplestoreAPI {
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
-                    List<Triple> triples,
+                    List<String[]> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

@@ -379,40 +379,20 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     public void visitUpdate(UpdateDataInsert op) {
         setQueryType(QueryType.INSERT_DATA);
-        Triple triple;
-        for (Quad quad : op.getQuads()) {
-            triple = quad.asTriple();
-            uploadTemplate.add(triple);
-        }
+        op.getQuads().forEach(quad -> uploadTemplate.add(quad.asTriple()));
     }
 
     public void visitUpdate(UpdateDataDelete op) {
         setQueryType(QueryType.DELETE_DATA);
-        Triple triple;
-        for (Quad quad : op.getQuads()) {
-            triple = quad.asTriple();
-            deleteTemplate.add(triple);
-        }
+        op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {
         setQueryType(QueryType.MODIFY);
-        List<Var> vars = new LinkedList<>();
-        Triple triple;
-        if (op.hasInsertClause()) {
-            for (Quad quad : op.getInsertQuads()) {
-                triple = quad.asTriple();
-                uploadTemplate.add(triple);
-                vars.addAll(extractVars(triple));
-            }
-        }
-        if (op.hasDeleteClause()) {
-            for (Quad quad : op.getDeleteQuads()) {
-                triple = quad.asTriple();
-                deleteTemplate.add(triple);
-                vars.addAll(extractVars(triple));
-            }
-        }
-        OpWalker.walk(new OpProject(algebraGenerator.compile(op.getWherePattern()), vars), this);
+        if (op.hasInsertClause())
+            op.getInsertQuads().forEach(quad -> uploadTemplate.add(quad.asTriple()));
+        if (op.hasDeleteClause())
+            op.getDeleteQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+        OpWalker.walk(algebraGenerator.compile(op.getWherePattern()), this);
     }
 }

@@ -46,9 +46,10 @@ public class ParsingUtils {
     public static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
     private static final String BLANK_IRI_PREFIX = "B";
     private static final String SIMPLE_IRI_PREFIX = "S";
+    private static final String LITERAL_IRI_PREFIX = "L";
     private final static String BLANK_IRI = BLANK_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final String SIMPLE_IRI = SIMPLE_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
-    private static final String LITERAL_IRI = "L".concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
+    private static final String LITERAL_IRI = LITERAL_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;
     private static final int LITERAL_IRI_DATATYPE_POS = 2;

@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.SortCondition;
@@ -12,67 +13,51 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
+import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
-
 public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
-    private final String storeID;
+    private final String triplestoreID;
     private final SPARQLResult result;
 
-    public DefaultSPARQLWorker(String storeID, StorageEngine storageEngine) {
-        this.storeID = storeID;
+    public DefaultSPARQLWorker(String triplestoreID, StorageEngine storageEngine) {
+        this.triplestoreID = triplestoreID;
         this.storageEngine = storageEngine;
         result = new DefaultSPARQLResult();
     }
 
     @Override
     public IRITable exec(Job job) throws SPARQLExecutionException {
-        if (job instanceof SearchJob) return execGet((SearchJob) job);
+        if (job instanceof SearchJob) return execSearch((SearchJob) job);
         else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execGet(SearchJob job) throws SPARQLExecutionException {
+    private IRITable execSearch(SearchJob job) throws SPARQLExecutionException {
+
         Node s = job.getSubject();
         Node p = job.getPredicate();
         Node o = job.getObject();
-        VariablesPattern vp = job.getVariablesPattern();
-        IRITable res = switch (vp) {
-            case S -> retrieveGetResults(S, Var.alloc(s), p, o);
-            case P -> retrieveGetResults(P, Var.alloc(p), s, o);
-            case O -> retrieveGetResults(O, Var.alloc(o), s, p);
-            case SP -> retrieveGetResults(SP, Var.alloc(s), Var.alloc(p), o);
-            case SO -> retrieveGetResults(SO, Var.alloc(s), Var.alloc(o), p);
-            case PO -> retrieveGetResults(PO, Var.alloc(p), Var.alloc(o), s);
-            case SPO -> storageEngine.findAll(storeID, Var.alloc(s), Var.alloc(p), Var.alloc(o));
-        };
-        if (res == null)
-            throw new SearchJobPatternException(job.getClass().toString(), job.getID(), job.getVariablesPattern());
-        return res;
-    }
 
-    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var, Node node1, Node node2) {
-        if (varPattern == VariablesPattern.S) return storageEngine.findSubjects(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.P) return storageEngine.findPredicates(storeID, node1, node2, var);
-        else if (varPattern == VariablesPattern.O) return storageEngine.findObjects(storeID, node1, node2, var);
-        return null;
-    }
-
-    private IRITable retrieveGetResults(VariablesPattern varPattern, Var var1, Var var2, Node node) {
-        if (varPattern == VariablesPattern.SP)
-            return storageEngine.findSP(storeID, node, var1, var2);
-        else if (varPattern == VariablesPattern.SO)
-            return storageEngine.findSO(storeID, node, var1, var2);
-        else if (varPattern == VariablesPattern.PO)
-            return storageEngine.findPO(storeID, node, var1, var2);
-        return null;
+        try {
+            return switch (job.getVariablesPattern()) {
+                case S -> storageEngine.findS(triplestoreID, p, o, Var.alloc(s));
+                case P -> storageEngine.findP(triplestoreID, s, o, Var.alloc(p));
+                case O -> storageEngine.findO(triplestoreID, s, p, Var.alloc(o));
+                case SP -> storageEngine.findSP(triplestoreID, o, Var.alloc(s), Var.alloc(p));
+                case SO -> storageEngine.findSO(triplestoreID, p, Var.alloc(s), Var.alloc(o));
+                case PO -> storageEngine.findPO(triplestoreID, s, Var.alloc(p), Var.alloc(o));
+                case SPO -> throw new NotImplemented();
+            };
+        } catch (InvalidNodeException e) {
+            throw new SPARQLExecutionException("Invalid node.");
+        }
     }
 
     @Override
@@ -96,7 +81,6 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
         result.setOrdered(true);
-        List<SerializableSortCondition> serializableSortConditions = job.getSortConditions();
         result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }

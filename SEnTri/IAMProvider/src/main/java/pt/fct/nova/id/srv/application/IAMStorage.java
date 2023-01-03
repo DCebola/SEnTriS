@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.NewCookie;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.redis.Redis;
 
-import pt.fct.nova.id.srv.application.redis.Utils;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -260,7 +259,7 @@ public class IAMStorage {
             Set<String> owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
             if (owns && !write && !read)
                 return owned;
-            Set<String> triplestoreIDs = Utils.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
+            Set<String> triplestoreIDs = Redis.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
             if (!owns && !write && !read)
                 return triplestoreIDs;
             Pipeline p = jedis.pipelined();
