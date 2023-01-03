@@ -29,4 +29,7 @@ public interface StorageEngine {
 
     Node generateNode(String iri);
 
+    String parseNodeIRI(Node node) throws InvalidNodeException;
+
+
 }

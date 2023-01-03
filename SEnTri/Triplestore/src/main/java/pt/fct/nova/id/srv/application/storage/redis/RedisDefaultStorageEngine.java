@@ -26,6 +26,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     private static final String LITERAL_IRI_PREFIX = "L";
     private static final String SIMPLE_IRI = SIMPLE_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final String LITERAL_IRI = LITERAL_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
+    private final static String BLANK_IRI = BLANK_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
     private static final int IRI_PREFIX_POS = 0;
     private static final int IRI_VALUE_POS = 1;
     private static final int LITERAL_IRI_DATATYPE_POS = 2;
@@ -50,6 +51,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (String[] triple : triples) {
+                System.out.println("Deleting" + Arrays.toString(triple));
                 String s = triple[0];
                 String p = triple[1];
                 String o = triple[2];
@@ -129,6 +131,17 @@ public class RedisDefaultStorageEngine implements StorageEngine {
                     TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
 
+    @Override
+    public String parseNodeIRI(Node node) throws InvalidNodeException {
+        if (!node.isConcrete())
+            throw new InvalidNodeException();
+        if (node.isURI())
+            return String.format(SIMPLE_IRI, node.getURI());
+        else if (node.isLiteral())
+            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+        else
+            return String.format(BLANK_IRI, node.getBlankNodeId());
+    }
     @Override
     public IRITable findS(String triplestoreID, Node predicate, Node object, Var subject) throws InvalidNodeException {
         String keyword = String.format(COMPOUND_KEYWORD, parseKeyword(predicate), parseKeyword(object));

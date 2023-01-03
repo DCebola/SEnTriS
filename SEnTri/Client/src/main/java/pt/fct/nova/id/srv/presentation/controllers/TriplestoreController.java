@@ -229,7 +229,6 @@ public class TriplestoreController implements TriplestoreAPI {
             triplesToUpload = planner.getUploadTemplate();
         else if (queryType == DELETE_DATA)
             triplesToDelete = planner.getDeleteTemplate();
-        /*
         response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
         if (response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -242,7 +241,6 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
-        */
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         return Response.ok(new JSONObject().put("Uploads", triplesToUpload.size()).put("Deletions", triplesToDelete.size()).toString()).build();
@@ -270,7 +268,7 @@ public class TriplestoreController implements TriplestoreAPI {
             for (SerializableBinding binding : sparqlResult.getBindings()) {
                 for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                     Var var = it.next();
-                    builder.add(var, NodeFactory.createURI(binding.get(var)));
+                    builder.add(var, ParsingUtils.generateNode(binding.get(var)));
                 }
                 bindings.add(builder.build());
                 builder.reset();

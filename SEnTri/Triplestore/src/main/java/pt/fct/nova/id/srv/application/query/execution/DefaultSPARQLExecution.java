@@ -61,7 +61,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public void exec(SPARQLWorker worker) throws SPARQLExecutionException{
+    public void exec(SPARQLWorker worker) throws SPARQLExecutionException {
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));

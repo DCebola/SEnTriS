@@ -143,7 +143,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public SPARQLResult generateResults(IRITable jobResults) {
+    public SPARQLResult generateResults(IRITable jobResults) throws SPARQLExecutionException {
         Collection<SerializableBinding> serializableBindings;
         boolean isDistinct = result.isDistinct();
         boolean isOrdered = result.isOrdered();
@@ -196,14 +196,18 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
         return bindings;
     }
 
-    private Collection<SerializableBinding> generateSerializableBindings(Collection<Binding> bindings) {
+    private Collection<SerializableBinding> generateSerializableBindings(Collection<Binding> bindings) throws SPARQLExecutionException {
         List<SerializableBinding> serializableBindings = new ArrayList<>(bindings.size());
         HashMap<Var, String> values;
         for (Binding binding : bindings) {
             values = new HashMap<>();
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                values.put(var, binding.get(var).getURI());
+                try {
+                    values.put(var, storageEngine.parseNodeIRI(binding.get(var)));
+                } catch (InvalidNodeException e) {
+                    throw new SPARQLExecutionException("Invalid node.");
+                }
             }
             serializableBindings.add(new SerializableBinding(values));
         }
