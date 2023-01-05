@@ -161,7 +161,6 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     private IRITable find(String keyword, Var var) {
-
         IRITable res = new MemIRITable();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Set<String> iris = jedis.smembers(keyword);

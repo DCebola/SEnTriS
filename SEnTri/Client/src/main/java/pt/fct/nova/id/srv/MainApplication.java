@@ -14,7 +14,6 @@ public class MainApplication extends Application {
         resources.add(ControlController.class);
         resources.add(UsersController.class);
         resources.add(EncryptedTriplestoreV1Controller.class);
-        resources.add(EncryptedTriplestoreV2Controller.class);
         resources.add(TriplestoreController.class);
     }
 

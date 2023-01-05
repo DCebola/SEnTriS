@@ -26,8 +26,8 @@ import static pt.fct.nova.id.srv.presentation.controllers.UsersController.UNKNOW
 
 @Path("/triplestores")
 public class TriplestoresController implements TriplestoresAPI {
-    private static final String TRIPLESTORE_ALREADY_EXISTS = "Store already exists.";
-    public static final String UNKNOWN_TRIPLESTORE = "Store not found.";
+    private static final String TRIPLESTORE_ALREADY_EXISTS = "Triplestore already exists.";
+    public static final String UNKNOWN_TRIPLESTORE = "Triplestore not found.";
     private static final String ALREADY_OWNS = "Already owns triplestore.";
     private static final String SUCCESSFUL_TRIPLESTORE_OWNER_CHANGE = "Successful change of triplestore ownership.";
     private static final String SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_CREATION = "Successful creation of triplestore access policy.";

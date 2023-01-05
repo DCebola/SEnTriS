@@ -55,3 +55,52 @@ OPTIONAL
   }
 } 
 ORDER BY ASC(?member) ASC(?graduateCourse)
+
+#Query18: INSERT DATA
+#Upload data of a new graduate student
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+INSERT DATA {
+<http://www.Department0.University0.edu/GraduateStudent146>
+  a ub:GraduateStudent ;
+  ub:name "GraduateStudent146" ;
+  ub:memberOf <http://www.Department0.University0.edu> ;
+  ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
+  ub:telephone "xxx-xxx-xxxx" ;
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
+  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
+}
+
+
+
+#Query20: DELETE DATA
+#Delete data of a the new graduate student.
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+DELETE DATA {
+<http://www.Department0.University0.edu/GraduateStudent146>
+  a ub:GraduateStudent ;
+  ub:name "GraduateStudent146" ;
+  ub:memberOf <http://www.Department0.University0.edu> ;
+  ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
+  ub:telephone "xxx-xxx-xxxx" ;
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
+  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
+}
+
+#Query21
+#Delete data of a the new graduate student, but via pattern matching.
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+DELETE WHERE {<http://www.Department0.University0.edu/GraduateStudent146> ?p ?o}
+
+#Query 20: INSERT/DELETE
+#Update all graduate students' phone numbers.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+DELETE {?graduate ub:telephone ?phoneNumber}
+INSERT {?graduate ub:telephone "yyy-yyy-yyyy"}
+WHERE
+{
+   ?graduate a ub:GraduateStudent;
+   ub:telephone ?phoneNumber
+} 

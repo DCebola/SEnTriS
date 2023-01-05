@@ -7,5 +7,6 @@ public enum QueryType {
     DESCRIBE,
     INSERT_DATA,
     DELETE_DATA,
+    DELETE_WHERE,
     MODIFY
 }

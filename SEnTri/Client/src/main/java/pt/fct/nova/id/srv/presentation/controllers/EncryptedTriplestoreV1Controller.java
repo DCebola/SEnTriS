@@ -60,6 +60,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     @Override
     public Response create(Cookie cookie, UploadForm form) {
+        if(cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
@@ -115,6 +117,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     @Override
     public Response delete(Cookie cookie, String triplestoreID, String issuer) {
+        if(cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = EncryptedTriplestoreController.deleteEncryptedTriplestore(httpClient, cookie, triplestoreID, issuer);
             if (response.getStatus() != OK)
@@ -127,6 +131,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     @Override
     public Response upload(Cookie cookie, UploadForm form) {
+        if(cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
@@ -182,6 +188,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     @Override
     public Response answerSPARQLQuery(Cookie cookie, QueryForm form) {
+        if(cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();

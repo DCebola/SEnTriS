@@ -11,6 +11,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -184,35 +185,35 @@ public class Utils {
                     case S -> {
                         val1 = binding.get(Var.alloc(s));
                         if (val1 != null)
-                            g.add(Triple.create(NodeFactory.createURI(val1), p, o));
+                            g.add(Triple.create(ParsingUtils.generateNode(val1), p, o));
                     }
                     case P -> {
                         val1 = binding.get(Var.alloc(p));
                         if (val1 != null)
-                            g.add(Triple.create(s, NodeFactory.createURI(val1), o));
+                            g.add(Triple.create(s, ParsingUtils.generateNode(val1), o));
                     }
                     case O -> {
                         val1 = binding.get(Var.alloc(o));
                         if (val1 != null)
-                            g.add(Triple.create(s, p, NodeFactory.createURI(val1)));
+                            g.add(Triple.create(s, p, ParsingUtils.generateNode(val1)));
                     }
                     case SP -> {
                         val1 = binding.get(Var.alloc(s));
                         val2 = binding.get(Var.alloc(p));
                         if (val1 != null && val2 != null)
-                            g.add(Triple.create(NodeFactory.createURI(val1), NodeFactory.createURI(val2), o));
+                            g.add(Triple.create(ParsingUtils.generateNode(val1), ParsingUtils.generateNode(val2), o));
                     }
                     case SO -> {
                         val1 = binding.get(Var.alloc(s));
                         val2 = binding.get(Var.alloc(o));
                         if (val1 != null && val2 != null)
-                            g.add(Triple.create(NodeFactory.createURI(val1), p, NodeFactory.createURI(val2)));
+                            g.add(Triple.create(ParsingUtils.generateNode(val1), p, ParsingUtils.generateNode(val2)));
                     }
                     case PO -> {
                         val1 = binding.get(Var.alloc(p));
                         val2 = binding.get(Var.alloc(o));
                         if (val1 != null && val2 != null)
-                            g.add(Triple.create(s, NodeFactory.createURI(val1), NodeFactory.createURI(val2)));
+                            g.add(Triple.create(s, ParsingUtils.generateNode(val1), ParsingUtils.generateNode(val2)));
                     }
                     case SPO -> g.add(t);
                 }
@@ -234,35 +235,35 @@ public class Utils {
                     case S -> {
                         val1 = binding.get(Var.alloc(s));
                         if (val1 != null)
-                            triples.add(Triple.create(NodeFactory.createURI(val1), p, o));
+                            triples.add(Triple.create(ParsingUtils.generateNode(val1), p, o));
                     }
                     case P -> {
                         val1 = binding.get(Var.alloc(p));
                         if (val1 != null)
-                            triples.add(Triple.create(s, NodeFactory.createURI(val1), o));
+                            triples.add(Triple.create(s, ParsingUtils.generateNode(val1), o));
                     }
                     case O -> {
                         val1 = binding.get(Var.alloc(o));
                         if (val1 != null)
-                            triples.add(Triple.create(s, p, NodeFactory.createURI(val1)));
+                            triples.add(Triple.create(s, p, ParsingUtils.generateNode(val1)));
                     }
                     case SP -> {
                         val1 = binding.get(Var.alloc(s));
                         val2 = binding.get(Var.alloc(p));
                         if (val1 != null && val2 != null)
-                            triples.add(Triple.create(NodeFactory.createURI(val1), NodeFactory.createURI(val2), o));
+                            triples.add(Triple.create(ParsingUtils.generateNode(val1), ParsingUtils.generateNode(val2), o));
                     }
                     case SO -> {
                         val1 = binding.get(Var.alloc(s));
                         val2 = binding.get(Var.alloc(o));
                         if (val1 != null && val2 != null)
-                            triples.add(Triple.create(NodeFactory.createURI(val1), p, NodeFactory.createURI(val2)));
+                            triples.add(Triple.create(ParsingUtils.generateNode(val1), p, ParsingUtils.generateNode(val2)));
                     }
                     case PO -> {
                         val1 = binding.get(Var.alloc(p));
                         val2 = binding.get(Var.alloc(o));
                         if (val1 != null && val2 != null)
-                            triples.add(Triple.create(s, NodeFactory.createURI(val1), NodeFactory.createURI(val2)));
+                            triples.add(Triple.create(s, ParsingUtils.generateNode(val1), ParsingUtils.generateNode(val2)));
                     }
                     case SPO -> triples.add(t);
                 }

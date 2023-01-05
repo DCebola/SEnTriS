@@ -5,7 +5,6 @@ import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecution
 import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
-import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
 public interface SPARQLWorker {

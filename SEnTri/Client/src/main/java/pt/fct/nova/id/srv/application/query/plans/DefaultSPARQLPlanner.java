@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
+import com.sun.tools.rngom.binary.ElementPattern;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -20,6 +21,7 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
+import javax.lang.model.element.Element;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.Utils.*;
@@ -94,8 +96,10 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
             visitUpdate(op);
         } else if (update instanceof UpdateModify op) {
             visitUpdate(op, algebraGenerator);
+        } else if (update instanceof UpdateDeleteWhere op) {
+            visitUpdate(op);
         } else {
-            throw new IllegalStateException("Unexpected value: " + update);
+            throw new NotImplemented();
         }
         return plan;
     }
@@ -385,6 +389,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     public void visitUpdate(UpdateDataDelete op) {
         setQueryType(QueryType.DELETE_DATA);
         op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+    }
+
+    public void visitUpdate(UpdateDeleteWhere op) {
+        setQueryType(QueryType.MODIFY);
+        op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+        OpWalker.walk(new OpBGP(BasicPattern.wrap(deleteTemplate)), this);
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {

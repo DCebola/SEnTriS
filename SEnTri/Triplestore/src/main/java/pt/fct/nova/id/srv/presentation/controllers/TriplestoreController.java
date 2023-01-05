@@ -117,6 +117,7 @@ public class TriplestoreController implements TriplestoreAPI {
             storageEngine.delete(triplestoreID, triples);
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
