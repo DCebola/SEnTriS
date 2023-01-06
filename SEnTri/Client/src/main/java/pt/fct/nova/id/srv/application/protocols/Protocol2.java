@@ -14,15 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Protocol2 implements EncryptionProtocol {
-    @Override
-    public Map<String, String> init(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return null;
-    }
-
-    @Override
-    public void update(List<String> keywords, List<String> keywordFrequency) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-
-    }
 
     public void exec(List<Triple> triples) {
         //TODO: Check database already exists.

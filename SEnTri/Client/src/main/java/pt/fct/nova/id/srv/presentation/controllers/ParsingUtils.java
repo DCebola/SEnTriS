@@ -26,6 +26,7 @@ import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
+import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
@@ -37,6 +38,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
 public class ParsingUtils {
@@ -127,6 +130,11 @@ public class ParsingUtils {
         }.getType());
     }
 
+    public static Set<Integer> parseSetOfIntegers(String results) {
+        return gson.fromJson(results, new TypeToken<Set<Integer>>() {
+        }.getType());
+    }
+
     public static SPARQLResult parseSPARQLResult(String results) throws IOException, ClassNotFoundException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(base64Decoder.decode(results));
              ObjectInputStream ois = new ObjectInputStream(is)) {
@@ -212,5 +220,11 @@ public class ParsingUtils {
     }
 
 
+    public static String generateKeyword(VariablesPattern pattern, String keyword1, String keyword2) {
+        return String.format(KEYWORD_FORMAT, pattern, String.format(COMPOUND_KEYWORD, keyword1, keyword2));
+    }
 
+    public static String generateKeyword(VariablesPattern pattern, String keyword) {
+        return String.format(KEYWORD_FORMAT, pattern, keyword);
+    }
 }

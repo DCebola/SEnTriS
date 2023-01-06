@@ -9,6 +9,7 @@ import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.iri_tables.*;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
@@ -142,6 +143,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
         else
             return String.format(BLANK_IRI, node.getBlankNodeId());
     }
+
     @Override
     public IRITable findS(String triplestoreID, Node predicate, Node object, Var subject) throws InvalidNodeException {
         String keyword = String.format(COMPOUND_KEYWORD, parseKeyword(predicate), parseKeyword(object));
@@ -200,7 +202,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
                         res.add(p_idx, var2, iris[1]);
                     }
             );
-            System.out.println(keyword + " | " + var1.getVarName() + " | " + var2.getVarName()+ " | " + res.getPatterns().size());
+            System.out.println(keyword + " | " + var1.getVarName() + " | " + var2.getVarName() + " | " + res.getPatterns().size());
             return res;
         } catch (Exception e) {
             e.printStackTrace();

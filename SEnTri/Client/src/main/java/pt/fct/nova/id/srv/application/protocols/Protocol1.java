@@ -22,7 +22,7 @@ public class Protocol1 implements EncryptionProtocol {
     private final byte[] ivDET;
     private final byte[] ivRND;
     private final SecretKey kMASTER, kRND, kDET;
-    private final Map<String, String> encryptedT;
+    private final Map<String, String> encryptedNodes;
     private final Map<String, Integer> keywordFrequency;
     private final Map<String, byte[]> keywordsIVs;
     private final Map<String, SecretKey> keywordDerivedKeys;
@@ -35,7 +35,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.kMASTER = kMASTER;
         this.kRND = kRND;
         this.kDET = kDET;
-        this.encryptedT = new HashMap<>();
+        this.encryptedNodes = new HashMap<>();
         this.keywordFrequency = new HashMap<>();
         this.keywordDerivedKeys = new HashMap<>();
         this.keywordsIVs = new HashMap<>();
@@ -49,7 +49,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.kMASTER = SymmetricCipher.generateKey();
         this.kRND = SymmetricCipher.generateKey();
         this.kDET = SymmetricCipher.generateKey();
-        this.encryptedT = new HashMap<>();
+        this.encryptedNodes = new HashMap<>();
         this.keywordFrequency = new HashMap<>();
         this.keywordDerivedKeys = new HashMap<>();
         this.keywordsIVs = new HashMap<>();
@@ -77,8 +77,8 @@ public class Protocol1 implements EncryptionProtocol {
         return keywordFrequency;
     }
 
-    public Map<String, String> getEncryptedT() {
-        return encryptedT;
+    public Map<String, String> getEncryptedNodes() {
+        return encryptedNodes;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class Protocol1 implements EncryptionProtocol {
         keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
         byte[] st = generateDETLayer(getKeywordDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), getKeywordIV(keyword));
         byte[] ct = generateRNDLayer(generateDETLayer(kDET, node.getBytes(StandardCharsets.UTF_8), ivDET));
-        encryptedT.put(
+        encryptedNodes.put(
                 base64Encoder.encodeToString(st),
                 base64Encoder.encodeToString(ct)
         );
@@ -134,7 +134,7 @@ public class Protocol1 implements EncryptionProtocol {
         for (String keyword : keywordFrequency.keySet()) {
             byte[] st = generateDETLayer(keywordDerivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.generateZeroFilledIV());
             byte[] ct = generateRNDLayer(Utils.integerToByteArray(keywordFrequency.get(keyword)));
-            encryptedT.put(
+            encryptedNodes.put(
                     base64Encoder.encodeToString(st),
                     base64Encoder.encodeToString(ct)
             );
@@ -142,9 +142,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     public byte[] generateRNDLayer(byte[] deterministicCiphertext) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        byte[] ciphertext = SymmetricCipher.encrypt(deterministicCiphertext, kRND, ivRND);
-        SymmetricCipher.incrementIV(ivRND);
-        return ciphertext;
+        return SymmetricCipher.encrypt(deterministicCiphertext, kRND, SymmetricCipher.generateRandomIV());
     }
 
     public byte[] generateDETLayer(SecretKey key, byte[] plaintext, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -199,57 +197,4 @@ public class Protocol1 implements EncryptionProtocol {
         } else
             keywordFrequency.put(keyword, keywordCount + 1);
     }
-
-    public Map<String, String> init(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        HashMap<String, String> trapdoors = new HashMap<>();
-        String s, p, o, po, so, sp;
-        for (Triple t : triples) {
-            s = ParsingUtils.parseKeyword(t.getSubject());
-            p = ParsingUtils.parseKeyword(t.getPredicate());
-            o = ParsingUtils.parseKeyword(t.getObject());
-            po = String.format(COMPOUND_KEYWORD, p, o);
-            so = String.format(COMPOUND_KEYWORD, s, o);
-            sp = String.format(COMPOUND_KEYWORD, s, p);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, s);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, s);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, p);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, p);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, o);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, o);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.S, po);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.P, so);
-            generateDistinctKeywordTrapdoor(trapdoors, VariablesPattern.O, sp);
-        }
-        return trapdoors;
-    }
-
-    private void generateDistinctKeywordTrapdoor(HashMap<String, String> trapdoors, VariablesPattern pattern, String keyword) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        keyword = String.format(KEYWORD_FORMAT, pattern, keyword);
-        if (!trapdoors.containsKey(keyword))
-            trapdoors.put(keyword, generateTrapdoor(keyword));
-    }
-
-    public void update(List<String> keywords, List<String> keywordFrequency) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        int max = -1;
-        int frequency;
-        byte[] iv = SymmetricCipher.generateZeroFilledIV();
-        Map<Integer, byte[]> generatedIvs = new HashMap<>();
-        generatedIvs.put(0, iv);
-        int i = 0;
-        for (String f : keywordFrequency) {
-            frequency = Utils.integerFromByteArray(decryptRNDLayer(f));
-            if (frequency > max) {
-                for (int j = 0; j < frequency - max; j++) {
-                    SymmetricCipher.incrementIV(iv);
-                    generatedIvs.put(frequency - j, iv.clone());
-                }
-                max = frequency;
-            }
-            keywordsIVs.put(keywords.get(i), generatedIvs.get(frequency).clone());
-            this.keywordFrequency.put(keywords.get(i), frequency);
-            i++;
-        }
-    }
-
-
 }

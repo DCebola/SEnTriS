@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.query;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.core.Var;
@@ -35,37 +34,6 @@ public class Utils {
             return PO;
         else
             return SPO;
-    }
-
-    public static List<Var> extractVars(Triple triple) {
-        Node s = triple.getSubject();
-        Node p = triple.getPredicate();
-        Node o = triple.getObject();
-        List<Var> res = new LinkedList<>();
-        switch (extractVariablesPattern(s, p, o)) {
-            case S -> res.add(Var.alloc(s));
-            case P -> res.add(Var.alloc(p));
-            case O -> res.add(Var.alloc(o));
-            case SP -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(p));
-            }
-            case SO -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(o));
-            }
-            case PO -> {
-                res.add(Var.alloc(p));
-                res.add(Var.alloc(o));
-            }
-            case SPO -> {
-                res.add(Var.alloc(s));
-                res.add(Var.alloc(p));
-                res.add(Var.alloc(o));
-            }
-        }
-        return res;
-
     }
 
     public static Set<Var> extractVars(SearchJob job) {

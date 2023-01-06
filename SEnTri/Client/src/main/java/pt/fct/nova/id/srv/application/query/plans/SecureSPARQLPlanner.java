@@ -23,6 +23,13 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.MinusJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.OptionalJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
@@ -73,7 +80,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     @Override
-    public void setQueryType(QueryType queryType){
+    public void setQueryType(QueryType queryType) {
         this.queryType = queryType;
     }
 
@@ -177,7 +184,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         Map<Var, String> searches = new HashMap<>();
         var = obfuscateVar(var);
         String jobID = generateID();
-        String keyword = String.format(KEYWORD_FORMAT, pattern, String.format(COMPOUND_KEYWORD, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3)));
+        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3));
         searches.put(var, keyword);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
@@ -186,9 +193,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
         Map<Var, String> searches = new HashMap<>();
-        String nodeKeyword = ParsingUtils.parseKeyword(node);
         String jobID = generateID();
-        String keyword = String.format(KEYWORD_FORMAT, pattern, nodeKeyword);
+        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node));
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
         var1 = obfuscateVar(var1);
@@ -443,4 +449,25 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         throw new NotImplemented();
     }
 
+
+    private void generateUpdateSearchJobs(List<Triple> triples) throws InvalidNodeException {
+        String s, p, o, po, so, sp;
+        for (Triple t : triples) {
+            s = ParsingUtils.parseKeyword(t.getSubject());
+            p = ParsingUtils.parseKeyword(t.getPredicate());
+            o = ParsingUtils.parseKeyword(t.getObject());
+            po = String.format(COMPOUND_KEYWORD, p, o);
+            so = String.format(COMPOUND_KEYWORD, s, o);
+            sp = String.format(COMPOUND_KEYWORD, s, p);
+            ParsingUtils.generateKeyword(P, s);
+            ParsingUtils.generateKeyword(O, s);
+            ParsingUtils.generateKeyword(S, p);
+            ParsingUtils.generateKeyword(O, p);
+            ParsingUtils.generateKeyword(S, o);
+            ParsingUtils.generateKeyword(P, o);
+            ParsingUtils.generateKeyword(S, po);
+            ParsingUtils.generateKeyword(P, so);
+            ParsingUtils.generateKeyword(O, sp);
+        }
+    }
 }

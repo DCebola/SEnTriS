@@ -8,7 +8,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.riot.Lang;
@@ -17,7 +16,6 @@ import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
@@ -52,7 +50,6 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-
     public static final String INVALID_COOKIE = "Malformed cookie.";
 
     @Override
@@ -127,13 +124,14 @@ public class TriplestoreController implements TriplestoreAPI {
 
     private Response upload(HttpClient httpClient, Cookie cookie, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException, URISyntaxException {
         HTTPResponse response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-        if (response.getStatus() != OK)
-            return deleteAccessToken(httpClient, cookie, triplestoreID, accessToken).build();
+        if (response.getStatus() != OK) {
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response.build();
+        }
 
-        response = uploadSome(httpClient, triplestoreID, triples, accessToken);
+        response = upload(httpClient, triplestoreID, triples, accessToken);
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-
         return response.build();
     }
 
@@ -242,26 +240,18 @@ public class TriplestoreController implements TriplestoreAPI {
             triplesToUpload = planner.getUploadTemplate();
         else if (queryType == DELETE_DATA)
             triplesToDelete = planner.getDeleteTemplate();
-        if (!triplesToDelete.isEmpty()) {
-            ParsingUtils.serializeTriples(triplesToDelete).forEach(t -> System.out.println(t[0] + " | " + t[1] + " | " + t[2]));
-            response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
-        }
-        if (!triplesToUpload.isEmpty()) {
-            response = uploadSome(httpClient, triplestoreID, triplesToUpload, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
-        }
+        return updateTriplestore(httpClient, cookie, triplestoreID, accessToken, triplesToUpload, triplesToDelete);
+    }
+
+    private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, List<Triple> triplesToUpload, List<Triple> triplesToDelete) throws IOException, InvalidNodeException {
+        JSONObject responseBody = new JSONObject();
+        if (!triplesToDelete.isEmpty())
+            responseBody = responseBody.put("Delete Response:", deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken).getBody());
+        if (!triplesToUpload.isEmpty())
+            responseBody = responseBody.put("Insert Response:", upload(httpClient, triplestoreID, triplesToUpload, accessToken).getBody());
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-        return Response.ok(new JSONObject().put("Uploads", triplesToUpload.size()).put("Deletions", triplesToDelete.size()).toString()).build();
+        return Response.ok(responseBody).build();
     }
 
     public static Response generateASKResults(SPARQLResult sparqlResult) throws IOException {
@@ -502,7 +492,7 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private HTTPResponse uploadSome(HttpClient httpClient, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
+    private HTTPResponse upload(HttpClient httpClient, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
         try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, triplestoreID, triples, accessToken)) {
             return new HTTPResponse(response);
         }

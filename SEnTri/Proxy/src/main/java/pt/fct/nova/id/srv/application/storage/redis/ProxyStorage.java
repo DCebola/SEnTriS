@@ -48,25 +48,30 @@ public class ProxyStorage {
         }
     }
 
-    public static List<Integer> getSearchIntersection(SecretKey key, List<String> encryptedValues, String searchID) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public static Set<Integer> testValues(SecretKey key, Set<String> values, Set<String> searchIDs) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<String> encryptedNodes = jedis.lrange(searchID, 0, -1);
-            List<String> nodes = new ArrayList<>(encryptedNodes.size());
-            Set<String> values = new HashSet<>();
-            for (String value : encryptedValues)
-                values.add(decrypt(key, value));
-            for (String node : encryptedNodes)
-                nodes.add(decrypt(key, node));
-            List<Integer> res = new LinkedList<>();
-            for (int i = 0; i < nodes.size(); i++) {
-                if (values.contains(nodes.get(i)))
-                    res.add(i);
+            Pipeline p = jedis.pipelined();
+            List<Response<List<String>>> responses = new ArrayList<>(searchIDs.size());
+            for (String searchID : searchIDs)
+                responses.add(p.lrange(searchID, 0, -1));
+            List<String> encryptedNodes, nodes;
+            Set<Integer> res = new HashSet<>();
+            for (Response<List<String>> response : responses) {
+                encryptedNodes = response.get();
+                nodes = new ArrayList<>(encryptedNodes.size());
+                for (String node : encryptedNodes)
+                    nodes.add(decrypt(key, node));
+                for (int i = 0; i < nodes.size(); i++) {
+                    if (values.contains(nodes.get(i)))
+                        res.add(i);
+                }
             }
             return res;
         }
     }
 
     public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
+        //TODO: filter duplicate patterns.
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();

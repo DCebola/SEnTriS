@@ -18,10 +18,6 @@ public interface EncryptionProtocol {
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 
-    Map<String, String> init(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
-
-    void update(List<String> keywords, List<String> keywordFrequency) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
-
     void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
 }
