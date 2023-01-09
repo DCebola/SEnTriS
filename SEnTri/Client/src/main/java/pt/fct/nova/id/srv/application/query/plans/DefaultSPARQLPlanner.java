@@ -1,16 +1,13 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
-import com.sun.tools.rngom.binary.ElementPattern;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.*;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.BasicPattern;
-import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.modify.request.*;
 import org.apache.jena.update.Update;
@@ -21,10 +18,9 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 
-import javax.lang.model.element.Element;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.query.Utils.*;
+import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
 
 public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 

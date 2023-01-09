@@ -40,6 +40,7 @@ import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
 public class ParsingUtils {
@@ -96,6 +97,9 @@ public class ParsingUtils {
 
     public static HttpEntity triplesListToHttpEntity(List<Triple> list) throws InvalidNodeException {
         return new StringEntity(gson.toJson(serializeTriples(list), List.class), ContentType.APPLICATION_JSON);
+    }
+    public static HttpEntity stringSetToHttpEntity(Set<String> set) {
+        return new StringEntity(gson.toJson(set, List.class), ContentType.APPLICATION_JSON);
     }
 
     public static HttpEntity stringListToHttpEntity(List<String> list) {
@@ -227,4 +231,5 @@ public class ParsingUtils {
     public static String generateKeyword(VariablesPattern pattern, String keyword) {
         return String.format(KEYWORD_FORMAT, pattern, keyword);
     }
+
 }

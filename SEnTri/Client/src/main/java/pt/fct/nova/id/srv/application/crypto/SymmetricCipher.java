@@ -7,6 +7,7 @@ import org.bouncycastle.crypto.params.HKDFParameters;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -33,7 +34,7 @@ public class SymmetricCipher {
                 .array();
     }
 
-    public static byte[] encrypt(byte[] input,SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public static byte[] encrypt(byte[] input, SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         return encrypt(input, key, generateRandomIV());
     }
 
@@ -72,9 +73,16 @@ public class SymmetricCipher {
 
     public static void incrementIV(byte[] iv) {
         for (int i = iv.length - 1; i >= 0; --i) {
-            iv[i] += 1;
-            if (iv[i] != 0)
+            if (++iv[i] == 1)
                 break;
+        }
+    }
+
+    public static void decrementIV(byte[] iv) {
+        for (int i = iv.length - 1; i >= 0; --i) {
+            if (++iv[i] == 0) {
+                break;
+            }
         }
     }
 

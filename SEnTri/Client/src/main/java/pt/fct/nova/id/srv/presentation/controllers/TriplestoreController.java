@@ -21,7 +21,7 @@ import pt.fct.nova.id.srv.application.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;
-import pt.fct.nova.id.srv.application.query.Utils;
+import pt.fct.nova.id.srv.application.query.QueryUtils;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
@@ -234,8 +234,8 @@ public class TriplestoreController implements TriplestoreAPI {
             }
             SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
             if (queryType == MODIFY)
-                triplesToUpload = Utils.generateTriplesFromSerializableBindings(planner.getUploadTemplate(), sparqlResult.getBindings());
-            triplesToDelete = Utils.generateTriplesFromSerializableBindings(planner.getDeleteTemplate(), sparqlResult.getBindings());
+                triplesToUpload = QueryUtils.generateTriplesFromSerializableBindings(planner.getUploadTemplate(), sparqlResult.getBindings());
+            triplesToDelete = QueryUtils.generateTriplesFromSerializableBindings(planner.getDeleteTemplate(), sparqlResult.getBindings());
         } else if (queryType == INSERT_DATA)
             triplesToUpload = planner.getUploadTemplate();
         else if (queryType == DELETE_DATA)
@@ -263,7 +263,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
     private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult sparqlResult) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Graph g = pt.fct.nova.id.srv.application.query.Utils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings());
+            Graph g = QueryUtils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings());
             RDFWriter.create(g).lang(Lang.JSONLD11).output(out);
             return Response.ok(out.toByteArray()).build();
         }

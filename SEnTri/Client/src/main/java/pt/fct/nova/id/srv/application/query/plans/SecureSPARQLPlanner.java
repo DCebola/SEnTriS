@@ -24,18 +24,11 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.OptionalJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
-import static pt.fct.nova.id.srv.application.query.Utils.*;
-import static pt.fct.nova.id.srv.application.query.Utils.generateID;
+import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
+import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
@@ -447,27 +440,5 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visitN(OpN op) {
         throw new NotImplemented();
-    }
-
-
-    private void generateUpdateSearchJobs(List<Triple> triples) throws InvalidNodeException {
-        String s, p, o, po, so, sp;
-        for (Triple t : triples) {
-            s = ParsingUtils.parseKeyword(t.getSubject());
-            p = ParsingUtils.parseKeyword(t.getPredicate());
-            o = ParsingUtils.parseKeyword(t.getObject());
-            po = String.format(COMPOUND_KEYWORD, p, o);
-            so = String.format(COMPOUND_KEYWORD, s, o);
-            sp = String.format(COMPOUND_KEYWORD, s, p);
-            ParsingUtils.generateKeyword(P, s);
-            ParsingUtils.generateKeyword(O, s);
-            ParsingUtils.generateKeyword(S, p);
-            ParsingUtils.generateKeyword(O, p);
-            ParsingUtils.generateKeyword(S, o);
-            ParsingUtils.generateKeyword(P, o);
-            ParsingUtils.generateKeyword(S, po);
-            ParsingUtils.generateKeyword(P, so);
-            ParsingUtils.generateKeyword(O, sp);
-        }
     }
 }

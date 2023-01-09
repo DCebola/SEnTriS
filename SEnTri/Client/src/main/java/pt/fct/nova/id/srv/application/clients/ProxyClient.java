@@ -10,6 +10,7 @@ import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class ProxyClient {
     private static final String QUERY_URI = System.getenv("PROXY_QUERY_URI");
@@ -19,7 +20,7 @@ public class ProxyClient {
         return HTTPUtils.sendPOSTRequest(httpClient, QUERY_URI, ParsingUtils.generateSecureQueryRequest(key, plan), accessToken);
     }
 
-    public static CloseableHttpResponse testValues(HttpClient httpClient, String searchID, List<String> values, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(TEST_VALUES_URI, searchID), ParsingUtils.stringListToHttpEntity(values), accessToken);
+    public static CloseableHttpResponse testValues(HttpClient httpClient, String searchID, Set<String> values, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(TEST_VALUES_URI, searchID), ParsingUtils.stringSetToHttpEntity(values), accessToken);
     }
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class EncryptedTriplestoreClient {
@@ -31,8 +32,8 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(PREPARE_SEARCH_URI, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
+    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.stringSetToHttpEntity(trapdoors), accessToken);
     }
 
     public static CloseableHttpResponse deleteAll(HttpClient httpClient, String triplestoreID, String accessToken) throws IOException {

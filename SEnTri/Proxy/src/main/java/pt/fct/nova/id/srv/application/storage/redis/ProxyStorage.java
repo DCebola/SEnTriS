@@ -48,27 +48,21 @@ public class ProxyStorage {
         }
     }
 
-    public static Set<Integer> testValues(SecretKey key, Set<String> values, Set<String> searchIDs) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public static Set<Integer> testValues(SecretKey key, Set<String> values, String searchID) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Set<Integer> res = new HashSet<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-            List<Response<List<String>>> responses = new ArrayList<>(searchIDs.size());
-            for (String searchID : searchIDs)
-                responses.add(p.lrange(searchID, 0, -1));
-            List<String> encryptedNodes, nodes;
-            Set<Integer> res = new HashSet<>();
-            for (Response<List<String>> response : responses) {
-                encryptedNodes = response.get();
-                nodes = new ArrayList<>(encryptedNodes.size());
-                for (String node : encryptedNodes)
-                    nodes.add(decrypt(key, node));
-                for (int i = 0; i < nodes.size(); i++) {
-                    if (values.contains(nodes.get(i)))
-                        res.add(i);
-                }
+            List<String> encryptedNodes = jedis.lrange(searchID, 0, -1);
+            List<String> nodes = new ArrayList<>(encryptedNodes.size());
+            for (String n : encryptedNodes)
+                nodes.add(decrypt(key, n));
+            for (int i = 0; i < nodes.size(); i++) {
+                if (values.contains(nodes.get(i)))
+                    res.add(i);
             }
-            return res;
         }
+        return res;
     }
+
 
     public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         //TODO: filter duplicate patterns.
@@ -85,11 +79,12 @@ public class ProxyStorage {
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get());
 
-            String p_idx;
+            Map<Var, String> binding;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
-                p_idx = generateID();
+                binding = new HashMap<>(vars.length);
                 for (Var var : vars)
-                    res.add(p_idx, var, decrypt(key, searchResults.get(var).get(i)));
+                    binding.put(var, decrypt(key, searchResults.get(var).get(i)));
+                res.add(binding);
             }
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;

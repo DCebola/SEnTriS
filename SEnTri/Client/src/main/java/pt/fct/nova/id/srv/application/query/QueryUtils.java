@@ -18,7 +18,7 @@ import java.util.*;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
-public class Utils {
+public class QueryUtils {
     public static VariablesPattern extractVariablesPattern(Node subject, Node predicate, Node object) {
         if (subject.isVariable() && !predicate.isVariable() && !object.isVariable())
             return S;
@@ -99,7 +99,7 @@ public class Utils {
                 s = t.getSubject();
                 p = t.getPredicate();
                 o = t.getObject();
-                switch (pt.fct.nova.id.srv.application.query.Utils.extractVariablesPattern(s, p, o)) {
+                switch (QueryUtils.extractVariablesPattern(s, p, o)) {
                     case S -> {
                         n1 = binding.get(Var.alloc(s));
                         if (n1 != null)
@@ -149,7 +149,7 @@ public class Utils {
                 s = t.getSubject();
                 p = t.getPredicate();
                 o = t.getObject();
-                switch (Utils.extractVariablesPattern(s, p, o)) {
+                switch (QueryUtils.extractVariablesPattern(s, p, o)) {
                     case S -> {
                         val1 = binding.get(Var.alloc(s));
                         if (val1 != null)
@@ -199,7 +199,7 @@ public class Utils {
                 s = t.getSubject();
                 p = t.getPredicate();
                 o = t.getObject();
-                switch (Utils.extractVariablesPattern(s, p, o)) {
+                switch (QueryUtils.extractVariablesPattern(s, p, o)) {
                     case S -> {
                         val1 = binding.get(Var.alloc(s));
                         if (val1 != null)
@@ -232,6 +232,56 @@ public class Utils {
                         val2 = binding.get(Var.alloc(o));
                         if (val1 != null && val2 != null)
                             triples.add(Triple.create(s, ParsingUtils.generateNode(val1), ParsingUtils.generateNode(val2)));
+                    }
+                    case SPO -> triples.add(t);
+                }
+            }
+        }
+        return triples;
+    }
+
+    public static List<Triple> generateTriplesFromBindings(List<Triple> template, Collection<Binding> bindings) {
+        List<Triple> triples = new LinkedList<>();
+        Node s, p, o;
+        Node node1, node2;
+        for (Binding binding : bindings) {
+            for (Triple t : template) {
+                s = t.getSubject();
+                p = t.getPredicate();
+                o = t.getObject();
+                switch (QueryUtils.extractVariablesPattern(s, p, o)) {
+                    case S -> {
+                        node1 = binding.get(Var.alloc(s));
+                        if (node1 != null)
+                            triples.add(Triple.create(node1, p, o));
+                    }
+                    case P -> {
+                        node1 = binding.get(Var.alloc(p));
+                        if (node1 != null)
+                            triples.add(Triple.create(s, node1, o));
+                    }
+                    case O -> {
+                        node1 = binding.get(Var.alloc(o));
+                        if (node1 != null)
+                            triples.add(Triple.create(s, p, node1));
+                    }
+                    case SP -> {
+                        node1 = binding.get(Var.alloc(s));
+                        node2 = binding.get(Var.alloc(p));
+                        if (node1 != null && node2 != null)
+                            triples.add(Triple.create(node1, node2, o));
+                    }
+                    case SO -> {
+                        node1 = binding.get(Var.alloc(s));
+                        node2 = binding.get(Var.alloc(o));
+                        if (node1 != null && node2 != null)
+                            triples.add(Triple.create(node1, p, node2));
+                    }
+                    case PO -> {
+                        node1 = binding.get(Var.alloc(p));
+                        node2 = binding.get(Var.alloc(o));
+                        if (node1 != null && node2 != null)
+                            triples.add(Triple.create(s, node1, node2));
                     }
                     case SPO -> triples.add(t);
                 }
