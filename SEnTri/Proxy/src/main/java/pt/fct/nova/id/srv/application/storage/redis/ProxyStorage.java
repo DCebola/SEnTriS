@@ -48,24 +48,7 @@ public class ProxyStorage {
         }
     }
 
-    public static Set<Integer> testValues(SecretKey key, Set<String> values, String searchID) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Set<Integer> res = new HashSet<>();
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<String> encryptedNodes = jedis.lrange(searchID, 0, -1);
-            List<String> nodes = new ArrayList<>(encryptedNodes.size());
-            for (String n : encryptedNodes)
-                nodes.add(decrypt(key, n));
-            for (int i = 0; i < nodes.size(); i++) {
-                if (values.contains(nodes.get(i)))
-                    res.add(i);
-            }
-        }
-        return res;
-    }
-
-
     public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
-        //TODO: filter duplicate patterns.
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
