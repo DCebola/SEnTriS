@@ -135,11 +135,6 @@ public class ParsingUtils {
         }.getType());
     }
 
-    public static Set<Integer> parseSetOfIntegers(String results) {
-        return gson.fromJson(results, new TypeToken<Set<Integer>>() {
-        }.getType());
-    }
-
     public static List<Integer> parseListOfIntegers(String results) {
         return gson.fromJson(results, new TypeToken<List<Integer>>() {
         }.getType());

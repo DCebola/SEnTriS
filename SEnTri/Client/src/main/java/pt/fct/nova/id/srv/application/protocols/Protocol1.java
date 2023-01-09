@@ -22,7 +22,6 @@ import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Protocol1 implements EncryptionProtocol {
     private final byte[] ivDET;
-    private final byte[] ivRND;
     private final SecretKey kMASTER, kRND, kDET;
     private final Map<String, String> encryptedNodes;
     private final Map<String, Integer> keywordFrequency;
@@ -33,7 +32,6 @@ public class Protocol1 implements EncryptionProtocol {
 
     public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv) {
         this.ivDET = iv;
-        this.ivRND = SymmetricCipher.generateZeroFilledIV();
         this.kMASTER = kMASTER;
         this.kRND = kRND;
         this.kDET = kDET;
@@ -47,7 +45,6 @@ public class Protocol1 implements EncryptionProtocol {
 
     public Protocol1() throws NoSuchAlgorithmException {
         this.ivDET = SymmetricCipher.generateRandomIV();
-        this.ivRND = SymmetricCipher.generateZeroFilledIV();
         this.kMASTER = SymmetricCipher.generateKey();
         this.kRND = SymmetricCipher.generateKey();
         this.kDET = SymmetricCipher.generateKey();
@@ -73,10 +70,6 @@ public class Protocol1 implements EncryptionProtocol {
 
     public SecretKey getDETKey() {
         return kDET;
-    }
-
-    public Map<String, Integer> getKeywordFrequency() {
-        return keywordFrequency;
     }
 
     public Map<String, String> getEncryptedNodes() {
@@ -222,12 +215,6 @@ public class Protocol1 implements EncryptionProtocol {
             keywordFrequency.put(keyword, keywordCount);
         } else
             keywordFrequency.put(keyword, keywordCount + 1);
-    }
-
-    private void subtractKeywordFrequency(String keyword) {
-        Integer keywordCount = keywordFrequency.get(keyword);
-        if (keywordCount != null && keywordCount > 0)
-            keywordFrequency.put(keyword, keywordCount - 1);
     }
 
     public void setKeywordsFrequencies(Map<String, Integer> newKeywordsFrequencies) {

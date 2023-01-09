@@ -376,7 +376,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 keywordList.add(keyword);
                 trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
             }
-
             response = fetchKeywordsFrequency(httpClient, triplestoreID, keywordList, trapdoors, keywordsFrequencyCollector, protocol, accessToken);
             if (response != null && response.getStatus() != OK)
                 return response;
