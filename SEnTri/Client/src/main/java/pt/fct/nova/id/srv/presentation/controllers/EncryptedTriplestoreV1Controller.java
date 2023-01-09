@@ -316,107 +316,117 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
             if (sparqlResult.isSliced())
                 bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
-            response = computeDeletionsAndSwaps(httpClient, cookie, triplestoreID, planner, protocol, keywordsFrequency, bindings, swaps, deletions, accessToken);
+
+            if (bindings.isEmpty()) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return updateTriplestore(httpClient, cookie, triplestoreID, accessToken, uploads, deletions, swaps);
+            }
+            List<Triple> triplesToUpload = QueryUtils.generateTriplesFromBindings(planner.getUploadTemplate(), bindings);
+            List<Triple> triplesToDelete = QueryUtils.generateTriplesFromBindings(planner.getDeleteTemplate(), bindings);
+            triplesToDelete.addAll(triplesToUpload);
+            response = computeDeletionsAndSwaps(httpClient, cookie, triplestoreID, protocol, keywordsFrequency, triplesToDelete, swaps, deletions, accessToken);
             if (response != null && response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            protocol.setKeywordsFrequencies(keywordsFrequency);
-            if (queryType == MODIFY) {
-                if (deletions.isEmpty() && swaps.isEmpty())
-                    protocol.setKeywordsFrequencies(keywordsFrequency);
-                List<Triple> triples = QueryUtils.generateTriplesFromBindings(planner.getUploadTemplate(), bindings);
-                Collections.shuffle(triples);
-                protocol.exec(triples);
-                uploads = protocol.getEncryptedNodes();
-            }
+            Collections.shuffle(triplesToUpload);
+            protocol.exec(triplesToUpload);
+            uploads = protocol.getEncryptedNodes();
         } else if (queryType == INSERT_DATA) {
             List<Triple> triples = planner.getUploadTemplate();
+            response = computeDeletionsAndSwaps(httpClient, cookie, triplestoreID, protocol, keywordsFrequency, triples, swaps, deletions, accessToken);
+            if (response != null && response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
             Collections.shuffle(triples);
             protocol.exec(triples);
             uploads = protocol.getEncryptedNodes();
         } else if (queryType == DELETE_DATA) {
-            response = computeDeletionsAndSwaps(httpClient, cookie, triplestoreID, planner, protocol,
-                    keywordsFrequency, new LinkedList<>(), swaps, deletions, accessToken);
-            protocol.exec(new LinkedList<>());
-            uploads = protocol.getEncryptedNodes();
+            response = computeDeletionsAndSwaps(httpClient, cookie, triplestoreID, protocol, keywordsFrequency, planner.getDeleteTemplate(), swaps, deletions, accessToken);
             if (response != null && response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
+            protocol.exec(new LinkedList<>());
+            uploads = protocol.getEncryptedNodes();
         }
         return updateTriplestore(httpClient, cookie, triplestoreID, accessToken, uploads, deletions, swaps);
     }
 
-    private HTTPResponse computeDeletionsAndSwaps(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
-                                                  SecureSPARQLPlanner planner, Protocol1 protocol,
-                                                  Map<String, Integer> keywordsFrequencyCollector, Collection<Binding> bindings,
+    private HTTPResponse computeDeletionsAndSwaps(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol,
+                                                  Map<String, Integer> keywordsFrequencyCollector, List<Triple> triplesToDelete,
                                                   Map<String, String> swapsCollector, Set<String> deletionsCollector, String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidNodeException, URISyntaxException {
-        List<Triple> triplesToDelete;
-        if (bindings.isEmpty())
-            triplesToDelete = planner.getDeleteTemplate();
-        else
-            triplesToDelete = QueryUtils.generateTriplesFromBindings(planner.getDeleteTemplate(), bindings);
 
-
-        Map<String, Set<String>> keywordsAndEncryptedValues = protocol.generateKeywordsAndEncryptedValues(triplesToDelete);
-        Set<String> keywords = new HashSet<>(keywordsAndEncryptedValues.keySet());
+        Map<String, List<String>> keywordsTrapdoors = protocol.generateKeywordsAndEncryptedValues(triplesToDelete);
+        //TODO: Associate keywords with triple pattern trapdoor instances
+        Set<String> keywords = new HashSet<>(keywordsTrapdoors.keySet());
         keywords.removeAll(keywordsFrequencyCollector.keySet());
         HTTPResponse response;
+        List<String> keywordList;
+        List<String> trapdoors;
         if (!keywords.isEmpty()) {
-            List<String> keywordList = new ArrayList<>(keywords.size());
-            List<String> trapdoors = new ArrayList<>(keywords.size());
+            keywordList = new ArrayList<>(keywords.size());
+            trapdoors = new ArrayList<>(keywords.size());
             for (String keyword : keywords) {
                 keywordList.add(keyword);
                 trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
             }
 
             response = fetchKeywordsFrequency(httpClient, triplestoreID, keywordList, trapdoors, keywordsFrequencyCollector, protocol, accessToken);
-            if (response != null && response.getStatus() != OK) {
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            if (response != null && response.getStatus() != OK)
                 return response;
-            }
         }
         protocol.setKeywordsFrequencies(keywordsFrequencyCollector);
-        Map<String, String[]> keywordsTrapdoors = new HashMap<>();
-        Map<String, String> searchIDs = new HashMap<>();
-        Map<String, List<Integer>> trapdoorPermutations = new HashMap<>();
-        response = prepareSearches(httpClient, protocol, triplestoreID, keywordsAndEncryptedValues.keySet(), keywordsFrequencyCollector, keywordsTrapdoors, searchIDs, trapdoorPermutations, accessToken);
-        if (response != null && response.getStatus() != OK) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            return response;
-        }
-
-        Set<Integer> idxs;
-        int keywordFrequency;
-        List<Integer> permutation;
-        String[] keywordTrapdoors;
-        for (String keyword : keywordsTrapdoors.keySet()) {
-            keywordTrapdoors = keywordsTrapdoors.get(keyword);
-            permutation = trapdoorPermutations.get(keyword);
-            response = testValues(httpClient, searchIDs.get(keyword), keywordsAndEncryptedValues.get(keyword), accessToken);
+        keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
+        Collections.shuffle(keywordList);
+        List<String> trapdoorsToDelete;
+        Map<String, List<Integer>> keywordsInstances = new HashMap<>(keywordList.size());
+        List<Integer> instances;
+        for (String keyword : keywordList) {
+            trapdoorsToDelete = keywordsTrapdoors.get(keyword);
+            deletionsCollector.addAll(trapdoorsToDelete);
+            response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoorsToDelete, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response;
             }
+            instances = ParsingUtils.parseListOfIntegers(response.getBody());
+            if (!instances.isEmpty()) {
+                keywordsInstances.put(keyword, instances);
+                keywordsTrapdoors.put(keyword, new ArrayList<>(protocol.generateTrapdoors(keyword, keywordsInstances.get(keyword))));
+            }
+        }
 
-            idxs = ParsingUtils.parseSetOfIntegers(response.getBody());
-            if (!idxs.isEmpty()) {
-                keywordFrequency = keywordsFrequencyCollector.get(keyword);
-                for (Integer idx : idxs) {
-                    if (permutation.get(idx) < keywordFrequency - idxs.size()) {
-                        swapsCollector.put(keywordTrapdoors[idx], keywordTrapdoors[permutation.get(keywordFrequency)]);
-                        keywordsFrequencyCollector.put(keyword, keywordFrequency - 1);
-                    } else {
-                        protocol.deleteKeyword(keyword);
-                        deletionsCollector.add(keywordTrapdoors[idx]);
-                    }
+        int keywordFrequency, totalInstances, totalSwaps;
+        List<Integer> keywordInstances, swapCandidatesInstances;
+        List<String> keywordTrapdoors, swapCandidatesTrapdoors;
+        for (String keyword : keywordsTrapdoors.keySet()) {
+            keywordFrequency = keywordsFrequencyCollector.get(keyword);
+            keywordInstances = keywordsInstances.get(keyword);
+            keywordTrapdoors = keywordsTrapdoors.get(keyword);
+            totalInstances = keywordInstances.size();
+            swapCandidatesInstances = new ArrayList<>(keywordFrequency - totalInstances);
+            for (int i = keywordFrequency - totalInstances; i < keywordFrequency; i++)
+                swapCandidatesInstances.add(i);
+            swapCandidatesTrapdoors = protocol.generateTrapdoors(keyword, swapCandidatesInstances);
+            totalSwaps = 0;
+            for (int i = 0; i < totalInstances; i++) {
+                if (keywordInstances.get(i) < keywordFrequency - totalInstances) {
+                    swapsCollector.put(keywordTrapdoors.get(i), swapCandidatesTrapdoors.get(totalInstances - totalSwaps));
+                    keywordsFrequencyCollector.put(keyword, keywordFrequency - 1);
+                    totalSwaps += 1;
+                } else {
+                    protocol.deleteKeyword(keyword);
+                    deletionsCollector.add(keywordTrapdoors.get(i));
                 }
             }
+
         }
         return null;
     }
@@ -512,32 +522,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
         return null;
     }
-
-    private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol, String triplestoreID,
-                                         Set<String> keywords, Map<String, Integer> keywordsFrequency,
-                                         Map<String, String[]> trapdoorCollector, Map<String, String> searchIDCollector,
-                                         Map<String, List<Integer>> permutationCollector, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException {
-        HTTPResponse response;
-        String[] trapdoors;
-        List<Integer> permutation;
-        int keywordFrequency;
-        for (String keyword : keywords) {
-            keywordFrequency = keywordsFrequency.get(keyword);
-            trapdoors = new String[keywordFrequency];
-            permutation = generateRandomPermutation(keywordFrequency);
-            for (int i = 0; i < keywordFrequency; i++)
-                trapdoors[permutation.get(i)] = protocol.generateTrapdoor(keyword);
-            response = prepareSearch(httpClient, triplestoreID, List.of(trapdoors), accessToken);
-            if (response.getStatus() != OK)
-                return response;
-            searchIDCollector.put(keyword, response.getBody());
-            trapdoorCollector.put(keyword, trapdoors);
-            permutationCollector.put(keyword, permutation);
-        }
-        return null;
-
-    }
-
 
     private List<Integer> generateRandomPermutation(int total) {
         List<Integer> idxs = new ArrayList<>(total);

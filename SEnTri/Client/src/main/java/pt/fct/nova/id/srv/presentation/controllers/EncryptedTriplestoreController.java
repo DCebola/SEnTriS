@@ -140,12 +140,6 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public static HTTPResponse testValues(CloseableHttpClient httpClient,String searchID, Set<String> values,  String accessToken) throws IOException {
-        try(CloseableHttpResponse response = ProxyClient.testValues(httpClient, searchID, values, accessToken)){
-            return new HTTPResponse(response);
-        }
-    }
-
     public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);

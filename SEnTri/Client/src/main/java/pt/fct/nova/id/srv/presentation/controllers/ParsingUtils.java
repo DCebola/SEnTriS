@@ -98,6 +98,7 @@ public class ParsingUtils {
     public static HttpEntity triplesListToHttpEntity(List<Triple> list) throws InvalidNodeException {
         return new StringEntity(gson.toJson(serializeTriples(list), List.class), ContentType.APPLICATION_JSON);
     }
+
     public static HttpEntity stringSetToHttpEntity(Set<String> set) {
         return new StringEntity(gson.toJson(set, List.class), ContentType.APPLICATION_JSON);
     }
@@ -136,6 +137,11 @@ public class ParsingUtils {
 
     public static Set<Integer> parseSetOfIntegers(String results) {
         return gson.fromJson(results, new TypeToken<Set<Integer>>() {
+        }.getType());
+    }
+
+    public static List<Integer> parseListOfIntegers(String results) {
+        return gson.fromJson(results, new TypeToken<List<Integer>>() {
         }.getType());
     }
 

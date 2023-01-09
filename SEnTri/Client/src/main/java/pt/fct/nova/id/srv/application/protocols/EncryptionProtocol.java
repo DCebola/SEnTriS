@@ -15,6 +15,8 @@ import java.util.Map;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.BASIC_SEPARATOR;
 
 public interface EncryptionProtocol {
+
+    String TRIPLE_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR);
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 
