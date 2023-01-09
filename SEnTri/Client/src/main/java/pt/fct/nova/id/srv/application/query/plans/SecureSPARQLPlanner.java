@@ -10,7 +10,12 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
+import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.modify.request.UpdateDataDelete;
+import org.apache.jena.sparql.modify.request.UpdateDataInsert;
+import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
+import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +31,6 @@ import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
 import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
 import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
@@ -42,6 +46,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final Random rnd;
     private QueryType queryType;
     private List<Triple> constructTemplate;
+    private final List<Triple> uploadTemplate;
+    private final List<Triple> deleteTemplate;
 
     public SecureSPARQLPlanner() {
         this.keywords = new HashSet<>();
@@ -50,21 +56,29 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.plan = new DefaultQueryExecutionPlan();
         this.searchJobsIDs = new HashSet<>();
         this.rnd = new Random();
+        this.uploadTemplate = new LinkedList<>();
+        this.deleteTemplate = new LinkedList<>();
     }
 
     public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
-        //List<Var> vars = generateVars(resultVarNames);
-        //List<Var> obfuscatedVars = new ArrayList<>(vars.size());
-        //for (Var var : vars)
-        //    obfuscatedVars.add(obfuscateVar(var));
-        //plan.setVars(obfuscatedVars);
         return plan;
     }
 
     @Override
-    public QueryExecutionPlan generatePlan(Update op, AlgebraGenerator algebraGenerator) throws NotImplemented {
-        return null;
+    public QueryExecutionPlan generatePlan(Update update, AlgebraGenerator algebraGenerator) throws NotImplemented {
+        if (update instanceof UpdateDataInsert op) {
+            visitUpdate(op);
+        } else if (update instanceof UpdateDataDelete op) {
+            visitUpdate(op);
+        } else if (update instanceof UpdateModify op) {
+            visitUpdate(op, algebraGenerator);
+        } else if (update instanceof UpdateDeleteWhere op) {
+            visitUpdate(op);
+        } else {
+            throw new NotImplemented();
+        }
+        return plan;
     }
 
     @Override
@@ -92,12 +106,12 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public List<Triple> getUploadTemplate() {
-        return null;
+        return uploadTemplate;
     }
 
     @Override
     public List<Triple> getDeleteTemplate() {
-        return null;
+        return deleteTemplate;
     }
 
     public Set<String> getKeywords() {
@@ -110,12 +124,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     public Map<Var, Var> getObfuscationMap() {
         return obfuscationMap;
-    }
-
-    private List<Var> generateVars(List<String> resultVarNames) {
-        List<Var> vars = new LinkedList<>();
-        resultVarNames.forEach(v -> vars.add(Var.alloc(v)));
-        return vars;
     }
 
     private Var obfuscateVar(Var var) {
@@ -440,5 +448,30 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public void visitN(OpN op) {
         throw new NotImplemented();
+    }
+
+    public void visitUpdate(UpdateDataInsert op) {
+        setQueryType(QueryType.INSERT_DATA);
+        op.getQuads().forEach(quad -> uploadTemplate.add(quad.asTriple()));
+    }
+
+    public void visitUpdate(UpdateDataDelete op) {
+        setQueryType(QueryType.DELETE_DATA);
+        op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+    }
+
+    public void visitUpdate(UpdateDeleteWhere op) {
+        setQueryType(QueryType.MODIFY);
+        op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+        OpWalker.walk(new OpBGP(BasicPattern.wrap(deleteTemplate)), this);
+    }
+
+    public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {
+        setQueryType(QueryType.MODIFY);
+        if (op.hasInsertClause())
+            op.getInsertQuads().forEach(quad -> uploadTemplate.add(quad.asTriple()));
+        if (op.hasDeleteClause())
+            op.getDeleteQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
+        OpWalker.walk(algebraGenerator.compile(op.getWherePattern()), this);
     }
 }
