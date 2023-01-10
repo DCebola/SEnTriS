@@ -129,6 +129,13 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
+    public static CloseableHttpResponse sendPUTRequest(HttpClient httpClient, String uri, HttpEntity body, String accessToken) throws IOException {
+        HttpPut request = new HttpPut(uri);
+        request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));
+        request.setEntity(body);
+        return (CloseableHttpResponse) httpClient.execute(request);
+    }
+
     public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));

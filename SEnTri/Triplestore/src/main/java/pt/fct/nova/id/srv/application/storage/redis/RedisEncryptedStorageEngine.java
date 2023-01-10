@@ -46,6 +46,23 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
     }
 
     @Override
+    public void swap(String triplestoreID, Map<String, String> values) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            Map<String, Response<String>> swaps = new HashMap<>(values.size());
+            for (String key : values.keySet())
+                swaps.put(key, p.get(key));
+            p.sync();
+            Transaction t = jedis.multi();
+            for (String key : swaps.keySet()) {
+                t.set(String.format(KEY_FORMAT, triplestoreID, values.get(key)), swaps.get(key).get());
+                t.del(String.format(KEY_FORMAT, triplestoreID, key));
+            }
+            t.exec();
+        }
+    }
+
+    @Override
     public List<String> search(String triplestoreID, List<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();

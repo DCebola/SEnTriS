@@ -41,6 +41,6 @@ public class EncryptedTriplestoreClient {
     }
 
     public static CloseableHttpResponse swap(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(SWAP_URI, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(swaps), accessToken);
+        return HTTPUtils.sendPUTRequest(httpClient, String.format(SWAP_URI, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(swaps), accessToken);
     }
 }

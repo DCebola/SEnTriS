@@ -17,7 +17,8 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 
 @Path("/encrypted")
 public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
-    private static final String SUCCESS_DELETE_BATCH = "Successful deletion of values from store.";
+    private static final String SUCCESSFUL_DELETE_SOME = "Successful deletion of values from store.";
+    private static final String SUCCESSFUL_SWAP =  "Successful deletion of values from store.";
     private static final RedisEncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngine();
 
     @Override
@@ -86,7 +87,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID);
-            return Response.ok(SUCCESS_DELETE_BATCH).build();
+            return Response.ok(SUCCESSFUL_DELETE_SOME).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -104,6 +105,23 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID, trapdoors);
             return Response.ok(SUCCESSFUL_DELETION).build();
+        } catch (Exception e) {
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response swap(String triplestoreID, Map<String, String> values, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.swap(triplestoreID, values);
+            return Response.ok(SUCCESSFUL_SWAP).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }

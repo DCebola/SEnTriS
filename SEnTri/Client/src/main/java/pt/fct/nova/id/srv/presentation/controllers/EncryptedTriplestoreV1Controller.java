@@ -409,7 +409,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             totalSwaps = 0;
             for (int i = 0; i < totalInstances; i++) {
                 if (keywordInstances.get(i) < keywordFrequency - totalInstances) {
-                    swapsCollector.put(keywordTrapdoors.get(i), swapCandidatesTrapdoors.get(totalInstances - totalSwaps));
+                    swapsCollector.put(swapCandidatesTrapdoors.get(totalInstances - totalSwaps), keywordTrapdoors.get(i));
                     keywordsFrequency.put(keyword, keywordFrequency - 1);
                     totalSwaps += 1;
                 } else {

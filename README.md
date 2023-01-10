@@ -86,6 +86,7 @@ POST   Triplestore/api/query/{TriplestoreID}             #Execute a SPARQL query
 
 POST   Triplestore/api/encrypted/{TriplestoreID}         #Upload data to encrypted triplestore.          (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/delete  #Delete data from encrypted triplestore.        (Write Access)
+POST   Triplestore/api/encrypted/{TriplestoreID}/swap    #Swap data from source trapdoors to target trapdoors. (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/search  #Search data from encrypted triplestore.        (Read Access)
 POST   Triplestore/api/encrypted/proxy/{TriplestoreID}/search  #Prepare auxiliary search for SPARQL query. (Read Access)
 DELETE Triplestore/api/encrypted/{TriplestoreID}         #Delete encrypted triplestore.                  (Owner)
