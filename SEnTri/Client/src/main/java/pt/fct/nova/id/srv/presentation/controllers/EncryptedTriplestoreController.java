@@ -5,14 +5,22 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.query.SortCondition;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ResultSetStream;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
+import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.clients.*;
+import pt.fct.nova.id.srv.application.query.QueryUtils;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 
@@ -69,6 +77,13 @@ public class EncryptedTriplestoreController {
         }
     }
 
+    public List<Integer> generateRandomPermutation(int total) {
+        List<Integer> idxs = new ArrayList<>(total);
+        for (int i = 0; i < total; i++) idxs.add(i);
+        Collections.shuffle(idxs);
+        return idxs;
+    }
+
     public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
         List<SortCondition> sortConditions = new LinkedList<>();
         for (SerializableSortCondition condition : serializableSortConditions)
@@ -90,6 +105,57 @@ public class EncryptedTriplestoreController {
         else if (length != Query.NOLIMIT)
             return bindings.stream().limit(length).collect(Collectors.toList());
         else return bindings;
+    }
+
+    public Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult sparqlResult) {
+        Map<Var, Integer> frequencies = new HashMap<>();
+        for (Var v : vars)
+            frequencies.put(v, 0);
+        for (SerializableBinding binding : sparqlResult.getBindings()) {
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                Var v = it.next();
+                frequencies.put(v, frequencies.get(v) + 1);
+            }
+        }
+        JSONObject responseBody = new JSONObject();
+        for (Var v : vars)
+            responseBody = responseBody.put(obfuscationMap.get(v).getVarName(), frequencies.get(v));
+        return Response.ok(responseBody.toString()).build();
+    }
+
+    public Response generateCONSTRUCTResults(List<Triple> constructTemplate, Collection<Binding> bindings) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Graph g = QueryUtils.generateGraphFromBindings(constructTemplate, bindings);
+            RDFWriter.create(g).lang(Lang.JSONLD).output(out);
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    public Response generateSELECTResults(List<Var> vars, Collection<Binding> bindings) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()));
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
+
+    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken,
+                                       Map<String, String> uploads, Set<String> deletions, Map<String, String> swaps) throws IOException {
+        JSONObject responseBody = new JSONObject();
+        if (!deletions.isEmpty())
+            responseBody = responseBody.put("Delete Response:", deleteSomeContents(httpClient, triplestoreID, deletions, accessToken).getBody());
+        if (!swaps.isEmpty())
+            responseBody = responseBody.put("Swap Response:", swapSomeContents(httpClient, triplestoreID, swaps, accessToken).getBody());
+        if (!uploads.isEmpty())
+            responseBody = responseBody.put("Insert Response:", upload(httpClient, triplestoreID, uploads, accessToken).getBody());
+        releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+        deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+        return Response.ok(responseBody).build();
+    }
+
+    private HTTPResponse swapSomeContents(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.swap(httpClient, triplestoreID, swaps, accessToken)) {
+            return new HTTPResponse(response);
+        }
     }
 
     public HTTPResponse query(HttpClient httpClient, SecretKey secretKey, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {

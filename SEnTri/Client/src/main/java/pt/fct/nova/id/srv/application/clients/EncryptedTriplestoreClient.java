@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.clients;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
@@ -19,6 +18,7 @@ public class EncryptedTriplestoreClient {
     private static final String DELETE_SOME_URI = System.getenv("ENCRYPTED_TRIPLESTORE_DELETE_SOME_URI");
     private static final String SEARCH_URI = System.getenv("ENCRYPTED_TRIPLESTORE_SEARCH_URI");
     private static final String PREPARE_SEARCH_URI = System.getenv("ENCRYPTED_TRIPLESTORE_PREPARE_SEARCH_URI");
+    private static final String SWAP_URI = System.getenv("ENCRYPTED_TRIPLESTORE_SWAP_URI");
 
     public static CloseableHttpResponse upload(HttpClient httpClient, String triplestoreID, Map<String, String> values, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(values), accessToken);
@@ -40,5 +40,7 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, triplestoreID), accessToken);
     }
 
-
+    public static CloseableHttpResponse swap(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(SWAP_URI, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(swaps), accessToken);
+    }
 }

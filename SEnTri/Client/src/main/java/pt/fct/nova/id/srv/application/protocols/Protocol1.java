@@ -138,6 +138,47 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
+
+    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Map<String, List<String>> res = new HashMap<>(triples.size() * 6);
+        String s, p, o;
+        List<String> keywords;
+        for (Triple t : triples) {
+            keywords = new ArrayList<>(9);
+            s = ParsingUtils.parseKeyword(t.getSubject());
+            p = ParsingUtils.parseKeyword(t.getPredicate());
+            o = ParsingUtils.parseKeyword(t.getObject());
+            keywords.add(ParsingUtils.generateKeyword(PO, s));
+            keywords.add(ParsingUtils.generateKeyword(PO, s));
+            keywords.add(ParsingUtils.generateKeyword(SO, p));
+            keywords.add(ParsingUtils.generateKeyword(SO, p));
+            keywords.add(ParsingUtils.generateKeyword(SP, o));
+            keywords.add(ParsingUtils.generateKeyword(SP, o));
+            keywords.add(ParsingUtils.generateKeyword(S, p, o));
+            keywords.add(ParsingUtils.generateKeyword(P, s, o));
+            keywords.add(ParsingUtils.generateKeyword(O, s, p));
+            generatePatternTrapdoors(res, String.format(TRIPLE_KEYWORD, s, p, o), keywords);
+        }
+        return res;
+    }
+
+    private void generatePatternTrapdoors(Map<String, List<String>> keywordPatternTrapdoors, String tripleKeyword, List<String> keywords) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        tripleKeyword = ParsingUtils.generateKeyword(SPO, tripleKeyword);
+        byte[] iv = SymmetricCipher.generateZeroFilledIV();
+        String trapdoor;
+        List<String> trapdoors;
+        for (String keyword : keywords) {
+            trapdoor = base64Encoder.encodeToString(generateDETLayer(getKeywordDerivedKey(tripleKeyword), tripleKeyword.getBytes(StandardCharsets.UTF_8), iv));
+            trapdoors = keywordPatternTrapdoors.get(keyword);
+            if (trapdoors == null) {
+                trapdoors = new LinkedList<>();
+                trapdoors.add(trapdoor);
+            } else
+                trapdoors.add(trapdoor);
+            SymmetricCipher.incrementIV(iv);
+        }
+    }
+
     private void encryptKeywordInfo() throws InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
             BadPaddingException, InvalidKeyException {
