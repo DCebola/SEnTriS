@@ -16,10 +16,10 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class SymmetricCipher {
-    private static final String ALGORITHM = System.getenv("SYMMETRIC_KEY_ALGORITHM");
-    private static final String CIPHER_TRANSFORMATION = System.getenv("CIPHER_TRANSFORMATION");
-    private static final int KEY_SIZE = Integer.parseInt(System.getenv("SYMMETRIC_KEY_SIZE"));
-    private static final int IV_SIZE = Integer.parseInt(System.getenv("SYMMETRIC_IV_SIZE"));
+    public static final String ALGORITHM = System.getenv("SYMMETRIC_KEY_ALGORITHM");
+    public static final String CIPHER_TRANSFORMATION = System.getenv("CIPHER_TRANSFORMATION");
+    public static final int KEY_SIZE = Integer.parseInt(System.getenv("SYMMETRIC_KEY_SIZE"));
+    public static final int IV_SIZE = Integer.parseInt(System.getenv("SYMMETRIC_IV_SIZE"));
 
 
     public static byte[] encrypt(byte[] input, SecretKey key, byte[] iv) throws NoSuchPaddingException,
@@ -88,5 +88,13 @@ public class SymmetricCipher {
 
     public static byte[] generateZeroFilledIV() {
         return new byte[IV_SIZE];
+    }
+
+    public static byte[] generateIV(int value) {
+        return ByteBuffer.allocate(SymmetricCipher.IV_SIZE).position(SymmetricCipher.IV_SIZE - Integer.BYTES).putInt(value).array();
+    }
+
+    public static int integerFromByteArray(byte [] bytes){
+        return ByteBuffer.allocate(SymmetricCipher.IV_SIZE).put(bytes).position(SymmetricCipher.IV_SIZE - Integer.BYTES).getInt();
     }
 }

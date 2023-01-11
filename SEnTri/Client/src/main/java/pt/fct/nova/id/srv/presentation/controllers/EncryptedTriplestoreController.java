@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -138,18 +139,38 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken,
-                                       Map<String, String> uploads, Set<String> deletions, Map<String, String> swaps) throws IOException {
-        JSONObject responseBody = new JSONObject();
-        if (!deletions.isEmpty())
-            responseBody = responseBody.put("Delete Response:", deleteSomeContents(httpClient, triplestoreID, deletions, accessToken).getBody());
-        if (!swaps.isEmpty())
-            responseBody = responseBody.put("Swap Response:", swapSomeContents(httpClient, triplestoreID, swaps, accessToken).getBody());
-        if (!uploads.isEmpty())
-            responseBody = responseBody.put("Insert Response:", upload(httpClient, triplestoreID, uploads, accessToken).getBody());
+    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions, Map<String, String> swaps, String accessToken) throws IOException {
+        System.out.println("UPLOADS: " + uploads.size());
+        System.out.println("DELETIONS: " + deletions.size());
+        System.out.println("SWAPS: " + swaps.size());
+        HTTPResponse response;
+        if (!deletions.isEmpty()){
+            response = deleteSomeContents(httpClient, triplestoreID, deletions, accessToken);
+            if(response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+        }
+        if (!swaps.isEmpty()){
+            response = swapSomeContents(httpClient, triplestoreID, swaps, accessToken);
+            if(response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+        }
+        if (!uploads.isEmpty()) {
+            response = upload(httpClient, triplestoreID, uploads, accessToken);
+            if(response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+        }
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-        return Response.ok(responseBody).build();
+        return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 
     private HTTPResponse swapSomeContents(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {

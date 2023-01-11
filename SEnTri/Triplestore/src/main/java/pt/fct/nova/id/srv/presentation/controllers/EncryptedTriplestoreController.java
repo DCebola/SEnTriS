@@ -34,6 +34,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             storageEngine.save(triplestoreID, encryptedNodes);
             return Response.ok(SUCCESSFUL_UPLOAD).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -72,6 +73,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
             return Response.ok(storageEngine.search(triplestoreID, trapdoors)).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -89,6 +91,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             storageEngine.delete(triplestoreID);
             return Response.ok(SUCCESSFUL_DELETE_SOME).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -106,6 +109,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             storageEngine.delete(triplestoreID, trapdoors);
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -123,6 +127,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
             storageEngine.swap(triplestoreID, values);
             return Response.ok(SUCCESSFUL_SWAP).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

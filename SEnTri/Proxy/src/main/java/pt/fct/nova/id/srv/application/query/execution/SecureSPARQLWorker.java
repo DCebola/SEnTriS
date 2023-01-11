@@ -53,8 +53,9 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
+        System.out.println("PROJECT BEFORE: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         prevJobResults.project(job.getVars());
-        System.out.println("PROJECT: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
+        System.out.println("PROJECT AFTER: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         return prevJobResults;
     }
 

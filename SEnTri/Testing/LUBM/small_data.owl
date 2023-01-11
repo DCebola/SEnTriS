@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+xmlns:owl="http://www.w3.org/2002/07/owl#"
+xmlns:ub="http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#">
+
+
+<owl:Ontology rdf:about="">
+<owl:imports rdf:resource="http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl" />
+</owl:Ontology>
+
+<ub:University rdf:about="http://www.University0.edu">
+   <ub:name>University0</ub:name>
+</ub:University>
+
+<ub:Department rdf:about="http://www.Department0.University0.edu">
+   <ub:name>Department0</ub:name>
+   <ub:subOrganizationOf>
+      <ub:University rdf:about="http://www.University0.edu" />   </ub:subOrganizationOf>
+</ub:Department>
+
+<ub:FullProfessor rdf:about="http://www.Department0.University0.edu/FullProfessor0">
+   <ub:name>FullProfessor0</ub:name>
+   <ub:teacherOf rdf:resource="http://www.Department0.University0.edu/Course0" />
+   <ub:teacherOf rdf:resource="http://www.Department0.University0.edu/GraduateCourse0" />
+   <ub:teacherOf rdf:resource="http://www.Department0.University0.edu/GraduateCourse1" />
+   <ub:undergraduateDegreeFrom>
+      <ub:University rdf:about="http://www.University84.edu" />   </ub:undergraduateDegreeFrom>
+   <ub:mastersDegreeFrom>
+      <ub:University rdf:about="http://www.University875.edu" />   </ub:mastersDegreeFrom>
+   <ub:doctoralDegreeFrom>
+      <ub:University rdf:about="http://www.University241.edu" />   </ub:doctoralDegreeFrom>
+   <ub:worksFor rdf:resource="http://www.Department0.University0.edu" />
+   <ub:emailAddress>FullProfessor0@Department0.University0.edu</ub:emailAddress>
+   <ub:telephone>xxx-xxx-xxxx</ub:telephone>
+   <ub:researchInterest>Research20</ub:researchInterest>
+</ub:FullProfessor>
+
+<ub:FullProfessor rdf:about="http://www.Department0.University0.edu/FullProfessor1">
+   <ub:name>FullProfessor1</ub:name>
+   <ub:teacherOf rdf:resource="http://www.Department0.University0.edu/Course1" />
+   <ub:teacherOf rdf:resource="http://www.Department0.University0.edu/GraduateCourse2" />
+   <ub:undergraduateDegreeFrom>
+      <ub:University rdf:about="http://www.University260.edu" />   </ub:undergraduateDegreeFrom>
+   <ub:mastersDegreeFrom>
+      <ub:University rdf:about="http://www.University503.edu" />   </ub:mastersDegreeFrom>
+   <ub:doctoralDegreeFrom>
+      <ub:University rdf:about="http://www.University882.edu" />   </ub:doctoralDegreeFrom>
+   <ub:worksFor rdf:resource="http://www.Department0.University0.edu" />
+   <ub:emailAddress>FullProfessor1@Department0.University0.edu</ub:emailAddress>
+   <ub:telephone>xxx-xxx-xxxx</ub:telephone>
+   <ub:researchInterest>Research12</ub:researchInterest>
+</ub:FullProfessor>
+</rdf:RDF>

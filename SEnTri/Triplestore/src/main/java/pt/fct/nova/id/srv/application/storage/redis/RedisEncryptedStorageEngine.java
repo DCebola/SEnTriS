@@ -68,6 +68,7 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
             Pipeline p = jedis.pipelined();
             List<Response<String>> responses = new ArrayList<>(trapdoors.size());
             trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
+            System.out.println("SEARCH: " + trapdoors.size());
             p.sync();
             List<String> res = new ArrayList<>(trapdoors.size());
             for (Response<String> r : responses) res.add(r.get());

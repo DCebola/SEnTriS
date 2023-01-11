@@ -62,12 +62,11 @@ public class ProxyStorage {
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get());
 
-            Map<Var, String> binding;
+            String p_idx;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
-                binding = new HashMap<>(vars.length);
+                p_idx = generateID();
                 for (Var var : vars)
-                    binding.put(var, decrypt(key, searchResults.get(var).get(i)));
-                res.add(binding);
+                    res.add(p_idx, var, decrypt(key, searchResults.get(var).get(i)));
             }
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;

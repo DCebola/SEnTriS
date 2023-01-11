@@ -35,6 +35,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -233,4 +234,23 @@ public class ParsingUtils {
         return String.format(KEYWORD_FORMAT, pattern, keyword);
     }
 
+    public static Set<String> generateKeywords(List<Triple> triples) throws InvalidNodeException {
+        Set<String> keywords = new HashSet<>();
+        String s, p, o;
+        for (Triple t : triples) {
+            s = parseKeyword(t.getSubject());
+            p = parseKeyword(t.getPredicate());
+            o = parseKeyword(t.getObject());
+            keywords.add(ParsingUtils.generateKeyword(PO, s));
+            keywords.add(ParsingUtils.generateKeyword(PO, s));
+            keywords.add(ParsingUtils.generateKeyword(SO, p));
+            keywords.add(ParsingUtils.generateKeyword(SO, p));
+            keywords.add(ParsingUtils.generateKeyword(SP, o));
+            keywords.add(ParsingUtils.generateKeyword(SP, o));
+            keywords.add(ParsingUtils.generateKeyword(S, p, o));
+            keywords.add(ParsingUtils.generateKeyword(P, s, o));
+            keywords.add(ParsingUtils.generateKeyword(O, s, p));
+        }
+        return keywords;
+    }
 }

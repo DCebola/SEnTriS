@@ -9,17 +9,17 @@ import java.util.Set;
 
 public interface IRITable {
 
-    void add(Map<Var, String> binding);
+    void add(String patternIdx, Var var, String iri);
 
     Set<Var> getVars();
 
-    Map<String, Set<Integer>> getIRIs(Var var);
+    Map<String, Set<String>> getIRIs(Var var);
 
-    Map<Integer, String> getPatternIdxs(Var var);
+    Map<String, String> getPatternIdxs(Var var);
 
-    Map<Var, Map<String, Set<Integer>>> getIRIs();
+    Map<Var, Map<String, Set<String>>> getIRIs();
 
-    Map<Var, Map<Integer, String>> getPatternIdxs();
+    Map<Var, Map<String, String>> getPatternIdxs();
 
     List<List<String>> getPatterns();
 

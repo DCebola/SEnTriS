@@ -51,6 +51,7 @@ public class TriplestoreController implements TriplestoreAPI {
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
     public static final String INVALID_COOKIE = "Malformed cookie.";
+    public static final String SUCCESSFUL_UPDATE = "Successful update.";
 
     @Override
     public Response create(Cookie cookie, UploadForm form) {
@@ -244,14 +245,26 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, List<Triple> triplesToUpload, List<Triple> triplesToDelete) throws IOException, InvalidNodeException {
-        JSONObject responseBody = new JSONObject();
-        if (!triplesToDelete.isEmpty())
-            responseBody = responseBody.put("Delete Response:", deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken).getBody());
-        if (!triplesToUpload.isEmpty())
-            responseBody = responseBody.put("Insert Response:", upload(httpClient, triplestoreID, triplesToUpload, accessToken).getBody());
+        HTTPResponse response;
+        if (!triplesToDelete.isEmpty()) {
+            response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
+            if (response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+        }
+        if (!triplesToUpload.isEmpty()) {
+            response = upload(httpClient, triplestoreID, triplesToUpload, accessToken);
+            if (response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+        }
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-        return Response.ok(responseBody).build();
+        return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 
     public static Response generateASKResults(SPARQLResult sparqlResult) throws IOException {
