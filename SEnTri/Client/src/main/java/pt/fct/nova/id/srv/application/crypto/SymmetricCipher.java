@@ -3,11 +3,11 @@ package pt.fct.nova.id.srv.application.crypto;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.params.HKDFParameters;
+import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -27,11 +27,11 @@ public class SymmetricCipher {
             IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] cipherText = cipher.doFinal(input);
-        return ByteBuffer.allocate(cipherText.length + IV_SIZE)
-                .put(iv)
-                .put(cipherText)
-                .array();
+        byte[] ct = cipher.doFinal(input);
+        byte[] result = new byte[ct.length + IV_SIZE];
+        System.arraycopy(iv, 0, result, 0, IV_SIZE);
+        System.arraycopy(ct, 0, result, IV_SIZE, ct.length);
+        return result;
     }
 
     public static byte[] encrypt(byte[] input, SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -78,23 +78,15 @@ public class SymmetricCipher {
         }
     }
 
-    public static void decrementIV(byte[] iv) {
-        for (int i = iv.length - 1; i >= 0; --i) {
-            if (++iv[i] == 0) {
-                break;
-            }
-        }
-    }
-
     public static byte[] generateZeroFilledIV() {
         return new byte[IV_SIZE];
     }
 
-    public static byte[] generateIV(int value) {
-        return ByteBuffer.allocate(SymmetricCipher.IV_SIZE).position(SymmetricCipher.IV_SIZE - Integer.BYTES).putInt(value).array();
+    public static byte[] ivFromInteger(int integer) {
+        byte[] iv = new byte[IV_SIZE];
+        byte[] intBytes = ParsingUtils.integerToByteArray(integer);
+        System.arraycopy(intBytes, 0, iv, IV_SIZE - Integer.BYTES, Integer.BYTES);
+        return iv;
     }
 
-    public static int integerFromByteArray(byte [] bytes){
-        return ByteBuffer.allocate(SymmetricCipher.IV_SIZE).put(bytes).position(SymmetricCipher.IV_SIZE - Integer.BYTES).getInt();
-    }
 }

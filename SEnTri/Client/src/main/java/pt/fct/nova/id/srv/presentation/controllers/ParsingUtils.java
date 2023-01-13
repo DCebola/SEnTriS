@@ -225,6 +225,13 @@ public class ParsingUtils {
                     TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
     }
 
+    public static byte[] integerToByteArray(int integer) {
+        return new byte[]{(byte) (integer >> 24), (byte) (integer >> 16), (byte) (integer >> 8), (byte) integer};
+    }
+
+    public static int byteArrayToInteger(byte[] iv) {
+        return (iv[0] << 24) | ((iv[1] & 0xff) << 16) | ((iv[2] & 0xff) << 8) | (iv[3] & 0xff);
+    }
 
     public static String generateKeyword(VariablesPattern pattern, String keyword1, String keyword2) {
         return String.format(KEYWORD_FORMAT, pattern, String.format(COMPOUND_KEYWORD, keyword1, keyword2));

@@ -51,7 +51,7 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
             Pipeline p = jedis.pipelined();
             Map<String, Response<String>> swaps = new HashMap<>(values.size());
             for (String key : values.keySet())
-                swaps.put(key, p.get(key));
+                swaps.put(key, p.get(String.format(KEY_FORMAT, triplestoreID, key)));
             p.sync();
             Transaction t = jedis.multi();
             for (String key : swaps.keySet()) {
