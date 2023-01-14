@@ -383,71 +383,97 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
 
         Map<String, Set<Integer>> keywordsInstances = new HashMap<>(keywordList.size());
-        List<String> encryptedInstances, keywordTrapdoors;
+        List<String> encryptedInstances;
         Set<Integer> instancesToDelete;
         String encryptedInstance;
-        Map<String, Integer> idxs = new HashMap<>();
         List<String> trapdoorsToDelete = new ArrayList<>(triplesToDelete.size() * 9);
-        int length = 0;
-        for (String keyword : keywordList) {
-            keywordTrapdoors = keywordsTrapdoors.get(keyword);
-            length += keywordTrapdoors.size();
-            idxs.put(keyword, length);
-            trapdoorsToDelete.addAll(keywordTrapdoors);
-        }
+        for (String keyword : keywordList)
+            trapdoorsToDelete.addAll(keywordsTrapdoors.get(keyword));
+        System.out.println(trapdoorsToDelete.size());
+        //TODO: add permutation of trapdoors
         response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoorsToDelete, accessToken);
         if (response.getStatus() != OK)
             return response;
         encryptedInstances = ParsingUtils.parseListOfStrings(response.getBody());
 
-        int offset = 0;
+        int offset = 0, length;
+        List<Integer> l;
         for (String keyword : keywordList) {
-            length = idxs.get(keyword);
+            length = keywordsTrapdoors.get(keyword).size();
             instancesToDelete = new HashSet<>();
-            for (int i = offset; i < length; i++) {
+            l = new LinkedList<>();
+            for (int i = offset; i < offset + length; i++) {
                 encryptedInstance = encryptedInstances.get(i);
                 if (encryptedInstance != null) {
                     instancesToDelete.add(ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedInstance)));
                     deletionsCollector.add(trapdoorsToDelete.get(i));
-                }
+                } else
+                    l.add(i);
             }
+            if (!l.isEmpty())
+                System.out.println("[ " + keyword + "] - " + Arrays.toString(l.toArray()));
             if (!instancesToDelete.isEmpty())
                 keywordsInstances.put(keyword, instancesToDelete);
-            offset += length - offset;
+
+            offset += length;
         }
-        System.out.println(keywordsInstances.size());
-        int frequency;
+
+        System.out.println("Keyword Instances to Delete: " + keywordsInstances.size());
+
+        int frequency, swaps, deletions, preserved, totalPreserved = 0;
         Queue<Integer> instancesToKeep;
         for (String keyword : keywordsInstances.keySet()) {
+            swaps = 0;
+            deletions = 0;
             instancesToDelete = keywordsInstances.get(keyword);
             frequency = keywordsFrequency.get(keyword);
             instancesToKeep = new ArrayDeque<>(frequency - instancesToDelete.size());
 
-            for (int i = frequency; i > 1; i--) {
+            for (int i = frequency; i > 0; i--) {
                 if (!instancesToDelete.contains(i))
                     instancesToKeep.add(i);
             }
 
-            Integer cur;
-            for (int i = 1; i < frequency; i++) {
-                if (instancesToDelete.contains(i)) {
-                    cur = instancesToKeep.peek();
-                    if (cur != null && cur > i) {
-                        instancesToDelete.remove(i);
-                        swapsCollector.put(protocol.generateTrapdoor(keyword, cur), protocol.generateTrapdoor(keyword, i));
-                        instancesToKeep.poll();
-                        protocol.deleteKeyword(keyword);
+            if (!instancesToKeep.isEmpty()) {
+                System.out.println("KEYWORD: " + keyword + " | " + frequency);
+                System.out.println("TO DELETE:" + Arrays.toString(instancesToDelete.toArray()));
+                System.out.println("EXPECTED:" + Arrays.toString(instancesToKeep.toArray()));
+                Integer cur;
+                for (int i = 1; i <= frequency; i++) {
+                    if (instancesToDelete.contains(i)) {
+                        cur = instancesToKeep.peek();
+                        if (cur != null && cur > i) {
+                            swaps += 1;
+                            instancesToDelete.remove(i);
+                            if (frequency > 10 && frequency < 1000) {
+                                System.out.print(cur + " -> " + i + " | ");
+                            }
+                            swapsCollector.put(protocol.generateTrapdoor(keyword, cur), protocol.generateTrapdoor(keyword, i));
+                            instancesToKeep.poll();
+                            protocol.deleteKeyword(keyword);
+                        }
                     }
                 }
+                System.out.println();
             }
+
 
             for (int i : instancesToDelete) {
                 deletionsCollector.add(protocol.generateTrapdoor(keyword, i));
                 protocol.deleteKeyword(keyword);
+                deletions += 1;
+            }
+
+            preserved = frequency - deletions - swaps;
+            totalPreserved += preserved;
+            if (!instancesToKeep.isEmpty()) {
+                System.out.println("Deleted: " + Arrays.toString(instancesToDelete.toArray()));
+                System.out.println("[ " + keyword + "] - f" + protocol.getKeywordFrequencies().get(keyword) + " | p" + preserved + " | d" + deletions + " | s" + swaps);
             }
         }
-        System.out.println("Triples to upload: " + triplesToUpload.size());
         protocol.exec(triplesToUpload);
+        System.out.println("PRESERVED:" + totalPreserved);
+        System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
         return null;
     }
 

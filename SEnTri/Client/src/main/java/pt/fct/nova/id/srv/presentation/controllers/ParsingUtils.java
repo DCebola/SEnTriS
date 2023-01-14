@@ -136,10 +136,6 @@ public class ParsingUtils {
         }.getType());
     }
 
-    public static List<Integer> parseListOfIntegers(String results) {
-        return gson.fromJson(results, new TypeToken<List<Integer>>() {
-        }.getType());
-    }
 
     public static SPARQLResult parseSPARQLResult(String results) throws IOException, ClassNotFoundException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(base64Decoder.decode(results));
@@ -175,12 +171,16 @@ public class ParsingUtils {
 
     public static List<String[]> serializeTriples(List<Triple> triples) throws InvalidNodeException {
         List<String[]> serialized = new ArrayList<>(triples.size());
+        Set<Triple> processed = new HashSet<>();
         for (Triple t : triples)
-            serialized.add(new String[]{
-                    parseNodeIRI(t.getSubject()),
-                    parseNodeIRI(t.getPredicate()),
-                    parseNodeIRI(t.getObject()),
-            });
+            if (!processed.contains(t)) {
+                processed.add(t);
+                serialized.add(new String[]{
+                        parseNodeIRI(t.getSubject()),
+                        parseNodeIRI(t.getPredicate()),
+                        parseNodeIRI(t.getObject()),
+                });
+            }
         return serialized;
     }
 
@@ -244,19 +244,23 @@ public class ParsingUtils {
     public static Set<String> generateKeywords(List<Triple> triples) throws InvalidNodeException {
         Set<String> keywords = new HashSet<>();
         String s, p, o;
+        Set<Triple> processed = new HashSet<>();
         for (Triple t : triples) {
-            s = parseKeyword(t.getSubject());
-            p = parseKeyword(t.getPredicate());
-            o = parseKeyword(t.getObject());
-            keywords.add(ParsingUtils.generateKeyword(PO, s));
-            keywords.add(ParsingUtils.generateKeyword(PO, s));
-            keywords.add(ParsingUtils.generateKeyword(SO, p));
-            keywords.add(ParsingUtils.generateKeyword(SO, p));
-            keywords.add(ParsingUtils.generateKeyword(SP, o));
-            keywords.add(ParsingUtils.generateKeyword(SP, o));
-            keywords.add(ParsingUtils.generateKeyword(S, p, o));
-            keywords.add(ParsingUtils.generateKeyword(P, s, o));
-            keywords.add(ParsingUtils.generateKeyword(O, s, p));
+            if (!processed.contains(t)) {
+                processed.add(t);
+                s = parseKeyword(t.getSubject());
+                p = parseKeyword(t.getPredicate());
+                o = parseKeyword(t.getObject());
+                keywords.add(ParsingUtils.generateKeyword(PO, s));
+                keywords.add(ParsingUtils.generateKeyword(PO, s));
+                keywords.add(ParsingUtils.generateKeyword(SO, p));
+                keywords.add(ParsingUtils.generateKeyword(SO, p));
+                keywords.add(ParsingUtils.generateKeyword(SP, o));
+                keywords.add(ParsingUtils.generateKeyword(SP, o));
+                keywords.add(ParsingUtils.generateKeyword(S, p, o));
+                keywords.add(ParsingUtils.generateKeyword(P, s, o));
+                keywords.add(ParsingUtils.generateKeyword(O, s, p));
+            }
         }
         return keywords;
     }
