@@ -7,6 +7,15 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Statement;
+
+import org.apache.jena.reasoner.ReasonerRegistry;
+import org.apache.jena.sparql.graph.GraphFactory;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -27,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 import static jakarta.ws.rs.core.Response.Status.*;
+import static org.apache.jena.ontology.OntModelSpec.OWL_DL_MEM_TRANS_INF;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 
 @Path("")
@@ -41,7 +51,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
 
     @Override
-    public Response upload(String triplestoreID, Set<String[]> triples, List<String> authorizationHeaders) {
+    public Response upload(String triplestoreID, byte[] triplesData, boolean isSchema, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -50,8 +60,27 @@ public class TriplestoreController implements TriplestoreAPI {
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.save(triplestoreID, triples);
-            return Response.ok(SUCCESSFUL_UPLOAD).build();
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
+                 ObjectInputStream ois = new ObjectInputStream(bis)){
+                Set<Triple> triples = (Set<Triple>) ois.readObject();
+                if (isSchema)
+                    storageEngine.saveSchema(triplestoreID, triples);
+                else {
+                    OntModel base = ModelFactory.createOntologyModel(OWL_DL_MEM_TRANS_INF);
+                    Graph schema = GraphFactory.createDefaultGraph();
+                    Graph data = GraphFactory.createDefaultGraph();
+                    storageEngine.findSchema(triplestoreID).forEach(schema::add);
+                    triples.forEach(data::add);
+                    base.add(ModelFactory.createModelForGraph(data));
+                    InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner().bindSchema(schema), base);
+                    for (Statement statement : infModel.getDeductionsModel().listStatements().toSet()) {
+                        System.out.println(statement);
+                        triples.add(statement.asTriple());
+                    }
+                    storageEngine.save(triplestoreID, triples);
+                }
+                return Response.ok(SUCCESSFUL_UPLOAD).build();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
@@ -105,7 +134,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response delete(String triplestoreID, Set<String[]> triples, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, byte[] triples, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -114,8 +143,12 @@ public class TriplestoreController implements TriplestoreAPI {
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.delete(triplestoreID, triples);
-            return Response.ok(SUCCESSFUL_DELETION).build();
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(triples);
+                 ObjectInputStream ois = new ObjectInputStream(bis)) {
+                storageEngine.delete(triplestoreID, (Set<Triple>) ois.readObject());
+                return Response.ok(SUCCESSFUL_DELETION).build();
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();

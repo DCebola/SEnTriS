@@ -96,9 +96,9 @@ public class Protocol1 implements EncryptionProtocol {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            s_iri = ParsingUtils.parseNodeIRI(s);
-            p_iri = ParsingUtils.parseNodeIRI(p);
-            o_iri = ParsingUtils.parseNodeIRI(o);
+            s_iri = ParsingUtils.parseNode(s);
+            p_iri = ParsingUtils.parseNode(p);
+            o_iri = ParsingUtils.parseNode(o);
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);

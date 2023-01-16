@@ -11,6 +11,7 @@ import org.apache.jena.sparql.algebra.OpVisitorByType;
 import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.modify.request.UpdateDataDelete;
 import org.apache.jena.sparql.modify.request.UpdateDataInsert;
@@ -462,8 +463,9 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     public void visitUpdate(UpdateDeleteWhere op) {
         setQueryType(QueryType.MODIFY);
+        List<Triple> bgp = new LinkedList<>();
         op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
-        OpWalker.walk(new OpBGP(BasicPattern.wrap(deleteTemplate)), this);
+        OpWalker.walk(new OpBGP(BasicPattern.wrap(bgp)), this);
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {

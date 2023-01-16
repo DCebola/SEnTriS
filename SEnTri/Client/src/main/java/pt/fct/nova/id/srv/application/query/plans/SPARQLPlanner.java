@@ -7,7 +7,10 @@ import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.update.Update;
 import pt.fct.nova.id.srv.application.query.QueryType;
 
+import java.util.Collection;
+
 import java.util.List;
+
 
 public interface SPARQLPlanner {
     QueryExecutionPlan generatePlan(Op op) throws NotImplemented;
@@ -19,7 +22,7 @@ public interface SPARQLPlanner {
     void setConstructTemplate(List<Triple> constructTemplate);
 
     List<Triple> getConstructTemplate();
-    List<Triple> getUploadTemplate();
-    List<Triple> getDeleteTemplate();
+    Collection<Triple> getUploadTemplate();
+    Collection<Triple> getDeleteTemplate();
 
 }

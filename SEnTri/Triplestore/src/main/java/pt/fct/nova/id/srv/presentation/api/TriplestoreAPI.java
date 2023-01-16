@@ -15,10 +15,11 @@ public interface TriplestoreAPI {
 
     @POST
     @Path("/{triplestoreID}")
-    @Consumes(APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(TEXT_PLAIN)
     Response upload(@PathParam("triplestoreID") String triplestoreID,
-                    Set<String[]> triples,
+                    byte[] triples,
+                    @DefaultValue("false") @QueryParam("isSchema") boolean isSchema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
@@ -37,10 +38,10 @@ public interface TriplestoreAPI {
 
     @POST
     @Path("/{triplestoreID}/delete")
-    @Consumes(APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
-                    Set<String[]> triples,
+                    byte[] triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

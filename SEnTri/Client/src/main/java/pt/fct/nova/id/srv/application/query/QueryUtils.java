@@ -4,6 +4,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QueryParseException;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -190,8 +191,8 @@ public class QueryUtils {
         return g;
     }
 
-    public static List<Triple> generateTriplesFromSerializableBindings(List<Triple> template, Collection<SerializableBinding> bindings) {
-        List<Triple> triples = new LinkedList<>();
+    public static Set<Triple> generateTriplesFromSerializableBindings(Set<Triple> template, Collection<SerializableBinding> bindings) {
+        Set<Triple> triples = new HashSet<>();
         Node s, p, o;
         String val1, val2;
         for (SerializableBinding binding : bindings) {

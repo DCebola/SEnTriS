@@ -10,6 +10,7 @@ import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 
 public class TriplestoreClient {
@@ -18,8 +19,8 @@ public class TriplestoreClient {
     private static final String DELETE_SOME_URI = System.getenv("TRIPLESTORE_DELETE_SOME_URI");
     private static final String QUERY_URI = System.getenv("TRIPLESTORE_QUERY_URI");
 
-    public static CloseableHttpResponse upload(HttpClient httpClient, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.triplesListToHttpEntity(triples), accessToken);
+    public static CloseableHttpResponse upload(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, triplestoreID), ParsingUtils.triplesSetToHttpEntity(triples), accessToken);
     }
 
     public static CloseableHttpResponse query(HttpClient httpClient, String triplestoreID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
@@ -30,8 +31,8 @@ public class TriplestoreClient {
         return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, triplestoreID), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.triplesListToHttpEntity(triples), accessToken);
+    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.triplesSetToHttpEntity(triples), accessToken);
     }
 
 }

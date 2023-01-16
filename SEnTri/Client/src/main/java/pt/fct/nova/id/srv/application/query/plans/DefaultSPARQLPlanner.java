@@ -8,6 +8,7 @@ import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.*;
 import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.modify.request.*;
 import org.apache.jena.update.Update;
@@ -31,8 +32,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     private final DefaultQueryExecutionPlan plan;
 
     private final Random rnd;
-    private final List<Triple> uploadTemplate;
-    private final List<Triple> deleteTemplate;
+    private final Set<Triple> uploadTemplate;
+    private final Set<Triple> deleteTemplate;
 
     private QueryType queryType;
     private List<Triple> constructTemplate;
@@ -42,8 +43,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         this.plan = new DefaultQueryExecutionPlan();
         this.rnd = new Random();
         this.constructTemplate = new LinkedList<>();
-        this.uploadTemplate = new LinkedList<>();
-        this.deleteTemplate = new LinkedList<>();
+        this.uploadTemplate = new HashSet<>();
+        this.deleteTemplate = new HashSet<>();
     }
 
     @Override
@@ -70,12 +71,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     @Override
-    public List<Triple> getUploadTemplate() {
+    public Set<Triple> getUploadTemplate() {
         return uploadTemplate;
     }
 
     @Override
-    public List<Triple> getDeleteTemplate() {
+    public Set<Triple> getDeleteTemplate() {
         return deleteTemplate;
     }
 
@@ -389,8 +390,14 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     public void visitUpdate(UpdateDeleteWhere op) {
         setQueryType(QueryType.MODIFY);
-        op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
-        OpWalker.walk(new OpBGP(BasicPattern.wrap(deleteTemplate)), this);
+        List<Triple> bgp = new LinkedList<>();
+        Triple t;
+        for (Quad quad : op.getQuads()) {
+            t = quad.asTriple();
+            bgp.add(t);
+            deleteTemplate.add(t);
+        }
+        OpWalker.walk(new OpBGP(BasicPattern.wrap(bgp)), this);
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {
