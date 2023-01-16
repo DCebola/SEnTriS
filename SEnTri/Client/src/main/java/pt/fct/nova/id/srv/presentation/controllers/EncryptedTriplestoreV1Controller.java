@@ -341,7 +341,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             triplesToUpload = planner.getUploadTemplate();
         } else {
             triplesToDelete = planner.getDeleteTemplate();
-            triplesToUpload = planner.getDeleteTemplate();
+            triplesToUpload = new ArrayList<>(0);
         }
         Collections.shuffle(triplesToDelete);
         Collections.shuffle(triplesToUpload);
