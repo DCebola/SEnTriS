@@ -16,7 +16,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.BASIC_SEP
 
 public interface EncryptionProtocol {
 
-    String TRIPLE_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR);
+    String TRIPLE_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 

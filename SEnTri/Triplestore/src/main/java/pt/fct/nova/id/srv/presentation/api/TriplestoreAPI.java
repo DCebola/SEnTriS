@@ -1,11 +1,10 @@
 package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.apache.jena.graph.Triple;
 
 import java.util.List;
+import java.util.Set;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
@@ -19,7 +18,7 @@ public interface TriplestoreAPI {
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response upload(@PathParam("triplestoreID") String triplestoreID,
-                    List<String[]> triples,
+                    Set<String[]> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
@@ -41,7 +40,7 @@ public interface TriplestoreAPI {
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
-                    List<String[]> triples,
+                    Set<String[]> triples,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

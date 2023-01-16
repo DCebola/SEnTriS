@@ -8,7 +8,6 @@ import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -69,13 +68,6 @@ public class SymmetricCipher {
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);
         return iv;
-    }
-
-    public static void incrementIV(byte[] iv) {
-        for (int i = iv.length - 1; i >= 0; --i) {
-            if (++iv[i] == 1)
-                break;
-        }
     }
 
     public static byte[] generateZeroFilledIV() {

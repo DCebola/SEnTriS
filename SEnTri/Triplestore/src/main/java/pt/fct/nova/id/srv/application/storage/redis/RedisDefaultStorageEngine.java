@@ -48,7 +48,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     @Override
-    public void delete(String triplestoreID, List<String[]> triples) {
+    public void delete(String triplestoreID, Set<String[]> triples) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (String[] triple : triples) {
@@ -76,7 +76,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     @Override
-    public void save(String triplestoreID, List<String[]> triples) {
+    public void save(String triplestoreID, Set<String[]> triples) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (String[] triple : triples) {

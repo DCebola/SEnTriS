@@ -386,32 +386,34 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         List<String> encryptedInstances;
         Set<Integer> instancesToDelete;
         String encryptedInstance;
-        List<String> trapdoorsToDelete = new ArrayList<>(triplesToDelete.size() * 9);
-        for (String keyword : keywordList)
-            trapdoorsToDelete.addAll(keywordsTrapdoors.get(keyword));
-        System.out.println(trapdoorsToDelete.size());
-        //TODO: add permutation of trapdoors
-        response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoorsToDelete, accessToken);
+        int totalTrapdoors = keywordsTrapdoors.values().stream().mapToInt(List::size).sum();
+        String[] trapdoorsToDelete = new String[totalTrapdoors];
+        List<Integer> permutation = generateRandomPermutation(totalTrapdoors);
+        int offset = 0, length;
+        for (String keyword : keywordList) {
+            trapdoors = keywordsTrapdoors.get(keyword);
+            length = trapdoors.size();
+            for (int i = 0; i < length; i++)
+                trapdoorsToDelete[permutation.get(offset + i)] = trapdoors.get(i);
+            offset += length;
+        }
+        System.out.println(trapdoorsToDelete.length);
+        response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(trapdoorsToDelete), accessToken);
         if (response.getStatus() != OK)
             return response;
         encryptedInstances = ParsingUtils.parseListOfStrings(response.getBody());
 
-        int offset = 0, length;
-        List<Integer> l;
+        offset = 0;
         for (String keyword : keywordList) {
             length = keywordsTrapdoors.get(keyword).size();
             instancesToDelete = new HashSet<>();
-            l = new LinkedList<>();
             for (int i = offset; i < offset + length; i++) {
-                encryptedInstance = encryptedInstances.get(i);
+                encryptedInstance = encryptedInstances.get(permutation.get(i));
                 if (encryptedInstance != null) {
                     instancesToDelete.add(ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedInstance)));
-                    deletionsCollector.add(trapdoorsToDelete.get(i));
-                } else
-                    l.add(i);
+                    deletionsCollector.add(trapdoorsToDelete[permutation.get(i)]);
+                }
             }
-            if (!l.isEmpty())
-                System.out.println("[ " + keyword + "] - " + Arrays.toString(l.toArray()));
             if (!instancesToDelete.isEmpty())
                 keywordsInstances.put(keyword, instancesToDelete);
 
@@ -445,9 +447,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                         if (cur != null && cur > i) {
                             swaps += 1;
                             instancesToDelete.remove(i);
-                            if (frequency > 10 && frequency < 1000) {
-                                System.out.print(cur + " -> " + i + " | ");
-                            }
+                            System.out.print(cur + " -> " + i + " | ");
                             swapsCollector.put(protocol.generateTrapdoor(keyword, cur), protocol.generateTrapdoor(keyword, i));
                             instancesToKeep.poll();
                             protocol.deleteKeyword(keyword);

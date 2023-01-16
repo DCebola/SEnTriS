@@ -6,7 +6,7 @@ import jakarta.ws.rs.core.Response.Status;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
-import org.apache.jena.graph.Triple;
+
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -24,6 +24,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
@@ -40,7 +41,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
 
     @Override
-    public Response upload(String triplestoreID, List<String[]> triples, List<String> authorizationHeaders) {
+    public Response upload(String triplestoreID, Set<String[]> triples, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -104,7 +105,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response delete(String triplestoreID, List<String[]> triples, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, Set<String[]> triples, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();

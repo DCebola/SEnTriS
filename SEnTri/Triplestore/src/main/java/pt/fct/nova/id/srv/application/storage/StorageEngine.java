@@ -5,15 +5,15 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
 
-import java.util.List;
+import java.util.Set;
 
 public interface StorageEngine {
 
     void delete(String triplestoreID);
 
-    void delete(String triplestoreID, List<String[]> triples);
+    void delete(String triplestoreID, Set<String[]> triples);
 
-    void save(String triplestoreID, List<String[]> triples);
+    void save(String triplestoreID, Set<String[]> triples);
 
     IRITable findS(String triplestoreID, Node predicate, Node object, Var subject) throws InvalidNodeException;
 
