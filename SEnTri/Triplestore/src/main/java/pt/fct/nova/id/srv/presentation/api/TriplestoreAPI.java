@@ -42,6 +42,7 @@ public interface TriplestoreAPI {
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
                     byte[] triples,
+                    @DefaultValue("false") @QueryParam("isSchema") boolean isSchema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

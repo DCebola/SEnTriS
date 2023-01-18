@@ -14,10 +14,11 @@ public class UploadForm extends TriplestoreForm {
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final InputStream contents;
 
-    public UploadForm(String issuer, String storeID, String syntax, InputStream contents) {
-        super(issuer, storeID);
+    public UploadForm(String issuer, String storeID, String syntax, InputStream contents, String isSchema) {
+        super(issuer, storeID, isSchema);
         this.syntax = syntax;
         this.contents = contents;
+
     }
     public UploadForm() {
         super();
@@ -33,4 +34,5 @@ public class UploadForm extends TriplestoreForm {
     public InputStream getContents() {
         return contents;
     }
+
 }

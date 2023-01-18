@@ -33,7 +33,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     private static final int LITERAL_DATATYPE_POS = 2;
     private static final String TRIPLESTORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
     private static final String BLANK = "BLANK";
-    private static final String SCHEMA = "SCHEMA";
+    private static final String SCHEMA_KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("SCHEMA");
 
     private static final String TRIPLE = "%s".concat(COMPOUND_NODE_SEPARATOR).concat("%s").concat(COMPOUND_NODE_SEPARATOR).concat("%s");
     private static final String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
@@ -108,7 +108,22 @@ public class RedisDefaultStorageEngine implements StorageEngine {
                 s = parseNode(triple.getSubject());
                 p = parseNode(triple.getPredicate());
                 o = parseNode(triple.getObject());
-                t.sadd(String.format(KEYWORD_FORMAT, triplestoreID, SCHEMA), String.format(TRIPLE, s, p, o));
+                t.sadd(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID), String.format(TRIPLE, s, p, o));
+            }
+            t.exec();
+        }
+    }
+
+    @Override
+    public void deleteSchema(String triplestoreID, Set<Triple> triples) throws InvalidNodeException {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            String s, p, o;
+            for (Triple triple : triples) {
+                s = parseNode(triple.getSubject());
+                p = parseNode(triple.getPredicate());
+                o = parseNode(triple.getObject());
+                t.srem(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID), String.format(TRIPLE, s, p, o));
             }
             t.exec();
         }
@@ -118,7 +133,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     public Set<Triple> findSchema(String triplestoreID) {
         Set<Triple> schema = new HashSet<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Set<String> serialized = jedis.smembers(String.format(KEYWORD_FORMAT, triplestoreID, SCHEMA));
+            Set<String> serialized = jedis.smembers(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID));
             String[] nodes;
             for (String t : serialized) {
                 nodes = t.split(COMPOUND_NODE_SEPARATOR);

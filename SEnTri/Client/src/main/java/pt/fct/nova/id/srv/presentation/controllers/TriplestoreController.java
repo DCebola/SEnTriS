@@ -38,7 +38,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static org.apache.jena.ontology.OntModelSpec.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
@@ -77,7 +76,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 return response.build();
             String accessToken = response.getBody();
 
-            return upload(httpClient, cookie, triplestoreID, triples, accessToken);
+            return upload(httpClient, cookie, triplestoreID, triples, form.isSchema(), accessToken);
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
@@ -112,7 +111,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 HTTPResponse response = createAccessToken(httpClient, cookie, form.getIssuer(), triplestoreID);
                 if (response.getStatus() != OK)
                     return response.build();
-                return upload(httpClient, cookie, triplestoreID, triples, response.getBody());
+                return upload(httpClient, cookie, triplestoreID, triples, form.isSchema(), response.getBody());
             }
             return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
         } catch (UnknownRDFLanguageException e) {
@@ -124,14 +123,14 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private Response upload(HttpClient httpClient, Cookie cookie, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException, InvalidNodeException, URISyntaxException {
+    private Response upload(HttpClient httpClient, Cookie cookie, String triplestoreID, Set<Triple> triples, boolean isSchema, String accessToken) throws IOException, URISyntaxException {
         HTTPResponse response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
 
-        response = upload(httpClient, triplestoreID, triples, accessToken);
+        response = upload(httpClient, triplestoreID, triples, isSchema, accessToken);
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         return response.build();
@@ -194,7 +193,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 case SELECT, ASK, DESCRIBE, CONSTRUCT ->
                         executeSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, accessToken);
                 case INSERT_DATA, DELETE_DATA, DELETE_WHERE, MODIFY ->
-                        executeSPARQLUpdateQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, accessToken);
+                        executeSPARQLUpdateQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, form.isSchema(), accessToken);
             };
         } catch (NotImplemented e) {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
@@ -205,7 +204,8 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
 
-    private Response executeSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException {
+    private Response executeSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType,
+                                        DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException {
         HTTPResponse response = query(httpClient, triplestoreID, plan, accessToken);
         if (response.getStatus() != OK)
             return response.build();
@@ -219,7 +219,8 @@ public class TriplestoreController implements TriplestoreAPI {
         return res;
     }
 
-    private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException, InvalidNodeException {
+    private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
+                                              QueryType queryType, DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, boolean isSchema, String accessToken) throws IOException, ClassNotFoundException, URISyntaxException {
         HTTPResponse response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -242,13 +243,14 @@ public class TriplestoreController implements TriplestoreAPI {
             triplesToUpload = planner.getUploadTemplate();
         else if (queryType == DELETE_DATA)
             triplesToDelete = planner.getDeleteTemplate();
-        return updateTriplestore(httpClient, cookie, triplestoreID, accessToken, triplesToUpload, triplesToDelete);
+        return updateTriplestore(httpClient, cookie, triplestoreID, triplesToUpload, triplesToDelete, isSchema, accessToken);
     }
 
-    private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken, Set<Triple> triplesToUpload, Set<Triple> triplesToDelete) throws IOException, InvalidNodeException {
+    private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
+                                       Set<Triple> triplesToUpload, Set<Triple> triplesToDelete, boolean isSchema, String accessToken) throws IOException, URISyntaxException {
         HTTPResponse response;
         if (!triplesToDelete.isEmpty()) {
-            response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
+            response = deleteSome(httpClient, triplestoreID, triplesToDelete, isSchema, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -256,7 +258,7 @@ public class TriplestoreController implements TriplestoreAPI {
             }
         }
         if (!triplesToUpload.isEmpty()) {
-            response = upload(httpClient, triplestoreID, triplesToUpload, accessToken);
+            response = upload(httpClient, triplestoreID, triplesToUpload, isSchema, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -506,14 +508,14 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private HTTPResponse upload(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, triplestoreID, triples, accessToken)) {
+    private HTTPResponse upload(HttpClient httpClient, String triplestoreID, Set<Triple> triples, boolean isSchema, String accessToken) throws IOException, URISyntaxException {
+        try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, triplestoreID, triples, isSchema, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = TriplestoreClient.deleteSome(httpClient, triplestoreID, triples, accessToken)) {
+    private HTTPResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, boolean isSchema, String accessToken) throws IOException, URISyntaxException {
+        try (CloseableHttpResponse response = TriplestoreClient.deleteSome(httpClient, triplestoreID, triples, isSchema, accessToken)) {
             return new HTTPResponse(response);
         }
     }

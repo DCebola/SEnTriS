@@ -5,17 +5,15 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.assembler.RuleSet;
 import org.apache.jena.atlas.lib.NotImplemented;
 
-import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.InfModel;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Statement;
-
-import org.apache.jena.reasoner.ReasonerRegistry;
-import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.ontology.*;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.PrintUtil;
+import org.apache.jena.vocabulary.RDF;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -31,12 +29,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Base64;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static org.apache.jena.ontology.OntModelSpec.OWL_DL_MEM_TRANS_INF;
+import static org.apache.jena.ontology.OntModelSpec.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 
 @Path("")
@@ -61,22 +58,12 @@ public class TriplestoreController implements TriplestoreAPI {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
-                 ObjectInputStream ois = new ObjectInputStream(bis)){
+                 ObjectInputStream ois = new ObjectInputStream(bis)) {
                 Set<Triple> triples = (Set<Triple>) ois.readObject();
                 if (isSchema)
                     storageEngine.saveSchema(triplestoreID, triples);
                 else {
-                    OntModel base = ModelFactory.createOntologyModel(OWL_DL_MEM_TRANS_INF);
-                    Graph schema = GraphFactory.createDefaultGraph();
-                    Graph data = GraphFactory.createDefaultGraph();
-                    storageEngine.findSchema(triplestoreID).forEach(schema::add);
-                    triples.forEach(data::add);
-                    base.add(ModelFactory.createModelForGraph(data));
-                    InfModel infModel = ModelFactory.createInfModel(ReasonerRegistry.getOWLReasoner().bindSchema(schema), base);
-                    for (Statement statement : infModel.getDeductionsModel().listStatements().toSet()) {
-                        System.out.println(statement);
-                        triples.add(statement.asTriple());
-                    }
+                    materializeDeductions(triplestoreID, triples);
                     storageEngine.save(triplestoreID, triples);
                 }
                 return Response.ok(SUCCESSFUL_UPLOAD).build();
@@ -134,7 +121,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
-    public Response delete(String triplestoreID, byte[] triples, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, byte[] triplesData, boolean isSchema, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -143,15 +130,159 @@ public class TriplestoreController implements TriplestoreAPI {
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            try (ByteArrayInputStream bis = new ByteArrayInputStream(triples);
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
-                storageEngine.delete(triplestoreID, (Set<Triple>) ois.readObject());
+                Set<Triple> triples = (Set<Triple>) ois.readObject();
+                if (isSchema) //TODO: Should have a config to turn on/off inference
+                    storageEngine.deleteSchema(triplestoreID, triples);
+                else {
+                    materializeDeductions(triplestoreID, triples);
+                    storageEngine.delete(triplestoreID, triples);
+                }
                 return Response.ok(SUCCESSFUL_DELETION).build();
 
             }
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private void materializeDeductions(String triplestoreID, Set<Triple> triples) {
+        OntModel tbox = ModelFactory.createOntologyModel(OWL_MEM);
+        OntModel abox = ModelFactory.createOntologyModel(OWL_MEM);
+        GraphUtil.add(tbox.getGraph(), storageEngine.findSchema(triplestoreID).iterator());
+        GraphUtil.add(abox.getGraph(), triples.iterator());
+        OntModel ontology = ModelFactory.createOntologyModel(OWL_MEM_TRANS_INF, tbox);
+
+        Map<Resource, Set<Statement>> groupedByResource = new HashMap<>();
+        Set<Statement> stmts;
+        for (Statement stmt : abox.listStatements().toSet()) {
+            if (stmt.getSubject().isResource()) {
+                stmts = groupedByResource.get(stmt.getSubject());
+                if (stmts == null)
+                    stmts = new HashSet<>();
+                stmts.add(stmt);
+                groupedByResource.put(stmt.getSubject(), stmts);
+            }
+        }
+        Map<Resource, Set<OntClass>> equivalentClasses = new HashMap<>();
+        Map<Property, OntClass> classRestrictions = new HashMap<>();
+        Set<OntClass> s, s2;
+        for (OntClass c : ontology.listClasses().toSet().stream().filter(RDFNode::isResource).collect(Collectors.toSet())) {
+            System.out.println(PrintUtil.print(c));
+            s = c.listSuperClasses().toSet();
+            for (OntClass c2 : s)
+                System.out.println(" -- " + PrintUtil.print(c2));
+            s2 = c.listEquivalentClasses().toSet();
+            for (OntClass c2 : s2)
+                System.out.println(" -- " + PrintUtil.print(c2));
+            s.addAll(s2);
+            for (OntClass c2 : s) {
+                if (c2.isRestriction()) {
+                    if (c2.asRestriction().isSomeValuesFromRestriction()) {
+                        System.out.println(" -r- " + PrintUtil.print(c2.asRestriction()) +
+                                " | " + PrintUtil.print(c2.asRestriction().getOnProperty())
+                                + " | " + PrintUtil.print(c2.asRestriction().asSomeValuesFromRestriction().getSomeValuesFrom()));
+                        classRestrictions.put(c2.asRestriction().getOnProperty(), c2.asRestriction());
+                    }
+                    if (c2.asRestriction().isHasValueRestriction()) {
+                        System.out.println(" -r- " + PrintUtil.print(c2.asRestriction()) +
+                                " | " + PrintUtil.print(c2.asRestriction().getOnProperty())
+                                + " | " + PrintUtil.print(c2.asRestriction().asHasValueRestriction().getHasValue()));
+                        classRestrictions.put(c2.asRestriction().getOnProperty(), c2.asRestriction());
+                    }
+                }
+            }
+            equivalentClasses.put(c.asResource(), s);
+        }
+
+        Map<Resource, Set<? extends OntProperty>> equivalentProperties = new HashMap<>();
+        Map<Resource, Set<? extends OntProperty>> inverseProperties = new HashMap<>();
+        Set<Resource> symmetricProperties = new HashSet<>();
+        Set<Resource> transitiveProperties = new HashSet<>();
+        Set<? extends OntProperty> s3;
+        for (OntProperty p : ontology.listOntProperties().toSet().stream().filter(RDFNode::isResource).collect(Collectors.toSet())) {
+            System.out.println(PrintUtil.print(p));
+            if (p.isInverseFunctionalProperty()) {
+                inverseProperties.put(p.asResource(), p.listInverseOf().toSet());
+            }
+            if (p.isSymmetricProperty()) {
+                symmetricProperties.add(p.asResource());
+            }
+            if (p.isTransitiveProperty()) {
+                transitiveProperties.add(p.asResource());
+            }
+            s3 = p.listSuperProperties().toSet().stream().filter(RDFNode::isResource).collect(Collectors.toSet());
+            for (OntProperty p2 : s3) {
+                System.out.println(" + " + PrintUtil.print(p2));
+                if (p2.isInverseFunctionalProperty()) {
+                    inverseProperties.put(p2.asResource(), p.listInverseOf().toSet());
+                }
+                if (p2.isSymmetricProperty()) {
+                    symmetricProperties.add(p.asResource());
+                }
+                if (p2.isTransitiveProperty()) {
+                    transitiveProperties.add(p.asResource());
+                }
+            }
+            equivalentProperties.put(p.asResource(), s3);
+        }
+
+        Property p;
+        RDFNode o;
+        OntClass c;
+        for (Resource resource : groupedByResource.keySet()) {
+            System.out.println("Resource: " + PrintUtil.print(resource));
+            for (Statement statement : groupedByResource.get(resource)) {
+                p = statement.getPredicate();
+                o = statement.getObject();
+                if (p.equals(RDF.type) && o.isResource()) {
+                    System.out.println(" - " + PrintUtil.print(o));
+                    s = equivalentClasses.get(o.asResource());
+                    if (s != null) {
+                        for (OntClass equivalentClass : s) {
+                            System.out.println(" -- " + PrintUtil.print(equivalentClass));
+                        }
+                    }
+                } else if (p.isResource()) {
+                    System.out.println(" + " + PrintUtil.print(p));
+                    c = classRestrictions.get(p);
+                    if (c != null) {
+                        if (c.asRestriction().isHasValueRestriction()) {
+                            if (c.asRestriction().asHasValueRestriction().getHasValue().equals(o)) {
+                                System.out.println(" +- " + PrintUtil.print(c));
+                            }
+                        }
+                        if (c.asRestriction().isSomeValuesFromRestriction() && o.isResource()) {
+                            s = equivalentClasses.get(c.asRestriction().asSomeValuesFromRestriction().getSomeValuesFrom());
+                            for (OntClass c2 : s) {
+                                if (c2.asResource().equals(o.asResource()))
+                                    System.out.println(" +- " + PrintUtil.print(c));
+                            }
+                        }
+                    }
+
+                    s3 = equivalentProperties.get(p);
+                    if (s3 != null) {
+                        for (OntProperty equivalent : s3) {
+                            System.out.println(" ++ " + PrintUtil.print(equivalent));
+                        }
+                    }
+                    s3 = inverseProperties.get(p);
+                    if (s3 != null) {
+                        for (OntProperty inverse : s3) {
+                            System.out.println(" +i+ " + PrintUtil.print(inverse));
+                        }
+                    }
+                    if (symmetricProperties.contains(p)) {
+                        System.out.println(" +s+ " + PrintUtil.print(s3));
+                    }
+                    if (transitiveProperties.contains(p)) {
+                        System.out.println(" +t+ " + PrintUtil.print(s3));
+                    }
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ public interface StorageEngine {
 
     void save(String triplestoreID, Set<Triple> triples) throws InvalidNodeException;
     void saveSchema(String triplestoreID, Set<Triple> triples) throws InvalidNodeException;
+    void deleteSchema(String triplestoreID, Set<Triple> triples) throws InvalidNodeException;
     Set<Triple> findSchema(String triplestoreID);
 
     BindingsTable findS(String triplestoreID, Node predicate, Node object, Var subject) throws InvalidNodeException;

@@ -40,7 +40,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     }
 
     @Override
-    public Response prepareSPARQLSearch(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response prepareSearch(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();

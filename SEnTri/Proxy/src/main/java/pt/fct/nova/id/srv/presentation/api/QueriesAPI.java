@@ -23,6 +23,6 @@ public interface QueriesAPI {
     @Path("/prepare")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_OCTET_STREAM)
-    Response saveSearchResults(List<String> encryptedNodes,
-                               @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+    Response prepareSearch(List<String> encryptedNodes,
+                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }
