@@ -5,7 +5,7 @@ import org.apache.jena.graph.Triple;
 
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
+import pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.BadPaddingException;
@@ -18,7 +18,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern.*;
 
 public class Protocol1 implements EncryptionProtocol {
     private final byte[] ivDET;

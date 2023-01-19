@@ -18,11 +18,11 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingComparator;
 import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.clients.*;
-import pt.fct.nova.id.srv.application.query.QueryUtils;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
-import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.querying.QueryUtils;
+import pt.fct.nova.id.srv.application.querying.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.querying.jobs.SerializableBinding;
+import pt.fct.nova.id.srv.application.querying.jobs.SerializableSortCondition;
+import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
 
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;

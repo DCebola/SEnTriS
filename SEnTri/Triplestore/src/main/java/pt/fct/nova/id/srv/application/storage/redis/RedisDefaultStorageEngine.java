@@ -41,10 +41,13 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     private static final String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
 
     @Override
-    public void delete(String triplestoreID) {
+    public void delete(String triplestoreID, boolean schema) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
+            if (schema)
+                t.del(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID));
+            else
+                Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
             t.exec();
         }
     }

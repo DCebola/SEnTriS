@@ -4,7 +4,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
-import java.util.Set;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
@@ -22,8 +21,14 @@ public interface TriplestoreAPI {
                     @DefaultValue("false") @QueryParam("isSchema") boolean isSchema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
+    @GET
+    @Path("/{triplestoreID}/schema")
+    @Produces(APPLICATION_OCTET_STREAM)
+    Response fetchSchema(@PathParam("triplestoreID") String triplestoreID,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
     @POST
-    @Path("/query/{triplestoreID}")
+    @Path("/{triplestoreID}/query")
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@PathParam("triplestoreID") String triplestoreID,
@@ -34,6 +39,7 @@ public interface TriplestoreAPI {
     @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
+                    @DefaultValue("false") @QueryParam("schema") boolean schema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
@@ -42,7 +48,6 @@ public interface TriplestoreAPI {
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
                     byte[] triples,
-                    @DefaultValue("false") @QueryParam("isSchema") boolean isSchema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

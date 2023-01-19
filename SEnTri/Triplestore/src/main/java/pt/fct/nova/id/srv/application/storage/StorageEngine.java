@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface StorageEngine {
 
-    void delete(String triplestoreID);
+    void delete(String triplestoreID, boolean schema);
 
     void delete(String triplestoreID, Set<Triple> triples) throws InvalidNodeException;
 

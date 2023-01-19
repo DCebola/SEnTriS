@@ -6,30 +6,19 @@ import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
 import java.io.InputStream;
 
-public class UploadForm extends TriplestoreForm {
-    @FormParam("syntax")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final String syntax;
+public class UploadForm extends SchemaForm {
     @FormParam("contents")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final InputStream contents;
 
-    public UploadForm(String issuer, String storeID, String syntax, InputStream contents, String isSchema) {
-        super(issuer, storeID, isSchema);
-        this.syntax = syntax;
+    public UploadForm(String issuer, String storeID, String syntax, InputStream contents) {
+        super(issuer, storeID, syntax);
         this.contents = contents;
-
     }
     public UploadForm() {
         super();
-        this.syntax = null;
         this.contents = null;
     }
-
-    public String getSyntax() {
-        return syntax;
-    }
-
 
     public InputStream getContents() {
         return contents;

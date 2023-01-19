@@ -15,21 +15,16 @@ public class TriplestoreForm {
     @PartType(MediaType.TEXT_PLAIN)
     private final String triplestoreID;
 
-    @FormParam("isSchema")
-    @DefaultValue("false")
-    @PartType(MediaType.TEXT_PLAIN)
-    private final boolean isSchema;
 
-    public TriplestoreForm(String issuer, String triplestoreID, String isSchema) {
+    public TriplestoreForm(String issuer, String triplestoreID) {
         this.issuer = issuer;
         this.triplestoreID = triplestoreID;
-        this.isSchema = Boolean.parseBoolean(isSchema);
+
     }
 
     public TriplestoreForm() {
         this.issuer = null;
         this.triplestoreID = null;
-        isSchema = false;
     }
 
     public String getTriplestoreID() {
@@ -40,7 +35,4 @@ public class TriplestoreForm {
         return issuer;
     }
 
-    public boolean isSchema() {
-        return isSchema;
-    }
 }

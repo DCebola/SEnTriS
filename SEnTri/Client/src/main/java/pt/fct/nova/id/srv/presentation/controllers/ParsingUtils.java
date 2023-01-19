@@ -20,10 +20,10 @@ import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
-import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.querying.execution.DefaultSPARQLResult;
+import pt.fct.nova.id.srv.application.querying.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern;
+import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -36,7 +36,7 @@ import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
-import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
 public class ParsingUtils {
@@ -96,7 +96,13 @@ public class ParsingUtils {
             oos.writeObject(triples);
             return new ByteArrayEntity(bos.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
         }
-        //return new StringEntity(gson.toJson(serializeTriples(triples), Set.class), ContentType.APPLICATION_JSON);
+    }
+
+    public static Set<Triple> parseSchema(String schema) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(base64Decoder.decode(schema));
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
+            return (Set<Triple>) ois.readObject();
+        }
     }
 
     public static HttpEntity stringSetToHttpEntity(Set<String> set) {
@@ -166,13 +172,6 @@ public class ParsingUtils {
         CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
         return tripleCollector.getCollected();
-    }
-
-    public static Set<String[]> serializeTriples(List<Triple> triples) throws InvalidNodeException {
-        Set<String[]> serialized = new HashSet<>();
-        for (Triple t : triples)
-            serialized.add(new String[]{parseNode(t.getSubject()), parseNode(t.getPredicate()), parseNode(t.getObject())});
-        return serialized;
     }
 
     public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {

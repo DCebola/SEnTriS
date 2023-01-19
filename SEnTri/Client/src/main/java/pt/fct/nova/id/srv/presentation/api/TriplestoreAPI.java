@@ -7,6 +7,8 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.SchemaForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
@@ -20,13 +22,21 @@ public interface TriplestoreAPI {
     @Path("")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response create(@NotNull @NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
-                    @MultipartForm UploadForm form);
+    Response create(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+                    @MultipartForm TriplestoreForm form);
+
+    @POST
+    @Path("/schema")
+    @Consumes(MULTIPART_FORM_DATA)
+    @Produces(APPLICATION_OCTET_STREAM)
+    Response fetchSchema(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+                         @DefaultValue("false") @QueryParam("inference") boolean inference,
+                         @MultipartForm SchemaForm form);
 
     @GET
     @Path("/{issuer}")
     @Produces(TEXT_PLAIN)
-    Response listTriplestores(@NotNull @NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response listTriplestores(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                               @PathParam("issuer") String issuer,
                               @DefaultValue("false") @QueryParam("write") boolean write,
                               @DefaultValue("false") @QueryParam("read") boolean read,
@@ -37,6 +47,7 @@ public interface TriplestoreAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
     Response upload(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+                    @DefaultValue("false") @QueryParam("schema") boolean schema,
                     @MultipartForm UploadForm form);
 
     @DELETE
@@ -44,7 +55,8 @@ public interface TriplestoreAPI {
     @Produces(TEXT_PLAIN)
     Response delete(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                     @PathParam("triplestoreID") String triplestoreID,
-                    @PathParam("issuer") String issuer);
+                    @PathParam("issuer") String issuer,
+                    @DefaultValue("false") @QueryParam("schema") boolean schema);
 
     @POST
     @Path("/query")

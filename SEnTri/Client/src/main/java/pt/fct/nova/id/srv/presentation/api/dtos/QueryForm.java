@@ -9,8 +9,8 @@ public class QueryForm extends TriplestoreForm {
     @PartType(RDFMediaType.SPARQL_QUERY)
     private final String query;
 
-    public QueryForm(String issuer, String triplestoreID, String query, String isSchema) {
-        super(issuer, triplestoreID, isSchema);
+    public QueryForm(String issuer, String triplestoreID, String query) {
+        super(issuer, triplestoreID);
         this.query = query;
     }
 
