@@ -12,16 +12,16 @@ import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.modify.request.QuadDataAcc;
 import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.UpdateRequest;
-import pt.fct.nova.id.srv.application.querying.SPARQLQueryEngine;
+import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.application.querying.QueryType;
-import pt.fct.nova.id.srv.application.querying.QueryUtils;
-import pt.fct.nova.id.srv.application.querying.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.querying.jobs.*;
-import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
-import pt.fct.nova.id.srv.application.querying.plans.SecureSPARQLPlanner;
+import pt.fct.nova.id.srv.application.query.QueryType;
+import pt.fct.nova.id.srv.application.query.QueryUtils;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.*;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
@@ -39,7 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.application.querying.QueryType.*;
+import static pt.fct.nova.id.srv.application.query.QueryType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
@@ -142,7 +142,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             QuadDataAcc qc = new QuadDataAcc();
             triples.forEach(qc::addTriple);
             SecureSPARQLPlanner planner = new SecureSPARQLPlanner();
-            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(new UpdateRequest().add(new UpdateDataInsert(qc)).toString());
+            DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(
+                    new UpdateRequest().add(new UpdateDataInsert(qc)).toString());
             QueryType queryType = planner.getQueryType();
             return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
         } catch (UnknownRDFLanguageException e) {

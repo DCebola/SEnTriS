@@ -9,7 +9,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -21,15 +20,15 @@ import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.json.JSONObject;
 import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
-import pt.fct.nova.id.srv.application.querying.SPARQLQueryEngine;
+import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.querying.QueryType;
-import pt.fct.nova.id.srv.application.querying.QueryUtils;
-import pt.fct.nova.id.srv.application.querying.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.querying.jobs.SerializableBinding;
-import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
-import pt.fct.nova.id.srv.application.querying.plans.DefaultSPARQLPlanner;
+import pt.fct.nova.id.srv.application.query.QueryType;
+import pt.fct.nova.id.srv.application.query.QueryUtils;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.SchemaForm;
@@ -44,7 +43,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static pt.fct.nova.id.srv.application.querying.QueryType.*;
+import static pt.fct.nova.id.srv.application.query.QueryType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 
@@ -203,8 +202,13 @@ public class TriplestoreController implements TriplestoreAPI {
             if (response.getStatus() != OK)
                 return response.build();
             String accessToken = response.getBody();
-
-            DefaultSPARQLPlanner planner = new DefaultSPARQLPlanner();
+            response = fetchSchema(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+            Ontology ontology = new DefaultOntology(triplestoreID, ParsingUtils.parseSchema(response.getBody()), true);
+            DefaultSPARQLPlanner planner = new DefaultSPARQLPlanner(ontology);
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
             QueryType queryType = planner.getQueryType();
 

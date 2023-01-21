@@ -18,7 +18,7 @@ public interface TriplestoreAPI {
     @Produces(TEXT_PLAIN)
     Response upload(@PathParam("triplestoreID") String triplestoreID,
                     byte[] triples,
-                    @DefaultValue("false") @QueryParam("isSchema") boolean isSchema,
+                    @DefaultValue("false") @QueryParam("schema") boolean schema,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET

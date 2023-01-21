@@ -39,7 +39,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
 
     @Override
-    public Response upload(String triplestoreID, byte[] triplesData, boolean isSchema, List<String> authorizationHeaders) {
+    public Response upload(String triplestoreID, byte[] triplesData, boolean schema, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -51,7 +51,8 @@ public class TriplestoreController implements TriplestoreAPI {
             try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
                 Set<Triple> triples = (Set<Triple>) ois.readObject();
-                if (isSchema)
+                System.out.println(schema + " | " + triples.size());
+                if (schema)
                     storageEngine.saveSchema(triplestoreID, triples);
                 else
                     storageEngine.save(triplestoreID, triples);

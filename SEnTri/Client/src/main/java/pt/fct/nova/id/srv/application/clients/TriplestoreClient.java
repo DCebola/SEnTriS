@@ -4,7 +4,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class TriplestoreClient {
 
     public static CloseableHttpResponse deleteAll(HttpClient httpClient, String triplestoreID, boolean schema, String accessToken) throws IOException, URISyntaxException {
         return HTTPUtils.sendDELETERequest(httpClient, new URIBuilder(String.format(DELETE_ALL_URI, triplestoreID))
-                .addParameter("schema", String.valueOf(schema)).build() , accessToken);
+                .addParameter("schema", String.valueOf(schema)).build(), accessToken);
     }
 
     public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException, URISyntaxException {

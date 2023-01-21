@@ -20,10 +20,10 @@ import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.querying.execution.DefaultSPARQLResult;
-import pt.fct.nova.id.srv.application.querying.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern;
-import pt.fct.nova.id.srv.application.querying.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
+import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
+import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -36,7 +36,7 @@ import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
-import static pt.fct.nova.id.srv.application.querying.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
 public class ParsingUtils {

@@ -1,7 +1,7 @@
 #Query 15: Test UNION
 #Find all graduate and undergraduate students.
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 SELECT ?graduate ?undergraduate
 WHERE
 {
@@ -18,7 +18,7 @@ ORDER BY ASC(?graduate) ASC(?undergraduate)
 #Query 16: Test MINUS
 #Find all members of departments which are not undergraduate students.
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 SELECT ?member ?department
 WHERE
 {
@@ -39,7 +39,7 @@ ORDER BY ASC(?member) ASC(?department)
 #Query 17: Test OPTIONAL
 #Find all members of departments, if they are taking a graduate course, show the course.
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 SELECT ?member ?graduateCourse
 WHERE
 {
@@ -58,7 +58,7 @@ ORDER BY ASC(?member) ASC(?graduateCourse)
 
 #Query18: INSERT DATA
 #Upload data of a new graduate student
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 INSERT DATA {
 <http://www.Department0.University0.edu/GraduateStudent146>
   a ub:GraduateStudent ;
@@ -75,7 +75,7 @@ INSERT DATA {
 
 #Query20: DELETE DATA
 #Delete data of a the new graduate student.
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 DELETE DATA {
 <http://www.Department0.University0.edu/GraduateStudent146>
   a ub:GraduateStudent ;
@@ -90,13 +90,13 @@ DELETE DATA {
 
 #Query21
 #Delete data of a the new graduate student, but via pattern matching.
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 DELETE WHERE {<http://www.Department0.University0.edu/GraduateStudent146> ?p ?o}
 
 #Query 20: INSERT/DELETE
 #Update all graduate students' phone numbers.
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 DELETE {?graduate ub:telephone ?phoneNumber}
 INSERT {?graduate ub:telephone "yyy-yyy-yyyy"}
 WHERE
