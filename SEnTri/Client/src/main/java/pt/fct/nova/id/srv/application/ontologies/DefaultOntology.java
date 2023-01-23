@@ -37,7 +37,7 @@ public class DefaultOntology implements Ontology {
     public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
-        this.intersectionClasses = new HashMap<Node, Set<OntClass>>();
+        this.intersectionClasses = new HashMap<>();
         this.classRestrictions = new HashMap<>();
         this.subProperties = new HashMap<>();
         this.equivalentProperties = new HashMap<>();
@@ -118,7 +118,12 @@ public class DefaultOntology implements Ontology {
                 System.out.println(" eq++ " + PrintUtil.print(p2));
             }
             equivalentProperties.put(p.asNode(), s);
-
+            s = p.listInverseOf().toSet();
+            s.remove(p);
+            for (OntProperty p2 : s) {
+                System.out.println(" inv++ " + PrintUtil.print(p2));
+            }
+            inverseProperties.put(p.asNode(), s);
         }
     }
 
@@ -126,10 +131,7 @@ public class DefaultOntology implements Ontology {
         OntResource range = p.getRange();
         if (range != null && range.isClass())
             propertiesRange.put(p.asNode(), range.asClass());
-        if (p.isInverseFunctionalProperty()) {
-            System.out.println(" i+ " + PrintUtil.print(p));
-            inverseProperties.put(p.asNode(), p.listInverseOf().toSet());
-        } else if (p.isSymmetricProperty()) {
+        if (p.isSymmetricProperty()) {
             System.out.println(" sy+ " + PrintUtil.print(p));
             symmetricProperties.add(p.asNode());
         } else if (p.isTransitiveProperty()) {

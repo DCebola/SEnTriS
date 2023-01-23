@@ -72,16 +72,20 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
 
     private BindingsTable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
         Job job = jobs.get(current);
+        System.out.println("JOB: " + current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,
                     jobResults.get(((Job1) job).getPrevJobID())
             );
-        else if (job instanceof Job2)
+        else if (job instanceof Job2) {
+            System.out.println("JOB: " + current);
+            System.out.println("LEFT: " + ((Job2) job).getLeftJobID());
+            System.out.println("RIGHT: " + ((Job2) job).getRightJobID());
             return worker.exec((Job2) job,
                     jobResults.get(((Job2) job).getLeftJobID()),
                     jobResults.get(((Job2) job).getRightJobID())
             );
-        else
+        }else
             return worker.exec(job);
     }
 }

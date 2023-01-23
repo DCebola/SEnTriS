@@ -27,9 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.query.QueryType;
-import pt.fct.nova.id.srv.application.query.jobs.EmptyResJob;
-import pt.fct.nova.id.srv.application.query.jobs.SearchJob;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
+import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.DistinctJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.ProjectJob;
@@ -42,6 +40,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
+import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.SO;
 
 public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
@@ -147,127 +146,322 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private void generateGetJobs(OpBGP op) {
         List<Triple> patterns = op.getPattern().getList();
-        int total_patterns = patterns.size();
-        List<SearchJob> searchJobs = new ArrayList<>(total_patterns);
+        List<SearchJob> searchJobs = new LinkedList<>();
+        List<UnionJob> unionJobs = new LinkedList<>();
+        List<JoinJob> joinJobs = new LinkedList<>();
+        Map<String, Set<Var>> bgp = new HashMap<>();
+        Map<String, Set<Var>> jobsVars = new HashMap<>();
         Node s, p, o;
+        Job job = null;
         for (Triple t : patterns) {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
+            job = new SearchJob(generateID(), extractVariablesPattern(s, p, o), s, p, o);
+            searchJobs.add((SearchJob) job);
+            jobsVars.put(job.getID(), extractVars((SearchJob) job));
+            System.out.println("[SEARCH, " + job.getID() + "] - " + s + " | " + p + " | " + o);
             if (ontology != null) {
                 if (p.equals(RDF.type.asNode()) && !o.isVariable())
-                    expandClass("PATTERN", s, o, 0);
+                    job = expandClass("PATTERN", job, s, o, 0, searchJobs, unionJobs, joinJobs, jobsVars);
                 else if (!p.isVariable())
-                    expandProperty("PATTERN", s, p, o, 0);
+                    job = expandProperty(true, "PATTERN", job, s, p, o, 0, searchJobs, unionJobs, joinJobs, jobsVars);
+                searchJobs.forEach(plan::pushJob);
+                joinJobs.forEach(plan::pushJob);
+                unionJobs.forEach(plan::pushJob);
+                bgp.put(job.getID(), jobsVars.get(job.getID()));
+            } else {
+                plan.pushJob(job);
+                bgp.put(job.getID(), extractVars((SearchJob) job));
             }
-
-            String jobID = generateID();
-            if (total_patterns == 1) {
-                parsed_op.put(op, jobID);
-                plan.pushJob(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
-            } else
-                searchJobs.add(new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o));
         }
-        if (total_patterns >= 2)
-            generateRandomJoinPipeline(op, searchJobs);
+        jobsVars.forEach((k, v) -> System.out.println("(" + k + "," + Arrays.toString(v.toArray()) + ")"));
+        if (patterns.size() > 1) {
+            generateRandomJoinPipeline(op, bgp);
+        } else if (job != null)
+            parsed_op.put(op, job.getID());
     }
 
-    private void expandProperty(String prefix, Node s, Node p, Node o, int depth) {
+    private Job expandClass(String prefix, Job previousJob, Node s, Node o, int depth, List<SearchJob> searchJobs,
+                            List<UnionJob> unionJobs, List<JoinJob> joinJobs, Map<String, Set<Var>> jobsVars) {
         assert ontology != null;
         if (depth == ontology.getMaximumExpansionDepth())
-            return;
-        System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o));
-        if (ontology.isSymmetric(p)) {
-            //System.out.println("[SYMMETRIC," + depth + "] - " + Triple.create(o, p, s));
-            expandProperty("SYMMETRIC", o, p, s, depth + 1);
-        }
-        if (ontology.isTransitive(p) && !o.isVariable()) {
-            System.out.println("[TRANSITIVE," + depth + "] - " + PrintUtil.print(Triple.create(s, p, Var.alloc(p.getLocalName().concat(Integer.toString(0))))));
-            for (int i = 1; i < ontology.getTransitivityDepth(); i++) {
-                System.out.println("[TRANSITIVE," + depth + "] - " + PrintUtil.print(Triple.create(Var.alloc(p.getLocalName().concat(Integer.toString(i - 1))), p, Var.alloc(p.getLocalName().concat(Integer.toString(i))))));
-            }
-            System.out.println("[TRANSITIVE," + depth + "] - " + PrintUtil.print(Triple.create(
-                    Var.alloc(p.getLocalName().concat(Integer.toString(ontology.getTransitivityDepth()))), p, o)));
-        }
-        boolean shouldExpand = true;
-        for (OntProperty subProperty : ontology.getSubProperties(p)) {
-            //System.out.println("[SUB-PROPERTY," + depth + "]" + PrintUtil.print(Triple.create(s, subProperty.asNode(), o)));
-            if (depth != 0) {
-                for (OntProperty superProperty : subProperty.listSuperProperties().toSet()) {
-                    if (superProperty.asNode().equals(p)) {
-                        shouldExpand = false;
-                        break;
-                    }
-                }
-            }
-            if (shouldExpand)
-                expandProperty("SUB-PROPERTY", s, subProperty.asNode(), o, depth + 1);
-        }
-
-        for (OntProperty equivalentProperty : ontology.getEquivalentProperties(p)) {
-            //System.out.println("[EQUIVALENT," + depth + "]" + PrintUtil.print(Triple.create(s, equivalentProperty.asNode(), o)));
-            expandProperty("EQUIVALENT", s, equivalentProperty.asNode(), o, depth + 1);
-        }
-
-        for (OntProperty inverseOf : ontology.getInverseOf(p)) {
-            //System.out.println("[INVERSE," + depth + "]" + PrintUtil.print(Triple.create(s, inverseOf.asNode(), o)));
-            expandProperty("INVERSE", s, inverseOf.asNode(), o, depth + 1);
-        }
-    }
-
-    private void expandClass(String prefix, Node s, Node o, int depth) {
-        assert ontology != null;
-        if (depth == ontology.getMaximumExpansionDepth())
-            return;
+            return previousJob;
+        SearchJob searchJob1;
+        UnionJob unionJob;
         Node rdfType = RDF.type.asNode();
-        System.out.println("[" + prefix + ", " + depth + "]-" + PrintUtil.print(Triple.create(s, rdfType, o)));
         Set<OntClass> intersection = ontology.getIntersection(o);
+        Set<Var> vars;
+        System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, rdfType, o));
         if (!intersection.isEmpty()) {
-            for (OntClass c : intersection)
-                expandClass("INTERSECTION", s, c.asNode(), depth + 1);
+            for (OntClass ontClass : intersection) {
+                if (!ontClass.isRestriction()) {
+                    searchJob1 = new SearchJob(generateID(), extractVariablesPattern(s, rdfType, ontClass.asNode()), s, rdfType, ontClass.asNode());
+                    System.out.println("[SEARCH, " + searchJob1.getID() + "] - " + searchJob1.getSubject() + " | " + searchJob1.getPredicate() + " | " + searchJob1.getObject());
+                    unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob1.getID());
+                    System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+                    jobsVars.put(searchJob1.getID(), extractVars(searchJob1));
+                    vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                    vars.addAll(jobsVars.get(searchJob1.getID()));
+                    jobsVars.put(unionJob.getID(), vars);
+                    searchJobs.add(searchJob1);
+                    unionJobs.add(unionJob);
+                    previousJob = unionJob;
+                }
+                previousJob = expandClass("INTERSECTION", previousJob, s, ontClass.asNode(), depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+            }
         } else {
             Restriction restriction = ontology.getRestriction(o);
-            Var v;
+            Var var;
             Node property;
             Node value;
+            SearchJob searchJob2;
+            JoinJob joinJob;
             if (restriction != null && (restriction.isHasValueRestriction() || restriction.isSomeValuesFromRestriction())) {
                 if (restriction.isHasValueRestriction()) {
-                    v = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
+                    var = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
                     property = restriction.getOnProperty().asNode();
                     value = restriction.asHasValueRestriction().getHasValue().asNode();
                 } else {
-                    v = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
+                    var = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
                     property = restriction.getOnProperty().asNode();
                     value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
                 }
-                //System.out.println("[RESTRICTION, " + depth + "] - " + PrintUtil.print(Triple.create(s, property, v)));
-                expandProperty("RESTRICTION", s, property, v, depth + 1);
-                expandClass("RESTRICTION", v, value, depth + 1);
+                searchJob1 = new SearchJob(generateID(), extractVariablesPattern(s, property, var), s, property, var);
+                System.out.println("[SEARCH, " + searchJob1.getID() + "] - " + searchJob1.getSubject() + " | " + searchJob1.getPredicate() + " | " + searchJob1.getObject());
+
+                searchJob2 = new SearchJob(generateID(), extractVariablesPattern(var, rdfType, value), var, rdfType, value);
+                System.out.println("[SEARCH, " + searchJob2.getID() + "] - " + searchJob2.getSubject() + " | " + searchJob2.getPredicate() + " | " + searchJob2.getObject());
+
+                joinJob = new JoinJob(generateID(), searchJob1.getID(), searchJob2.getID());
+                System.out.println("[JOIN, " + joinJob.getID() + "] - " + joinJob.getRightJobID() + " | " + joinJob.getLeftJobID());
+                unionJob = new UnionJob(generateID(), previousJob.getID(), joinJob.getID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+
+                jobsVars.put(searchJob1.getID(), extractVars(searchJob1));
+                jobsVars.put(searchJob2.getID(), extractVars(searchJob2));
+
+                vars = new HashSet<>(jobsVars.get(searchJob1.getID()));
+                vars.addAll(jobsVars.get(searchJob2.getID()));
+                jobsVars.put(joinJob.getID(), vars);
+
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(joinJob.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+
+                searchJobs.add(searchJob1);
+                searchJobs.add(searchJob2);
+                joinJobs.add(joinJob);
+                unionJobs.add(unionJob);
+                previousJob = unionJob;
+                previousJob = expandProperty(true, "RESTRICTION", previousJob, s, property, var, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+                previousJob = expandClass("RESTRICTION", previousJob, var, value, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
             }
         }
 
         for (OntClass subClass : ontology.getSubClasses(o)) {
-            //System.out.println("[SUBCLASS, " + depth + "] - " + PrintUtil.print(Triple.create(s, rdfType, subClass.asNode())));
-            expandClass("SUBCLASS", s, subClass.asNode(), depth + 1);
+            if (!subClass.isRestriction()) {
+                searchJob1 = new SearchJob(generateID(), extractVariablesPattern(s, rdfType, subClass.asNode()), s, rdfType, subClass.asNode());
+                System.out.println("[SEARCH, " + searchJob1.getID() + "] - " + searchJob1.getSubject() + " | " + searchJob1.getPredicate() + " | " + searchJob1.getObject());
 
+                unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob1.getID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+                jobsVars.put(searchJob1.getID(), extractVars(searchJob1));
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(searchJob1.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+                searchJobs.add(searchJob1);
+                unionJobs.add(unionJob);
+                previousJob = unionJob;
+            }
+            previousJob = expandClass("SUBCLASS", previousJob, s, subClass.asNode(), depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
         }
         for (OntClass equivalentClass : ontology.getEquivalentClasses(o)) {
-            //System.out.println("[EQUIVALENT, " + depth + "] - " + PrintUtil.print(Triple.create(s, rdfType, equivalentClass.asNode())));
-            expandClass("EQUIVALENT", s, equivalentClass.asNode(), depth + 1);
+            if (!equivalentClass.isRestriction()) {
+                searchJob1 = new SearchJob(generateID(), extractVariablesPattern(s, rdfType, equivalentClass.asNode()), s, rdfType, equivalentClass.asNode());
+                System.out.println("[SEARCH, " + searchJob1.getID() + "] - " + searchJob1.getSubject() + " | " + searchJob1.getPredicate() + " | " + searchJob1.getObject());
+
+                unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob1.getID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+
+                jobsVars.put(searchJob1.getID(), extractVars(searchJob1));
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(searchJob1.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+                searchJobs.add(searchJob1);
+                unionJobs.add(unionJob);
+                previousJob = unionJob;
+            }
+            previousJob = expandClass("EQUIVALENT", previousJob, s, equivalentClass.asNode(), depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
         }
+        return previousJob;
+    }
+
+    private Job expandProperty(boolean canExpandInverseOf, String prefix, Job previousJob, Node s, Node p, Node o, int depth,
+                               List<SearchJob> searchJobs, List<UnionJob> unionJobs, List<JoinJob> joinJobs, Map<String, Set<Var>> jobsVars) {
+        assert ontology != null;
+        if (depth == ontology.getMaximumExpansionDepth())
+            return previousJob;
+        SearchJob searchJob;
+        UnionJob unionJob;
+
+        System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o));
+        Set<Var> vars;
+        if (ontology.isSymmetric(p)) {
+            searchJob = new SearchJob(generateID(), extractVariablesPattern(o, p, s), o, p, s);
+            unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob.getID());
+            jobsVars.put(searchJob.getID(), extractVars(searchJob));
+            vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+            vars.addAll(jobsVars.get(searchJob.getID()));
+            jobsVars.put(unionJob.getID(), vars);
+            searchJobs.add(searchJob);
+            unionJobs.add(unionJob);
+            previousJob = unionJob;
+            previousJob = expandProperty(true, "SYMMETRIC", previousJob, o, p, s, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+        }
+        if (ontology.isTransitive(p) && !o.isVariable()) {
+            Var nextVar, previousVar, firstVar;
+            JoinJob joinJob;
+            String leftID;
+            SearchJob firstSearch;
+            firstVar = Var.alloc(p.getLocalName().concat(Integer.toString(0)));
+            firstSearch = new SearchJob(generateID(), extractVariablesPattern(s, p, firstVar), s, p, firstVar);
+            previousVar = firstVar;
+            searchJob = new SearchJob(generateID(), extractVariablesPattern(previousVar, p, o), previousVar, p, o);
+            joinJob = new JoinJob(generateID(), firstSearch.getID(), searchJob.getID());
+            unionJob = new UnionJob(generateID(), previousJob.getID(), joinJob.getID());
+
+            jobsVars.put(firstSearch.getID(), extractVars(firstSearch));
+            jobsVars.put(searchJob.getID(), extractVars(searchJob));
+            vars = new HashSet<>(jobsVars.get(firstSearch.getID()));
+            vars.addAll(jobsVars.get(searchJob.getID()));
+            jobsVars.put(joinJob.getID(), vars);
+            vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+            vars.addAll(jobsVars.get(joinJob.getID()));
+            jobsVars.put(unionJob.getID(), vars);
+
+            searchJobs.add(firstSearch);
+            searchJobs.add(searchJob);
+            joinJobs.add(joinJob);
+            unionJobs.add(unionJob);
+            previousJob = unionJob;
+
+            System.out.println("#####");
+            System.out.println("[TRANSITIVE," + 0 + "] - " + PrintUtil.print(Triple.create(s, p, firstVar)));
+            System.out.println("[TRANSITIVE," + 0 + "] - " + PrintUtil.print(Triple.create(previousVar, p, o)));
+            System.out.println("[SEARCH, " + firstSearch.getID() + "] - " + firstSearch.getSubject() + " | " + firstSearch.getPredicate() + " | " + firstSearch.getObject());
+            System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+            System.out.println("[JOIN, " + joinJob.getID() + "] - " + joinJob.getRightJobID() + " | " + joinJob.getLeftJobID());
+            System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+            System.out.println("#####");
+
+            searchJob = firstSearch;
+            leftID = searchJob.getID();
+            for (int i = 1; i < ontology.getTransitivityDepth(); i++) {
+                System.out.println("[TRANSITIVE," + i + "] - " + PrintUtil.print(Triple.create(s, p, previousVar)));
+                for (int j = 1; j < i + 1; j++) {
+                    if (j == i) {
+                        nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)));
+                        System.out.println("[TRANSITIVE," + i + "] - " + PrintUtil.print(Triple.create(previousVar, p, nextVar)));
+                        searchJob = new SearchJob(generateID(), SO, previousVar, p, nextVar);
+                        joinJob = new JoinJob(generateID(), leftID, searchJob.getID());
+                        previousVar = nextVar;
+                        jobsVars.put(searchJob.getID(), extractVars(searchJob));
+                        vars = new HashSet<>(jobsVars.get(leftID));
+                        vars.addAll(jobsVars.get(searchJob.getID()));
+                        jobsVars.put(joinJob.getID(), vars);
+                        leftID = joinJob.getID();
+                        searchJobs.add(searchJob);
+                        joinJobs.add(joinJob);
+                        System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+                        System.out.println("[JOIN, " + joinJob.getID() + "] - " + joinJob.getRightJobID() + " | " + joinJob.getLeftJobID());
+                    } else
+                        System.out.println(j);
+                }
+                searchJob = new SearchJob(generateID(), extractVariablesPattern(previousVar, p, o), previousVar, p, o);
+                joinJob = new JoinJob(generateID(), leftID, searchJob.getID());
+                unionJob = new UnionJob(generateID(), previousJob.getID(), joinJob.getID());
+
+                jobsVars.put(searchJob.getID(), extractVars(searchJob));
+                vars = new HashSet<>(jobsVars.get(leftID));
+                vars.addAll(jobsVars.get(searchJob.getID()));
+                jobsVars.put(joinJob.getID(), vars);
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(joinJob.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+
+                searchJobs.add(searchJob);
+                joinJobs.add(joinJob);
+                unionJobs.add(unionJob);
+                System.out.println("[TRANSITIVE," + i + "] - " + PrintUtil.print(Triple.create(previousVar, p, o)));
+                System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+                System.out.println("[JOIN, " + joinJob.getID() + "] - " + joinJob.getRightJobID() + " | " + joinJob.getLeftJobID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+                System.out.println("#######");
+                previousJob = unionJob;
+            }
+
+        }
+
+        for (OntProperty subProperty : ontology.getSubProperties(p)) {
+            searchJob = new SearchJob(generateID(), extractVariablesPattern(s, subProperty.asNode(), o), s, subProperty.asNode(), o);
+            System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+            unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob.getID());
+            System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+            jobsVars.put(searchJob.getID(), extractVars(searchJob));
+            vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+            vars.addAll(jobsVars.get(searchJob.getID()));
+            jobsVars.put(unionJob.getID(), vars);
+            searchJobs.add(searchJob);
+            unionJobs.add(unionJob);
+            previousJob = unionJob;
+            previousJob = expandProperty(true, "SUB-PROPERTY", previousJob, s, subProperty.asNode(), o, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+
+        }
+
+        for (OntProperty equivalentProperty : ontology.getEquivalentProperties(p)) {
+            searchJob = new SearchJob(generateID(), extractVariablesPattern(s, equivalentProperty.asNode(), o), s, equivalentProperty.asNode(), o);
+            System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+            unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob.getID());
+            System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+            jobsVars.put(searchJob.getID(), extractVars(searchJob));
+            vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+            vars.addAll(jobsVars.get(searchJob.getID()));
+            jobsVars.put(unionJob.getID(), vars);
+            searchJobs.add(searchJob);
+            unionJobs.add(unionJob);
+            previousJob = unionJob;
+            previousJob = expandProperty(true, "EQUIVALENT", previousJob, s, equivalentProperty.asNode(), o, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+        }
+        if (canExpandInverseOf)
+            for (OntProperty inverseOf : ontology.getInverseOf(p)) {
+                searchJob = new SearchJob(generateID(), extractVariablesPattern(o, inverseOf.asNode(), s), o, inverseOf.asNode(), s);
+                System.out.println("[SEARCH, " + searchJob.getID() + "] - " + searchJob.getSubject() + " | " + searchJob.getPredicate() + " | " + searchJob.getObject());
+                unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob.getID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+                jobsVars.put(searchJob.getID(), extractVars(searchJob));
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(searchJob.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+                searchJobs.add(searchJob);
+                unionJobs.add(unionJob);
+                previousJob = unionJob;
+                previousJob = expandProperty(false, "INVERSE", previousJob, o, inverseOf.asNode(), s, depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+            }
+        return previousJob;
     }
 
 
-    private void generateRandomJoinPipeline(OpBGP op, List<SearchJob> searchJobs) {
-        int numJobs = searchJobs.size();
-        Map<Integer, List<Integer>> graph = new HashMap<>(numJobs);
-        List<Integer> jobs = new ArrayList<>(numJobs);
+    private void generateRandomJoinPipeline(OpBGP op, Map<String, Set<Var>> bgp) {
+        int numJobs = bgp.size();
+        Map<String, List<String>> graph = new HashMap<>(numJobs);
+        List<String> jobs = new ArrayList<>(numJobs);
         Set<Var> allVars = new HashSet<>();
-        generateAdjacencyMatrix(searchJobs, numJobs, graph, jobs, allVars);
+        generateAdjacencyMatrix(bgp, numJobs, graph, jobs, allVars);
 
-        List<Integer> path = new ArrayList<>(numJobs);
-        Set<Integer> sampled = new HashSet<>();
-        int next;
+        List<String> path = new ArrayList<>(numJobs);
+        Set<String> sampled = new HashSet<>();
+        String next;
         boolean stop = false;
         System.out.println("Total jobs:" + numJobs);
         while (sampled.size() < numJobs && !stop) {
@@ -279,29 +473,23 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         }
         System.out.println(Arrays.toString(path.toArray()));
         if (path.size() == numJobs) {
-            SearchJob job1, job2;
             List<JoinJob> joins = new LinkedList<>();
-            int j1, j2;
+            String jobID1, jobID2;
             String joinID;
             for (int i = 0; i < numJobs - 1; i += 2) {
-                j1 = path.get(i);
-                j2 = path.get(i + 1);
-                job1 = searchJobs.get(j1);
-                job2 = searchJobs.get(j2);
-                plan.pushJob(job1);
-                plan.pushJob(job2);
+                jobID1 = path.get(i);
+                jobID2 = path.get(i + 1);
                 joinID = generateID();
-                joins.add(new JoinJob(joinID, job1.getID(), job2.getID()));
-                System.out.println("[" + joinID + "] - (" + j1 + "," + j2 + ")");
+                joins.add(new JoinJob(joinID, jobID1, jobID2));
+                System.out.println("[" + joinID + "] - (" + jobID1 + "," + jobID2 + ")");
             }
             if (numJobs % 2 == 1) {
-                job1 = searchJobs.get(path.get(searchJobs.size() - 1));
+                jobID1 = path.get(bgp.size() - 1);
                 JoinJob join = joins.remove(joins.size() - 1);
-                plan.pushJob(job1);
                 plan.pushJob(join);
                 joinID = generateID();
-                joins.add(new JoinJob(joinID, job1.getID(), join.getID()));
-                System.out.println("[" + joinID + "] - (" + path.get(searchJobs.size() - 1) + "," + join.getID() + ")");
+                joins.add(new JoinJob(joinID, jobID1, join.getID()));
+                System.out.println("[" + joinID + "] - (" + jobID1 + "," + joinID + ")");
             }
             JoinJob join1, join2;
             while (joins.size() > 1) {
@@ -323,41 +511,39 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
 
-    private static void generateAdjacencyMatrix(List<SearchJob> searchJobs, int numJobs, Map<Integer, List<Integer>> graph, List<Integer> jobs, Set<Var> allVars) {
-        SearchJob job1, job2;
-        List<Integer> edges;
+    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<String, List<String>> graph, List<String> jobs, Set<Var> allVars) {
+        List<String> edges;
         Set<Var> v2, v1;
-        for (int i = 0; i < numJobs; i++) {
-            job1 = searchJobs.get(i);
-            jobs.add(i);
-            v1 = extractVars(job1);
+        for (String jobID : bgp.keySet()) {
+            jobs.add(jobID);
+            v1 = bgp.get(jobID);
             allVars.addAll(v1);
-            System.out.println("[" + i + "] - " + Arrays.toString(v1.toArray()));
+            System.out.println("[" + jobID + "] - " + Arrays.toString(v1.toArray()));
             edges = new ArrayList<>(numJobs);
-            for (int j = 0; j < numJobs; j++) {
-                job2 = searchJobs.get(j);
-                v2 = extractVars(job2);
-                if (i != j) {
+            for (String jobID2 : bgp.keySet()) {
+                v2 = bgp.get(jobID2);
+                if (!jobID.equals(jobID2)) {
                     for (Var v : v1) {
                         if (v2.contains(v)) {
-                            edges.add(j);
+                            edges.add(jobID2);
                             break;
                         }
                     }
                 }
             }
-            graph.put(i, edges);
+            graph.put(jobID, edges);
         }
-        graph.forEach((j, l) -> System.out.println("[" + j + "] - " + Arrays.toString(l.toArray())));
+        graph.forEach((job, l) -> System.out.println("[" + job + "] - " + Arrays.toString(l.toArray())));
     }
-    private void bfsSearch(int root, Map<Integer, List<Integer>> adjacencyMatrix, List<Integer> path, int depth) {
-        Queue<Integer> queue = new LinkedList<>();
+
+    private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path, int depth) {
+        Queue<String> queue = new LinkedList<>();
         path.add(root);
         queue.add(root);
-        int next;
+        String next;
         while (path.size() < depth) {
             next = queue.poll();
-            for (int neighbour : adjacencyMatrix.get(next)) {
+            for (String neighbour : adjacencyMatrix.get(next)) {
                 if (!path.contains(neighbour)) {
                     path.add(neighbour);
                     queue.add(neighbour);
@@ -368,12 +554,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         }
     }
 
-    private int rndSample(List<Integer> values, Set<Integer> exclude) {
-        int i;
+    private String rndSample(List<String> values, Set<String> exclude) {
+        String jobID;
         do {
-            i = rnd.nextInt(values.size());
-        } while (exclude.contains(i));
-        return values.get(i);
+            jobID = values.get(rnd.nextInt(values.size()));
+        } while (exclude.contains(jobID));
+        return jobID;
     }
 
     @Override
