@@ -19,6 +19,8 @@ public interface Ontology {
 
     Set<OntClass> getIntersection(Node node);
 
+    Set<OntClass> getIntersectionWhereClassIsOperand(Node node);
+
     Set<? extends OntProperty> getSubProperties(Node node);
 
     Set<? extends OntProperty> getEquivalentProperties(Node node);

@@ -7,6 +7,7 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +22,8 @@ public class DefaultOntology implements Ontology {
     private final Map<Node, Set<OntClass>> equivalentClasses;
     private final Map<Node, Restriction> classRestrictions;
     private final Map<Node, Set<OntClass>> intersectionClasses;
+
+    private Map<Node, Set<OntClass>> intersectionsWhereClassIsOperand;
     private final Map<Node, Set<? extends OntProperty>> subProperties;
     private final Map<Node, Set<? extends OntProperty>> equivalentProperties;
     private final Map<Node, Set<? extends OntProperty>> inverseProperties;
@@ -34,10 +37,12 @@ public class DefaultOntology implements Ontology {
     private final int transitivityDepth = Integer.parseInt(System.getenv("TRANSITIVITY_DEPTH"));
     private final int expansionDepth = Integer.parseInt(System.getenv("EXPANSION_DEPTH"));
 
+
     public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
+        this.intersectionsWhereClassIsOperand = new HashMap<>();
         this.classRestrictions = new HashMap<>();
         this.subProperties = new HashMap<>();
         this.equivalentProperties = new HashMap<>();
@@ -96,6 +101,14 @@ public class DefaultOntology implements Ontology {
             for (OntClass ontClass : intersection.listOperands().toSet()) {
                 System.out.println(" i-- " + PrintUtil.print(ontClass));
                 operands.add(ontClass);
+            }
+            Set<OntClass> intersectionsDirectSuperclasses;
+            for (OntClass operand: operands){
+                intersectionsDirectSuperclasses = intersectionsWhereClassIsOperand.get(operand.asNode());
+                if (intersectionsDirectSuperclasses == null)
+                    intersectionsDirectSuperclasses = new HashSet<>();
+                intersectionsDirectSuperclasses.add(intersection);
+                intersectionsWhereClassIsOperand.put(operand.asNode(), intersectionsDirectSuperclasses);
             }
             intersectionClasses.put(intersection.asNode(), operands);
         }
@@ -162,6 +175,12 @@ public class DefaultOntology implements Ontology {
     @Override
     public Set<OntClass> getIntersection(Node node) {
         Set<OntClass> classes = intersectionClasses.get(node);
+        return classes == null ? new HashSet<>() : classes;
+    }
+
+    @Override
+    public Set<OntClass> getIntersectionWhereClassIsOperand(Node node) {
+        Set<OntClass> classes = intersectionsWhereClassIsOperand.get(node);
         return classes == null ? new HashSet<>() : classes;
     }
 

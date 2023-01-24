@@ -294,6 +294,25 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
             }
             previousJob = expandClass("EQUIVALENT", previousJob, s, equivalentClass.asNode(), depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
         }
+
+        for (OntClass intersectionWhereClassIsOperand : ontology.getIntersectionWhereClassIsOperand(o)) {
+            if (!intersectionWhereClassIsOperand.isRestriction()) {
+                searchJob1 = new SearchJob(generateID(), extractVariablesPattern(s, rdfType, intersectionWhereClassIsOperand.asNode()), s, rdfType, intersectionWhereClassIsOperand.asNode());
+                System.out.println("[SEARCH, " + searchJob1.getID() + "] - " + searchJob1.getSubject() + " | " + searchJob1.getPredicate() + " | " + searchJob1.getObject());
+
+                unionJob = new UnionJob(generateID(), previousJob.getID(), searchJob1.getID());
+                System.out.println("[UNION, " + unionJob.getID() + "] - " + unionJob.getRightJobID() + " | " + unionJob.getLeftJobID());
+
+                jobsVars.put(searchJob1.getID(), extractVars(searchJob1));
+                vars = new HashSet<>(jobsVars.get(previousJob.getID()));
+                vars.addAll(jobsVars.get(searchJob1.getID()));
+                jobsVars.put(unionJob.getID(), vars);
+                searchJobs.add(searchJob1);
+                unionJobs.add(unionJob);
+                previousJob = unionJob;
+            }
+            previousJob = expandClass("OPERAND-IN-INTERSECTION", previousJob, s, intersectionWhereClassIsOperand.asNode(), depth + 1, searchJobs, unionJobs, joinJobs, jobsVars);
+        }
         return previousJob;
     }
 
