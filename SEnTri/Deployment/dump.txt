@@ -1,0 +1,1393 @@
+JOB: UV3nASEaTiu6BEbW74N-VA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: WEM6a9X0Q_CJHsxqN23kRw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: CJ-LyP_ZRxOPmRC2kybmUg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: OqWJDCICS5GslQW43EqiRA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: uxE-l6LQQJ2eZjbSVnvI4w
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: eVbtzBToRiqHAaiZ8kOTQg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: OiVxWlOlR5yRyznZip6xRw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: _PPhaaORTXiDdZ1t24YuCQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: dvWb2N_nQ7-Bl5UWHwcyXw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: RuZISwxrRTaJUCOKNOhnyQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: dPmDYowjR2KnxPnwVoLW8A
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: Hln-J9mGQb-qo-l1E87XSQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: vGIEy0sTStqrEs0S28UA_g
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: yHeGA-M_T_mbsMw7wBvUIw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: vtXcUXOdT2ai3tCfSGjTIw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: pb4Fjf_hSiSD0lKSuB7lLg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: yrneldeWQXGnEqOm1m3jOg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: PsIAww-URKyUsggVoa9v9g
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: oXRkzfuFRSa6HuQGx_lvCA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: RSuvVre4RveqVhGEDEUbGg
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: LtGsz7jYTzG5S9gjOUOcjw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: -Z7f0YZ2RpKxp7RU-OLVBQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: qoHOYtcYThiic1f5ZCeYQw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: llmfVRo1R_y0qXJX0l9qMw
+LEFT: WEM6a9X0Q_CJHsxqN23kRw
+RIGHT: CJ-LyP_ZRxOPmRC2kybmUg
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: o202OkQATLyQpq0uol4pDw
+LEFT: oXRkzfuFRSa6HuQGx_lvCA
+RIGHT: RSuvVre4RveqVhGEDEUbGg
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: qEd2k7EzSX-Iz0pQS5nicw
+LEFT: oXRkzfuFRSa6HuQGx_lvCA
+RIGHT: LtGsz7jYTzG5S9gjOUOcjw
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: NfyzSGhLQ8KaBWsoCAKDnw
+LEFT: qEd2k7EzSX-Iz0pQS5nicw
+RIGHT: -Z7f0YZ2RpKxp7RU-OLVBQ
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: d8CVvYw0QVK8-H91-ypXSg
+LEFT: UV3nASEaTiu6BEbW74N-VA
+RIGHT: llmfVRo1R_y0qXJX0l9qMw
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: 6LemHyZwSEKB0CZ6xWkXJQ
+LEFT: d8CVvYw0QVK8-H91-ypXSg
+RIGHT: UV3nASEaTiu6BEbW74N-VA
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 6YmS91AJRpynGMA0t5AuoQ
+LEFT: 6LemHyZwSEKB0CZ6xWkXJQ
+RIGHT: OqWJDCICS5GslQW43EqiRA
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: XUrUZFtgRVGa4C3r2yp6gw
+LEFT: 6YmS91AJRpynGMA0t5AuoQ
+RIGHT: uxE-l6LQQJ2eZjbSVnvI4w
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: _Dvrb-LrSqmw8JEaxrIVyQ
+LEFT: XUrUZFtgRVGa4C3r2yp6gw
+RIGHT: eVbtzBToRiqHAaiZ8kOTQg
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: urukhS0OQeWXD_RkcFCiOQ
+LEFT: _Dvrb-LrSqmw8JEaxrIVyQ
+RIGHT: OiVxWlOlR5yRyznZip6xRw
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: oquY1B50Ss27tsMThV5CfQ
+LEFT: urukhS0OQeWXD_RkcFCiOQ
+RIGHT: _PPhaaORTXiDdZ1t24YuCQ
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: L5M6Y-2iQj-QFqa3PLC4UA
+LEFT: oquY1B50Ss27tsMThV5CfQ
+RIGHT: dvWb2N_nQ7-Bl5UWHwcyXw
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 7JVTD1wzSGuu9EefTuob8A
+LEFT: L5M6Y-2iQj-QFqa3PLC4UA
+RIGHT: UV3nASEaTiu6BEbW74N-VA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: oz1kdEi8RU2vwC4F4D94Bw
+LEFT: 7JVTD1wzSGuu9EefTuob8A
+RIGHT: RuZISwxrRTaJUCOKNOhnyQ
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: B0g985pgTRWCZ5hVjM4qCQ
+LEFT: oz1kdEi8RU2vwC4F4D94Bw
+RIGHT: dPmDYowjR2KnxPnwVoLW8A
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: vbDdh6vqQZ-lPDr71nI4Cw
+LEFT: vGIEy0sTStqrEs0S28UA_g
+RIGHT: yHeGA-M_T_mbsMw7wBvUIw
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: lrq6jgp6TB-X3aOaCeDW3Q
+LEFT: vbDdh6vqQZ-lPDr71nI4Cw
+RIGHT: vtXcUXOdT2ai3tCfSGjTIw
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: l26Z8_QCTrylAFd6lNdYIA
+LEFT: lrq6jgp6TB-X3aOaCeDW3Q
+RIGHT: pb4Fjf_hSiSD0lKSuB7lLg
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: QshO-kaETPGUi5w85kOsuw
+LEFT: l26Z8_QCTrylAFd6lNdYIA
+RIGHT: yrneldeWQXGnEqOm1m3jOg
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: ynAdjSQYS4eH_5Jsp_mo5A
+LEFT: PsIAww-URKyUsggVoa9v9g
+RIGHT: o202OkQATLyQpq0uol4pDw
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: j3WMA-CBSdSOl9xmJtjVdw
+LEFT: ynAdjSQYS4eH_5Jsp_mo5A
+RIGHT: NfyzSGhLQ8KaBWsoCAKDnw
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: gKJGB0I3RDGTCwOGQASpfw
+LEFT: B0g985pgTRWCZ5hVjM4qCQ
+RIGHT: j3WMA-CBSdSOl9xmJtjVdw
+JOIN0
+[L] -[?Course, ?X]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: pJ-ciNcMRICxPtd9N7kQRQ
+LEFT: QshO-kaETPGUi5w85kOsuw
+RIGHT: Hln-J9mGQb-qo-l1E87XSQ
+JOIN679
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: LqfolBLWTAuc1nDBNO2yTA
+LEFT: qoHOYtcYThiic1f5ZCeYQw
+RIGHT: gKJGB0I3RDGTCwOGQASpfw
+JOIN0
+[L] -[?Z, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?subOrganizationOf0, ?Y, ?X]
+JOB: 6PCotfkERxOQ17jbbUgKFQ
+LEFT: pJ-ciNcMRICxPtd9N7kQRQ
+RIGHT: LqfolBLWTAuc1nDBNO2yTA
+JOIN0
+[L] -[?Y, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?Z, ?subOrganizationOf0, ?Y, ?X]
+JOB: 3Wnn6mSJQxun9VrlIBb8gA
+JOB: YDJoxbcVT9anh3brybrvRA
+JOB: 5Gi9NH08QaSJhSPJZTGHfw
+JOB: xUvdgzRoQcy2JwERddm5fg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: F96FH9bYQOKWhdyXatAJPg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: LQ9kcZDBTeuLEy8mE8AeNA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: Iq5tbCg3TN6pSyKP3jiF5Q
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: cuU996FBRRSV8dyCDoxsyA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: UGbzgjnkSICYq-ZWr0qoOw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: zVciQ8f7SM2vo3CxiLSWrQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: UAkd7hvqTfCcamoPyKOW9Q
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: unAa_kFHTsGDp-yC5X-Cwg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: dr2_VD3EQjO3uo_Epycibw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: tVyunLTARhyxALqw7YNc6w
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: Q8E3mfOLTDW9u2M-oeYNyQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: l-7IWW6rT42bfNVcUskHhA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: iYvz5ytaTReS8KQwLtOHkw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: jNoisM7oRnKgjgwmRwly8A
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: D0aCYhyKT1SQeoJ-e9dN3Q
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: On57Yw6ZT5aWjQ7bWb-SMw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: qPsy-bhHSwKHlV5zkDunKA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: lNTir96QTPGr-PildT7qFg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: cIsNkhWtTOikK0jeI7Y5QA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: rdTVoP4_Te6i79K5IIChVw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: -k9A19-VTciVrfNAfz32sg
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: xiM2HReDQ66JcVV8SBFTlQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: WJNfpE2xQYybY-mOrQ3JPg
+LEFT: F96FH9bYQOKWhdyXatAJPg
+RIGHT: LQ9kcZDBTeuLEy8mE8AeNA
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: sGZ9AV1PRZemX4bcjihcBg
+LEFT: lNTir96QTPGr-PildT7qFg
+RIGHT: cIsNkhWtTOikK0jeI7Y5QA
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: C9cOIcSzQDeIDqByb3fLig
+LEFT: lNTir96QTPGr-PildT7qFg
+RIGHT: rdTVoP4_Te6i79K5IIChVw
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: 9rmKNO4jRSKZyS-rmAAA4Q
+LEFT: C9cOIcSzQDeIDqByb3fLig
+RIGHT: -k9A19-VTciVrfNAfz32sg
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: Z9-h6kfcQvG1kQlPjdUImA
+LEFT: xUvdgzRoQcy2JwERddm5fg
+RIGHT: WJNfpE2xQYybY-mOrQ3JPg
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: SjyE4ZRmQ5GHCXky67EShQ
+LEFT: Z9-h6kfcQvG1kQlPjdUImA
+RIGHT: xUvdgzRoQcy2JwERddm5fg
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: K_M1nPjlQ2idZRoap-Slig
+LEFT: SjyE4ZRmQ5GHCXky67EShQ
+RIGHT: Iq5tbCg3TN6pSyKP3jiF5Q
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: QN8mFvXTSV2j-bDZxe1wdg
+LEFT: K_M1nPjlQ2idZRoap-Slig
+RIGHT: cuU996FBRRSV8dyCDoxsyA
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 5yvvXSC3RAaL8K88nHR8Qg
+LEFT: QN8mFvXTSV2j-bDZxe1wdg
+RIGHT: UGbzgjnkSICYq-ZWr0qoOw
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 1ODhaqR2TmmJHTXiDu9V0g
+LEFT: 5yvvXSC3RAaL8K88nHR8Qg
+RIGHT: zVciQ8f7SM2vo3CxiLSWrQ
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 86Gv9lZ7QjCdlI6HknvqoA
+LEFT: 1ODhaqR2TmmJHTXiDu9V0g
+RIGHT: UAkd7hvqTfCcamoPyKOW9Q
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: bYK_u3tZR1ypoVdItLhIfg
+LEFT: 86Gv9lZ7QjCdlI6HknvqoA
+RIGHT: unAa_kFHTsGDp-yC5X-Cwg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 0B595m-qR4uPKMY2NvksZA
+LEFT: bYK_u3tZR1ypoVdItLhIfg
+RIGHT: xUvdgzRoQcy2JwERddm5fg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: _tmj0x-VQ3OYHWCJGxjtJg
+LEFT: 0B595m-qR4uPKMY2NvksZA
+RIGHT: dr2_VD3EQjO3uo_Epycibw
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: tXaqnv8_SJeDTSFbUPXpKQ
+LEFT: _tmj0x-VQ3OYHWCJGxjtJg
+RIGHT: tVyunLTARhyxALqw7YNc6w
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: AmKL4uyrQuGt2sLre8H7JQ
+LEFT: l-7IWW6rT42bfNVcUskHhA
+RIGHT: iYvz5ytaTReS8KQwLtOHkw
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: IWLsLXUWSKaeLrmivkm4Kg
+LEFT: AmKL4uyrQuGt2sLre8H7JQ
+RIGHT: jNoisM7oRnKgjgwmRwly8A
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: xZ_imY-HRzS1VuWsGZb58Q
+LEFT: IWLsLXUWSKaeLrmivkm4Kg
+RIGHT: D0aCYhyKT1SQeoJ-e9dN3Q
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: IkL-NqvkSP-VENf7hkHayg
+LEFT: xZ_imY-HRzS1VuWsGZb58Q
+RIGHT: On57Yw6ZT5aWjQ7bWb-SMw
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: Fu2RjAVCT6m6WjDEgh89rA
+LEFT: qPsy-bhHSwKHlV5zkDunKA
+RIGHT: sGZ9AV1PRZemX4bcjihcBg
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: vSLx_PhfQeOzYDIwG4SGZQ
+LEFT: Fu2RjAVCT6m6WjDEgh89rA
+RIGHT: 9rmKNO4jRSKZyS-rmAAA4Q
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: PPgMeRDESRGQ9U8HJex4lQ
+LEFT: IkL-NqvkSP-VENf7hkHayg
+RIGHT: tXaqnv8_SJeDTSFbUPXpKQ
+JOIN2343
+[L] -[?Y, ?X]
+[R] -[?Course, ?X]
+JOB: jfXGfjmYQWScBMwyThIiKw
+LEFT: vSLx_PhfQeOzYDIwG4SGZQ
+RIGHT: Q8E3mfOLTDW9u2M-oeYNyQ
+JOIN1
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Y]
+JOB: 5CGIzKvUQ2eMOs9htfTZ-w
+LEFT: xiM2HReDQ66JcVV8SBFTlQ
+RIGHT: PPgMeRDESRGQ9U8HJex4lQ
+JOIN2343
+[L] -[?Z, ?X]
+[R] -[?Course, ?Y, ?X]
+JOB: MgPSfb7GT7CkiO0sprMUWw
+LEFT: jfXGfjmYQWScBMwyThIiKw
+RIGHT: 5CGIzKvUQ2eMOs9htfTZ-w
+JOIN2343
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Course, ?Z, ?Y, ?X]
+JOB: LVE9ao5nR2qqSYM1rUS5QQ
+JOB: 5rbL849dTROF-VBXN4F8cg
+JOB: EPiqucP8QoWvpJ1tHmG8GA
+JOB: -whrM3raRWa8t1bTmu0PIw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: 8-U5zicZRQ-XI3J3nNLylg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: Y88Pb27ZRgCIW82HnJdxOg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: CNYMt9hPRHGh2S-z_oJUqw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: h6uRxzl3SPKk52U8eFRWZg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: 0tC0kZG9Ru6f7NR9jvgtZg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: NVRrnbvySX22x-UyZoC0bQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: uA0PfIF5SSKcQfSvEIGSIg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: QZml0d0oRGypvfn8GKAjnw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: EG_YxlkwTWKY7xLr3j5qBQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: S1pHnzrfSD2MYWHFWoWrFA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: 6bpRknGuQbusyBXwprfhwA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: FIYFCL2NT6-DtrLTG6Jeew
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: Ga5dWu-GSi-S3C79LRV97w
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: Wl6g0qxyQkOXNuht_PKXHw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: Eisa1FDsQh6xywQ7ZJtmQQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: CA9tXrrUTbWaFGthUx6Tdw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: wOeVuACLS-iU46oMedwywQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: sl6HQNeMSLi9er1oCIexwA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: mVA1TIl4T8q2WiePZfbVPA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: UhYFxFtzR5aoGO6WFffUXw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: xRO3d8RTQVOsdFV4tHMDMQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: U_a0Iao2SWu1JEO2MjDfOw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: iS9ZkMZATHSiUKZvVTtlxQ
+LEFT: 8-U5zicZRQ-XI3J3nNLylg
+RIGHT: Y88Pb27ZRgCIW82HnJdxOg
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: rqZpvpmQTMGg6w2n35WPpQ
+LEFT: sl6HQNeMSLi9er1oCIexwA
+RIGHT: mVA1TIl4T8q2WiePZfbVPA
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: 6Aqrmf4rSaiUuSHJx-Z3nQ
+LEFT: sl6HQNeMSLi9er1oCIexwA
+RIGHT: UhYFxFtzR5aoGO6WFffUXw
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: gJX5Fsp3TueFZz-sb2nr5Q
+LEFT: 6Aqrmf4rSaiUuSHJx-Z3nQ
+RIGHT: xRO3d8RTQVOsdFV4tHMDMQ
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: v6988VsKTnKubvqySccNqg
+LEFT: -whrM3raRWa8t1bTmu0PIw
+RIGHT: iS9ZkMZATHSiUKZvVTtlxQ
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: 3GcKXjRTQh2nFYYEgNco4A
+LEFT: v6988VsKTnKubvqySccNqg
+RIGHT: -whrM3raRWa8t1bTmu0PIw
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: oF0jvrieSDqLhQpP2o2-Bg
+LEFT: 3GcKXjRTQh2nFYYEgNco4A
+RIGHT: CNYMt9hPRHGh2S-z_oJUqw
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: febnnMKcSOqkJw8znM9kBQ
+LEFT: oF0jvrieSDqLhQpP2o2-Bg
+RIGHT: h6uRxzl3SPKk52U8eFRWZg
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 14ABmg2bQQe5nDYSDVHnZA
+LEFT: febnnMKcSOqkJw8znM9kBQ
+RIGHT: 0tC0kZG9Ru6f7NR9jvgtZg
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: CUk-_GA-TR-BLmZHA4LadQ
+LEFT: 14ABmg2bQQe5nDYSDVHnZA
+RIGHT: NVRrnbvySX22x-UyZoC0bQ
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: a7Fq7zLnR_qcpugTrfMkRw
+LEFT: CUk-_GA-TR-BLmZHA4LadQ
+RIGHT: uA0PfIF5SSKcQfSvEIGSIg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 71XKR8HrTiGboN8GdCvQ8g
+LEFT: a7Fq7zLnR_qcpugTrfMkRw
+RIGHT: QZml0d0oRGypvfn8GKAjnw
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: jTwWkDGrTmiqaTixFmjc6Q
+LEFT: 71XKR8HrTiGboN8GdCvQ8g
+RIGHT: -whrM3raRWa8t1bTmu0PIw
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: sZVruyxbQ7ioIANOpDixGw
+LEFT: jTwWkDGrTmiqaTixFmjc6Q
+RIGHT: EG_YxlkwTWKY7xLr3j5qBQ
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: L7C6nYqeRFKaXWic3lJQ4A
+LEFT: sZVruyxbQ7ioIANOpDixGw
+RIGHT: S1pHnzrfSD2MYWHFWoWrFA
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: H4yK9jF8R22oHPgXEHq1Ag
+LEFT: FIYFCL2NT6-DtrLTG6Jeew
+RIGHT: Ga5dWu-GSi-S3C79LRV97w
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: DOvboEzQQQWbtWQhHVsaWw
+LEFT: H4yK9jF8R22oHPgXEHq1Ag
+RIGHT: Wl6g0qxyQkOXNuht_PKXHw
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: qZ0KpBGdSJmPRBZMUf9Z7A
+LEFT: DOvboEzQQQWbtWQhHVsaWw
+RIGHT: Eisa1FDsQh6xywQ7ZJtmQQ
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: EvutqNMdTmK1P9Jb8s8JTQ
+LEFT: qZ0KpBGdSJmPRBZMUf9Z7A
+RIGHT: CA9tXrrUTbWaFGthUx6Tdw
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: Nl-Ic1NISo-hRlmVKuGkYQ
+LEFT: wOeVuACLS-iU46oMedwywQ
+RIGHT: rqZpvpmQTMGg6w2n35WPpQ
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: Aoc9H6GTSh2AqaojjmbYsQ
+LEFT: Nl-Ic1NISo-hRlmVKuGkYQ
+RIGHT: gJX5Fsp3TueFZz-sb2nr5Q
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: C04VjHgUQdCd4nOiUB4ybA
+LEFT: Aoc9H6GTSh2AqaojjmbYsQ
+RIGHT: L7C6nYqeRFKaXWic3lJQ4A
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Course, ?X]
+JOB: DCcd8fumT52E8f6YLoYjRw
+LEFT: 6bpRknGuQbusyBXwprfhwA
+RIGHT: EvutqNMdTmK1P9Jb8s8JTQ
+JOIN679
+[L] -[?Y]
+[R] -[?Y, ?X]
+JOB: jVZCC8XKQfmjJc1J_Ea1LA
+LEFT: U_a0Iao2SWu1JEO2MjDfOw
+RIGHT: C04VjHgUQdCd4nOiUB4ybA
+JOIN0
+[L] -[?Z, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?subOrganizationOf0, ?Y, ?X]
+JOB: xD4UpFa2SY-pilqvtpJ_Sg
+LEFT: DCcd8fumT52E8f6YLoYjRw
+RIGHT: jVZCC8XKQfmjJc1J_Ea1LA
+JOIN0
+[L] -[?Y, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?Z, ?subOrganizationOf0, ?Y, ?X]
+JOB: Sp3KihJGSfOz8xms9NTgEg
+JOB: SgZafod_TO6dWIREFlZrOg
+JOB: _qEXqZABSbGqd8dmeRmAFw
+JOB: R-DsxELXSk2mgN-J4qtQEg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: XDrxVKJ-T9SYaeG1-5CVcA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: wVaenBptTRy9mQ6bSsn_Vw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: LmgnO4rVRlCswKW2eWfeLw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: l25LXABUQh2SNtrLUAw-vw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: OhZQXaU0SVKRRn5OsypF_Q
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: oErvzt_wSBaHT4Kj3L9_sQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: ALsXZLaKQV-QEsoj8DDgfg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: rhFScdzuS_WFKH4yZ1-DiA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: eJjzfyKsRPKGWbIj4Lq7ag
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: VzkgIUvqQDiVvsLH49gIxg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: jWHoXVUPQ_ScJeNSrMu2nw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: 4aV9WnB4QfahKsHRUMa8Zw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: W2QJnLo1QZOfvGcLII3Q7g
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: WwqDu5CCS8SVqZtcFTtdTQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: xhcIEWKuRpWqLOF88Ls31A
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: 7v0k3HByTAiTN-nTScaCJQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: 2ayAXc6CTAW6prANIqTwoA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: UXhFwaDTTya9Vz_UxMlWBw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: gs8PVedVSdy0Z0-Flq-clw
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: IpjN30cOTaGreoyGxi3Ysg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: G-z_xhE0SvOF4BWJxCQZFA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: cEDKUM87QdyQuU8TJriBgQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: N7Dq96bqQTiF-EVck_7wFg
+LEFT: XDrxVKJ-T9SYaeG1-5CVcA
+RIGHT: wVaenBptTRy9mQ6bSsn_Vw
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: vtRQd4e2SFKuS9AAGHjRkA
+LEFT: UXhFwaDTTya9Vz_UxMlWBw
+RIGHT: gs8PVedVSdy0Z0-Flq-clw
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: OhRtUq3lS3G58B_iMOXpdA
+LEFT: UXhFwaDTTya9Vz_UxMlWBw
+RIGHT: IpjN30cOTaGreoyGxi3Ysg
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: KCK1K5oiTBuxzwHMsdTlSw
+LEFT: OhRtUq3lS3G58B_iMOXpdA
+RIGHT: G-z_xhE0SvOF4BWJxCQZFA
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: FL36565vSfa6UwmKUQt7Mw
+LEFT: R-DsxELXSk2mgN-J4qtQEg
+RIGHT: N7Dq96bqQTiF-EVck_7wFg
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: 3RN5Ln0OTuq0L-_zFMI02g
+LEFT: FL36565vSfa6UwmKUQt7Mw
+RIGHT: R-DsxELXSk2mgN-J4qtQEg
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: MLFQG6uJQQ-dcO23OvtaFQ
+LEFT: 3RN5Ln0OTuq0L-_zFMI02g
+RIGHT: LmgnO4rVRlCswKW2eWfeLw
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: HaWCWsl7TBuNP0Uguv0iTw
+LEFT: MLFQG6uJQQ-dcO23OvtaFQ
+RIGHT: l25LXABUQh2SNtrLUAw-vw
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: _Im7zDqSS2qNi0WNpdGHzA
+LEFT: HaWCWsl7TBuNP0Uguv0iTw
+RIGHT: OhZQXaU0SVKRRn5OsypF_Q
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 81q6biwOTWWN4t2dzJckOQ
+LEFT: _Im7zDqSS2qNi0WNpdGHzA
+RIGHT: oErvzt_wSBaHT4Kj3L9_sQ
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: spEM9MU9TWu--Y2Hk94nAQ
+LEFT: 81q6biwOTWWN4t2dzJckOQ
+RIGHT: ALsXZLaKQV-QEsoj8DDgfg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: -8ULD4lEQVubrWDLoUoIQw
+LEFT: spEM9MU9TWu--Y2Hk94nAQ
+RIGHT: rhFScdzuS_WFKH4yZ1-DiA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: uOFwiCM8RZOUCuOCH9N5Vw
+LEFT: -8ULD4lEQVubrWDLoUoIQw
+RIGHT: R-DsxELXSk2mgN-J4qtQEg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 6nhqzhlfTQOycymx-Zq6og
+LEFT: uOFwiCM8RZOUCuOCH9N5Vw
+RIGHT: eJjzfyKsRPKGWbIj4Lq7ag
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: wqAj-pOxQZOOq9YjTTwabA
+LEFT: 6nhqzhlfTQOycymx-Zq6og
+RIGHT: VzkgIUvqQDiVvsLH49gIxg
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: kYSwQocXSyyBk3J8m2038Q
+LEFT: 4aV9WnB4QfahKsHRUMa8Zw
+RIGHT: W2QJnLo1QZOfvGcLII3Q7g
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: s8QU6l2kTzSYNynNxVYNLQ
+LEFT: kYSwQocXSyyBk3J8m2038Q
+RIGHT: WwqDu5CCS8SVqZtcFTtdTQ
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: ibaMVkgSQ_CUjdpXmLWRjA
+LEFT: s8QU6l2kTzSYNynNxVYNLQ
+RIGHT: xhcIEWKuRpWqLOF88Ls31A
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: 5D0_POqSSrqCQIAiBXEbGA
+LEFT: ibaMVkgSQ_CUjdpXmLWRjA
+RIGHT: 7v0k3HByTAiTN-nTScaCJQ
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: hJY5ZsUKQMm7413GbAk4Hg
+LEFT: 2ayAXc6CTAW6prANIqTwoA
+RIGHT: vtRQd4e2SFKuS9AAGHjRkA
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: K_Szofu6TwSucMv0cK9P7w
+LEFT: hJY5ZsUKQMm7413GbAk4Hg
+RIGHT: KCK1K5oiTBuxzwHMsdTlSw
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: s96YC8ReS2aLjhL5sQhTVw
+LEFT: 5D0_POqSSrqCQIAiBXEbGA
+RIGHT: wqAj-pOxQZOOq9YjTTwabA
+JOIN2343
+[L] -[?Y, ?X]
+[R] -[?Course, ?X]
+JOB: 2xeVpghmTF-_fRhtgOziHw
+LEFT: jWHoXVUPQ_ScJeNSrMu2nw
+RIGHT: K_Szofu6TwSucMv0cK9P7w
+JOIN1
+[L] -[?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: FvRbrTKmQiq916SvTv6VvQ
+LEFT: cEDKUM87QdyQuU8TJriBgQ
+RIGHT: s96YC8ReS2aLjhL5sQhTVw
+JOIN2343
+[L] -[?Z, ?X]
+[R] -[?Course, ?Y, ?X]
+JOB: de8it_y9QQm2hBFKCICNcg
+LEFT: 2xeVpghmTF-_fRhtgOziHw
+RIGHT: FvRbrTKmQiq916SvTv6VvQ
+JOIN2343
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Course, ?Z, ?Y, ?X]
+JOB: xkUlxtm0RIaxbBKat2psCA
+JOB: qArHRj-jTrKqUv9wp5Lowg
+JOB: MR8RS81tTYmiCJ4XXOMdjA
+JOB: kFM8raPETyqme9IO82zp7g
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: rcDJc7FWRdOnehmUMmiB6A
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: w01YTQ1PR4aTW18p1lf9dA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: 6k8tI5lxTHedkYgtaQtEZA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: pei_Nc7jTH-Omy30E88thw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: MoCoonTTRSCwms23m9xPZw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: 5zzXSYOSSdiCyipgm3jsCA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: RgZVGHnYSJOQwPImqLty-w
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: j73DBtAdSrmiQrWN0xNWmg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: ANtfVe3aRmqACSamO2wckA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: Gn1LqSRFSoa9lSqi5qPNJQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: OvLKYtrmRzar7NVqulKyIQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: kjehhtuBR66Wu0tKZAtF5A
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: k97km4PZQda_yIoDzt1ojQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: e7hJWee3RX--Yp537CFQqg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: vzcITWVFRvGelKuiO0PWPA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: 3qmisGLrRIiweM_IKJ-jIA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: hxUEZMUjRQyu7qcGCgZJ0A
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: 2bHbJ8zLRtiHafHPXbMXvA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: MNGMzSJZSTWzYXxoWGYTLA
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: njxDfY94RT-CRJ3EH7vpug
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: VtxSI-YLR0Cc-sOaorJQmw
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: NzXQANHBTsy0dkUVNSfjww
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: 2s52bwVPTOW38G6_ox6gBw
+LEFT: rcDJc7FWRdOnehmUMmiB6A
+RIGHT: w01YTQ1PR4aTW18p1lf9dA
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: tlFFnpI5Tai-JG5nngCz0w
+LEFT: 2bHbJ8zLRtiHafHPXbMXvA
+RIGHT: MNGMzSJZSTWzYXxoWGYTLA
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: 5f9N0lDER6S4tNnP5vy19g
+LEFT: 2bHbJ8zLRtiHafHPXbMXvA
+RIGHT: njxDfY94RT-CRJ3EH7vpug
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: avQeUW-kQ1ivCyRtA1c-mw
+LEFT: 5f9N0lDER6S4tNnP5vy19g
+RIGHT: VtxSI-YLR0Cc-sOaorJQmw
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: 9y6ze6lHTzyt2EUbvVWxWQ
+LEFT: kFM8raPETyqme9IO82zp7g
+RIGHT: 2s52bwVPTOW38G6_ox6gBw
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: GukK1oRORTKhig6JbDwaVg
+LEFT: 9y6ze6lHTzyt2EUbvVWxWQ
+RIGHT: kFM8raPETyqme9IO82zp7g
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: TFKfl6NnQuC_ZZmzGfyunA
+LEFT: GukK1oRORTKhig6JbDwaVg
+RIGHT: 6k8tI5lxTHedkYgtaQtEZA
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: BkEc0jbwQ16sj7v132jaIw
+LEFT: TFKfl6NnQuC_ZZmzGfyunA
+RIGHT: pei_Nc7jTH-Omy30E88thw
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: jtAafURwR22f_o3lXO8E7A
+LEFT: BkEc0jbwQ16sj7v132jaIw
+RIGHT: MoCoonTTRSCwms23m9xPZw
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 8qMe8NbQQCKKcLbj-afu1Q
+LEFT: jtAafURwR22f_o3lXO8E7A
+RIGHT: 5zzXSYOSSdiCyipgm3jsCA
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: dq_htT5VRA62Ukoe-AlN8Q
+LEFT: 8qMe8NbQQCKKcLbj-afu1Q
+RIGHT: RgZVGHnYSJOQwPImqLty-w
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: lx-NuCKCS7aP6OcBs0MriQ
+LEFT: dq_htT5VRA62Ukoe-AlN8Q
+RIGHT: j73DBtAdSrmiQrWN0xNWmg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: qjQwmlNDQAmVCtYYguDC-Q
+LEFT: lx-NuCKCS7aP6OcBs0MriQ
+RIGHT: kFM8raPETyqme9IO82zp7g
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 70rYt2DRTSegbtt_EImiZQ
+LEFT: qjQwmlNDQAmVCtYYguDC-Q
+RIGHT: ANtfVe3aRmqACSamO2wckA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: aMQkqBrLTbiUnYTmusiIEw
+LEFT: 70rYt2DRTSegbtt_EImiZQ
+RIGHT: Gn1LqSRFSoa9lSqi5qPNJQ
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: LLNIHbmNRGu7-bDF1yvXVw
+LEFT: kjehhtuBR66Wu0tKZAtF5A
+RIGHT: k97km4PZQda_yIoDzt1ojQ
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: S_kSM4wgQIGa6hzevCDd_w
+LEFT: LLNIHbmNRGu7-bDF1yvXVw
+RIGHT: e7hJWee3RX--Yp537CFQqg
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: usqjZcT4RImyquTR8gk16g
+LEFT: S_kSM4wgQIGa6hzevCDd_w
+RIGHT: vzcITWVFRvGelKuiO0PWPA
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: K1ylpIUNQl-V4clNZuOuPQ
+LEFT: usqjZcT4RImyquTR8gk16g
+RIGHT: 3qmisGLrRIiweM_IKJ-jIA
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: VuRsulPFS3GHwppAWIFgxA
+LEFT: hxUEZMUjRQyu7qcGCgZJ0A
+RIGHT: tlFFnpI5Tai-JG5nngCz0w
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: RJ_PkgxASyWXxpJUAaA4Lw
+LEFT: VuRsulPFS3GHwppAWIFgxA
+RIGHT: avQeUW-kQ1ivCyRtA1c-mw
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: cS1-P5sCTPGc5Ul9LPawTQ
+LEFT: OvLKYtrmRzar7NVqulKyIQ
+RIGHT: NzXQANHBTsy0dkUVNSfjww
+JOIN0
+[L] -[?Y]
+[R] -[?Z, ?X]
+JOB: e0rNjeUxQLOpdGTRIZa9Sg
+LEFT: K1ylpIUNQl-V4clNZuOuPQ
+RIGHT: aMQkqBrLTbiUnYTmusiIEw
+JOIN2343
+[L] -[?Y, ?X]
+[R] -[?Course, ?X]
+JOB: Ke2ceTUgS22vpoSvbY8pQQ
+LEFT: RJ_PkgxASyWXxpJUAaA4Lw
+RIGHT: cS1-P5sCTPGc5Ul9LPawTQ
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Z, ?Y, ?X]
+JOB: y56w8i3hRWWiJqBWFvGGRQ
+LEFT: e0rNjeUxQLOpdGTRIZa9Sg
+RIGHT: Ke2ceTUgS22vpoSvbY8pQQ
+JOIN0
+[L] -[?Course, ?Y, ?X]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Z, ?Y, ?X]
+JOB: KCuDiiTRSFSXBGVbEJ24oA
+JOB: S_WIw_zUQPuaptZAXkb0_w
+JOB: 8-uyNzHLQoGhqlLeCiehCQ
+JOB: UN0B2uOJQu6XQ93lFSQTDQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: MEmnrrotQG21nvdKnvGMgg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: r6hIwND4QFmNnPLjZVGcGw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: sEgMiGzJTv62jyLi3bX1Ww
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: RTDRfuJ-Sy-mjJEQAdaESw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: xticydskSd605IFBW_UgSw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: 1LsM4vAdQr659Bijkoa9Eg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: FF3j4RRxRtmz221NMnlg-g
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: UxeHvbn9SrWE6jtBVwAhOA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: BPwLhnp9R86aaPC4gNCrgA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: UyWPriN9RQSx1NPggagWoA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: lI-0Y-pfQlq9OoizmLjOuA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: 5evljG0tTye7zq2IA29M1w
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: T-lqAOe0TDu-ZE3BCuF1Yg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: SMsLU_PIRfqoRl3V1BjisA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: 9sBBG4m4SCKqUd2SgM5qyQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: IGbXfpeuRYKmqPEqk2yspQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: k1qz3firQS-Nf6uW8EUmDQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: -EEZUrZcRQaiB1GXQ5FLXw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: YDBRBIZJQUeAweIeTtmV0A
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: uUoggvh-RyGUbIXee8zLuA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: 65Hlhqa6RnqleX2lBNH-lQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: DH-SrN44TleAEtBK0wKStQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: otoXzKG2Q2SR0nh1kHrwXQ
+LEFT: MEmnrrotQG21nvdKnvGMgg
+RIGHT: r6hIwND4QFmNnPLjZVGcGw
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: FvwnGoKGRbupRTieEC63zw
+LEFT: -EEZUrZcRQaiB1GXQ5FLXw
+RIGHT: YDBRBIZJQUeAweIeTtmV0A
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: xQiD1iTERzqeCIwmAe-acQ
+LEFT: -EEZUrZcRQaiB1GXQ5FLXw
+RIGHT: uUoggvh-RyGUbIXee8zLuA
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: TnRyZwqWSNGll-YgQko7rg
+LEFT: xQiD1iTERzqeCIwmAe-acQ
+RIGHT: 65Hlhqa6RnqleX2lBNH-lQ
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: poecdQmeSE-HJIOQfFo4tw
+LEFT: UN0B2uOJQu6XQ93lFSQTDQ
+RIGHT: otoXzKG2Q2SR0nh1kHrwXQ
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: Y8iJXy0eTkWt1UCtcvdYIg
+LEFT: poecdQmeSE-HJIOQfFo4tw
+RIGHT: UN0B2uOJQu6XQ93lFSQTDQ
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: ryTU-TtOSciuCj_VKaFQDg
+LEFT: Y8iJXy0eTkWt1UCtcvdYIg
+RIGHT: sEgMiGzJTv62jyLi3bX1Ww
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: IfypEWuGSU2JRmZvX_YbxQ
+LEFT: ryTU-TtOSciuCj_VKaFQDg
+RIGHT: RTDRfuJ-Sy-mjJEQAdaESw
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: 4K-4lWkIQ9izaxDA4yXwBg
+LEFT: IfypEWuGSU2JRmZvX_YbxQ
+RIGHT: xticydskSd605IFBW_UgSw
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: JxQ2bTxbRMukvnpfErmgRQ
+LEFT: 4K-4lWkIQ9izaxDA4yXwBg
+RIGHT: 1LsM4vAdQr659Bijkoa9Eg
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: DU7O2Rj6T_KNRy5G-Kps6w
+LEFT: JxQ2bTxbRMukvnpfErmgRQ
+RIGHT: FF3j4RRxRtmz221NMnlg-g
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: WTzvl6c2RFWI-dVGNhZE6w
+LEFT: DU7O2Rj6T_KNRy5G-Kps6w
+RIGHT: UxeHvbn9SrWE6jtBVwAhOA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: rpHynV7RSiKa7CbuuX_l5Q
+LEFT: WTzvl6c2RFWI-dVGNhZE6w
+RIGHT: UN0B2uOJQu6XQ93lFSQTDQ
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: d0e05MXRQCq7hCsQ2Rkwhw
+LEFT: rpHynV7RSiKa7CbuuX_l5Q
+RIGHT: BPwLhnp9R86aaPC4gNCrgA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: GNBuWu7FQ9WKjR-ztP0RSg
+LEFT: d0e05MXRQCq7hCsQ2Rkwhw
+RIGHT: UyWPriN9RQSx1NPggagWoA
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: SqHWQhYsSNiVJh-yv0Q__Q
+LEFT: 5evljG0tTye7zq2IA29M1w
+RIGHT: T-lqAOe0TDu-ZE3BCuF1Yg
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: dW8XO4NaS6uE-kn4W3R9WQ
+LEFT: SqHWQhYsSNiVJh-yv0Q__Q
+RIGHT: SMsLU_PIRfqoRl3V1BjisA
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: 06BSDhlwRNuwgrkkOaGYmw
+LEFT: dW8XO4NaS6uE-kn4W3R9WQ
+RIGHT: 9sBBG4m4SCKqUd2SgM5qyQ
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: JYytfEJfTjOpODeajHbmqA
+LEFT: 06BSDhlwRNuwgrkkOaGYmw
+RIGHT: IGbXfpeuRYKmqPEqk2yspQ
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: c-rKlS4bRu2BC07qHWSzyg
+LEFT: k1qz3firQS-Nf6uW8EUmDQ
+RIGHT: FvwnGoKGRbupRTieEC63zw
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: ycVVEhdCTkqpghNjTTaLew
+LEFT: c-rKlS4bRu2BC07qHWSzyg
+RIGHT: TnRyZwqWSNGll-YgQko7rg
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: KCjvU39-QL-WBMwKE3JDbA
+LEFT: ycVVEhdCTkqpghNjTTaLew
+RIGHT: GNBuWu7FQ9WKjR-ztP0RSg
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Course, ?X]
+JOB: fx2Qs2MfThqHnQ3esQOQNg
+LEFT: lI-0Y-pfQlq9OoizmLjOuA
+RIGHT: JYytfEJfTjOpODeajHbmqA
+JOIN679
+[L] -[?Y]
+[R] -[?Y, ?X]
+JOB: 6pHDRHmvTqe9KiT8RenwKA
+LEFT: DH-SrN44TleAEtBK0wKStQ
+RIGHT: KCjvU39-QL-WBMwKE3JDbA
+JOIN0
+[L] -[?Z, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?subOrganizationOf0, ?Y, ?X]
+JOB: COeReRCfQ761h7pepgX9gQ
+LEFT: fx2Qs2MfThqHnQ3esQOQNg
+RIGHT: 6pHDRHmvTqe9KiT8RenwKA
+JOIN0
+[L] -[?Y, ?X]
+[R] -[?Course, ?subOrganizationOf1, ?Z, ?subOrganizationOf0, ?Y, ?X]
+JOB: Z8XgpfV0Q6GHZ2bm9jGj6A
+JOB: K2B0-8q6QeO2qkavwlCFfA
+JOB: muAYtL1sSzaqvDvgo1YTNA
+JOB: mtuZHOIGQviQXKLYg4AtzA
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Student | X | 0
+JOB: 42TZn6RGTqWPgOe5aFly4A
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#takesCourse | X | Course | 1878
+JOB: gBdOFVTFRJ-6PAlpkCqY_g
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Course | Course | 61
+JOB: ihVsgsOFTV-lhPYnLwqpWw
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Person | X | 0
+JOB: 134no_t9SSig-n2taVuP7Q
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#ResearchAssistant | X | 39
+JOB: c_esfWPZS9mlJ-pSB_g5Ug
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#GraduateStudent | X | 146
+JOB: e93SfTdTQG-YGb8mN1nz3g
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Employee | X | 0
+JOB: aORlGSInRDy489clIJ1x-A
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#TeachingAssistant | X | 29
+JOB: NJhZBUsJSNWnjR0rp6vuxQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair | X | 0
+JOB: XMzilLFyQcWkptguIUPUOg
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Director | X | 0
+JOB: QGZQPbT_S7-wmeSyTwE3qQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#UndergraduateStudent | X | 532
+JOB: 6KkODKC5QqmcUvTcyPhJtQ
+plain-lubm-1⬝S⬝S◦http://www.w3.org/1999/02/22-rdf-syntax-ns#type⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#Department | Y | 1
+JOB: 9dlQ2W61S5OLI79mv3ZlJA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#memberOf | X | Y | 678
+JOB: 3ciKPzUoRvGM-3TJ_q1Hiw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#worksFor | X | X | 41
+JOB: jor6UT65R2Gx6O2r-gm7dA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | Y | Y | 1
+JOB: IXMkxRVYTtS3QRhUJ62nrg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#headOf | X | X | 1
+JOB: d9l-sX28SOOA1bFRfkHqgg
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#member | X | X | 0
+JOB: cXtRXq3BRKiqu03SnPBdtg
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | Y | 1
+JOB: p2_o26RcQ-mccD-sLgi8tQ
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | Y | subOrganizationOf0 | 11
+JOB: VvrXByniTQ2-P9mJJFWKcw
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf0 | 1
+JOB: 2lgoNi4zSnumXQdEm6RReA
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf | subOrganizationOf0 | subOrganizationOf1 | 11
+JOB: 2unRmlD9QP2lLxmX3GVrIQ
+plain-lubm-1⬝S⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#subOrganizationOf⬝S◦http://www.University0.edu | subOrganizationOf1 | 1
+JOB: hdVhNDukQKW5ftGtrvlXAw
+plain-lubm-1⬝SO⬝S◦http://swat.cse.lehigh.edu/onto/univ-bench.owl#emailAddress | X | Z | 719
+JOB: pgTqspgBSZWtMs4JkgHXRg
+LEFT: 42TZn6RGTqWPgOe5aFly4A
+RIGHT: gBdOFVTFRJ-6PAlpkCqY_g
+JOIN1597
+[L] -[?Course, ?X]
+[R] -[?Course]
+JOB: SUxsvahPR5G8OzJXaDla-A
+LEFT: p2_o26RcQ-mccD-sLgi8tQ
+RIGHT: VvrXByniTQ2-P9mJJFWKcw
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf0]
+JOB: byOz67IVQxqikgH9Hr5Aog
+LEFT: p2_o26RcQ-mccD-sLgi8tQ
+RIGHT: 2lgoNi4zSnumXQdEm6RReA
+JOIN10
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0]
+JOB: AuwNalEdTMKHGQK9IdaoFw
+LEFT: byOz67IVQxqikgH9Hr5Aog
+RIGHT: 2unRmlD9QP2lLxmX3GVrIQ
+JOIN0
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1]
+JOB: 0l2eqno1ThCuuZjFUrOfFw
+LEFT: mtuZHOIGQviQXKLYg4AtzA
+RIGHT: pgTqspgBSZWtMs4JkgHXRg
+UNION: 1597
+[L] -[]
+[R] -[?Course, ?X]
+JOB: z20LhnJaT5qOJnD1_OvJKQ
+LEFT: 0l2eqno1ThCuuZjFUrOfFw
+RIGHT: mtuZHOIGQviQXKLYg4AtzA
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 1rSvIaojQTiG2Rss0HMk6A
+LEFT: z20LhnJaT5qOJnD1_OvJKQ
+RIGHT: ihVsgsOFTV-lhPYnLwqpWw
+UNION: 1597
+[L] -[?Course, ?X]
+[R] -[]
+JOB: x433Qc_hTmW28xMv65EasQ
+LEFT: 1rSvIaojQTiG2Rss0HMk6A
+RIGHT: 134no_t9SSig-n2taVuP7Q
+UNION: 1636
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: JQAQcJ0SRoOCVK4IZmeUoA
+LEFT: x433Qc_hTmW28xMv65EasQ
+RIGHT: c_esfWPZS9mlJ-pSB_g5Ug
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: JNkQ9V5BS6aXdZ2FGiA91w
+LEFT: JQAQcJ0SRoOCVK4IZmeUoA
+RIGHT: e93SfTdTQG-YGb8mN1nz3g
+UNION: 1782
+[L] -[?Course, ?X]
+[R] -[]
+JOB: -eqj5ClNRJ-urpNid5c60w
+LEFT: JNkQ9V5BS6aXdZ2FGiA91w
+RIGHT: aORlGSInRDy489clIJ1x-A
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: EqfHq0vTRnSN7xk5zduFHw
+LEFT: -eqj5ClNRJ-urpNid5c60w
+RIGHT: NJhZBUsJSNWnjR0rp6vuxQ
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: sfzrswkbTry2AmwxuAH42g
+LEFT: EqfHq0vTRnSN7xk5zduFHw
+RIGHT: mtuZHOIGQviQXKLYg4AtzA
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: 0TCsE0Q-TC6bWRbVEYjA5Q
+LEFT: sfzrswkbTry2AmwxuAH42g
+RIGHT: XMzilLFyQcWkptguIUPUOg
+UNION: 1811
+[L] -[?Course, ?X]
+[R] -[]
+JOB: kmPkICgOQaqVgtPsiy7_0Q
+LEFT: 0TCsE0Q-TC6bWRbVEYjA5Q
+RIGHT: QGZQPbT_S7-wmeSyTwE3qQ
+UNION: 2343
+[L] -[?Course, ?X]
+[R] -[?X]
+JOB: GDzxQOHRRMiG3NC6gJKmvQ
+LEFT: 9dlQ2W61S5OLI79mv3ZlJA
+RIGHT: 3ciKPzUoRvGM-3TJ_q1Hiw
+UNION: 719
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: yGLPiMT1R2CcjeUboOVQJQ
+LEFT: GDzxQOHRRMiG3NC6gJKmvQ
+RIGHT: jor6UT65R2Gx6O2r-gm7dA
+UNION: 720
+[L] -[?Y, ?X]
+[R] -[?Y]
+JOB: 9_Wgp14RT8WjGo9zm2JYaQ
+LEFT: yGLPiMT1R2CcjeUboOVQJQ
+RIGHT: IXMkxRVYTtS3QRhUJ62nrg
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[?X]
+JOB: apxRlvnYSPy5chPwKZ4LKA
+LEFT: 9_Wgp14RT8WjGo9zm2JYaQ
+RIGHT: d9l-sX28SOOA1bFRfkHqgg
+UNION: 721
+[L] -[?Y, ?X]
+[R] -[]
+JOB: myYJGYuNT7KSvymiJdytLQ
+LEFT: cXtRXq3BRKiqu03SnPBdtg
+RIGHT: SUxsvahPR5G8OzJXaDla-A
+UNION: 11
+[L] -[?Y]
+[R] -[?subOrganizationOf0, ?Y]
+JOB: 0qBNV0NvTJ-Hs-YrMSTrfQ
+LEFT: myYJGYuNT7KSvymiJdytLQ
+RIGHT: AuwNalEdTMKHGQK9IdaoFw
+UNION: 11
+[L] -[?subOrganizationOf0, ?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: rBOQDTmkRLGyDQrmUuSN5g
+LEFT: apxRlvnYSPy5chPwKZ4LKA
+RIGHT: kmPkICgOQaqVgtPsiy7_0Q
+JOIN2343
+[L] -[?Y, ?X]
+[R] -[?Course, ?X]
+JOB: pKHLJGVSRgW4hAbH_36ZoA
+LEFT: 6KkODKC5QqmcUvTcyPhJtQ
+RIGHT: 0qBNV0NvTJ-Hs-YrMSTrfQ
+JOIN1
+[L] -[?Y]
+[R] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+JOB: NK-Nrx_gRqaD3hb3xYq4sA
+LEFT: hdVhNDukQKW5ftGtrvlXAw
+RIGHT: rBOQDTmkRLGyDQrmUuSN5g
+JOIN2343
+[L] -[?Z, ?X]
+[R] -[?Course, ?Y, ?X]
+JOB: 7cxC0q22QQGRt0OBK8rMGA
+LEFT: pKHLJGVSRgW4hAbH_36ZoA
+RIGHT: NK-Nrx_gRqaD3hb3xYq4sA
+JOIN2343
+[L] -[?subOrganizationOf1, ?subOrganizationOf0, ?Y]
+[R] -[?Course, ?Z, ?Y, ?X]
+JOB: dpB7JuXFRIGl8ieulKZQrg
+JOB: 5VBgKfTjTMCYRXSI7yJb4g
+JOB: 6Ek_Rvm7S4mGzqKmYxSnMA

@@ -7,7 +7,6 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,8 +21,7 @@ public class DefaultOntology implements Ontology {
     private final Map<Node, Set<OntClass>> equivalentClasses;
     private final Map<Node, Restriction> classRestrictions;
     private final Map<Node, Set<OntClass>> intersectionClasses;
-
-    private Map<Node, Set<OntClass>> intersectionsWhereClassIsOperand;
+    private final Map<Node, Set<OntClass>> intersectionsWhereClassIsOperand;
     private final Map<Node, Set<? extends OntProperty>> subProperties;
     private final Map<Node, Set<? extends OntProperty>> equivalentProperties;
     private final Map<Node, Set<? extends OntProperty>> inverseProperties;
@@ -34,9 +32,33 @@ public class DefaultOntology implements Ontology {
     OntModel ontology;
     OntModelSpec spec;
     String triplestoreID;
-    private final int transitivityDepth = Integer.parseInt(System.getenv("TRANSITIVITY_DEPTH"));
-    private final int expansionDepth = Integer.parseInt(System.getenv("EXPANSION_DEPTH"));
+    private final int transitivityDepth;
+    private final int expansionDepth;
 
+
+    public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference, int t, int e) {
+        this.subClasses = new HashMap<>();
+        this.equivalentClasses = new HashMap<>();
+        this.intersectionClasses = new HashMap<>();
+        this.intersectionsWhereClassIsOperand = new HashMap<>();
+        this.classRestrictions = new HashMap<>();
+        this.subProperties = new HashMap<>();
+        this.equivalentProperties = new HashMap<>();
+        this.inverseProperties = new HashMap<>();
+        this.propertiesRange = new HashMap<>();
+        this.transitivityDepth = t;
+        this.expansionDepth = e;
+        this.spec = OWL_MEM_TRANS_INF;
+        this.triplestoreID = triplestoreID;
+        OntModel tbox = ModelFactory.createOntologyModel(OWL_MEM);
+        GraphUtil.add(tbox.getGraph(), schema.iterator());
+        if (inference) {
+            this.ontology = ModelFactory.createOntologyModel(spec, tbox);
+            execClassInference();
+            execPropertyInference();
+        } else
+            ontology = tbox;
+    }
 
     public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference) {
         this.subClasses = new HashMap<>();
@@ -48,6 +70,8 @@ public class DefaultOntology implements Ontology {
         this.equivalentProperties = new HashMap<>();
         this.inverseProperties = new HashMap<>();
         this.propertiesRange = new HashMap<>();
+        this.transitivityDepth = 0;
+        this.expansionDepth = 0;
         this.spec = OWL_MEM_TRANS_INF;
         this.triplestoreID = triplestoreID;
         OntModel tbox = ModelFactory.createOntologyModel(OWL_MEM);
@@ -55,9 +79,7 @@ public class DefaultOntology implements Ontology {
         if (inference) {
             this.ontology = ModelFactory.createOntologyModel(spec, tbox);
             execClassInference();
-            System.out.println("*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+");
             execPropertyInference();
-            System.out.println("#################################+END OF ONTOLOGY+####################################");
         } else
             ontology = tbox;
     }
@@ -67,43 +89,30 @@ public class DefaultOntology implements Ontology {
         OntClass c;
         for (ExtendedIterator<OntClass> it = ontology.listClasses(); it.hasNext(); ) {
             c = it.next();
-            System.out.println(PrintUtil.print(c));
             s = c.listSubClasses().toSet();
             s.remove(c);
-            for (OntClass c2 : s)
-                System.out.println(" s- " + PrintUtil.print(c2));
             subClasses.put(c.asNode(), s);
             s = c.listEquivalentClasses().toSet();
             s.remove(c);
-            for (OntClass c2 : s)
-                System.out.println(" eq- " + PrintUtil.print(c2));
             equivalentClasses.put(c.asNode(), s);
 
         }
         Restriction currentRestriction;
         for (ExtendedIterator<Restriction> it = ontology.listRestrictions(); it.hasNext(); ) {
             currentRestriction = it.next();
-            if (currentRestriction.isSomeValuesFromRestriction()) {
-                System.out.println(" r- " + PrintUtil.print(currentRestriction) + " | " + PrintUtil.print(currentRestriction.getOnProperty())
-                        + " | " + PrintUtil.print(currentRestriction.asSomeValuesFromRestriction().getSomeValuesFrom()));
+            if (currentRestriction.isSomeValuesFromRestriction())
                 classRestrictions.put(currentRestriction.asNode(), currentRestriction);
-            } else if (currentRestriction.isHasValueRestriction()) {
-                System.out.println(" r- " + PrintUtil.print(currentRestriction) + " | " + PrintUtil.print(currentRestriction.getOnProperty())
-                        + " | " + PrintUtil.print(currentRestriction.asHasValueRestriction().getHasValue()));
+            else if (currentRestriction.isHasValueRestriction())
                 classRestrictions.put(currentRestriction.asNode(), currentRestriction);
-            }
         }
         IntersectionClass intersection;
         for (ExtendedIterator<IntersectionClass> it = ontology.listIntersectionClasses(); it.hasNext(); ) {
             intersection = it.next();
             Set<OntClass> operands = new HashSet<>();
-            System.out.println(" i- " + PrintUtil.print(intersection));
-            for (OntClass ontClass : intersection.listOperands().toSet()) {
-                System.out.println(" i-- " + PrintUtil.print(ontClass));
+            for (OntClass ontClass : intersection.listOperands().toSet())
                 operands.add(ontClass);
-            }
             Set<OntClass> intersectionsDirectSuperclasses;
-            for (OntClass operand: operands){
+            for (OntClass operand : operands) {
                 intersectionsDirectSuperclasses = intersectionsWhereClassIsOperand.get(operand.asNode());
                 if (intersectionsDirectSuperclasses == null)
                     intersectionsDirectSuperclasses = new HashSet<>();
@@ -121,21 +130,12 @@ public class DefaultOntology implements Ontology {
             extractPropertyInfo(p);
             s = p.listSubProperties().toSet();
             s.remove(p);
-            for (OntProperty p2 : s) {
-                System.out.println(" su++ " + PrintUtil.print(p2));
-            }
             subProperties.put(p.asNode(), s);
             s = p.listEquivalentProperties().toSet();
             s.remove(p);
-            for (OntProperty p2 : s) {
-                System.out.println(" eq++ " + PrintUtil.print(p2));
-            }
             equivalentProperties.put(p.asNode(), s);
             s = p.listInverseOf().toSet();
             s.remove(p);
-            for (OntProperty p2 : s) {
-                System.out.println(" inv++ " + PrintUtil.print(p2));
-            }
             inverseProperties.put(p.asNode(), s);
         }
     }
@@ -144,15 +144,10 @@ public class DefaultOntology implements Ontology {
         OntResource range = p.getRange();
         if (range != null && range.isClass())
             propertiesRange.put(p.asNode(), range.asClass());
-        if (p.isSymmetricProperty()) {
-            System.out.println(" sy+ " + PrintUtil.print(p));
+        if (p.isSymmetricProperty())
             symmetricProperties.add(p.asNode());
-        } else if (p.isTransitiveProperty()) {
-            System.out.println(" t+ " + PrintUtil.print(p));
+        else if (p.isTransitiveProperty())
             transitiveProperties.add(p.asNode());
-        } else {
-            System.out.println(" + " + PrintUtil.print(p));
-        }
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
+import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
@@ -34,8 +35,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
@@ -238,13 +238,32 @@ public class ParsingUtils {
             s = parseKeyword(t.getSubject());
             p = parseKeyword(t.getPredicate());
             o = parseKeyword(t.getObject());
-            keywords.add(ParsingUtils.generateKeyword(PO, s));
-            keywords.add(ParsingUtils.generateKeyword(SO, p));
-            keywords.add(ParsingUtils.generateKeyword(SP, o));
-            keywords.add(ParsingUtils.generateKeyword(S, p, o));
-            keywords.add(ParsingUtils.generateKeyword(P, s, o));
-            keywords.add(ParsingUtils.generateKeyword(O, s, p));
+            keywords.add(generateKeyword(PO, s));
+            keywords.add(generateKeyword(SO, p));
+            keywords.add(generateKeyword(SP, o));
+            keywords.add(generateKeyword(S, p, o));
+            keywords.add(generateKeyword(P, s, o));
+            keywords.add(generateKeyword(O, s, p));
         }
         return keywords;
+    }
+
+    public static String parseTriple(Node s, Node p, Node o) throws InvalidNodeException {
+        String parsed_s, parsed_p, parsed_o;
+        if (s.isVariable())
+            parsed_s = ((Var) s).getVarName();
+        else
+            parsed_s = parseKeyword(s);
+
+        if (p.isVariable())
+            parsed_p = ((Var) p).getVarName();
+        else
+            parsed_p = parseKeyword(p);
+
+        if (o.isVariable())
+            parsed_o = ((Var) o).getVarName();
+        else
+            parsed_o = parseKeyword(o);
+        return String.format(TRIPLE_KEYWORD, parsed_s, parsed_p, parsed_o);
     }
 }
