@@ -108,9 +108,7 @@ public class DefaultOntology implements Ontology {
         IntersectionClass intersection;
         for (ExtendedIterator<IntersectionClass> it = ontology.listIntersectionClasses(); it.hasNext(); ) {
             intersection = it.next();
-            Set<OntClass> operands = new HashSet<>();
-            for (OntClass ontClass : intersection.listOperands().toSet())
-                operands.add(ontClass);
+            Set<OntClass> operands = new HashSet<>(intersection.listOperands().toSet());
             Set<OntClass> intersectionsDirectSuperclasses;
             for (OntClass operand : operands) {
                 intersectionsDirectSuperclasses = intersectionsWhereClassIsOperand.get(operand.asNode());
@@ -126,7 +124,6 @@ public class DefaultOntology implements Ontology {
     private void execPropertyInference() {
         Set<? extends OntProperty> s;
         for (OntProperty p : ontology.listAllOntProperties().toSet()) {
-            System.out.println(PrintUtil.print(p));
             extractPropertyInfo(p);
             s = p.listSubProperties().toSet();
             s.remove(p);
