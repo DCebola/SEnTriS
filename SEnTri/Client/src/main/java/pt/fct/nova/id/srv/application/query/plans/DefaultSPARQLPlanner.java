@@ -348,7 +348,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     private String expandProperties(String prefix, Set<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
                                     Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException {
         for (OntProperty ontProperty : ontProperties) {
-            pushUnion(jobID, pushSearch(s, ontProperty.asNode(), o, jobs, jobsIDs), jobs, jobsIDs);
+            jobID = pushUnion(jobID, pushSearch(s, ontProperty.asNode(), o, jobs, jobsIDs), jobs, jobsIDs);
             jobID = expandProperty(prefix, jobID, s, ontProperty.asNode(), o, depth + 1, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
         }
         return jobID;
