@@ -256,6 +256,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         Var var;
         Node property;
+        String right, left, join;
         Node value;
         if (restriction != null && (restriction.isHasValueRestriction() || restriction.isSomeValuesFromRestriction())) {
             if (restriction.isHasValueRestriction()) {
@@ -267,23 +268,32 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 property = restriction.getOnProperty().asNode();
                 value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
             }
-            String joinID = pushJoin(pushSearch(s, property, var, jobs, jobsIDs), pushSearch(var, rdfType, value, jobs, jobsIDs), jobs, jobsIDs);
-            jobID = pushUnion(jobID, joinID, jobs, jobsIDs);
-            jobID = expandProperty(prefix, jobID, s, property, var, depth + 1, jobs, jobsIDs, true, true);
-            jobID = expandClass(prefix, jobID, var, value, depth + 1, jobs, jobsIDs);
+            right = pushSearch(s, property, var, jobs, jobsIDs);
+            left = pushSearch(var, rdfType, value, jobs, jobsIDs);
+            join = pushJoin(
+                    expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
+                    expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
+            jobID = pushUnion(jobID, join, jobs, jobsIDs);
         }
         return jobID;
     }
 
     private String expandClassConjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
-        String search, union;
+        String search, right = null, left;
+
         for (OntClass ontClass : ontClasses) {
-            search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
-            union = pushUnion(search, expandClass(prefix, search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs), jobs, jobsIDs);
-            jobID = pushJoin(jobID, union, jobs, jobsIDs);
+            if (!ontClass.isRestriction()) {
+                search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
+                left = pushUnion(search, expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs), jobs, jobsIDs);
+            } else
+                left = expandClass(prefix.concat(" CLASS"), jobID, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            if (right != null)
+                right = pushJoin(right, left, jobs, jobsIDs);
+            else
+                right = left;
         }
-        return jobID;
+        return pushUnion(jobID, right, jobs, jobsIDs);
     }
 
     private String expandClassDisjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
@@ -418,6 +428,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 if (!jobID.equals(jobID2)) {
                     for (Var v : v1) {
                         if (v2.contains(v)) {
+                            System.out.println("[" + jobID2 + "] - " + Arrays.toString(v1.toArray()));
                             edges.add(jobID2);
                             break;
                         }
