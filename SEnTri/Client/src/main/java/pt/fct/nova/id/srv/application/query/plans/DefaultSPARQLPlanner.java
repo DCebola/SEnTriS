@@ -376,36 +376,19 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         }
         System.out.println(Arrays.toString(path.toArray()));
         if (path.size() == numJobs) {
-            List<JoinJob> joins = new LinkedList<>();
+            LinkedList<JoinJob> joins = new LinkedList<>();
             String jobID1, jobID2;
             String joinID;
-            for (int i = 0; i < numJobs - 1; i += 2) {
+            for (int i = 0; i < path.size() - 1; i += 1) {
                 jobID1 = path.get(i);
                 jobID2 = path.get(i + 1);
                 joinID = generateID();
+                path.set(i + 1, joinID);
                 joins.add(new JoinJob(joinID, jobID1, jobID2));
                 System.out.println("[" + joinID + "] - (" + jobID1 + "," + jobID2 + ")");
             }
-            if (numJobs % 2 == 1) {
-                jobID1 = path.get(bgp.size() - 1);
-                JoinJob join = joins.remove(joins.size() - 1);
-                plan.pushJob(join);
-                joinID = generateID();
-                joins.add(new JoinJob(joinID, jobID1, join.getID()));
-                System.out.println("[" + joinID + "] - (" + jobID1 + "," + joinID + ")");
-            }
-            JoinJob join1, join2;
-            while (joins.size() > 1) {
-                join1 = joins.remove(0);
-                join2 = joins.remove(0);
-                plan.pushJob(join1);
-                plan.pushJob(join2);
-                joinID = generateID();
-                joins.add(new JoinJob(joinID, join1.getID(), join2.getID()));
-                System.out.println("[" + joinID + "] - (" + join1.getID() + "," + join2.getID() + ")");
-            }
-            plan.pushJob(joins.get(0));
-            parsed_op.put(op, joins.get(0).getID());
+            joins.forEach(plan::pushJob);
+            parsed_op.put(op, joins.get(joins.size() - 1).getID());
         } else {
             String jobID = generateID();
             plan.pushJob(new EmptyResJob(jobID, allVars));
@@ -414,7 +397,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
 
-    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<String, List<String>> graph, List<String> jobs, Set<Var> allVars) {
+    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<
+            String, List<String>> graph, List<String> jobs, Set<Var> allVars) {
         List<String> edges;
         Set<Var> v2, v1;
         for (String jobID : bgp.keySet()) {
@@ -428,7 +412,6 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 if (!jobID.equals(jobID2)) {
                     for (Var v : v1) {
                         if (v2.contains(v)) {
-                            System.out.println("[" + jobID2 + "] - " + Arrays.toString(v1.toArray()));
                             edges.add(jobID2);
                             break;
                         }
@@ -440,7 +423,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         graph.forEach((job, l) -> System.out.println("[" + job + "] - " + Arrays.toString(l.toArray())));
     }
 
-    private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path, int depth) {
+    private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path,
+                           int depth) {
         Queue<String> queue = new LinkedList<>();
         path.add(root);
         queue.add(root);
