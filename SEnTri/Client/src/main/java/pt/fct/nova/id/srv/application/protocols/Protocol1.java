@@ -92,43 +92,45 @@ public class Protocol1 implements EncryptionProtocol {
         encryptKeywordInfo();
     }
 
-    private void encryptSchemaTriples(List<Triple> triples) throws InvalidNodeException {
+    private void encryptSchemaTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Node s, p, o;
-        String s_iri, p_iri, o_iri, s_keyword, p_keyword, o_keyword, t_keyword;
-        List<Integer> frequencies;
+        String parsed_s, parsed_p, parsed_o, s_keyword, p_keyword, o_keyword, t_keyword;
         Set<String> processed = new HashSet<>();
+        List<Integer> frequencies;
         for (Triple t : triples) {
-            frequencies = new ArrayList<>(9);
+            frequencies = new ArrayList<>(3);
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            s_iri = ParsingUtils.parseNode(s);
-            p_iri = ParsingUtils.parseNode(p);
-            o_iri = ParsingUtils.parseNode(o);
+            parsed_s = ParsingUtils.parseNode(s);
+            parsed_p = ParsingUtils.parseNode(p);
+            parsed_o = ParsingUtils.parseNode(o);
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
             t_keyword = String.format(TRIPLE_KEYWORD, s_keyword, p_keyword, o_keyword);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                frequencies.add(encodeNode(p_iri, PO, s_keyword));
-                frequencies.add(encodeNode(o_iri, PO, s_keyword));
-                frequencies.add(encodeNode(s_iri, SO, p_keyword));
-                frequencies.add(encodeNode(o_iri, SO, p_keyword));
-                frequencies.add(encodeNode(s_iri, SP, o_keyword));
-                frequencies.add(encodeNode(p_iri, SP, o_keyword));
-                frequencies.add(encodeNode(s_iri, S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)));
-                frequencies.add(encodeNode(p_iri, P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)));
-                frequencies.add(encodeNode(o_iri, O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)));
+                frequencies.add(encodeSchemaNode(parsed_s));
+                frequencies.add(encodeSchemaNode(parsed_p));
+                frequencies.add(encodeSchemaNode(parsed_o));
                 encodeTriple(t_keyword, frequencies);
             }
         }
     }
 
+    private int encodeSchemaNode(String node) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        int frequency = incrementKeywordFrequency(schemaKeyword);
+        byte[] st = generateDETLayer(getKeywordDerivedKey(schemaKeyword), schemaKeyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.ivFromInteger(frequency));
+        byte[] ct = generateRNDLayer(node.getBytes(StandardCharsets.UTF_8));
+        encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
+        return frequency;
+    }
+
 
     private void encryptTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Node s, p, o;
-        String s_iri, p_iri, o_iri, s_keyword, p_keyword, o_keyword, t_keyword;
+        String parsed_s, parsed_p, parsed_o, s_keyword, p_keyword, o_keyword, t_keyword;
         List<Integer> frequencies;
         Set<String> processed = new HashSet<>();
         for (Triple t : triples) {
@@ -136,24 +138,24 @@ public class Protocol1 implements EncryptionProtocol {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            s_iri = ParsingUtils.parseNode(s);
-            p_iri = ParsingUtils.parseNode(p);
-            o_iri = ParsingUtils.parseNode(o);
+            parsed_s = ParsingUtils.parseNode(s);
+            parsed_p = ParsingUtils.parseNode(p);
+            parsed_o = ParsingUtils.parseNode(o);
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
             t_keyword = String.format(TRIPLE_KEYWORD, s_keyword, p_keyword, o_keyword);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                frequencies.add(encodeNode(p_iri, PO, s_keyword));
-                frequencies.add(encodeNode(o_iri, PO, s_keyword));
-                frequencies.add(encodeNode(s_iri, SO, p_keyword));
-                frequencies.add(encodeNode(o_iri, SO, p_keyword));
-                frequencies.add(encodeNode(s_iri, SP, o_keyword));
-                frequencies.add(encodeNode(p_iri, SP, o_keyword));
-                frequencies.add(encodeNode(s_iri, S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)));
-                frequencies.add(encodeNode(p_iri, P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)));
-                frequencies.add(encodeNode(o_iri, O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)));
+                frequencies.add(encodeNode(parsed_p, PO, s_keyword));
+                frequencies.add(encodeNode(parsed_o, PO, s_keyword));
+                frequencies.add(encodeNode(parsed_s, SO, p_keyword));
+                frequencies.add(encodeNode(parsed_o, SO, p_keyword));
+                frequencies.add(encodeNode(parsed_s, SP, o_keyword));
+                frequencies.add(encodeNode(parsed_p, SP, o_keyword));
+                frequencies.add(encodeNode(parsed_s, S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)));
+                frequencies.add(encodeNode(parsed_p, P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)));
+                frequencies.add(encodeNode(parsed_o, O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)));
                 encodeTriple(t_keyword, frequencies);
             }
         }
@@ -183,7 +185,36 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
-    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (schema)
+            return generateSchemaPatternTrapdoors(triples);
+        return generateKeywordsPatternTrapdoors(triples);
+    }
+
+    private Map<String, List<String>> generateSchemaPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Map<String, List<String>> res = new HashMap<>(1);
+        List<String> trapdoors = new ArrayList<>(triples.size() * 3);
+        String s, p, o, t_keyword;
+        Set<String> processed = new HashSet<>();
+        for (Triple t : triples) {
+            s = ParsingUtils.parseKeyword(t.getSubject());
+            p = ParsingUtils.parseKeyword(t.getPredicate());
+            o = ParsingUtils.parseKeyword(t.getObject());
+            t_keyword = String.format(TRIPLE_KEYWORD, s, p, o);
+            if (!processed.contains(t_keyword)) {
+                processed.add(t_keyword);
+                for (int i = 0; i < 3; i++) {
+                    trapdoors.add(base64Encoder.encodeToString(
+                            generateDETLayer(getKeywordDerivedKey(t_keyword), t_keyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.ivFromInteger(i))));
+                }
+            }
+        }
+        res.put(schemaKeyword, trapdoors);
+        System.out.println("SchemaPatternTrapdoors: " + res.size());
+        return res;
+    }
+
+    private Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Map<String, List<String>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
         List<String> keywords;
@@ -306,4 +337,5 @@ public class Protocol1 implements EncryptionProtocol {
     public String getSchemaKeyword() {
         return schemaKeyword;
     }
+
 }

@@ -36,7 +36,7 @@ public class DefaultOntology implements Ontology {
     private final int expansionDepth;
 
 
-    public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference, int t, int e) {
+    public DefaultOntology(String triplestoreID, int t, int e) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
@@ -50,17 +50,11 @@ public class DefaultOntology implements Ontology {
         this.expansionDepth = e;
         this.spec = OWL_MEM_TRANS_INF;
         this.triplestoreID = triplestoreID;
-        OntModel tbox = ModelFactory.createOntologyModel(OWL_MEM);
-        GraphUtil.add(tbox.getGraph(), schema.iterator());
-        if (inference) {
-            this.ontology = ModelFactory.createOntologyModel(spec, tbox);
-            execClassInference();
-            execPropertyInference();
-        } else
-            ontology = tbox;
+        this.ontology = null;
+
     }
 
-    public DefaultOntology(String triplestoreID, Set<Triple> schema, boolean inference) {
+    public DefaultOntology(String triplestoreID) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
@@ -74,14 +68,21 @@ public class DefaultOntology implements Ontology {
         this.expansionDepth = 0;
         this.spec = OWL_MEM_TRANS_INF;
         this.triplestoreID = triplestoreID;
+        this.ontology = null;
+    }
+
+    @Override
+    public void execInference(Set<Triple> schema, boolean inference) {
         OntModel tbox = ModelFactory.createOntologyModel(OWL_MEM);
         GraphUtil.add(tbox.getGraph(), schema.iterator());
         if (inference) {
             this.ontology = ModelFactory.createOntologyModel(spec, tbox);
             execClassInference();
             execPropertyInference();
-        } else
-            ontology = tbox;
+        }else{
+            this.ontology = tbox;
+        }
+
     }
 
     private void execClassInference() {

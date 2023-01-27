@@ -138,7 +138,8 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions, Map<String, String> swaps, String accessToken) throws IOException {
+    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions,
+                                      Map<String, String> swaps, String accessToken) throws IOException {
         System.out.println("UPLOADS: " + uploads.size());
         System.out.println("DELETIONS: " + deletions.size());
         System.out.println("SWAPS: " + swaps.size());

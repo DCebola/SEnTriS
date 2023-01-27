@@ -34,6 +34,7 @@ public interface EncryptedTriplestoreAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
     Response upload(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+                    @DefaultValue("false") @QueryParam("schema") boolean schema,
                     @MultipartForm UploadForm form);
 
     @POST

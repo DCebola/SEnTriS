@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.ontologies;
 
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.ontology.Restriction;
@@ -10,6 +11,8 @@ import org.apache.jena.rdf.model.Model;
 import java.util.Set;
 
 public interface Ontology {
+
+    void execInference(Set<Triple> schema, boolean inference);
 
     Set<OntClass> getEquivalentClasses(Node node);
 

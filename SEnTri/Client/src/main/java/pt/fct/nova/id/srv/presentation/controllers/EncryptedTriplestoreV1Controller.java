@@ -43,10 +43,12 @@ import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
+import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
@@ -60,6 +62,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     public static final String EMPTY_UPLOAD = "No content to upload.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NO_UPDATES = "No content to update.";
+    private static final int minimumTrapdoors = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
+    private static final int maximumTrapdoors = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
+    private static final SecureRandom rnd = new SecureRandom();
 
 
     @Override
@@ -117,7 +122,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     @Override
-    public Response upload(Cookie cookie, UploadForm form) {
+    public Response upload(Cookie cookie, boolean schema, UploadForm form) {
         if (cookie == null)
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
@@ -154,7 +159,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(
                     new UpdateRequest().add(new UpdateDataInsert(qc)).toString());
             QueryType queryType = planner.getQueryType();
-            return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
+            return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, schema, accessToken);
         } catch (UnknownRDFLanguageException e) {
             return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
@@ -181,33 +186,12 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
-            Protocol1 protocol = getProtocol1(secrets);
-            String schemaKeyword = protocol.getSchemaKeyword();
-            int schemaFrequency = protocol.getSchemaFrequency();
-
-            String[] schemaTrapdoors = new String[schemaFrequency];
-            List<Integer> permutation = generateRandomPermutation(schemaFrequency);
-
-            for (int i = 0; i < schemaFrequency; i++)
-                schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
-
-            response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(schemaTrapdoors), accessToken);
-            if (response.getStatus() != OK) {
+            Ontology ontology = new DefaultOntology(triplestoreID);
+            response = fetchOntologySchema(httpClient, triplestoreID, getProtocol1(secrets), ontology, inference, accessToken);
+            if(response != null && response.getStatus()!= OK ){
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-
-            List<String> encryptedSchema = ParsingUtils.parseEncryptedSchema(response.getBody());
-            Set<Triple> schema = new HashSet<>();
-            for (int i = 0; i < schemaFrequency; i += 3) {
-                schema.add(Triple.create(
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i))))),
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 1))))),
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 2)))))
-                ));
-            }
-
-            Ontology ontology = new DefaultOntology(triplestoreID, schema, inference);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             RDFDataMgr.write(out, ontology.getModel(), lang);
             return Response.ok(out.toByteArray()).build();
@@ -217,6 +201,49 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol, Ontology ontology, boolean inference, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        String schemaKeyword = protocol.getSchemaKeyword();
+        int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
+        List<String> trapdoors = new ArrayList<>(numTrapdoors);
+        int rndIndex = rnd.nextInt(0, numTrapdoors);
+        for (int i = 0; i < numTrapdoors; i++) {
+            if (i == rndIndex)
+                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(schemaKeyword));
+            else
+                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
+        }
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
+        if (response.getStatus() != OK)
+            return response;
+
+        int schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(
+                ParsingUtils.parseListOfStrings(response.getBody()).get(rndIndex)
+        ));
+
+        String[] schemaTrapdoors = new String[schemaFrequency];
+        List<Integer> permutation = generateRandomPermutation(schemaFrequency);
+
+        for (int i = 0; i < schemaFrequency; i++)
+            schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
+
+        response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(schemaTrapdoors), accessToken);
+        if (response.getStatus() != OK)
+            return response;
+
+        List<String> encryptedSchema = ParsingUtils.parseListOfStrings(response.getBody());
+        Set<Triple> schema = new HashSet<>();
+        for (int i = 0; i < schemaFrequency; i += 3) {
+            schema.add(Triple.create(
+                    generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i))))),
+                    generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 1))))),
+                    generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 2)))))
+            ));
+        }
+
+        ontology.execInference(schema, inference);
+        return null;
     }
 
     @Override
@@ -249,7 +276,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
-            return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, getProtocol1(secrets), accessToken);
+            return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, getProtocol1(secrets), false, accessToken);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
@@ -257,28 +284,37 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private Response answerSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                       DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException {
+                                       DefaultQueryExecutionPlan plan, Protocol1 protocol, boolean schema, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException {
         System.out.println("QUERY TYPE: " + queryType);
         return switch (queryType) {
             case SELECT, ASK, DESCRIBE, CONSTRUCT ->
                     executeSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
             case INSERT_DATA, DELETE_DATA, DELETE_WHERE, MODIFY ->
-                    executeSPARQLUpdateQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
+                    executeSPARQLUpdateQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, schema, accessToken);
         };
     }
 
-    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, List<String> keywords, List<String> trapdoors, Map<String, Integer> keywordsFrequencyCollector, Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
+    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, Set<String> keywords, Map<String, Integer> keywordsFrequencyCollector, Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        String[] shuffledKeywords = new String[keywords.size()];
+        String[] trapdoors = new String[keywords.size()];
+        List<Integer> permutation = generateRandomPermutation(keywords.size());
+        int i = 0;
+        for (String keyword : keywords) {
+            shuffledKeywords[permutation.get(i)] = keyword;
+            trapdoors[permutation.get(i)] = protocol.generateKeywordsFrequencyTrapdoor(keyword);
+            i++;
+        }
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(trapdoors), accessToken);
         if (response.getStatus() != OK)
             return response;
         List<String> encryptedKeywordsFrequencies = ParsingUtils.parseListOfStrings(response.getBody());
         String frequency;
-        for (int i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
+        for (i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
             frequency = encryptedKeywordsFrequencies.get(i);
             if (frequency != null)
-                keywordsFrequencyCollector.put(keywords.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
+                keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
             else
-                keywordsFrequencyCollector.put(keywords.get(i), 0);
+                keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], 0);
         }
         return null;
     }
@@ -288,14 +324,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                                         Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, URISyntaxException, InvalidKeyException, ClassNotFoundException {
         Map<String, Integer> keywordsFrequency = new HashMap<>();
         Set<String> keywords = planner.getKeywords();
-        List<String> keywordList = new ArrayList<>(keywords.size());
-        List<String> trapdoors = new ArrayList<>(keywords.size());
 
-        for (String keyword : keywords) {
-            keywordList.add(keyword);
-            trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
-        }
-        HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywordList, trapdoors, keywordsFrequency, protocol, accessToken);
+        HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywords, keywordsFrequency, protocol, accessToken);
         if (response != null && response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
@@ -340,20 +370,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                              DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, URISyntaxException, InvalidKeyException, ClassNotFoundException, InvalidNodeException {
+                                              DefaultQueryExecutionPlan plan, Protocol1 protocol, boolean schema, String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, URISyntaxException, InvalidKeyException, ClassNotFoundException, InvalidNodeException {
         Map<String, String> swaps = new HashMap<>();
         Set<String> deletions = new HashSet<>();
         List<Triple> triplesToUpload, triplesToDelete;
         Map<String, Integer> keywordsFrequency = new HashMap<>();
         if (queryType == DELETE_WHERE || queryType == MODIFY) {
-            Set<String> keywords = planner.getKeywords();
-            List<String> keywordList = new ArrayList<>(keywords.size());
-            List<String> trapdoors = new ArrayList<>(keywords.size());
-            for (String keyword : keywords) {
-                keywordList.add(keyword);
-                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
-            }
-            HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywordList, trapdoors, keywordsFrequency, protocol, accessToken);
+            HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, planner.getKeywords(), keywordsFrequency, protocol, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -403,7 +426,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         System.out.println("Triples to Upload: " + triplesToUpload.size());
         System.out.println("Triples to Delete: " + triplesToDelete.size());
         HTTPResponse response = computeDeletionsSwapsAndUploads(httpClient, triplestoreID, protocol, keywordsFrequency,
-                triplesToDelete, triplesToUpload, swaps, deletions, accessToken);
+                triplesToDelete, triplesToUpload, swaps, deletions, schema, accessToken);
         if (response != null && response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -414,31 +437,26 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
                                                          Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
-                                                         Map<String, String> swapsCollector, Set<String> deletionsCollector,
+                                                         Map<String, String> swapsCollector, Set<String> deletionsCollector, boolean schema,
                                                          String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidNodeException, URISyntaxException {
-
-        Set<String> keywords = ParsingUtils.generateKeywords(triplesToDelete);
+        Set<String> keywords = new HashSet<>();
+        if (schema)
+            keywords.add(protocol.getSchemaKeyword());
+        else
+            keywords.addAll(ParsingUtils.generateKeywords(triplesToDelete));
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
-        List<String> keywordList;
-        List<String> trapdoors;
         if (!keywords.isEmpty()) {
-            keywordList = new ArrayList<>(keywords.size());
-            trapdoors = new ArrayList<>(keywords.size());
-            for (String keyword : keywords) {
-                keywordList.add(keyword);
-                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
-            }
-            response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywordList, trapdoors, keywordsFrequency, protocol, accessToken);
+            response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywords, keywordsFrequency, protocol, accessToken);
             if (response != null && response.getStatus() != OK)
                 return response;
         }
         protocol.setKeywordFrequencies(keywordsFrequency);
-        Map<String, List<String>> keywordsTrapdoors = protocol.generateKeywordsPatternTrapdoors(triplesToDelete);
-        keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
+        Map<String, List<String>> keywordsTrapdoors = protocol.generateKeywordsPatternTrapdoors(triplesToDelete, schema);
+        List<String> keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
 
         Map<String, Set<Integer>> keywordsInstances = new HashMap<>(keywordList.size());
-        List<String> encryptedInstances;
+        List<String> encryptedInstances, trapdoors;
         Set<Integer> instancesToDelete;
         String encryptedInstance;
         int totalTrapdoors = keywordsTrapdoors.values().stream().mapToInt(List::size).sum();
@@ -526,7 +544,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 System.out.println("[ " + keyword + "] - f" + protocol.getKeywordFrequencies().get(keyword) + " | p" + preserved + " | d" + deletions + " | s" + swaps);
             }
         }
-        protocol.exec(triplesToUpload);
+        protocol.exec(triplesToUpload, schema);
         System.out.println("PRESERVED:" + totalPreserved);
         System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
         return null;
