@@ -18,6 +18,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Protocol1 implements EncryptionProtocol {
@@ -28,12 +29,14 @@ public class Protocol1 implements EncryptionProtocol {
     private final Map<String, SecretKey> keywordDerivedKeys;
     private final Base64.Decoder base64Decoder;
     private final Base64.Encoder base64Encoder;
+    private final String schemaKeyword;
 
-    public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv) {
+    public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv, String schemaKeyword) {
         this.ivDET = iv;
         this.kMASTER = kMASTER;
         this.kRND = kRND;
         this.kDET = kDET;
+        this.schemaKeyword = schemaKeyword;
         this.encryptedNodes = new HashMap<>();
         this.keywordFrequencies = new HashMap<>();
         this.keywordDerivedKeys = new HashMap<>();
@@ -46,6 +49,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.kMASTER = SymmetricCipher.generateKey();
         this.kRND = SymmetricCipher.generateKey();
         this.kDET = SymmetricCipher.generateKey();
+        this.schemaKeyword = generateID();
         this.encryptedNodes = new HashMap<>();
         this.keywordFrequencies = new HashMap<>();
         this.keywordDerivedKeys = new HashMap<>();
@@ -78,11 +82,47 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     @Override
-    public void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException,
+    public void exec(List<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException,
             InvalidKeyException, RuntimeException {
-        encryptTriples(triples);
+        if (schema)
+            encryptSchemaTriples(triples);
+        else
+            encryptTriples(triples);
         encryptKeywordInfo();
+    }
+
+    private void encryptSchemaTriples(List<Triple> triples) throws InvalidNodeException {
+        Node s, p, o;
+        String s_iri, p_iri, o_iri, s_keyword, p_keyword, o_keyword, t_keyword;
+        List<Integer> frequencies;
+        Set<String> processed = new HashSet<>();
+        for (Triple t : triples) {
+            frequencies = new ArrayList<>(9);
+            s = t.getSubject();
+            p = t.getPredicate();
+            o = t.getObject();
+            s_iri = ParsingUtils.parseNode(s);
+            p_iri = ParsingUtils.parseNode(p);
+            o_iri = ParsingUtils.parseNode(o);
+            s_keyword = ParsingUtils.parseKeyword(s);
+            p_keyword = ParsingUtils.parseKeyword(p);
+            o_keyword = ParsingUtils.parseKeyword(o);
+            t_keyword = String.format(TRIPLE_KEYWORD, s_keyword, p_keyword, o_keyword);
+            if (!processed.contains(t_keyword)) {
+                processed.add(t_keyword);
+                frequencies.add(encodeNode(p_iri, PO, s_keyword));
+                frequencies.add(encodeNode(o_iri, PO, s_keyword));
+                frequencies.add(encodeNode(s_iri, SO, p_keyword));
+                frequencies.add(encodeNode(o_iri, SO, p_keyword));
+                frequencies.add(encodeNode(s_iri, SP, o_keyword));
+                frequencies.add(encodeNode(p_iri, SP, o_keyword));
+                frequencies.add(encodeNode(s_iri, S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)));
+                frequencies.add(encodeNode(p_iri, P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)));
+                frequencies.add(encodeNode(o_iri, O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)));
+                encodeTriple(t_keyword, frequencies);
+            }
+        }
     }
 
 
@@ -263,4 +303,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
+    public String getSchemaKeyword() {
+        return schemaKeyword;
+    }
 }

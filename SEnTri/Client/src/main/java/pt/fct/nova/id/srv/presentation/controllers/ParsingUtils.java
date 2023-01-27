@@ -154,7 +154,8 @@ public class ParsingUtils {
         SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
-        return new Protocol1(k1, k2, k3, iv);
+        String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        return new Protocol1(k1, k2, k3, iv, schemaKeyword);
     }
 
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
@@ -164,6 +165,7 @@ public class ParsingUtils {
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getRNDKey().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
+            secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p1.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
         }
         return secrets;
     }

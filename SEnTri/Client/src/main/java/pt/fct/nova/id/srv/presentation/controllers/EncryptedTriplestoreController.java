@@ -202,6 +202,7 @@ public class EncryptedTriplestoreController {
         }
     }
 
+
     public HTTPResponse upload(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, triplestoreID, encryptedNodes, accessToken)) {
             return new HTTPResponse(response);

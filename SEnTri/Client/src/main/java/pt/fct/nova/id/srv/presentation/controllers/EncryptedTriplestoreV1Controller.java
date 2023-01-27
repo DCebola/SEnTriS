@@ -5,13 +5,18 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.modify.request.QuadDataAcc;
 import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.UpdateRequest;
+import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
+import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -24,6 +29,7 @@ import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.SchemaForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
@@ -31,6 +37,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
@@ -48,10 +55,12 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
     public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
     public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
+    public static final String SECRETS_SCHEMA_KEYWORD = System.getenv("SECRETS_PROTOCOL_IV");
     public static final String SUCCESSFUL_CREATION = "Successful creation.";
     public static final String EMPTY_UPLOAD = "No content to upload.";
     private static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     private static final String NO_UPDATES = "No content to update.";
+
 
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
@@ -152,6 +161,61 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response fetchSchema(Cookie cookie, boolean inference, SchemaForm form) {
+        if (cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
+            Lang lang = ParsingUtils.parseRDFLanguage(form.getSyntax());
+            String triplestoreID = form.getTriplestoreID();
+            HTTPResponse response = createAccessToken(httpClient, cookie, form.getIssuer(), triplestoreID);
+            if (response.getStatus() != OK)
+                return response.build();
+            String accessToken = response.getBody();
+            response = getProtocolSecrets(httpClient, triplestoreID, accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+            Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
+            Protocol1 protocol = getProtocol1(secrets);
+            String schemaKeyword = protocol.getSchemaKeyword();
+            int schemaFrequency = protocol.getSchemaFrequency();
+
+            String[] schemaTrapdoors = new String[schemaFrequency];
+            List<Integer> permutation = generateRandomPermutation(schemaFrequency);
+
+            for (int i = 0; i < schemaFrequency; i++)
+                schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
+
+            response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(schemaTrapdoors), accessToken);
+            if (response.getStatus() != OK) {
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
+
+            List<String> encryptedSchema = ParsingUtils.parseEncryptedSchema(response.getBody());
+            Set<Triple> schema = new HashSet<>();
+            for (int i = 0; i < schemaFrequency; i += 3) {
+                schema.add(Triple.create(
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i))))),
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 1))))),
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 2)))))
+                ));
+            }
+
+            Ontology ontology = new DefaultOntology(triplestoreID, schema, inference);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            RDFDataMgr.write(out, ontology.getModel(), lang);
+            return Response.ok(out.toByteArray()).build();
+        } catch (UnknownRDFLanguageException e) {
+            return Response.ok(INVALID_SYNTAX).status(BAD_REQUEST).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
