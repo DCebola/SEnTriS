@@ -155,7 +155,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             if (schema)
                 return uploadOntologySchema(httpClient, cookie, triplestoreID, protocol, triples, accessToken);
             else {
-                Collections.shuffle(triples);
                 QuadDataAcc qc = new QuadDataAcc();
                 triples.forEach(qc::addTriple);
                 SecureSPARQLPlanner planner = new SecureSPARQLPlanner();
@@ -212,10 +211,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         Collections.shuffle(triples);
         protocol.exec(triples, true);
         response = upload(httpClient, triplestoreID, protocol.getEncryptedNodes(), accessToken);
-        if (response.getStatus() != OK) {
-            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-        }
+        deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+        releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         return response.build();
     }
 
@@ -318,6 +315,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
             Protocol1 protocol = getProtocol1(secrets);
             SecureSPARQLPlanner planner;
+            System.out.println("INFERENCE: " + form.getInference());
             if (form.getInference()) {
                 Ontology ontology = new DefaultOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
                 response = fetchOntologySchema(httpClient, triplestoreID, protocol, ontology, form.getInference(), accessToken);
@@ -373,7 +371,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         List<String> encryptedKeywordsFrequencies = ParsingUtils.parseListOfStrings(response.getBody());
         String frequency;
         for (i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
-            frequency = encryptedKeywordsFrequencies.get(i);
+            frequency = encryptedKeywordsFrequencies.get(permutation.get(i));
             if (frequency != null)
                 keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
             else
@@ -392,10 +390,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         if (response != null && response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
-        }
-        if (keywordsFrequency.containsValue(0)) {
-            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            return getEmptySPARQLQueryResult(plan, planner.getObfuscationMap());
         }
         response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency, accessToken);
         if (response != null && response.getStatus() != OK) {
@@ -502,7 +496,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                                                          Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
                                                          Map<String, String> swapsCollector, Set<String> deletionsCollector,
                                                          String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidNodeException, URISyntaxException {
-        Set<String> keywords = new HashSet<>(ParsingUtils.generateKeywords(triplesToDelete));
+        Set<String> keywords = ParsingUtils.generateKeywords(triplesToDelete);
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
         if (!keywords.isEmpty()) {

@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntProperty;
+import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.QueryBuildException;
 import org.apache.jena.query.SortCondition;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
@@ -18,6 +21,7 @@ import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.update.Update;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
@@ -25,10 +29,7 @@ import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.JoinJob;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.MinusJob;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.OptionalJob;
-import pt.fct.nova.id.srv.application.query.jobs.jobs2.UnionJob;
+import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.util.*;
@@ -76,6 +77,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.deleteTemplate = new LinkedList<>();
         this.ontology = ontology;
     }
+
     @Override
     public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
@@ -174,31 +176,37 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private void generateGetJobs(OpBGP op) throws InvalidNodeException {
         List<Triple> patterns = op.getPattern().getList();
-        int total_patterns = patterns.size();
-        List<SecureSearchJob> searchJobs = new ArrayList<>(2 * total_patterns);
+        Map<String, String> jobIDs = new HashMap<>();
+        Map<String, Job> jobs = new HashMap<>();
+        Map<String, Set<Var>> bgp = new HashMap<>();
         Node s, p, o;
+        String jobID = null;
+        Job job;
         for (Triple t : patterns) {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            switch (extractVariablesPattern(s, p, o)) {
-                case S -> generateSecureSearchJob(searchJobs, Var.alloc(s), p, o, S);
-                case P -> generateSecureSearchJob(searchJobs, Var.alloc(p), s, o, P);
-                case O -> generateSecureSearchJob(searchJobs, Var.alloc(o), s, p, O);
-                case SP -> generateSecureSearchJob(searchJobs, Var.alloc(s), Var.alloc(p), o, SP);
-                case SO -> generateSecureSearchJob(searchJobs, Var.alloc(s), Var.alloc(o), p, SO);
-                case PO -> generateSecureSearchJob(searchJobs, Var.alloc(p), Var.alloc(o), s, PO);
+            jobID = pushSearch(s, p, o, jobs, jobIDs);
+            if (ontology != null) {
+                if (p.equals(RDF.type.asNode()) && !o.isVariable())
+                    jobID = expandClass("PATTERN", jobID, s, o, 0, jobs, jobIDs);
+                else if (!p.isVariable())
+                    jobID = expandProperty("PATTERN", jobID, s, p, o, 0, jobs, jobIDs, true, true);
             }
+            job = jobs.get(jobID);
+            if (job instanceof SecureSearchJob searchJob)
+                bgp.put(jobID, new HashSet<>(Arrays.asList(searchJob.getVars())));
+            else if (job instanceof Job2 job2)
+                bgp.put(jobID, extractVarsOfJob2(jobs, job2));
         }
-        if (searchJobs.size() > 1)
-            generateRandomJoinPipeline(op, searchJobs);
-        else {
-            parsed_op.put(op, searchJobs.get(0).getID());
-            plan.pushJob(searchJobs.get(0));
-        }
+
+        if (patterns.size() > 1) {
+            generateRandomJoinPipeline(op, bgp);
+        } else if (jobID != null)
+            parsed_op.put(op, jobID);
     }
 
-    private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
+    private SecureSearchJob generateSecureSearchJob(Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
         Map<Var, String> searches = new HashMap<>();
         var = obfuscateVar(var);
         String jobID = generateID();
@@ -206,10 +214,10 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         searches.put(var, keyword);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
-        secureSearchJobs.add(new SecureSearchJob(jobID, new Var[]{var}, searches));
+        return new SecureSearchJob(jobID, new Var[]{var}, searches);
     }
 
-    private void generateSecureSearchJob(List<SecureSearchJob> secureSearchJobs, Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
+    private SecureSearchJob generateSecureSearchJob(Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
         Map<Var, String> searches = new HashMap<>();
         String jobID = generateID();
         String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node));
@@ -219,67 +227,231 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         var2 = obfuscateVar(var2);
         searches.put(var1, keyword);
         searches.put(var2, keyword);
-        secureSearchJobs.add(new SecureSearchJob(jobID, new Var[]{var1, var2}, searches));
+        return new SecureSearchJob(jobID, new Var[]{var1, var2}, searches);
+    }
+
+    private Set<Var> extractVarsOfJob2(Map<String, Job> jobs, Job2 job) {
+        Set<Var> vars = new HashSet<>();
+        Queue<Job> toBeProcessed = new LinkedList<>();
+        toBeProcessed.add(jobs.get(job.getLeftJobID()));
+        toBeProcessed.add(jobs.get(job.getRightJobID()));
+        Job next;
+        while (!toBeProcessed.isEmpty()) {
+            next = toBeProcessed.poll();
+            if (next instanceof SecureSearchJob searchJob)
+                vars.addAll(Arrays.asList(searchJob.getVars()));
+            else if (next instanceof Job2 job2) {
+                toBeProcessed.add(jobs.get(job2.getLeftJobID()));
+                toBeProcessed.add(jobs.get(job2.getRightJobID()));
+            }
+        }
+        return vars;
     }
 
 
-    private void generateRandomJoinPipeline(OpBGP op, List<SecureSearchJob> searchJobs) {
-        int numJobs = searchJobs.size();
-        Map<Integer, List<Integer>> graph = new HashMap<>(numJobs);
-        List<Integer> jobs = new ArrayList<>(numJobs);
-        Set<Var> allVars = new HashSet<>();
-        generateAdjacencyMatrix(searchJobs, numJobs, graph, jobs, allVars);
+    private String pushSearch(Node s, Node p, Node o, Map<String, Job> jobs, Map<String, String> jobIDs) throws InvalidNodeException {
 
-        List<Integer> walk = new ArrayList<>(numJobs);
-        Set<Integer> sampled = new HashSet<>();
-        int next;
+        String jobSignature = ParsingUtils.parseTriple(s, p, o);
+        String jobID = jobIDs.get(jobSignature);
+        if (jobID == null) {
+            SecureSearchJob job = switch (extractVariablesPattern(s, p, o)) {
+                case S -> generateSecureSearchJob(Var.alloc(s), p, o, S);
+                case P -> generateSecureSearchJob(Var.alloc(p), s, o, P);
+                case O -> generateSecureSearchJob(Var.alloc(o), s, p, O);
+                case SP -> generateSecureSearchJob(Var.alloc(s), Var.alloc(p), o, SP);
+                case SO -> generateSecureSearchJob(Var.alloc(s), Var.alloc(o), p, SO);
+                case PO -> generateSecureSearchJob(Var.alloc(p), Var.alloc(o), s, PO);
+                case SPO -> null;
+            };
+            assert job != null;
+            jobID = job.getID();
+            jobs.put(jobID, job);
+            jobIDs.put(jobSignature, jobID);
+            plan.pushJob(job);
+        }
+        System.out.println("[SEARCH, " + jobID + "] - " + s + " | " + p + " | " + o);
+        return jobID;
+    }
+
+    private String pushUnion(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
+        String jobSignature = left.concat(right);
+        String jobID = jobIDs.get(jobSignature);
+        if (jobID == null) {
+            jobID = generateID();
+            UnionJob job = new UnionJob(jobID, left, right);
+            jobs.put(jobID, job);
+            jobIDs.put(jobSignature, jobID);
+            plan.pushJob(job);
+        }
+        System.out.println("[UNION, " + jobID + "] - " + left + " | " + right);
+        return jobID;
+    }
+
+    private String pushJoin(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
+        String jobSignature = left.concat(right);
+        String jobID = jobIDs.get(jobSignature);
+        if (jobID == null) {
+            jobID = generateID();
+            JoinJob job = new JoinJob(jobID, left, right);
+            jobs.put(jobID, job);
+            jobIDs.put(jobSignature, jobID);
+            plan.pushJob(job);
+        }
+        System.out.println("[JOIN, " + jobID + "] - " + left + " | " + right);
+        return jobID;
+    }
+
+    private String expandClass(String prefix, String jobID, Node s, Node o, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs) throws InvalidNodeException {
+        assert ontology != null;
+        if (depth == ontology.getMaximumExpansionDepth())
+            return jobID;
+        Node rdfType = RDF.type.asNode();
+        System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, rdfType, o));
+        jobID = expandClassDisjunction("SUBCLASS", ontology.getSubClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+        jobID = expandClassDisjunction("EQUIVALENT", ontology.getEquivalentClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+        jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+        jobID = expandRestriction("RESTRICTION", ontology.getRestriction(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+        Set<OntClass> intersection = ontology.getIntersection(o);
+        if (!intersection.isEmpty())
+            jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType);
+        return jobID;
+    }
+
+    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
+        Var var;
+        Node property;
+        String right, left, join;
+        Node value;
+        if (restriction != null && (restriction.isHasValueRestriction() || restriction.isSomeValuesFromRestriction())) {
+            if (restriction.isHasValueRestriction()) {
+                var = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
+                property = restriction.getOnProperty().asNode();
+                value = restriction.asHasValueRestriction().getHasValue().asNode();
+            } else {
+                var = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
+                property = restriction.getOnProperty().asNode();
+                value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
+            }
+            right = pushSearch(s, property, var, jobs, jobsIDs);
+            left = pushSearch(var, rdfType, value, jobs, jobsIDs);
+            join = pushJoin(
+                    expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
+                    expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
+            jobID = pushUnion(jobID, join, jobs, jobsIDs);
+        }
+        return jobID;
+    }
+
+    private String expandClassConjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+                                          Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
+        String search, right = null, left;
+
+        for (OntClass ontClass : ontClasses) {
+            if (!ontClass.isRestriction()) {
+                search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
+                left = pushUnion(search, expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs), jobs, jobsIDs);
+            } else
+                left = expandClass(prefix.concat(" CLASS"), jobID, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            if (right != null)
+                right = pushJoin(right, left, jobs, jobsIDs);
+            else
+                right = left;
+        }
+        return pushUnion(jobID, right, jobs, jobsIDs);
+    }
+
+    private String expandClassDisjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+                                          Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
+        String right;
+        for (OntClass ontClass : ontClasses) {
+            if (!ontClass.isRestriction()) {
+                right = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
+                jobID = pushUnion(jobID, right, jobs, jobsIDs);
+            }
+            jobID = expandClass(prefix, jobID, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+        }
+        return jobID;
+    }
+
+    private String expandProperty(String prefix, String jobID, Node s, Node p, Node o, int depth,
+                                  Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException {
+        assert ontology != null;
+        if (depth == ontology.getMaximumExpansionDepth())
+            return jobID;
+        System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o));
+        if (canExpandSymmetric && ontology.isSymmetric(p)) {
+            jobID = pushUnion(jobID, pushSearch(o, p, s, jobs, jobsIDs), jobs, jobsIDs);
+            jobID = expandProperty("SYMMETRIC", jobID, o, p, s, depth + 1, jobs, jobsIDs, false, canExpandInverseOf);
+        }
+        if (ontology.isTransitive(p)) {
+            System.out.println("#####");
+            Var var = Var.alloc(p.getLocalName().concat(Integer.toString(0))), nextVar;
+            String leftID = pushSearch(s, p, var, jobs, jobsIDs);
+            jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
+            for (int i = 1; i < ontology.getTransitivityDepth(); i++) {
+                for (int j = 1; j < i + 1; j++) {
+                    if (j == i) {
+                        nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)));
+                        leftID = pushJoin(leftID, pushSearch(var, p, nextVar, jobs, jobsIDs), jobs, jobsIDs);
+                        var = nextVar;
+                    }
+                }
+                jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
+            }
+            System.out.println("#####");
+        }
+
+        jobID = expandProperties("SUB-PROPERTY", ontology.getSubProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
+        jobID = expandProperties("EQUIVALENT-PROPERTY", ontology.getEquivalentProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
+        if (canExpandInverseOf)
+            jobID = expandProperties("INVERSE", ontology.getInverseOf(p), jobID, o, s, depth, jobs, jobsIDs, canExpandSymmetric, false);
+        return jobID;
+    }
+
+    private String expandProperties(String prefix, Set<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
+                                    Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException {
+        for (OntProperty ontProperty : ontProperties) {
+            jobID = pushUnion(jobID, pushSearch(s, ontProperty.asNode(), o, jobs, jobsIDs), jobs, jobsIDs);
+            jobID = expandProperty(prefix, jobID, s, ontProperty.asNode(), o, depth + 1, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
+        }
+        return jobID;
+    }
+
+
+    private void generateRandomJoinPipeline(OpBGP op, Map<String, Set<Var>> bgp) {
+        int numJobs = bgp.size();
+        Map<String, List<String>> graph = new HashMap<>(numJobs);
+        List<String> jobs = new ArrayList<>(numJobs);
+        Set<Var> allVars = new HashSet<>();
+        generateAdjacencyMatrix(bgp, numJobs, graph, jobs, allVars);
+
+        List<String> path = new ArrayList<>(numJobs);
+        Set<String> sampled = new HashSet<>();
+        String next;
         boolean stop = false;
         System.out.println("Total jobs:" + numJobs);
         while (sampled.size() < numJobs && !stop) {
             next = rndSample(jobs, sampled);
             sampled.add(next);
-            bfsSearch(next, graph, walk, numJobs);
-            if (walk.size() == numJobs)
+            bfsSearch(next, graph, path, numJobs);
+            if (path.size() == numJobs)
                 stop = true;
         }
-        System.out.println(Arrays.toString(walk.toArray()));
-        if (walk.size() == numJobs) {
-            SecureSearchJob job1, job2;
-            List<JoinJob> joins = new LinkedList<>();
-            int j1, j2;
+        System.out.println(Arrays.toString(path.toArray()));
+        if (path.size() == numJobs) {
+            LinkedList<JoinJob> joins = new LinkedList<>();
+            String jobID1, jobID2;
             String joinID;
-            for (int i = 0; i < numJobs - 1; i += 2) {
-                j1 = walk.get(i);
-                j2 = walk.get(i + 1);
-                job1 = searchJobs.get(j1);
-                job2 = searchJobs.get(j2);
-                plan.pushJob(job1);
-                plan.pushJob(job2);
+            for (int i = 0; i < path.size() - 1; i += 1) {
+                jobID1 = path.get(i);
+                jobID2 = path.get(i + 1);
                 joinID = generateID();
-                joins.add(new JoinJob(joinID, job1.getID(), job2.getID()));
-                System.out.println("[" + joinID + "] - (" + j1 + "," + j2 + ")");
+                path.set(i + 1, joinID);
+                joins.add(new JoinJob(joinID, jobID1, jobID2));
+                System.out.println("[" + joinID + "] - (" + jobID1 + "," + jobID2 + ")");
             }
-            if (numJobs % 2 == 1) {
-                job1 = searchJobs.get(walk.get(searchJobs.size() - 1));
-                JoinJob join = joins.remove(joins.size() - 1);
-                plan.pushJob(job1);
-                plan.pushJob(join);
-                joinID = generateID();
-                joins.add(new JoinJob(joinID, job1.getID(), join.getID()));
-                System.out.println("[" + joinID + "] - (" + walk.get(searchJobs.size() - 1) + "," + join.getID() + ")");
-            }
-            JoinJob join1, join2;
-            while (joins.size() > 1) {
-                join1 = joins.remove(0);
-                join2 = joins.remove(0);
-                plan.pushJob(join1);
-                plan.pushJob(join2);
-                joinID = generateID();
-                joins.add(new JoinJob(joinID, join1.getID(), join2.getID()));
-                System.out.println("[" + joinID + "] - (" + join1.getID() + "," + join2.getID() + ")");
-            }
-            plan.pushJob(joins.get(0));
-            parsed_op.put(op, joins.get(0).getID());
+            joins.forEach(plan::pushJob);
+            parsed_op.put(op, joins.get(joins.size() - 1).getID());
         } else {
             String jobID = generateID();
             plan.pushJob(new EmptyResJob(jobID, allVars));
@@ -287,42 +459,39 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         }
     }
 
-    private static void generateAdjacencyMatrix(List<SecureSearchJob> searchJobs, int numJobs, Map<Integer, List<Integer>> graph, List<Integer> jobs, Set<Var> allVars) {
-        SecureSearchJob job1, job2;
-        List<Integer> edges;
+    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<String, List<String>> graph, List<String> jobs, Set<Var> allVars) {
+        List<String> edges;
         Set<Var> v2, v1;
-        for (int i = 0; i < numJobs; i++) {
-            job1 = searchJobs.get(i);
-            jobs.add(i);
-            v1 = job1.getSearches().keySet();
+        for (String jobID : bgp.keySet()) {
+            jobs.add(jobID);
+            v1 = bgp.get(jobID);
             allVars.addAll(v1);
-            System.out.println("[" + i + "] - " + Arrays.toString(v1.toArray()));
+            System.out.println("[" + jobID + "] - " + Arrays.toString(v1.toArray()));
             edges = new ArrayList<>(numJobs);
-            for (int j = 0; j < numJobs; j++) {
-                job2 = searchJobs.get(j);
-                v2 = job2.getSearches().keySet();
-                if (i != j) {
+            for (String jobID2 : bgp.keySet()) {
+                v2 = bgp.get(jobID2);
+                if (!jobID.equals(jobID2)) {
                     for (Var v : v1) {
                         if (v2.contains(v)) {
-                            edges.add(j);
+                            edges.add(jobID2);
                             break;
                         }
                     }
                 }
             }
-            graph.put(i, edges);
+            graph.put(jobID, edges);
         }
-        graph.forEach((j, l) -> System.out.println("[" + j + "] - " + Arrays.toString(l.toArray())));
+        graph.forEach((job, l) -> System.out.println("[" + job + "] - " + Arrays.toString(l.toArray())));
     }
 
-    private void bfsSearch(int root, Map<Integer, List<Integer>> adjacencyMatrix, List<Integer> path, int depth) {
-        Queue<Integer> queue = new LinkedList<>();
+    private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path, int depth) {
+        Queue<String> queue = new LinkedList<>();
         path.add(root);
         queue.add(root);
-        int next;
+        String next;
         while (path.size() < depth) {
             next = queue.poll();
-            for (int neighbour : adjacencyMatrix.get(next)) {
+            for (String neighbour : adjacencyMatrix.get(next)) {
                 if (!path.contains(neighbour)) {
                     path.add(neighbour);
                     queue.add(neighbour);
@@ -333,12 +502,12 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         }
     }
 
-    private int rndSample(List<Integer> values, Set<Integer> exclude) {
-        int i;
+    private String rndSample(List<String> values, Set<String> exclude) {
+        String jobID;
         do {
-            i = rnd.nextInt(values.size());
-        } while (exclude.contains(i));
-        return values.get(i);
+            jobID = values.get(rnd.nextInt(values.size()));
+        } while (exclude.contains(jobID));
+        return jobID;
     }
 
     @Override
