@@ -93,29 +93,10 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     private void encryptSchemaTriples(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Node s, p, o;
-        String parsed_s, parsed_p, parsed_o, s_keyword, p_keyword, o_keyword, t_keyword;
-        Set<String> processed = new HashSet<>();
-        List<Integer> frequencies;
         for (Triple t : triples) {
-            frequencies = new ArrayList<>(3);
-            s = t.getSubject();
-            p = t.getPredicate();
-            o = t.getObject();
-            parsed_s = ParsingUtils.parseNode(s);
-            parsed_p = ParsingUtils.parseNode(p);
-            parsed_o = ParsingUtils.parseNode(o);
-            s_keyword = ParsingUtils.parseKeyword(s);
-            p_keyword = ParsingUtils.parseKeyword(p);
-            o_keyword = ParsingUtils.parseKeyword(o);
-            t_keyword = String.format(TRIPLE_KEYWORD, s_keyword, p_keyword, o_keyword);
-            if (!processed.contains(t_keyword)) {
-                processed.add(t_keyword);
-                frequencies.add(encodeSchemaNode(parsed_s));
-                frequencies.add(encodeSchemaNode(parsed_p));
-                frequencies.add(encodeSchemaNode(parsed_o));
-                encodeTriple(t_keyword, frequencies);
-            }
+            encodeSchemaNode(ParsingUtils.parseNode(t.getSubject()));
+            encodeSchemaNode(ParsingUtils.parseNode(t.getPredicate()));
+            encodeSchemaNode(ParsingUtils.parseNode(t.getObject()));
         }
     }
 
@@ -184,37 +165,7 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-
-    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        if (schema)
-            return generateSchemaPatternTrapdoors(triples);
-        return generateKeywordsPatternTrapdoors(triples);
-    }
-
-    private Map<String, List<String>> generateSchemaPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        Map<String, List<String>> res = new HashMap<>(1);
-        List<String> trapdoors = new ArrayList<>(triples.size() * 3);
-        String s, p, o, t_keyword;
-        Set<String> processed = new HashSet<>();
-        for (Triple t : triples) {
-            s = ParsingUtils.parseKeyword(t.getSubject());
-            p = ParsingUtils.parseKeyword(t.getPredicate());
-            o = ParsingUtils.parseKeyword(t.getObject());
-            t_keyword = String.format(TRIPLE_KEYWORD, s, p, o);
-            if (!processed.contains(t_keyword)) {
-                processed.add(t_keyword);
-                for (int i = 0; i < 3; i++) {
-                    trapdoors.add(base64Encoder.encodeToString(
-                            generateDETLayer(getKeywordDerivedKey(t_keyword), t_keyword.getBytes(StandardCharsets.UTF_8), SymmetricCipher.ivFromInteger(i))));
-                }
-            }
-        }
-        res.put(schemaKeyword, trapdoors);
-        System.out.println("SchemaPatternTrapdoors: " + res.size());
-        return res;
-    }
-
-    private Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Map<String, List<String>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
         List<String> keywords;

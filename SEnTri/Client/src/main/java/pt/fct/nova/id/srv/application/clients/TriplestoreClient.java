@@ -37,7 +37,7 @@ public class TriplestoreClient {
                 .addParameter("schema", String.valueOf(schema)).build(), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException, URISyntaxException {
+    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, triplestoreID), ParsingUtils.triplesSetToHttpEntity(triples), accessToken);
     }
 

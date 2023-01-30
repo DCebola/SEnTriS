@@ -52,9 +52,10 @@ public class TriplestoreController implements TriplestoreAPI {
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
                 Set<Triple> triples = (Set<Triple>) ois.readObject();
                 System.out.println(schema + " | " + triples.size());
-                if (schema)
+                if (schema) {
+                    storageEngine.delete(triplestoreID, true);
                     storageEngine.saveSchema(triplestoreID, triples);
-                else
+                } else
                     storageEngine.save(triplestoreID, triples);
                 return Response.ok(SUCCESSFUL_UPLOAD).build();
             }

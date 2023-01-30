@@ -118,21 +118,6 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     @Override
-    public void deleteSchema(String triplestoreID, Set<Triple> triples) throws InvalidNodeException {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Transaction t = jedis.multi();
-            String s, p, o;
-            for (Triple triple : triples) {
-                s = parseNode(triple.getSubject());
-                p = parseNode(triple.getPredicate());
-                o = parseNode(triple.getObject());
-                t.srem(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID), String.format(TRIPLE, s, p, o));
-            }
-            t.exec();
-        }
-    }
-
-    @Override
     public Set<Triple> findSchema(String triplestoreID) {
         Set<Triple> schema = new HashSet<>();
         try (Jedis jedis = Redis.getCachePool().getResource()) {

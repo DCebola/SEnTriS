@@ -208,9 +208,13 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            Ontology ontology = new DefaultOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
-            ontology.execInference(ParsingUtils.parseSchema(response.getBody()), form.getInference());
-            DefaultSPARQLPlanner planner = new DefaultSPARQLPlanner(ontology);
+            DefaultSPARQLPlanner planner;
+            if (form.getInference()) {
+                Ontology ontology = new DefaultOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
+                ontology.execInference(ParsingUtils.parseSchema(response.getBody()), form.getInference());
+                planner = new DefaultSPARQLPlanner(ontology);
+            } else
+                planner = new DefaultSPARQLPlanner();
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
             QueryType queryType = planner.getQueryType();
 

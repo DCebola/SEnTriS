@@ -50,7 +50,7 @@ public class DefaultOntology implements Ontology {
         this.expansionDepth = e;
         this.spec = OWL_MEM_TRANS_INF;
         this.triplestoreID = triplestoreID;
-        this.ontology = null;
+        this.ontology = ModelFactory.createOntologyModel(OWL_MEM);
 
     }
 
@@ -68,7 +68,7 @@ public class DefaultOntology implements Ontology {
         this.expansionDepth = 0;
         this.spec = OWL_MEM_TRANS_INF;
         this.triplestoreID = triplestoreID;
-        this.ontology = null;
+        this.ontology = ModelFactory.createOntologyModel(OWL_MEM);
     }
 
     @Override

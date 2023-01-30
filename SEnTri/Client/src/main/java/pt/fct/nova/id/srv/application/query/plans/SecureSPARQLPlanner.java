@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
+import jakarta.validation.constraints.NotNull;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -19,6 +20,7 @@ import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.jobs.*;
@@ -49,6 +51,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final List<Triple> uploadTemplate;
     private final List<Triple> deleteTemplate;
 
+    private final Ontology ontology;
+
     public SecureSPARQLPlanner() {
         this.keywords = new HashSet<>();
         this.parsed_op = new HashMap<>();
@@ -58,6 +62,19 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.rnd = new Random();
         this.uploadTemplate = new LinkedList<>();
         this.deleteTemplate = new LinkedList<>();
+        this.ontology = null;
+    }
+
+    public SecureSPARQLPlanner(Ontology ontology) {
+        this.keywords = new HashSet<>();
+        this.parsed_op = new HashMap<>();
+        this.obfuscationMap = new HashMap<>();
+        this.plan = new DefaultQueryExecutionPlan();
+        this.searchJobsIDs = new HashSet<>();
+        this.rnd = new Random();
+        this.uploadTemplate = new LinkedList<>();
+        this.deleteTemplate = new LinkedList<>();
+        this.ontology = ontology;
     }
     @Override
     public QueryExecutionPlan generatePlan(Op op) {

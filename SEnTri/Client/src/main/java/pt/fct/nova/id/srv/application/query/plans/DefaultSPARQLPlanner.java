@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
+import jakarta.validation.constraints.NotNull;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -152,6 +153,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         Map<String, Set<Var>> bgp = new HashMap<>();
         Node s, p, o;
         String jobID = null;
+        Job job;
         for (Triple t : patterns) {
             s = t.getSubject();
             p = t.getPredicate();
@@ -163,7 +165,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 else if (!p.isVariable())
                     jobID = expandProperty("PATTERN", jobID, s, p, o, 0, jobs, jobIDs, true, true);
             }
-            Job job = jobs.get(jobID);
+            job = jobs.get(jobID);
             if (job instanceof SearchJob searchJob)
                 bgp.put(jobID, extractVars(searchJob));
             else if (job instanceof Job2 job2)
