@@ -16,6 +16,7 @@ import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.UpdateRequest;
 import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
+import pt.fct.nova.id.srv.application.ontologies.SecureOntology;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -317,7 +318,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             SecureSPARQLPlanner planner;
             System.out.println("INFERENCE: " + form.getInference());
             if (form.getInference()) {
-                Ontology ontology = new DefaultOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
+                Ontology ontology = new SecureOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
                 response = fetchOntologySchema(httpClient, triplestoreID, protocol, ontology, form.getInference(), accessToken);
                 if (response != null && response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

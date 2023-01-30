@@ -8,29 +8,29 @@ import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.ontology.Restriction;
 import org.apache.jena.rdf.model.Model;
 
+import java.util.Collection;
+
 import java.util.Set;
 
 public interface Ontology {
 
     void execInference(Set<Triple> schema, boolean inference);
 
-    Set<OntClass> getEquivalentClasses(Node node);
+    Collection<OntClass> getEquivalentClasses(Node node);
 
-    Set<OntClass> getSubClasses(Node node);
+    Collection<OntClass> getSubClasses(Node node);
 
     Restriction getRestriction(Node node);
 
-    Set<OntClass> getIntersection(Node node);
+    Collection<? extends OntClass> getIntersection(Node node);
 
-    Set<OntClass> getIntersectionWhereClassIsOperand(Node node);
+    Collection<OntClass> getIntersectionWhereClassIsOperand(Node node);
 
-    Set<? extends OntProperty> getSubProperties(Node node);
+    Collection<? extends OntProperty> getSubProperties(Node node);
 
-    Set<? extends OntProperty> getEquivalentProperties(Node node);
+    Collection<? extends OntProperty> getEquivalentProperties(Node node);
 
-    Set<? extends OntProperty> getInverseOf(Node node);
-
-    Set<OntClass> getRange(Node node);
+    Collection<? extends OntProperty> getInverseOf(Node node);
 
     boolean isSymmetric(Node node);
 

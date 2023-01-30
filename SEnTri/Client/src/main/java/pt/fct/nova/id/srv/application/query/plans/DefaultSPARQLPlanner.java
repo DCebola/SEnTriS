@@ -249,7 +249,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         jobID = expandClassDisjunction("EQUIVALENT", ontology.getEquivalentClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
         jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
         jobID = expandRestriction("RESTRICTION", ontology.getRestriction(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        Set<OntClass> intersection = ontology.getIntersection(o);
+        Collection<? extends OntClass> intersection = ontology.getIntersection(o);
         if (!intersection.isEmpty())
             jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType);
         return jobID;
@@ -280,7 +280,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return jobID;
     }
 
-    private String expandClassConjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+    private String expandClassConjunction(String prefix, Collection<? extends OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         String search, right = null, left;
 
@@ -298,7 +298,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return pushUnion(jobID, right, jobs, jobsIDs);
     }
 
-    private String expandClassDisjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+    private String expandClassDisjunction(String prefix, Collection<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         String right;
         for (OntClass ontClass : ontClasses) {
@@ -347,7 +347,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return jobID;
     }
 
-    private String expandProperties(String prefix, Set<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
+    private String expandProperties(String prefix, Collection<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
                                     Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException {
         for (OntProperty ontProperty : ontProperties) {
             jobID = pushUnion(jobID, pushSearch(s, ontProperty.asNode(), o, jobs, jobsIDs), jobs, jobsIDs);

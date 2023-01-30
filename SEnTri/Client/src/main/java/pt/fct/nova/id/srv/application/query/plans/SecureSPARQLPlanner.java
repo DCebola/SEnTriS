@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
-import jakarta.validation.constraints.NotNull;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -37,6 +36,8 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
 import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.query.plans.InferenceClassExpansionOpType.*;
+import static pt.fct.nova.id.srv.application.query.plans.InferencePropertyExpansionOpType.*;
 
 public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
 
@@ -51,7 +52,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private List<Triple> constructTemplate;
     private final List<Triple> uploadTemplate;
     private final List<Triple> deleteTemplate;
-
     private final Ontology ontology;
 
     public SecureSPARQLPlanner() {
@@ -250,7 +250,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
 
     private String pushSearch(Node s, Node p, Node o, Map<String, Job> jobs, Map<String, String> jobIDs) throws InvalidNodeException {
-
         String jobSignature = ParsingUtils.parseTriple(s, p, o);
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
@@ -307,17 +306,30 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             return jobID;
         Node rdfType = RDF.type.asNode();
         System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, rdfType, o));
-        jobID = expandClassDisjunction("SUBCLASS", ontology.getSubClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        jobID = expandClassDisjunction("EQUIVALENT", ontology.getEquivalentClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        jobID = expandRestriction("RESTRICTION", ontology.getRestriction(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        Set<OntClass> intersection = ontology.getIntersection(o);
-        if (!intersection.isEmpty())
-            jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType);
+        List<InferenceClassExpansionOpType> ops = new ArrayList<>(List.of(SUBCLASS, EQUIVALENT_CLASS, INTERSECTION_OPERAND, RESTRICTION, INTERSECTION));
+        Collections.shuffle(ops);
+        for (InferenceClassExpansionOpType op : ops) {
+            switch (op) {
+                case SUBCLASS ->
+                        jobID = expandClassDisjunction("SUBCLASS", ontology.getSubClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+                case EQUIVALENT_CLASS ->
+                        jobID = expandClassDisjunction("EQUIVALENT", ontology.getEquivalentClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+                case INTERSECTION_OPERAND ->
+                        jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+                case RESTRICTION ->
+                        jobID = expandRestriction("RESTRICTION", ontology.getRestriction(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+                case INTERSECTION -> {
+                    Collection<? extends OntClass> intersection = ontology.getIntersection(o);
+                    if (!intersection.isEmpty())
+                        jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType);
+                }
+            }
+        }
         return jobID;
     }
 
-    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
+    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth,
+                                     Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         Var var;
         Node property;
         String right, left, join;
@@ -342,7 +354,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return jobID;
     }
 
-    private String expandClassConjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+    private String expandClassConjunction(String prefix, Collection<? extends OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         String search, right = null, left;
 
@@ -360,7 +372,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return pushUnion(jobID, right, jobs, jobsIDs);
     }
 
-    private String expandClassDisjunction(String prefix, Set<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
+    private String expandClassDisjunction(String prefix, Collection<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         String right;
         for (OntClass ontClass : ontClasses) {
@@ -379,36 +391,49 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         if (depth == ontology.getMaximumExpansionDepth())
             return jobID;
         System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o));
-        if (canExpandSymmetric && ontology.isSymmetric(p)) {
-            jobID = pushUnion(jobID, pushSearch(o, p, s, jobs, jobsIDs), jobs, jobsIDs);
-            jobID = expandProperty("SYMMETRIC", jobID, o, p, s, depth + 1, jobs, jobsIDs, false, canExpandInverseOf);
-        }
-        if (ontology.isTransitive(p)) {
-            System.out.println("#####");
-            Var var = Var.alloc(p.getLocalName().concat(Integer.toString(0))), nextVar;
-            String leftID = pushSearch(s, p, var, jobs, jobsIDs);
-            jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
-            for (int i = 1; i < ontology.getTransitivityDepth(); i++) {
-                for (int j = 1; j < i + 1; j++) {
-                    if (j == i) {
-                        nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)));
-                        leftID = pushJoin(leftID, pushSearch(var, p, nextVar, jobs, jobsIDs), jobs, jobsIDs);
-                        var = nextVar;
+        List<InferencePropertyExpansionOpType> ops = new ArrayList<>(List.of(SUBPROPERTY, EQUIVALENT_PROPERTY, SYMMETRIC, TRANSITIVE, INVERSE_OF));
+        Collections.shuffle(ops);
+        for (InferencePropertyExpansionOpType op : ops) {
+            switch (op) {
+                case SUBPROPERTY ->
+                        jobID = expandProperties("SUB-PROPERTY", ontology.getSubProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
+                case EQUIVALENT_PROPERTY ->
+                        jobID = expandProperties("EQUIVALENT-PROPERTY", ontology.getEquivalentProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
+                case SYMMETRIC -> {
+                    if (canExpandSymmetric && ontology.isSymmetric(p)) {
+                        jobID = pushUnion(jobID, pushSearch(o, p, s, jobs, jobsIDs), jobs, jobsIDs);
+                        jobID = expandProperty("SYMMETRIC", jobID, o, p, s, depth + 1, jobs, jobsIDs, false, canExpandInverseOf);
                     }
                 }
-                jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
+                case TRANSITIVE -> {
+                    if (ontology.isTransitive(p)) {
+                        System.out.println("#####");
+                        Var var = Var.alloc(p.getLocalName().concat(Integer.toString(0))), nextVar;
+                        String leftID = pushSearch(s, p, var, jobs, jobsIDs);
+                        jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
+                        for (int i = 1; i < ontology.getTransitivityDepth(); i++) {
+                            for (int j = 1; j < i + 1; j++) {
+                                if (j == i) {
+                                    nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)));
+                                    leftID = pushJoin(leftID, pushSearch(var, p, nextVar, jobs, jobsIDs), jobs, jobsIDs);
+                                    var = nextVar;
+                                }
+                            }
+                            jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs);
+                        }
+                        System.out.println("#####");
+                    }
+                }
+                case INVERSE_OF -> {
+                    if (canExpandInverseOf)
+                        jobID = expandProperties("INVERSE", ontology.getInverseOf(p), jobID, o, s, depth, jobs, jobsIDs, canExpandSymmetric, false);
+                }
             }
-            System.out.println("#####");
         }
-
-        jobID = expandProperties("SUB-PROPERTY", ontology.getSubProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
-        jobID = expandProperties("EQUIVALENT-PROPERTY", ontology.getEquivalentProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf);
-        if (canExpandInverseOf)
-            jobID = expandProperties("INVERSE", ontology.getInverseOf(p), jobID, o, s, depth, jobs, jobsIDs, canExpandSymmetric, false);
         return jobID;
     }
 
-    private String expandProperties(String prefix, Set<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
+    private String expandProperties(String prefix, Collection<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
                                     Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException {
         for (OntProperty ontProperty : ontProperties) {
             jobID = pushUnion(jobID, pushSearch(s, ontProperty.asNode(), o, jobs, jobsIDs), jobs, jobsIDs);

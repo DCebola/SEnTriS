@@ -4,27 +4,24 @@ import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.*;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.PrintUtil;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM_TRANS_INF;
 
-public class DefaultOntology implements Ontology {
-    private final Map<Node, Set<OntClass>> subClasses;
-    private final Map<Node, Set<OntClass>> equivalentClasses;
+public class SecureOntology implements Ontology {
+    private final Map<Node, List<OntClass>> subClasses;
+    private final Map<Node, List<OntClass>> equivalentClasses;
     private final Map<Node, Restriction> classRestrictions;
-    private final Map<Node, Set<? extends OntClass>> intersectionClasses;
-    private final Map<Node, Set<OntClass>> intersectionsWhereClassIsOperand;
-    private final Map<Node, Set<? extends OntProperty>> subProperties;
-    private final Map<Node, Set<? extends OntProperty>> equivalentProperties;
-    private final Map<Node, Set<? extends OntProperty>> inverseProperties;
+    private final Map<Node, List<? extends OntClass>> intersectionClasses;
+    private final Map<Node, List<OntClass>> intersectionsWhereClassIsOperand;
+    private final Map<Node, List<? extends OntProperty>> subProperties;
+    private final Map<Node, List<? extends OntProperty>> equivalentProperties;
+    private final Map<Node, List<? extends OntProperty>> inverseProperties;
 
     Set<Node> symmetricProperties = new HashSet<>();
     Set<Node> transitiveProperties = new HashSet<>();
@@ -35,10 +32,10 @@ public class DefaultOntology implements Ontology {
     private final int expansionDepth;
 
 
-    public DefaultOntology(String triplestoreID, int t, int e) {
+    public SecureOntology(String triplestoreID, int t, int e) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
-        this.intersectionClasses = new HashMap<>();
+        this.intersectionClasses = new HashMap<Node, List<? extends OntClass>>();
         this.intersectionsWhereClassIsOperand = new HashMap<>();
         this.classRestrictions = new HashMap<>();
         this.subProperties = new HashMap<>();
@@ -52,7 +49,7 @@ public class DefaultOntology implements Ontology {
 
     }
 
-    public DefaultOntology(String triplestoreID) {
+    public SecureOntology(String triplestoreID) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
@@ -76,23 +73,25 @@ public class DefaultOntology implements Ontology {
             this.ontology = ModelFactory.createOntologyModel(spec, tbox);
             execClassInference();
             execPropertyInference();
-        }else{
+        } else {
             this.ontology = tbox;
         }
 
     }
 
     private void execClassInference() {
-        Set<OntClass> s;
+        List<OntClass> classes;
         OntClass c;
         for (ExtendedIterator<OntClass> it = ontology.listClasses(); it.hasNext(); ) {
             c = it.next();
-            s = c.listSubClasses().toSet();
-            s.remove(c);
-            subClasses.put(c.asNode(), s);
-            s = c.listEquivalentClasses().toSet();
-            s.remove(c);
-            equivalentClasses.put(c.asNode(), s);
+            classes = c.listSubClasses().toList();
+            classes.remove(c);
+            Collections.shuffle(classes);
+            subClasses.put(c.asNode(), classes);
+            classes = c.listEquivalentClasses().toList();
+            classes.remove(c);
+            Collections.shuffle(classes);
+            equivalentClasses.put(c.asNode(), classes);
 
         }
         Restriction currentRestriction;
@@ -104,34 +103,42 @@ public class DefaultOntology implements Ontology {
                 classRestrictions.put(currentRestriction.asNode(), currentRestriction);
         }
         IntersectionClass intersection;
+        Map<Node, Set<OntClass>> aux = new HashMap<>();
         for (ExtendedIterator<IntersectionClass> it = ontology.listIntersectionClasses(); it.hasNext(); ) {
             intersection = it.next();
-            Set<? extends OntClass> operands = intersection.listOperands().toSet();
+            List<? extends OntClass> operands = intersection.listOperands().toList();
+            Collections.shuffle(operands);
             Set<OntClass> intersectionsDirectSuperclasses;
             for (OntClass operand : operands) {
-                intersectionsDirectSuperclasses = intersectionsWhereClassIsOperand.get(operand.asNode());
+                intersectionsDirectSuperclasses = aux.get(operand.asNode());
                 if (intersectionsDirectSuperclasses == null)
                     intersectionsDirectSuperclasses = new HashSet<>();
                 intersectionsDirectSuperclasses.add(intersection);
-                intersectionsWhereClassIsOperand.put(operand.asNode(), intersectionsDirectSuperclasses);
+                aux.put(operand.asNode(), intersectionsDirectSuperclasses);
             }
             intersectionClasses.put(intersection.asNode(), operands);
         }
+        aux.forEach((k, v) -> {
+                    List<OntClass> l = new ArrayList<>(v);
+                    Collections.shuffle(l);
+                    intersectionsWhereClassIsOperand.put(k, l);
+                }
+        );
     }
 
     private void execPropertyInference() {
-        Set<? extends OntProperty> s;
-        for (OntProperty p : ontology.listAllOntProperties().toSet()) {
+        List<? extends OntProperty> properties;
+        for (OntProperty p : ontology.listAllOntProperties().toList()) {
             extractPropertyInfo(p);
-            s = p.listSubProperties().toSet();
-            s.remove(p);
-            subProperties.put(p.asNode(), s);
-            s = p.listEquivalentProperties().toSet();
-            s.remove(p);
-            equivalentProperties.put(p.asNode(), s);
-            s = p.listInverseOf().toSet();
-            s.remove(p);
-            inverseProperties.put(p.asNode(), s);
+            properties = new ArrayList<>(p.listSubProperties().toList());
+            properties.remove(p);
+            subProperties.put(p.asNode(), properties);
+            properties = new ArrayList<>(p.listEquivalentProperties().toList());
+            properties.remove(p);
+            equivalentProperties.put(p.asNode(), properties);
+            properties = new ArrayList<>(p.listInverseOf().toList());
+            properties.remove(p);
+            inverseProperties.put(p.asNode(), properties);
         }
     }
 
@@ -143,15 +150,15 @@ public class DefaultOntology implements Ontology {
     }
 
     @Override
-    public Set<OntClass> getEquivalentClasses(Node node) {
-        Set<OntClass> classes = equivalentClasses.get(node);
-        return classes == null ? new HashSet<>() : classes;
+    public List<OntClass> getEquivalentClasses(Node node) {
+        List<OntClass> classes = equivalentClasses.get(node);
+        return classes == null ? new ArrayList<>(0) : classes;
     }
 
     @Override
-    public Set<OntClass> getSubClasses(Node node) {
-        Set<OntClass> classes = subClasses.get(node);
-        return classes == null ? new HashSet<>() : classes;
+    public List<OntClass> getSubClasses(Node node) {
+        List<OntClass> classes = subClasses.get(node);
+        return classes == null ? new ArrayList<>(0) : classes;
     }
 
     @Override
@@ -160,33 +167,33 @@ public class DefaultOntology implements Ontology {
     }
 
     @Override
-    public Set<? extends OntClass> getIntersection(Node node) {
-        Set<? extends OntClass> classes = intersectionClasses.get(node);
-        return classes == null ? new HashSet<>() : classes;
+    public List<? extends OntClass> getIntersection(Node node) {
+        List<? extends OntClass> classes = intersectionClasses.get(node);
+        return classes == null ? new ArrayList<>(0) : classes;
     }
 
     @Override
-    public Set<OntClass> getIntersectionWhereClassIsOperand(Node node) {
-        Set<OntClass> classes = intersectionsWhereClassIsOperand.get(node);
-        return classes == null ? new HashSet<>() : classes;
+    public List<OntClass> getIntersectionWhereClassIsOperand(Node node) {
+        List<OntClass> classes = intersectionsWhereClassIsOperand.get(node);
+        return classes == null ? new ArrayList<>(0) : classes;
     }
 
     @Override
-    public Set<? extends OntProperty> getSubProperties(Node node) {
-        Set<? extends OntProperty> properties = subProperties.get(node);
-        return properties == null ? new HashSet<>() : properties;
+    public List<? extends OntProperty> getSubProperties(Node node) {
+        List<? extends OntProperty> properties = subProperties.get(node);
+        return properties == null ? new ArrayList<>(0) : properties;
     }
 
     @Override
-    public Set<? extends OntProperty> getEquivalentProperties(Node node) {
-        Set<? extends OntProperty> properties = equivalentProperties.get(node);
-        return properties == null ? new HashSet<>() : properties;
+    public List<? extends OntProperty> getEquivalentProperties(Node node) {
+        List<? extends OntProperty> properties = equivalentProperties.get(node);
+        return properties == null ? new ArrayList<>(0) : properties;
     }
 
     @Override
-    public Set<? extends OntProperty> getInverseOf(Node node) {
-        Set<? extends OntProperty> properties = inverseProperties.get(node);
-        return properties == null ? new HashSet<>() : properties;
+    public List<? extends OntProperty> getInverseOf(Node node) {
+        List<? extends OntProperty> properties = inverseProperties.get(node);
+        return properties == null ? new ArrayList<>(0) : properties;
     }
 
 
@@ -214,5 +221,4 @@ public class DefaultOntology implements Ontology {
     public int getMaximumExpansionDepth() {
         return expansionDepth;
     }
-
 }
