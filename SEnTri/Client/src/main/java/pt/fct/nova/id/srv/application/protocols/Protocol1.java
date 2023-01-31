@@ -252,7 +252,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     public byte[] decryptDETLayer(String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return SymmetricCipher.decrypt(kDET, base64Decoder.decode(ciphertext));
+        return SymmetricCipher.decrypt(kDET, base64Decoder.decode(ciphertext), ivDET);
     }
 
     private SecretKey getKeywordDerivedKey(String keyword) {
