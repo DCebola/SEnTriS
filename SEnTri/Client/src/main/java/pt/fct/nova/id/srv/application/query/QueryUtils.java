@@ -190,8 +190,8 @@ public class QueryUtils {
         return g;
     }
 
-    public static List<Triple> generateTriplesFromSerializableBindings(List<Triple> template, Collection<SerializableBinding> bindings) {
-        List<Triple> triples = new LinkedList<>();
+    public static Set<Triple> generateTriplesFromSerializableBindings(Set<Triple> template, Collection<SerializableBinding> bindings) {
+        Set<Triple> triples = new HashSet<>();
         Node s, p, o;
         String val1, val2;
         for (SerializableBinding binding : bindings) {

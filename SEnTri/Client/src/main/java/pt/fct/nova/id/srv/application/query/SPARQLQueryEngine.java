@@ -1,11 +1,11 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.query;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.query.*;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
-import pt.fct.nova.id.srv.application.query.QueryUtils;
+
 import pt.fct.nova.id.srv.application.query.plans.*;
 
 import static pt.fct.nova.id.srv.application.query.QueryType.CONSTRUCT;
@@ -24,6 +24,7 @@ public class SPARQLQueryEngine implements QueryEngine {
     public QueryExecutionPlan getQueryPlan(String queryString) throws NotImplemented {
         try {
             Query query = QueryFactory.create(queryString);
+
             planner.setQueryType(QueryUtils.convertQueryType(query.queryType()));
             if (planner.getQueryType() == CONSTRUCT)
                 planner.setConstructTemplate(query.getConstructTemplate().getTriples());

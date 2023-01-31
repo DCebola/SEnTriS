@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.presentation.api;
 
-import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
@@ -24,9 +23,9 @@ public interface EncryptedTriplestoreAPI {
     @Path("proxy/{triplestoreID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(TEXT_PLAIN)
-    Response prepareSPARQLSearch(@PathParam("triplestoreID") String triplestoreID,
-                                 List<String> trapdoors,
-                                 @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+    Response prepareSearch(@PathParam("triplestoreID") String triplestoreID,
+                           List<String> trapdoors,
+                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
     @Path("{triplestoreID}/search")

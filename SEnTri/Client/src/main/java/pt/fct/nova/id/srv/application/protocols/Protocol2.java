@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class Protocol2 implements EncryptionProtocol {
 
-    public void exec(List<Triple> triples) {
+    public void exec(List<Triple> triples, boolean schema) {
         //TODO: Check database already exists.
         //TODO: Get master key or Generate & Store master key,
         //TODO: Retrieve keys or Generate & Store in keystore, under Enc(masterKey, storeID).

@@ -74,7 +74,7 @@ public class QueriesController implements QueriesAPI {
     }
 
     @Override
-    public Response saveSearchResults(List<String> encryptedNodes, List<String> authorizationHeaders) {
+    public Response prepareSearch(List<String> encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();

@@ -20,6 +20,6 @@ public interface EncryptionProtocol {
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 
-    void exec(List<Triple> triples) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    void exec(List<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
 }

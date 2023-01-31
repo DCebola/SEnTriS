@@ -26,15 +26,18 @@ public class SymmetricCipher {
             IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+        return cipher.doFinal(input);
+    }
+
+    public static byte[] encrypt(byte[] input, SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
+        byte[] iv = generateRandomIV();
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
         byte[] ct = cipher.doFinal(input);
         byte[] result = new byte[ct.length + IV_SIZE];
         System.arraycopy(iv, 0, result, 0, IV_SIZE);
         System.arraycopy(ct, 0, result, IV_SIZE, ct.length);
         return result;
-    }
-
-    public static byte[] encrypt(byte[] input, SecretKey key) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return encrypt(input, key, generateRandomIV());
     }
 
     public static byte[] decrypt(SecretKey key, byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
@@ -43,6 +46,14 @@ public class SymmetricCipher {
         Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cipherText, 0, IV_SIZE));
         return cipher.doFinal(Arrays.copyOfRange(cipherText, IV_SIZE, cipherText.length));
+    }
+
+    public static byte[] decrypt(SecretKey key, byte[] cipherText, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+        return cipher.doFinal(cipherText);
     }
 
     public static SecretKey generateKey() throws NoSuchAlgorithmException {

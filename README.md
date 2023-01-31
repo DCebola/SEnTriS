@@ -27,12 +27,14 @@ GET    Client/api/triplestores/{issuer}                               #List trip
 POST   Client/api/triplestores                                        #Create triplestore.                     (Privileged)
 POST   Client/api/triplestores/upload                                 #Upload data to triplestore.             (Write Access)
 POST   Client/api/triplestore/query                                   #Execute a SPARQL query.                 (Read Access)
+POST   Client/api/triplestore/schema                                  #Fetch triplestore schema.               (Read Access)
 DELETE Client/api/triplestores/{TriplestoreID}/{issuer}               #Delete triplestore.                     (Owner)
 
-POST   Client/api/triplestores/encrypted                              #Create encrypted triplestore.           (Privileged)
-POST   Client/api/triplestores/encrypted/upload                       #Upload data to encrypted triplestore.   (Write Access)
-POST   Client/api/triplestores/encrypted/query/       #Exec. a SPARQL query over an enc. triplestore.          (Read Access)
-DELETE Client/api/triplestores/encrypted/{TriplestoreID}/{issuer}     #Delete encrypted triplestore.           (Owner)
+POST   Client/api/triplestores/encrypted/{version}                    #Create encrypted triplestore.           (Privileged)
+POST   Client/api/triplestores/encrypted/{version}/upload             #Upload data to encrypted triplestore.   (Write Access)
+POST   Client/api/triplestores/encrypted/{version}/query  #Exec. a SPARQL query over an enc. triplestore.      (Read Access)
+POST    Client/api/triplestore/encrypted/{version}/schema             #Fetch triplestore schema.               (Read Access)
+DELETE Client/api/triplestores/encrypted/{version}/{TriplestoreID}/{issuer} #Delete encrypted triplestore.     (Owner)
 ```
 ### IAM Provider API
 ```perl
@@ -82,7 +84,8 @@ GET    Triplestore/api/ctrl/version                     #Get service version    
 POST   Triplestore/api/{TriplestoreID}                   #Upload data to triplestore.                    (Write Access)
 DELETE Triplestore/api/{TriplestoreID}                   #Delete triplestore.                            (Owner)
 POST   Triplestore/api/{TriplestoreID}/delete            #Delete data from triplestore.                  (Write Access)
-POST   Triplestore/api/query/{TriplestoreID}             #Execute a SPARQL query over triplestore.       (Read Access)
+POST   Triplestore/api/{TriplestoreID}/query             #Execute a SPARQL query over triplestore.       (Read Access)
+GET    Triplestore/api/{TriplestoreID}/schema            #Fetch triplestore schema.                      (Read Access)
 
 POST   Triplestore/api/encrypted/{TriplestoreID}         #Upload data to encrypted triplestore.          (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/delete  #Delete data from encrypted triplestore.        (Write Access)

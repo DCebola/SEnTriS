@@ -5,9 +5,9 @@ import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
-import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTable;
 
 import javax.crypto.SecretKey;
 import java.util.*;
@@ -29,17 +29,17 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public IRITable exec(Job job) throws SPARQLExecutionException {
+    public BindingsTable exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
             Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorage.search(key, secureSearchJob.getVars(), searches);
-        } else if (job instanceof EmptyResJob) return new MemIRITable(((EmptyResJob) job).getVars());
+        } else if (job instanceof EmptyResJob) return new MemBindingsTable(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
     @Override
-    public IRITable exec(Job1 job, IRITable prevJobResults) {
+    public BindingsTable exec(Job1 job, BindingsTable prevJobResults) {
         if (job instanceof ProjectJob)
             return execProject((ProjectJob) job, prevJobResults);
         else if (job instanceof OrderByJob)
@@ -52,33 +52,33 @@ public class SecureSPARQLWorker implements SPARQLWorker {
 
     }
 
-    private IRITable execProject(ProjectJob job, IRITable prevJobResults) {
+    private BindingsTable execProject(ProjectJob job, BindingsTable prevJobResults) {
         System.out.println("PROJECT BEFORE: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         prevJobResults.project(job.getVars());
         System.out.println("PROJECT AFTER: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         return prevJobResults;
     }
 
-    private IRITable execOrderBy(OrderByJob job, IRITable prevJobResults) {
+    private BindingsTable execOrderBy(OrderByJob job, BindingsTable prevJobResults) {
         result.setOrdered(true);
         result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
-    private IRITable execSlice(SliceJob job, IRITable prevJobResults) {
+    private BindingsTable execSlice(SliceJob job, BindingsTable prevJobResults) {
         result.setSliced(true);
         result.setLength(job.getLength());
         result.setOffset(job.getOffset());
         return prevJobResults;
     }
 
-    private IRITable execDistinct(IRITable prevJobResults) {
+    private BindingsTable execDistinct(BindingsTable prevJobResults) {
         result.setDistinct(true);
         return prevJobResults;
     }
 
     @Override
-    public IRITable exec(Job2 job, IRITable left, IRITable right) throws SPARQLExecutionException {
+    public BindingsTable exec(Job2 job, BindingsTable left, BindingsTable right) throws SPARQLExecutionException {
         if (job instanceof JoinJob)
             return execJoin(left, right);
         else if (job instanceof UnionJob)
@@ -90,32 +90,32 @@ public class SecureSPARQLWorker implements SPARQLWorker {
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private IRITable execJoin(IRITable left, IRITable right) {
-        IRITable join = left.join(right);
+    private BindingsTable execJoin(BindingsTable left, BindingsTable right) {
+        BindingsTable join = left.join(right);
         System.out.println("JOIN: " + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return join;
     }
 
-    private IRITable execUnion(IRITable left, IRITable right) {
-        IRITable union = left.union(right);
+    private BindingsTable execUnion(BindingsTable left, BindingsTable right) {
+        BindingsTable union = left.union(right);
         System.out.println("UNION: " + union.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return union;
     }
 
-    private IRITable execOptional(IRITable left, IRITable right) {
-        IRITable optional = left.leftOuterJoin(right);
+    private BindingsTable execOptional(BindingsTable left, BindingsTable right) {
+        BindingsTable optional = left.leftOuterJoin(right);
         System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return optional;
     }
 
-    private IRITable execMinus(IRITable left, IRITable right) {
-        IRITable minus = left.minus(right);
+    private BindingsTable execMinus(BindingsTable left, BindingsTable right) {
+        BindingsTable minus = left.minus(right);
         System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
@@ -123,7 +123,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public SPARQLResult generateResults(IRITable jobResults) {
+    public SPARQLResult generateResults(BindingsTable jobResults) {
         Collection<SerializableBinding> bindings;
         boolean isDistinct = result.isDistinct();
         if (isDistinct)
@@ -134,7 +134,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
         return result;
     }
 
-    private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, IRITable jobResults) {
+    private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, BindingsTable jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
         HashMap<Var, String> values;

@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -139,7 +138,8 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions, Map<String, String> swaps, String accessToken) throws IOException {
+    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions,
+                                      Map<String, String> swaps, String accessToken) throws IOException {
         System.out.println("UPLOADS: " + uploads.size());
         System.out.println("DELETIONS: " + deletions.size());
         System.out.println("SWAPS: " + swaps.size());
@@ -202,6 +202,7 @@ public class EncryptedTriplestoreController {
             return new HTTPResponse(response);
         }
     }
+
 
     public HTTPResponse upload(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, triplestoreID, encryptedNodes, accessToken)) {

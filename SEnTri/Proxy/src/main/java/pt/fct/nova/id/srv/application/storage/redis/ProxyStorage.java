@@ -3,8 +3,8 @@ package pt.fct.nova.id.srv.application.storage.redis;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
-import pt.fct.nova.id.srv.application.storage.iri_tables.IRITable;
-import pt.fct.nova.id.srv.application.storage.iri_tables.MemIRITable;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -48,11 +48,11 @@ public class ProxyStorage {
         }
     }
 
-    public static IRITable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
+    public static BindingsTable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            BindingsTable res = new MemBindingsTable(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
-            MemIRITable res = new MemIRITable();
             List<Response<List<String>>> responses = new ArrayList<>(searches.size());
             for (Var var : vars)
                 responses.add(p.lrange(searches.get(var), 0, -1));

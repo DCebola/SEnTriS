@@ -17,15 +17,12 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
@@ -35,12 +32,10 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.COMPOUND_KEYWORD;
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.KEYWORD_FORMAT;
+import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 
@@ -48,16 +43,16 @@ public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
-    public static final String IRI_SEPARATOR = System.getenv("IRI_SEPARATOR");
-    private static final String BLANK_IRI_PREFIX = "B";
-    private static final String SIMPLE_IRI_PREFIX = "S";
-    private static final String LITERAL_IRI_PREFIX = "L";
-    private final static String BLANK_IRI = BLANK_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
-    private static final String SIMPLE_IRI = SIMPLE_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s");
-    private static final String LITERAL_IRI = LITERAL_IRI_PREFIX.concat(IRI_SEPARATOR).concat("%s").concat(IRI_SEPARATOR).concat("%s");
-    private static final int IRI_PREFIX_POS = 0;
-    private static final int IRI_VALUE_POS = 1;
-    private static final int LITERAL_IRI_DATATYPE_POS = 2;
+    public static final String NODE_SEPARATOR = System.getenv("NODE_SEPARATOR");
+    private static final String BLANK_PREFIX = "B";
+    private static final String SIMPLE_PREFIX = "S";
+    private static final String LITERAL_PREFIX = "L";
+    private final static String BLANK_NODE = BLANK_PREFIX.concat(NODE_SEPARATOR).concat("%s");
+    private static final String SIMPLE_NODE = SIMPLE_PREFIX.concat(NODE_SEPARATOR).concat("%s");
+    private static final String LITERAL_NODE = LITERAL_PREFIX.concat(NODE_SEPARATOR).concat("%s").concat(NODE_SEPARATOR).concat("%s");
+    private static final int PREFIX_POS = 0;
+    private static final int VALUE_POS = 1;
+    private static final int LITERAL_DATATYPE_POS = 2;
 
     private static final Gson gson = new Gson();
     private static final String BLANK = "BLANK";
@@ -96,8 +91,18 @@ public class ParsingUtils {
         return new StringEntity(gson.toJson(map, Map.class), ContentType.APPLICATION_JSON);
     }
 
-    public static HttpEntity triplesListToHttpEntity(List<Triple> list) throws InvalidNodeException {
-        return new StringEntity(gson.toJson(serializeTriples(list), Set.class), ContentType.APPLICATION_JSON);
+    public static HttpEntity triplesSetToHttpEntity(Set<Triple> triples) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(triples);
+            return new ByteArrayEntity(bos.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
+        }
+    }
+
+    public static Set<Triple> parseSchema(String schema) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(base64Decoder.decode(schema));
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
+            return (Set<Triple>) ois.readObject();
+        }
     }
 
     public static HttpEntity stringSetToHttpEntity(Set<String> set) {
@@ -149,7 +154,8 @@ public class ParsingUtils {
         SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
-        return new Protocol1(k1, k2, k3, iv);
+        String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        return new Protocol1(k1, k2, k3, iv, schemaKeyword);
     }
 
     public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
@@ -159,6 +165,7 @@ public class ParsingUtils {
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getRNDKey().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
+            secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p1.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
         }
         return secrets;
     }
@@ -169,13 +176,6 @@ public class ParsingUtils {
         return tripleCollector.getCollected();
     }
 
-    public static Set<String[]> serializeTriples(List<Triple> triples) throws InvalidNodeException {
-        Set<String[]> serialized = new HashSet<>();
-        for (Triple t : triples)
-            serialized.add(new String[]{parseNodeIRI(t.getSubject()), parseNodeIRI(t.getPredicate()), parseNodeIRI(t.getObject())});
-        return serialized;
-    }
-
     public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
         Lang l = RDFLanguages.nameToLang(syntax);
         if (l == null)
@@ -183,38 +183,38 @@ public class ParsingUtils {
         return l;
     }
 
-    public static String parseNodeIRI(Node node) throws InvalidNodeException {
+    public static String parseNode(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
-            return String.format(SIMPLE_IRI, node.getURI());
+            return String.format(SIMPLE_NODE, node.getURI());
         else if (node.isLiteral())
-            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+            return String.format(LITERAL_NODE, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return String.format(BLANK_IRI, node.getBlankNodeId());
+            return String.format(BLANK_NODE, node.getBlankNodeId());
     }
 
     public static String parseKeyword(Node node) throws InvalidNodeException {
         if (!node.isConcrete())
             throw new InvalidNodeException();
         if (node.isURI())
-            return String.format(SIMPLE_IRI, node.getURI());
+            return String.format(SIMPLE_NODE, node.getURI());
         else if (node.isLiteral())
-            return String.format(LITERAL_IRI, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
+            return String.format(LITERAL_NODE, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
             return BLANK;
     }
 
-    public static Node generateNode(String iri) {
-        String[] split_iri = iri.split(IRI_SEPARATOR);
-        if (split_iri[IRI_PREFIX_POS].equals(BLANK_IRI_PREFIX))
-            return NodeFactory.createBlankNode(split_iri[IRI_VALUE_POS]);
-        else if (split_iri[IRI_PREFIX_POS].equals(SIMPLE_IRI_PREFIX))
-            return NodeFactory.createURI(split_iri[IRI_VALUE_POS]);
+    public static Node generateNode(String node) {
+        String[] split = node.split(NODE_SEPARATOR);
+        if (split[PREFIX_POS].equals(BLANK_PREFIX))
+            return NodeFactory.createBlankNode(split[VALUE_POS]);
+        else if (split[PREFIX_POS].equals(SIMPLE_PREFIX))
+            return NodeFactory.createURI(split[VALUE_POS]);
         else
             return NodeFactory.createLiteral(
-                    split_iri[IRI_VALUE_POS],
-                    TypeMapper.getInstance().getSafeTypeByName(split_iri[LITERAL_IRI_DATATYPE_POS]));
+                    split[VALUE_POS],
+                    TypeMapper.getInstance().getSafeTypeByName(split[LITERAL_DATATYPE_POS]));
     }
 
     public static byte[] integerToByteArray(int integer) {
@@ -240,13 +240,34 @@ public class ParsingUtils {
             s = parseKeyword(t.getSubject());
             p = parseKeyword(t.getPredicate());
             o = parseKeyword(t.getObject());
-            keywords.add(ParsingUtils.generateKeyword(PO, s));
-            keywords.add(ParsingUtils.generateKeyword(SO, p));
-            keywords.add(ParsingUtils.generateKeyword(SP, o));
-            keywords.add(ParsingUtils.generateKeyword(S, p, o));
-            keywords.add(ParsingUtils.generateKeyword(P, s, o));
-            keywords.add(ParsingUtils.generateKeyword(O, s, p));
+            keywords.add(generateKeyword(PO, s));
+            keywords.add(generateKeyword(SO, p));
+            keywords.add(generateKeyword(SP, o));
+            keywords.add(generateKeyword(S, p, o));
+            keywords.add(generateKeyword(P, s, o));
+            keywords.add(generateKeyword(O, s, p));
         }
         return keywords;
     }
+
+    public static String parseTriple(Node s, Node p, Node o) throws InvalidNodeException {
+        String parsed_s, parsed_p, parsed_o;
+        if (s.isVariable())
+            parsed_s = ((Var) s).getVarName();
+        else
+            parsed_s = parseKeyword(s);
+
+        if (p.isVariable())
+            parsed_p = ((Var) p).getVarName();
+        else
+            parsed_p = parseKeyword(p);
+
+        if (o.isVariable())
+            parsed_o = ((Var) o).getVarName();
+        else
+            parsed_o = parseKeyword(o);
+        return String.format(TRIPLE_KEYWORD, parsed_s, parsed_p, parsed_o);
+    }
+
+
 }
