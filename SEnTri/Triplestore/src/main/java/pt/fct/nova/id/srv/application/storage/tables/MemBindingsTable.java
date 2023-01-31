@@ -28,6 +28,15 @@ public class MemBindingsTable implements BindingsTable {
         }
     }
 
+    public MemBindingsTable(Var... var) {
+        bindings = new HashMap<>();
+        patterns = new HashMap<>();
+        for (Var v : var) {
+            bindings.put(v, new HashMap<>());
+            patterns.put(v, new HashMap<>());
+        }
+    }
+
 
     @Override
     public void add(String patternIdx, Var var, String binding) {

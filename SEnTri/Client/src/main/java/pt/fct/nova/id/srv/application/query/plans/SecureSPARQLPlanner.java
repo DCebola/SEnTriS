@@ -40,8 +40,6 @@ import static pt.fct.nova.id.srv.application.query.plans.InferenceClassExpansion
 import static pt.fct.nova.id.srv.application.query.plans.InferencePropertyExpansionOpType.*;
 
 public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanner {
-
-    final static Logger logger = LoggerFactory.getLogger(DefaultSPARQLPlanner.class);
     private final Map<Op, String> parsed_op;
     private final DefaultQueryExecutionPlan plan;
     private final HashMap<Var, Var> obfuscationMap;
@@ -158,7 +156,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit0(Op0 op) {
-        logger.info("OP0: {}", op);
         try {
             if (op instanceof OpBGP opBGP) {
                 generateGetJobs(opBGP);
@@ -276,10 +273,12 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         String jobSignature = left.concat(right);
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
+            MinusJob minusJob = new MinusJob(generateID(), right, left);
             jobID = generateID();
-            UnionJob job = new UnionJob(jobID, left, right);
+            UnionJob job = new UnionJob(jobID, left, minusJob.getID());
             jobs.put(jobID, job);
             jobIDs.put(jobSignature, jobID);
+            plan.pushJob(minusJob);
             plan.pushJob(job);
         }
         System.out.println("[UNION, " + jobID + "] - " + left + " | " + right);
@@ -357,31 +356,32 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private String expandClassConjunction(String prefix, Collection<? extends OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         String search, right = null, left;
-
         for (OntClass ontClass : ontClasses) {
-            if (!ontClass.isRestriction()) {
-                search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
-                left = pushUnion(search, expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs), jobs, jobsIDs);
-            } else
-                left = expandClass(prefix.concat(" CLASS"), jobID, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
+            left = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
             if (right != null)
                 right = pushJoin(right, left, jobs, jobsIDs);
             else
                 right = left;
         }
-        return pushUnion(jobID, right, jobs, jobsIDs);
+        if (right != null)
+            return pushUnion(jobID, right, jobs, jobsIDs);
+        return jobID;
     }
 
     private String expandClassDisjunction(String prefix, Collection<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
-        String right;
+        String search, right = null, left;
         for (OntClass ontClass : ontClasses) {
-            if (!ontClass.isRestriction()) {
-                right = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
-                jobID = pushUnion(jobID, right, jobs, jobsIDs);
-            }
-            jobID = expandClass(prefix, jobID, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
+            left = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            if (right != null)
+                right = pushUnion(right, left, jobs, jobsIDs);
+            else
+                right = left;
         }
+        if (right != null)
+            return pushUnion(jobID, right, jobs, jobsIDs);
         return jobID;
     }
 
@@ -537,7 +537,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit1(Op1 op) {
-        // logger.info("OP1: {}", op);
         if (op instanceof OpExtendAssign) {
             throw new NotImplemented();
         } else if (op instanceof OpFilter) {
@@ -608,7 +607,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     @Override
     public void visit2(Op2 op) {
-        //logger.info("OP2: {}", op);
         if (op instanceof OpJoin opJoin) {
             generateJoinJob(opJoin);
         } else if (op instanceof OpLeftJoin opLeftJoin) {

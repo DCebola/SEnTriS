@@ -50,9 +50,9 @@ public class ProxyStorage {
 
     public static BindingsTable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            BindingsTable res = new MemBindingsTable(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
-            BindingsTable res = new MemBindingsTable();
             List<Response<List<String>>> responses = new ArrayList<>(searches.size());
             for (Var var : vars)
                 responses.add(p.lrange(searches.get(var), 0, -1));

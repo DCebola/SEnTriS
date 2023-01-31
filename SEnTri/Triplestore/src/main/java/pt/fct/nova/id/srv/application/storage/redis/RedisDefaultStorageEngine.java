@@ -200,13 +200,11 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     private BindingsTable find(String keyword, Var var) {
-        BindingsTable res = new MemBindingsTable();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            BindingsTable res = new MemBindingsTable(var);
             Set<String> nodes = jedis.smembers(keyword);
             nodes.forEach(node -> res.add(generateID(), var, node));
             System.out.println(keyword + " | " + var.getVarName() + " | " + res.getPatterns().size());
-            return res;
-        } catch (Exception e) {
             return res;
         }
     }
@@ -227,8 +225,8 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     }
 
     private BindingsTable find(String keyword, Var var1, Var var2) {
-        BindingsTable res = new MemBindingsTable();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            BindingsTable res = new MemBindingsTable(var1, var2);
             Set<String> compound_nodes = jedis.smembers(keyword);
             compound_nodes.forEach(
                     node -> {
@@ -239,9 +237,6 @@ public class RedisDefaultStorageEngine implements StorageEngine {
                     }
             );
             System.out.println(keyword + " | " + var1.getVarName() + " | " + var2.getVarName() + " | " + res.getPatterns().size());
-            return res;
-        } catch (Exception e) {
-            e.printStackTrace();
             return res;
         }
     }
