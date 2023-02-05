@@ -17,7 +17,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
+import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -150,9 +150,9 @@ public class ParsingUtils {
     }
 
     public static Protocol1 getProtocol1(Map<String, String> secrets) {
-        SecretKey k1 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
-        SecretKey k2 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
-        SecretKey k3 = SymmetricCipher.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
+        SecretKey k1 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
+        SecretKey k2 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
+        SecretKey k3 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
         String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
         return new Protocol1(k1, k2, k3, iv, schemaKeyword);

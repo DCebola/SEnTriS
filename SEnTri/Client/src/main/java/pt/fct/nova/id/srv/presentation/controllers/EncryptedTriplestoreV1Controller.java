@@ -34,15 +34,10 @@ import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -173,7 +168,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
     }
 
-    private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, List<Triple> triples, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, InvalidNodeException {
+    private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
         String schemaKeyword = protocol.getSchemaKeyword();
         int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
         List<String> trapdoors = new ArrayList<>(numTrapdoors);
@@ -251,7 +246,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
     }
 
-    private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol, Ontology ontology, boolean inference, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol, Ontology ontology, boolean inference, String accessToken) throws IOException, AEADBadTagException {
         String schemaKeyword = protocol.getSchemaKeyword();
         int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
         List<String> trapdoors = new ArrayList<>(numTrapdoors);
@@ -346,7 +341,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private Response answerSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                       DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException {
+                                       DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws InvalidNodeException, IOException, URISyntaxException, ClassNotFoundException, AEADBadTagException {
         System.out.println("QUERY TYPE: " + queryType);
         return switch (queryType) {
             case SELECT, ASK, DESCRIBE, CONSTRUCT ->
@@ -356,7 +351,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         };
     }
 
-    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, Set<String> keywords, Map<String, Integer> keywordsFrequencyCollector, Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, Set<String> keywords,
+                                                  Map<String, Integer> keywordsFrequencyCollector, Protocol1 protocol, String accessToken) throws AEADBadTagException, IOException {
         String[] shuffledKeywords = new String[keywords.size()];
         String[] trapdoors = new String[keywords.size()];
         List<Integer> permutation = generateRandomPermutation(keywords.size());
@@ -383,7 +379,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private Response executeSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
                                         QueryType queryType, SecureSPARQLPlanner planner, DefaultQueryExecutionPlan plan,
-                                        Protocol1 protocol, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, IOException, URISyntaxException, InvalidKeyException, ClassNotFoundException {
+                                        Protocol1 protocol, String accessToken) throws IOException, AEADBadTagException, URISyntaxException, ClassNotFoundException {
         Map<String, Integer> keywordsFrequency = new HashMap<>();
         Set<String> keywords = planner.getKeywords();
 
@@ -428,7 +424,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                              DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, URISyntaxException, InvalidKeyException, ClassNotFoundException, InvalidNodeException {
+                                              DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException, AEADBadTagException {
         Map<String, String> swaps = new HashMap<>();
         Set<String> deletions = new HashSet<>();
         List<Triple> triplesToUpload, triplesToDelete;
@@ -496,7 +492,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
                                                          Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
                                                          Map<String, String> swapsCollector, Set<String> deletionsCollector,
-                                                         String accessToken) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidNodeException, URISyntaxException {
+                                                         String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
         Set<String> keywords = ParsingUtils.generateKeywords(triplesToDelete);
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
@@ -606,7 +602,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol,
                                          String triplestoreID, Set<String> jobIDs, Map<String, Job> jobs,
-                                         Map<String, Integer> keywordsFrequency, String accessToken) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, URISyntaxException {
+                                         Map<String, Integer> keywordsFrequency, String accessToken) throws IOException, URISyntaxException {
         HTTPResponse response;
         String keyword;
         SecureSearchJob secureSearchJob;
@@ -650,8 +646,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws
-            InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws AEADBadTagException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (SerializableBinding binding : bindings) {

@@ -16,6 +16,18 @@
     </properties>
 
     <dependencies>
+        <!-- JNA -->
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.13.0</version>
+        </dependency>
+        <!-- Lazy Sodium -->
+        <dependency>
+            <groupId>com.goterl</groupId>
+            <artifactId>lazysodium-java</artifactId>
+            <version>5.1.4</version>
+        </dependency>
         <!-- Servlet/REST  -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

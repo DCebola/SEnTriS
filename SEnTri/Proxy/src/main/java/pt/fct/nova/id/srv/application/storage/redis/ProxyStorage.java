@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
+import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
 import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTable;
@@ -10,13 +10,7 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import javax.crypto.*;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
@@ -75,7 +69,7 @@ public class ProxyStorage {
         }
     }
 
-    private static String decrypt(SecretKey key, String ciphertext) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        return base64Encoder.encodeToString(SymmetricCipher.decrypt(key, base64Decoder.decode(ciphertext)));
+    private static String decrypt(SecretKey key, String ciphertext) throws AEADBadTagException {
+        return base64Encoder.encodeToString(SymmetricEncryptionUtils.decrypt(key, base64Decoder.decode(ciphertext)));
     }
 }

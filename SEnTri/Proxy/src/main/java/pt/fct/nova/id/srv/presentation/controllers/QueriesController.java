@@ -4,14 +4,12 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.crypto.SymmetricCipher;
+import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorker;
@@ -36,7 +34,6 @@ public class QueriesController implements QueriesAPI {
     public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     @Override
@@ -54,7 +51,7 @@ public class QueriesController implements QueriesAPI {
                 return HTTPUtils.buildResponse(response);
 
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
-            SecretKey secretKey = SymmetricCipher.parseKey(form.getKey());
+            SecretKey secretKey = SymmetricEncryptionUtils.parseKey(form.getKey());
 
             SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
             SecureSPARQLWorker worker = new SecureSPARQLWorker(secretKey);
