@@ -1,6 +1,7 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
 
-import java.io.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -59,14 +60,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     }
 
     public byte[] getEncoded() {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-            oos.writeObject(this);
-            oos.flush();
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return null;
     }
 
 
@@ -166,6 +160,22 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     }
 
     /**
+     * Re-encrypt value.
+     *
+     * @param ciphertext - Encrypted DGK value
+     * @param r          - New random.
+     * @return DGK re-encrypted ciphertext.
+     * @throws HomomorphicException - If either ciphertext is greater than N or negative, throw an exception
+     */
+    public BigInteger reencrypt(BigInteger ciphertext, BigInteger r)
+            throws HomomorphicException {
+        if (ciphertext.signum() == -1 || ciphertext.compareTo(n) > 0) {
+            throw new HomomorphicException("DGKAdd Invalid Parameter ciphertext1: " + ciphertext);
+        }
+        return ciphertext.multiply(r).mod(n);
+    }
+
+    /**
      * Subtract encrypted values.
      *
      * @param ciphertext1 - Encrypted DGK value
@@ -178,6 +188,18 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
             throw new HomomorphicException("DGKMultiply Invalid Parameter ciphertext: " + ciphertext2);
         }
         return add(ciphertext1, ciphertext2.modPow(BigInteger.valueOf(u - 1), n));
+    }
+
+    /**
+     * Generates re-encryption value.
+     * @param r - 3*t bit random
+     * @return h^mod(r, n)
+     */
+    public BigInteger generateReEncryptionR(BigInteger r) throws HomomorphicException {
+        if (r.bitLength() != 3 * t) {
+            throw new HomomorphicException("Invalid Parameter: r must b" + (3 * t) + " bit length");
+        }
+        return h.modPow(r, n);
     }
 
 }

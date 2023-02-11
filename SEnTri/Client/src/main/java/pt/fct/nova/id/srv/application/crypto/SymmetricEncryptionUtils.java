@@ -9,11 +9,9 @@ import org.bouncycastle.crypto.params.HKDFParameters;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.util.Arrays;
 
 public class SymmetricEncryptionUtils {
     public static final String ALGORITHM = AEAD.Method.XCHACHA20_POLY1305_IETF.name();

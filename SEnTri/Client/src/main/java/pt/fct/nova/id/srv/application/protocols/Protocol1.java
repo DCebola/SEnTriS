@@ -39,7 +39,7 @@ public class Protocol1 implements EncryptionProtocol {
         this.base64Encoder = Base64.getUrlEncoder();
     }
 
-    public Protocol1() throws NoSuchAlgorithmException {
+    public Protocol1() {
         this.ivDET = SymmetricEncryptionUtils.generateRandomIV();
         this.kMASTER = SymmetricEncryptionUtils.generateKey();
         this.kRND = SymmetricEncryptionUtils.generateKey();
