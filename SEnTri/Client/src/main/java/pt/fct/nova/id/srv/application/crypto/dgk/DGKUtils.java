@@ -1,5 +1,8 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
@@ -21,4 +24,10 @@ public class DGKUtils {
         return NTL.generateXBitRandom(3 * k.getT());
     }
 
+    public static KeyPair parseKeyPair(byte[] contents) throws IOException, ClassNotFoundException {
+        try (ByteArrayInputStream is = new ByteArrayInputStream(contents);
+             ObjectInputStream ois = new ObjectInputStream(is)) {
+            return (KeyPair) ois.readObject();
+        }
+    }
 }

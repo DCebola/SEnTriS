@@ -14,17 +14,20 @@ import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.sparql.modify.request.QuadDataAcc;
 import org.apache.jena.sparql.modify.request.UpdateDataInsert;
 import org.apache.jena.update.UpdateRequest;
+import pt.fct.nova.id.srv.application.clients.HTTPClient;
+import pt.fct.nova.id.srv.application.clients.HTTPResponse;
 import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.ontologies.SecureOntology;
-import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
-import pt.fct.nova.id.srv.application.clients.*;
+import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.QueryUtils;
+import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
-import pt.fct.nova.id.srv.application.query.jobs.*;
+import pt.fct.nova.id.srv.application.query.jobs.Job;
+import pt.fct.nova.id.srv.application.query.jobs.SecureSearchJob;
+import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
@@ -45,13 +48,15 @@ import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
 import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
-import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 
-@Path("triplestores/encrypted/v1")
-public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
+@Path("triplestores/encrypted/v2")
+public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
+
+    public static final String SECRETS_KEY_PAIR = System.getenv("SECRETS_KEY_PAIR");
     private static final SecureRandom rnd = new SecureRandom();
-
+    
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
         if (cookie == null)
@@ -73,7 +78,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(new Protocol1()), accessToken);
+            response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(new Protocol2()), accessToken);
             if (response.getStatus() != OK) {
                 HTTPResponse response2 = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
                 if (response2.getStatus() != OK)
@@ -136,7 +141,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
-            Protocol1 protocol = getProtocol1(secrets);
+            Protocol2 protocol = getProtocol2(secrets);
 
             if (schema)
                 return uploadOntologySchema(httpClient, cookie, triplestoreID, protocol, triples, accessToken);
@@ -158,7 +163,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
     }
 
-    private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
+    private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol2 protocol, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
         String schemaKeyword = protocol.getSchemaKeyword();
         int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
         List<String> trapdoors = new ArrayList<>(numTrapdoors);
@@ -220,7 +225,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
             Ontology ontology = new DefaultOntology(triplestoreID);
-            response = fetchOntologySchema(httpClient, triplestoreID, getProtocol1(secrets), ontology, inference, accessToken);
+            response = fetchOntologySchema(httpClient, triplestoreID, getProtocol2(secrets), ontology, inference, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
@@ -236,7 +241,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
     }
 
-    private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol, Ontology ontology, boolean inference, String accessToken) throws IOException, AEADBadTagException {
+    private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, String triplestoreID, Protocol2 protocol, Ontology ontology, boolean inference, String accessToken) throws IOException, AEADBadTagException {
         String schemaKeyword = protocol.getSchemaKeyword();
         int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
         List<String> trapdoors = new ArrayList<>(numTrapdoors);
@@ -299,7 +304,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
-            Protocol1 protocol = getProtocol1(secrets);
+            Protocol2 protocol = getProtocol2(secrets);
             SecureSPARQLPlanner planner;
             System.out.println("INFERENCE: " + form.getInference());
             if (form.getInference()) {
@@ -331,7 +336,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private Response answerSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                       DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws InvalidNodeException, IOException, URISyntaxException, ClassNotFoundException, AEADBadTagException {
+                                       DefaultQueryExecutionPlan plan, Protocol2 protocol, String accessToken) throws InvalidNodeException, IOException, URISyntaxException, ClassNotFoundException, AEADBadTagException {
         System.out.println("QUERY TYPE: " + queryType);
         return switch (queryType) {
             case SELECT, ASK, DESCRIBE, CONSTRUCT ->
@@ -342,7 +347,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, Set<String> keywords,
-                                                  Map<String, Integer> keywordsFrequencyCollector, Protocol1 protocol, String accessToken) throws AEADBadTagException, IOException {
+                                                  Map<String, Integer> keywordsFrequencyCollector, Protocol2 protocol, String accessToken) throws AEADBadTagException, IOException {
         String[] shuffledKeywords = new String[keywords.size()];
         String[] trapdoors = new String[keywords.size()];
         List<Integer> permutation = generateRandomPermutation(keywords.size());
@@ -369,7 +374,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private Response executeSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
                                         QueryType queryType, SecureSPARQLPlanner planner, DefaultQueryExecutionPlan plan,
-                                        Protocol1 protocol, String accessToken) throws IOException, AEADBadTagException, URISyntaxException, ClassNotFoundException {
+                                        Protocol2 protocol, String accessToken) throws IOException, AEADBadTagException, URISyntaxException, ClassNotFoundException {
         Map<String, Integer> keywordsFrequency = new HashMap<>();
         Set<String> keywords = planner.getKeywords();
 
@@ -414,7 +419,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                              DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException, AEADBadTagException {
+                                              DefaultQueryExecutionPlan plan, Protocol2 protocol, String accessToken) throws IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException, AEADBadTagException {
         Map<String, String> swaps = new HashMap<>();
         Set<String> deletions = new HashSet<>();
         List<Triple> triplesToUpload, triplesToDelete;
@@ -479,7 +484,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         return updateTriplestore(httpClient, cookie, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
     }
 
-    private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
+    private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol2 protocol,
                                                          Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
                                                          Map<String, String> swapsCollector, Set<String> deletionsCollector,
                                                          String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
@@ -584,13 +589,14 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 System.out.println("[ " + keyword + "] - f" + protocol.getKeywordFrequencies().get(keyword) + " | p" + preserved + " | d" + deletions + " | s" + swaps);
             }
         }
+        //TODO: Fetch eqTags. Update protocol eqTags.
         protocol.exec(triplesToUpload, false);
         System.out.println("PRESERVED:" + totalPreserved);
         System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
         return null;
     }
 
-    private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol1 protocol,
+    private HTTPResponse prepareSearches(CloseableHttpClient httpClient, Protocol2 protocol,
                                          String triplestoreID, Set<String> jobIDs, Map<String, Job> jobs,
                                          Map<String, Integer> keywordsFrequency, String accessToken) throws IOException, URISyntaxException {
         HTTPResponse response;
@@ -636,13 +642,14 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws AEADBadTagException {
+    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol2 protocol) throws AEADBadTagException {
+        //TODO: Fetch values from eqTags; Decrypt and substitute in bindings.
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptDETLayer(binding.get(var)))));
+                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptRNDLayer(binding.get(var)))));
             }
             decryptedBindings.add(builder.build());
             builder.reset();

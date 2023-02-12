@@ -15,7 +15,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     private final BigInteger h;
     private final long u;
     private final BigInteger bigU;
-    private final HashMap<Long, BigInteger> gLUT = new HashMap<>();
+    private final HashMap<Long, BigInteger> gLUT;
 
     private final int l;
     private final int t;
@@ -32,6 +32,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         this.t = t;
         this.k = k;
         this.rLength = rLength;
+        gLUT = new HashMap<>();
     }
 
 
@@ -116,7 +117,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         return encrypt(plaintext.longValue());
     }
 
-    private BigInteger encrypt(long plaintext) {
+    public BigInteger encrypt(long plaintext) {
         BigInteger ciphertext;
         if (plaintext < -1) {
             throw new IllegalArgumentException("Encryption Invalid Parameter: the plaintext is not in Zu (plaintext < 0)"
@@ -130,7 +131,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         gLUT.computeIfAbsent(plaintext, p -> g.modPow(BigInteger.valueOf(p), n));
 
 
-        // Generate 3 * t bit random number
+        // Generate random number
         BigInteger r = NTL.generateXBitRandom(rLength * t);
 
         // First part = g^m
@@ -196,8 +197,8 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
      * @return h^mod(r, n)
      */
     public BigInteger generateReEncryptionR(BigInteger r) throws HomomorphicException {
-        if (r.bitLength() != 3 * t) {
-            throw new HomomorphicException("Invalid Parameter: r must b" + (3 * t) + " bit length");
+        if (r.bitLength() != rLength * t) {
+            throw new HomomorphicException("Invalid Parameter: r must b" + (rLength * t) + " bit length");
         }
         return h.modPow(r, n);
     }

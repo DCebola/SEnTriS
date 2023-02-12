@@ -11,7 +11,7 @@ public final class DGKKeyPairGenerator extends KeyPairGeneratorSpi implements Ci
     private int t = 160;
     private int k = 2048;
 
-    private int rLength = 2; // h^r such that r >= 2*t bits
+    private int rLength = 3; // h^r such that r >= 2*t bits
     private SecureRandom rnd = null;
 
     public DGKKeyPairGenerator() {

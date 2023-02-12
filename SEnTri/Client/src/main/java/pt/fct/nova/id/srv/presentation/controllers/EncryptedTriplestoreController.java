@@ -36,6 +36,15 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.deleteAccessToken;
 
 public class EncryptedTriplestoreController {
+    public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
+    public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
+    public static final String SECRETS_SCHEMA_KEYWORD = System.getenv("SECRETS_PROTOCOL_SCHEMA_KEYWORD");
+    public static final String SUCCESSFUL_CREATION = "Successful creation.";
+    public static final String EMPTY_UPLOAD = "No content to upload.";
+    public static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
+    public static final String NO_UPDATES = "No content to update.";
+    public static final int minimumTrapdoors = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
+    public static final int maximumTrapdoors = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
     public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
         HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
         if (response.getStatus() != OK)

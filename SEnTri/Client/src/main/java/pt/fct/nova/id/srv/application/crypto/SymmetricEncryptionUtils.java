@@ -56,10 +56,10 @@ public class SymmetricEncryptionUtils {
         return new SecretKeySpec(generateRandomByteArray(KEY_SIZE), ALGORITHM);
     }
 
-    public static SecretKey generateKey(SecretKey masterKey, byte[] info) {
+    public static SecretKey generateKey(SecretKey masterKey, byte[] context) {
         byte[] keyBytes = new byte[KEY_SIZE];
         HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA256Digest());
-        hkdf.init(HKDFParameters.skipExtractParameters(masterKey.getEncoded(), info));
+        hkdf.init(HKDFParameters.skipExtractParameters(masterKey.getEncoded(), context));
         hkdf.generateBytes(keyBytes, 0, KEY_SIZE);
         return new SecretKeySpec(keyBytes, ALGORITHM);
     }

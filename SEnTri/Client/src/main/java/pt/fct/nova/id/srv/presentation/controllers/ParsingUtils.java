@@ -18,8 +18,10 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
@@ -33,11 +35,13 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_KEY_PAIR;
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
@@ -158,7 +162,17 @@ public class ParsingUtils {
         return new Protocol1(k1, k2, k3, iv, schemaKeyword);
     }
 
-    public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
+    public static Protocol2 getProtocol2(Map<String, String> secrets) throws IOException, ClassNotFoundException {
+        SecretKey k1 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
+        SecretKey k2 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
+        KeyPair keyPair = DGKUtils.parseKeyPair(base64Decoder.decode(secrets.get(SECRETS_KEY_PAIR)));
+        byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
+        String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        return new Protocol2(k1, k2, keyPair, iv, schemaKeyword);
+    }
+
+
+    public static Map<String, String> generateSecretsMap(EncryptionProtocol p) throws IOException {
         Map<String, String> secrets = new HashMap<>();
         if (p instanceof Protocol1 p1) {
             secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getKeywordsMasterKey().getEncoded()));
@@ -166,6 +180,16 @@ public class ParsingUtils {
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
             secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p1.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
+        } else if (p instanceof Protocol2 p2) {
+            secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p2.getKeywordsMasterKey().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p2.getRNDKey().getEncoded()));
+            secrets.put(SECRETS_IV, base64Encoder.encodeToString(p2.getIvDET()));
+            secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p2.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                oos.writeObject(new KeyPair(p2.getPubDGK(), p2.getPrivDGK()));
+                secrets.put(SECRETS_KEY_PAIR, base64Encoder.encodeToString(bos.toByteArray()));
+            }
         }
         return secrets;
     }
