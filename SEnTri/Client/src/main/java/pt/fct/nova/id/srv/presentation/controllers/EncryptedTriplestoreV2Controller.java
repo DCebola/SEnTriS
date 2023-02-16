@@ -56,7 +56,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     public static final String SECRETS_KEY_PAIR = System.getenv("SECRETS_KEY_PAIR");
     private static final SecureRandom rnd = new SecureRandom();
-    
+
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
         if (cookie == null)
@@ -400,7 +400,13 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             List<Var> vars = new LinkedList<>();
             for (Var var : plan.getVars())
                 vars.add(obfuscationMap.get(var));
-            Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
+            Collection<Binding> bindings = new LinkedList<>();
+            response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), obfuscationMap, protocol, bindings, accessToken);
+            if (response != null && response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
             if (sparqlResult.isOrdered())
                 bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
             if (sparqlResult.isSliced())
@@ -450,7 +456,13 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             }
             SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
             Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
-            Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
+            Collection<Binding> bindings = new LinkedList<>();
+            response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), obfuscationMap, protocol, bindings, accessToken);
+            if (response != null && response.getStatus() != OK) {
+                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                return response.build();
+            }
             if (sparqlResult.isOrdered())
                 bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
             if (sparqlResult.isSliced())
@@ -589,10 +601,39 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 System.out.println("[ " + keyword + "] - f" + protocol.getKeywordFrequencies().get(keyword) + " | p" + preserved + " | d" + deletions + " | s" + swaps);
             }
         }
-        //TODO: Fetch eqTags. Update protocol eqTags.
+        Map<String, Integer> eqTags = new HashMap<>(3 * triplesToUpload.size());
+        response = fetchEqTags(httpClient, triplestoreID, triplesToUpload, protocol, eqTags, accessToken);
+        if (response != null && response.getStatus() != OK)
+            return response;
+        protocol.seEqTags(eqTags);
         protocol.exec(triplesToUpload, false);
         System.out.println("PRESERVED:" + totalPreserved);
         System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
+        return null;
+    }
+
+    private HTTPResponse fetchEqTags(CloseableHttpClient httpClient, String triplestoreID, List<Triple> triples, Protocol2 protocol, Map<String, Integer> eqTagsCollector, String accessToken) throws InvalidNodeException, IOException, AEADBadTagException {
+        int totalNodes = 3 * triples.size();
+        String[] shuffledEqTagTrapdoors = new String[totalNodes];
+        List<Integer> permutation = generateRandomPermutation(totalNodes);
+        for (Triple triple : triples) {
+            for (int i = 0; i < totalNodes; i += 3) {
+                shuffledEqTagTrapdoors[permutation.get(i)] = protocol.generateKeywordsEqTagTrapdoor(triple.getSubject());
+                shuffledEqTagTrapdoors[permutation.get(i + 1)] = protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate());
+                shuffledEqTagTrapdoors[permutation.get(i + 2)] = protocol.generateKeywordsEqTagTrapdoor(triple.getObject());
+            }
+        }
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(shuffledEqTagTrapdoors), accessToken);
+        if (response.getStatus() != OK) {
+            return response;
+        }
+        List<String> encryptedEqTags = ParsingUtils.parseListOfStrings(response.getBody());
+        String encryptedEqTag;
+        for (int i = 0; i < encryptedEqTags.size(); i++) {
+            encryptedEqTag = encryptedEqTags.get(permutation.get(i));
+            if (encryptedEqTag != null)
+                eqTagsCollector.put(shuffledEqTagTrapdoors[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
+        }
         return null;
     }
 
@@ -642,18 +683,37 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol2 protocol) throws AEADBadTagException {
-        //TODO: Fetch values from eqTags; Decrypt and substitute in bindings.
-        Collection<Binding> decryptedBindings = new LinkedList<>();
+    private HTTPResponse fetchAndDecryptBindings(CloseableHttpClient httpClient, String triplestoreID,
+                                                 Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap,
+                                                 Protocol2 protocol, Collection<Binding> bindingsCollector,
+                                                 String accessToken) throws AEADBadTagException, IOException {
+        List<String> eqTags = new LinkedList<>();
+        for (SerializableBinding binding : bindings) {
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); )
+                eqTags.add(binding.get(it.next()));
+        }
+        String[] shuffledEqTag = new String[eqTags.size()];
+        List<Integer> permutation = generateRandomPermutation(eqTags.size());
+        int i = 0;
+        for (String eqTag : eqTags) {
+            shuffledEqTag[permutation.get(i)] = eqTag;
+            i++;
+        }
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(shuffledEqTag), accessToken);
+        if (response.getStatus() != OK) {
+            return response;
+        }
+        List<String> encryptedBindings = ParsingUtils.parseListOfStrings(response.getBody());
         BindingBuilder builder = Binding.builder();
+        i = 0;
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                Var var = it.next();
-                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptRNDLayer(binding.get(var)))));
+                builder.add(obfuscationMap.get(it.next()), generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(permutation.get(i))))));
+                i++;
             }
-            decryptedBindings.add(builder.build());
+            bindingsCollector.add(builder.build());
             builder.reset();
         }
-        return decryptedBindings;
+        return null;
     }
 }

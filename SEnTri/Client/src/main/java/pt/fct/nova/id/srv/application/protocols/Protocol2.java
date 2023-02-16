@@ -252,8 +252,9 @@ public class Protocol2 implements EncryptionProtocol {
         return SymmetricEncryptionUtils.encrypt(plaintext, key, iv);
     }
 
-    public String generateKeywordsEqTagTrapdoor(String node) {
-        return base64Encoder.encodeToString(encryptDET(getDerivedKey(node), node.getBytes(StandardCharsets.UTF_8), zeroIV));
+    public String generateKeywordsEqTagTrapdoor(Node node) throws InvalidNodeException {
+        String parsedNode = ParsingUtils.parseNode(node);
+        return base64Encoder.encodeToString(encryptDET(getDerivedKey(parsedNode), parsedNode.getBytes(StandardCharsets.UTF_8), zeroIV));
     }
 
     public String generateKeywordsFrequencyTrapdoor(String keyword) {
@@ -300,6 +301,11 @@ public class Protocol2 implements EncryptionProtocol {
         }
     }
 
+    public void seEqTags(Map<String, Integer> values) {
+        eqTags.clear();
+        eqTags.putAll(values);
+    }
+
     public void deleteKeyword(String keyword) {
         Integer frequency = keywordFrequencies.get(keyword);
         if (frequency != null) {
@@ -310,4 +316,6 @@ public class Protocol2 implements EncryptionProtocol {
                 keywordFrequencies.put(keyword, frequency - 1);
         }
     }
+
+
 }
