@@ -1,28 +1,28 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
-import pt.fct.nova.id.srv.application.clients.*;
-import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngine;
-import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
+import pt.fct.nova.id.srv.application.clients.HTTPClient;
+import pt.fct.nova.id.srv.application.clients.HTTPUtils;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.clients.ProxyClient;
+import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-import static jakarta.ws.rs.core.Response.Status.*;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 
 
-@Path("/encrypted")
-public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
+public class EncryptedTriplestoreController {
     private static final String SUCCESSFUL_DELETE_SOME = "Successful deletion of values from store.";
-    private static final String SUCCESSFUL_SWAP =  "Successful deletion of values from store.";
-    private static final RedisEncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngine();
+    private static final String SUCCESSFUL_SWAP = "Successful deletion of values from store.";
 
-    @Override
-    public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
+    public static Response upload(EncryptedStorageEngine storageEngine, String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -39,8 +39,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    @Override
-    public Response prepareSearch(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public static Response prepareSearch(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -60,8 +59,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    @Override
-    public Response search(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public static Response search(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -78,8 +76,8 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    @Override
-    public Response delete(String triplestoreID, List<String> authorizationHeaders) {
+
+    public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -96,8 +94,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    @Override
-    public Response delete(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -114,8 +111,7 @@ public class EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
         }
     }
 
-    @Override
-    public Response swap(String triplestoreID, Map<String, String> values, List<String> authorizationHeaders) {
+    public static Response swap(EncryptedStorageEngine storageEngine, String triplestoreID, Map<String, String> values, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();

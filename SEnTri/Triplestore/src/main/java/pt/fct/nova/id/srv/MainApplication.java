@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv;
 
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
-import pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreController;
+import pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller;
 import pt.fct.nova.id.srv.presentation.controllers.TriplestoreController;
 
 import jakarta.ws.rs.core.Application;
@@ -13,7 +13,7 @@ public class MainApplication extends Application {
 
     public MainApplication() {
         resources.add(ControlController.class);
-        resources.add(EncryptedTriplestoreController.class);
+        resources.add(EncryptedTriplestoreV1Controller.class);
         resources.add(TriplestoreController.class);
     }
 

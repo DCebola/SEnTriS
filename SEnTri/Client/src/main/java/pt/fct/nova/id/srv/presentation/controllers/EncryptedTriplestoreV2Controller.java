@@ -493,6 +493,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
+        //TODO: Add v2 endpoints. Maybe if there is time fix garbage from eqTags.
         return updateTriplestore(httpClient, cookie, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
     }
 
