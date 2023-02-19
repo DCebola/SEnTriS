@@ -6,19 +6,20 @@ import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
+import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV1;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
 import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
 
 import javax.crypto.SecretKey;
 import java.util.*;
 
-public class SecureSPARQLWorker implements SPARQLWorker {
+public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
 
     private final SPARQLResult result;
     private final SecretKey key;
     private final Set<String> allSearchIDs;
 
-    public SecureSPARQLWorker(SecretKey key) {
+    public SecureSPARQLWorkerV1(SecretKey key) {
         result = new DefaultSPARQLResult();
         this.key = key;
         allSearchIDs = new HashSet<>();
@@ -33,7 +34,7 @@ public class SecureSPARQLWorker implements SPARQLWorker {
         if (job instanceof SecureSearchJob secureSearchJob) {
             Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
-            return ProxyStorage.search(key, secureSearchJob.getVars(), searches);
+            return ProxyStorageV1.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EmptyResJob) return new MemBindingsTableV1(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }

@@ -34,6 +34,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.*;
@@ -239,6 +240,10 @@ public class ParsingUtils {
             return NodeFactory.createLiteral(
                     split[VALUE_POS],
                     TypeMapper.getInstance().getSafeTypeByName(split[LITERAL_DATATYPE_POS]));
+    }
+
+    public static BigInteger parseEqTag(String value){
+        return new BigInteger(base64Decoder.decode(value));
     }
 
     public static byte[] integerToByteArray(int integer) {

@@ -136,7 +136,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         mutual_vars.retainAll(other.getVars());
         return join(eqChecker, mutual_vars, this, other, INNER);
     }
-    
+
 
     private BindingsTableV2 join(DGKEqChecker eqChecker, Set<Var> mutualVars, BindingsTableV2 left, BindingsTableV2 right, JoinType joinType) throws HomomorphicException {
         Set<Var> l_vars = new HashSet<>(left.getVars());

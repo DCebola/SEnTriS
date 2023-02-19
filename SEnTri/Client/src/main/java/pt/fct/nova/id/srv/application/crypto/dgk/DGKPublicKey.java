@@ -1,12 +1,11 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.HashMap;
 
-public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, CipherConstants {
+public final class DGKPublicKey implements DGK_Key, PublicKey, CipherConstants {
 
     @Serial
     private static final long serialVersionUID = -1613333167285302035L;

@@ -41,6 +41,7 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.util.*;
@@ -707,7 +708,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         uniqueEqTags.clear();
         for (String eqTag : eqTags) {
             if (!uniqueEqTags.contains(eqTag)) {
-                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: Subtract r.
+                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: decode from base64, subtract r, encode to base64.
                 i++;
             } else
                 expandedPermutation.add(permutation.get(i));
