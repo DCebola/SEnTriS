@@ -18,6 +18,7 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
@@ -125,11 +126,11 @@ public class ParsingUtils {
         }
     }
 
-    public static HttpEntity generateSecureQueryRequest(SecretKey key, DefaultQueryExecutionPlan plan) throws IOException {
+    public static HttpEntity generateSecureQueryRequest(byte[] keyBytes, DefaultQueryExecutionPlan plan) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(plan);
             return MultipartEntityBuilder.create()
-                    .addBinaryBody("key", key.getEncoded())
+                    .addBinaryBody("key", keyBytes)
                     .addBinaryBody("queryExecutionPlan", bos.toByteArray())
                     .build();
         }
@@ -242,8 +243,15 @@ public class ParsingUtils {
                     TypeMapper.getInstance().getSafeTypeByName(split[LITERAL_DATATYPE_POS]));
     }
 
-    public static BigInteger parseEqTag(String value){
+    public static BigInteger parseEqTag(String value) {
         return new BigInteger(base64Decoder.decode(value));
+    }
+
+    public static byte[] DGKKeyToByteArray(DGKEqKey eqKey) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(eqKey);
+            return bos.toByteArray();
+        }
     }
 
     public static byte[] integerToByteArray(int integer) {
@@ -297,6 +305,5 @@ public class ParsingUtils {
             parsed_o = parseKeyword(o);
         return String.format(TRIPLE_KEYWORD, parsed_s, parsed_p, parsed_o);
     }
-
 
 }

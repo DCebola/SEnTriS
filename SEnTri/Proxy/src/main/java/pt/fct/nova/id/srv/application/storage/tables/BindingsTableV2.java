@@ -1,7 +1,8 @@
 package pt.fct.nova.id.srv.application.storage.tables;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqChecker;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 
 import java.math.BigInteger;
@@ -28,12 +29,12 @@ public interface BindingsTableV2 {
 
     void project(Collection<Var> vars);
 
-    BindingsTableV2 join(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException;
+    BindingsTableV2 join(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException;
 
     BindingsTableV2 union(BindingsTableV2 other);
 
-    BindingsTableV2 leftOuterJoin(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException;
+    BindingsTableV2 leftOuterJoin(BindingsTableV2 other,  DGKEqKey key) throws HomomorphicException;
 
-    BindingsTableV2 minus(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException;
+    BindingsTableV2 minus(BindingsTableV2 other,  DGKEqKey key) throws HomomorphicException;
 
 }

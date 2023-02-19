@@ -58,6 +58,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     public static final String SECRETS_KEY_PAIR = System.getenv("SECRETS_KEY_PAIR");
     private static final SecureRandom rnd = new SecureRandom();
+    private static final String protocolVersion = "v2";
 
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
@@ -176,7 +177,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             else
                 trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -194,7 +195,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             for (int i = 0; i < schemaFrequency; i++)
                 schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
 
-            response = deleteSomeContents(httpClient, triplestoreID, Set.of(schemaTrapdoors), accessToken);
+            response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, Set.of(schemaTrapdoors), accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -203,7 +204,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         }
         Collections.shuffle(triples);
         protocol.exec(triples, true);
-        response = upload(httpClient, triplestoreID, protocol.getEncryptedNodes(), accessToken);
+        response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         return response.build();
@@ -254,7 +255,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             else
                 trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, trapdoors, accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;
 
@@ -270,7 +271,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             for (int i = 0; i < schemaFrequency; i++)
                 schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
 
-            response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(schemaTrapdoors), accessToken);
+            response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(schemaTrapdoors), accessToken);
             if (response.getStatus() != OK)
                 return response;
 
@@ -359,7 +360,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             trapdoors[permutation.get(i)] = protocol.generateKeywordsFrequencyTrapdoor(keyword);
             i++;
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(trapdoors), accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(trapdoors), accessToken);
         if (response.getStatus() != OK)
             return response;
         List<String> encryptedKeywordsFrequencies = ParsingUtils.parseListOfStrings(response.getBody());
@@ -391,7 +392,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
-        response = query(httpClient, protocol.getRNDKey(), plan, accessToken);
+        response = query(httpClient, protocolVersion, ParsingUtils.DGKKeyToByteArray(protocol.getEqKey()), plan, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
@@ -451,7 +452,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            response = query(httpClient, protocol.getRNDKey(), plan, accessToken);
+            response = query(httpClient, protocolVersion, ParsingUtils.DGKKeyToByteArray(protocol.getEqKey()), plan, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -532,7 +533,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             offset += length;
         }
         System.out.println(trapdoorsToDelete.length);
-        response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(trapdoorsToDelete), accessToken);
+        response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(trapdoorsToDelete), accessToken);
         if (response.getStatus() != OK)
             return response;
         encryptedInstances = ParsingUtils.parseListOfStrings(response.getBody());
@@ -627,7 +628,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 shuffledEqTagTrapdoors[permutation.get(i + 2)] = protocol.generateKeywordsEqTagTrapdoor(triple.getObject());
             }
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(shuffledEqTagTrapdoors), accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTagTrapdoors), accessToken);
         if (response.getStatus() != OK) {
             return response;
         }
@@ -668,7 +669,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                         trapdoors[j][permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(keyword);
                 }
                 for (int i = 0; i < vars.length; i++) {
-                    response = prepareSearch(httpClient, triplestoreID, List.of(trapdoors[i]), accessToken);
+                    response = prepareSearch(httpClient, protocolVersion, triplestoreID, List.of(trapdoors[i]), accessToken);
                     if (response.getStatus() != OK)
                         return response;
                     String searchID = response.getBody();
@@ -714,7 +715,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 expandedPermutation.add(permutation.get(i));
             uniqueEqTags.add(eqTag);
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(shuffledEqTag), accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTag), accessToken);
         if (response.getStatus() != OK) {
             return response;
         }

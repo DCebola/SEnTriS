@@ -4,9 +4,7 @@ package pt.fct.nova.id.srv.application.protocols;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKPublicKey;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
-import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
+import pt.fct.nova.id.srv.application.crypto.dgk.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
@@ -318,4 +316,12 @@ public class Protocol2 implements EncryptionProtocol {
     }
 
 
+    public DGKEqKey getEqKey() {
+        return new DGKEqKey(
+                ((DGKPrivateKey) privDGK).getP(),
+                ((DGKPrivateKey) privDGK).getVp(),
+                ((DGKPublicKey) pubDGK).getN(),
+                ((DGKPublicKey) pubDGK).getU()
+        );
+    }
 }

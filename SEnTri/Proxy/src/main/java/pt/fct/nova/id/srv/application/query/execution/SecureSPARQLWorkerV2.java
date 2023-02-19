@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqChecker;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.JobInstanceException;
@@ -23,7 +23,6 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
     private final SPARQLResult result;
     private final DGKEqKey key;
-    private final DGKEqChecker eqChecker;
     private final Set<String> allSearchIDs;
 
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
@@ -31,7 +30,6 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     public SecureSPARQLWorkerV2(DGKEqKey key) {
         result = new DefaultSPARQLResult();
         this.key = key;
-        this.eqChecker = new DGKEqChecker(key);
         allSearchIDs = new HashSet<>();
     }
 
@@ -106,7 +104,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     private BindingsTableV2 execJoin(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
-        BindingsTableV2 join = left.join(right, eqChecker);
+        BindingsTableV2 join = left.join(right, key);
         System.out.println("JOIN: " + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
@@ -122,7 +120,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     private BindingsTableV2 execOptional(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
-        BindingsTableV2 optional = left.leftOuterJoin(right, eqChecker);
+        BindingsTableV2 optional = left.leftOuterJoin(right, key);
         System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
@@ -130,7 +128,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     private BindingsTableV2 execMinus(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
-        BindingsTableV2 minus = left.minus(right, eqChecker);
+        BindingsTableV2 minus = left.minus(right, key);
         System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));

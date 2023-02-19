@@ -2,7 +2,8 @@ package pt.fct.nova.id.srv.application.storage.tables;
 
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqChecker;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 
 import java.math.BigInteger;
@@ -131,14 +132,14 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     @Override
-    public BindingsTableV2 join(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException {
+    public BindingsTableV2 join(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        return join(eqChecker, mutual_vars, this, other, INNER);
+        return join(key, mutual_vars, this, other, INNER);
     }
 
 
-    private BindingsTableV2 join(DGKEqChecker eqChecker, Set<Var> mutualVars, BindingsTableV2 left, BindingsTableV2 right, JoinType joinType) throws HomomorphicException {
+    private BindingsTableV2 join(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, BindingsTableV2 right, JoinType joinType) throws HomomorphicException {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -158,9 +159,9 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
             r_bindings = right.getBindings(v);
             for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet()) {
                 l_p_idxs = entry.getValue();
-                r_p_idxs = searchVarBindings(eqChecker, r_bindings, entry.getKey());
+                r_p_idxs = searchVarBindings(key, r_bindings, entry.getKey());
                 if (r_p_idxs != null || joinType.equals(LEFT))
-                    joinPatterns(eqChecker, mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
+                    joinPatterns(key, mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
             }
             break;
         }
@@ -174,7 +175,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         }
     }
 
-    private void joinPatterns(DGKEqChecker eqChecker, Set<Var> mutualVars, BindingsTableV2 left, Set<Var> leftVars, Set<String> leftPatternIdxs,
+    private void joinPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Set<Var> leftVars, Set<String> leftPatternIdxs,
                               BindingsTableV2 right, Set<Var> rightVars, Set<String> rightPatternIdxs, BindingsTableV2 res, JoinType joinType) throws HomomorphicException {
         String p;
         boolean foundMatch;
@@ -182,7 +183,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
             foundMatch = false;
             if (rightPatternIdxs != null) {
                 for (String r : rightPatternIdxs) {
-                    if (equalPatterns(eqChecker, mutualVars, left, l, right, r)) {
+                    if (equalPatterns(key, mutualVars, left, l, right, r)) {
                         foundMatch = true;
                         p = generateID();
                         copyBindings(p, l, mutualVars, left, res);
@@ -198,7 +199,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         }
     }
 
-    private boolean equalPatterns(DGKEqChecker eqChecker, Set<Var> mutualVars, BindingsTableV2 left, String leftPattern, BindingsTableV2 right, String rightPattern) throws HomomorphicException {
+    private boolean equalPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, String leftPattern, BindingsTableV2 right, String rightPattern) throws HomomorphicException {
         BigInteger l_binding, r_binding;
         for (Var v : mutualVars) {
             l_binding = left.getPatternIdxs(v).get(leftPattern);
@@ -207,7 +208,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
                 return false;
             else if (l_binding != null && r_binding == null)
                 return false;
-            else if (l_binding != null && !eqChecker.check(l_binding, r_binding))
+            else if (l_binding != null && !DGKEqUtils.equals(key, l_binding, r_binding))
                 return false;
         }
         return true;
@@ -239,14 +240,14 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     @Override
-    public BindingsTableV2 leftOuterJoin(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException {
+    public BindingsTableV2 leftOuterJoin(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
-        return join(eqChecker, mutual_vars, this, other, LEFT);
+        return join(key, mutual_vars, this, other, LEFT);
     }
 
     @Override
-    public BindingsTableV2 minus(BindingsTableV2 other, DGKEqChecker eqChecker) throws HomomorphicException {
+    public BindingsTableV2 minus(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
@@ -256,7 +257,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
             l_bindings = this.getBindings(v);
             r_bindings = other.getBindings(v);
             for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet())
-                if (searchVarBindings(eqChecker, r_bindings, entry.getKey()) == null) diff.addAll(entry.getValue());
+                if (searchVarBindings(key, r_bindings, entry.getKey()) == null) diff.addAll(entry.getValue());
         }
 
         BindingsTableV2 res = new MemBindingsTableV2(mutual_vars);
@@ -274,9 +275,9 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         return res;
     }
 
-    private Set<String> searchVarBindings(DGKEqChecker eqChecker, Map<BigInteger, Set<String>> bindings, BigInteger target) throws HomomorphicException {
+    private Set<String> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<String>> bindings, BigInteger target) throws HomomorphicException {
         for (BigInteger source : bindings.keySet()) {
-            if (eqChecker.check(source, target))
+            if (DGKEqUtils.equals(key, source, target))
                 return bindings.get(source);
         }
         return null;
