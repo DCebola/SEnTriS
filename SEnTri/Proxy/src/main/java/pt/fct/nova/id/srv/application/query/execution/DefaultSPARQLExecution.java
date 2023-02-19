@@ -5,13 +5,13 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
 import java.util.*;
 
 public class DefaultSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, BindingsTable> jobResults;
+    private final Map<String, BindingsTableV1> jobResults;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
@@ -67,7 +67,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
         result = worker.generateResults(jobResults.get(current));
     }
 
-    private BindingsTable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
+    private BindingsTableV1 delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
         Job job = jobs.get(current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,

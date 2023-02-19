@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -383,6 +384,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
+        //TODO: Generate r.
         response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency, accessToken);
         if (response != null && response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -689,16 +691,27 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                                  Protocol2 protocol, Collection<Binding> bindingsCollector,
                                                  String accessToken) throws AEADBadTagException, IOException {
         List<String> eqTags = new LinkedList<>();
+        Set<String> uniqueEqTags = new HashSet<>();
+        String nextEqTag;
         for (SerializableBinding binding : bindings) {
-            for (Iterator<Var> it = binding.vars(); it.hasNext(); )
-                eqTags.add(binding.get(it.next()));
+            for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
+                nextEqTag = binding.get(it.next());
+                eqTags.add(nextEqTag);
+                uniqueEqTags.add(nextEqTag);
+            }
         }
-        String[] shuffledEqTag = new String[eqTags.size()];
-        List<Integer> permutation = generateRandomPermutation(eqTags.size());
+        String[] shuffledEqTag = new String[uniqueEqTags.size()];
+        List<Integer> permutation = generateRandomPermutation(uniqueEqTags.size());
+        List<Integer> expandedPermutation = new ArrayList<>(eqTags.size());
         int i = 0;
+        uniqueEqTags.clear();
         for (String eqTag : eqTags) {
-            shuffledEqTag[permutation.get(i)] = eqTag;
-            i++;
+            if (!uniqueEqTags.contains(eqTag)) {
+                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: Subtract r.
+                i++;
+            } else
+                expandedPermutation.add(permutation.get(i));
+            uniqueEqTags.add(eqTag);
         }
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, triplestoreID, List.of(shuffledEqTag), accessToken);
         if (response.getStatus() != OK) {
@@ -706,10 +719,19 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         }
         List<String> encryptedBindings = ParsingUtils.parseListOfStrings(response.getBody());
         BindingBuilder builder = Binding.builder();
+        Map<Integer, Node> decryptedNodes = new HashMap<>();
+        Node decryptedNode;
         i = 0;
+        int j;
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                builder.add(obfuscationMap.get(it.next()), generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(permutation.get(i))))));
+                j = expandedPermutation.get(i);
+                decryptedNode = decryptedNodes.get(j);
+                if (decryptedNode == null) {
+                    decryptedNode = generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(j))));
+                    decryptedNodes.put(j, decryptedNode);
+                }
+                builder.add(obfuscationMap.get(it.next()), decryptedNode);
                 i++;
             }
             bindingsCollector.add(builder.build());

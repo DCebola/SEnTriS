@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface BindingsTable {
+public interface BindingsTableV1 {
 
     void add(String patternIdx, Var var, String binding);
 
@@ -25,12 +25,12 @@ public interface BindingsTable {
 
     void project(Collection<Var> vars);
 
-    BindingsTable join(BindingsTable other);
+    BindingsTableV1 join(BindingsTableV1 other);
 
-    BindingsTable union(BindingsTable other);
+    BindingsTableV1 union(BindingsTableV1 other);
 
-    BindingsTable leftOuterJoin(BindingsTable other);
+    BindingsTableV1 leftOuterJoin(BindingsTableV1 other);
 
-    BindingsTable minus(BindingsTable other);
+    BindingsTableV1 minus(BindingsTableV1 other);
 
 }

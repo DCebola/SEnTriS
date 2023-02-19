@@ -45,5 +45,5 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine {
         }
     }
 
-    //TODO: Prepare search w/ multiplication...
+    //TODO: Prepare search w/ addition of r...
 }

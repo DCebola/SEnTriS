@@ -13,20 +13,9 @@ and Samet Tonyali for helping on revising the code/debugging it.
  */
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 
-public class NTL implements CipherConstants {
-    private static final SecureRandom rnd = new SecureRandom();
-
-    public static BigInteger POSMOD(BigInteger x, BigInteger n) {
+public class NTL {
+        public static BigInteger POSMOD(BigInteger x, BigInteger n) {
         return x.mod(n).add(n).mod(n);
     }
-
-    // Ensure it is n-bit Large number and positive as well
-    public static BigInteger generateXBitRandom(int bits) {
-        BigInteger r = new BigInteger(bits, rnd);
-        r = r.setBit(bits - 1);
-        return r;
-    }
-
 }
