@@ -170,6 +170,7 @@ public class ParsingUtils {
         KeyPair keyPair = DGKUtils.parseKeyPair(base64Decoder.decode(secrets.get(SECRETS_KEY_PAIR)));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
         String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        System.out.println("Retrieved protocol 2.");
         return new Protocol2(k1, k2, keyPair, iv, schemaKeyword);
     }
 

@@ -56,7 +56,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 @Path("triplestores/encrypted/v2")
 public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreController implements EncryptedTriplestoreAPI {
 
-    public static final String SECRETS_KEY_PAIR = System.getenv("SECRETS_KEY_PAIR");
+    public static final String SECRETS_KEY_PAIR = System.getenv("SECRETS_PROTOCOL_KEY_PAIR");
     private static final SecureRandom rnd = new SecureRandom();
     private static final String protocolVersion = "v2";
 
@@ -74,6 +74,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
                 return response.build();
+            System.out.println("Got token");
 
             String accessToken = response.getBody();
             response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -81,8 +82,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
+            System.out.println("Acquired lock.");
             response = saveProtocolSecrets(httpClient, triplestoreID, generateSecretsMap(new Protocol2()), accessToken);
             if (response.getStatus() != OK) {
+                System.out.println("Error saving secrets.");
                 HTTPResponse response2 = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
                 if (response2.getStatus() != OK)
                     return response2.build();
@@ -105,7 +108,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         if (cookie == null)
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            HTTPResponse response = deleteEncryptedTriplestore(httpClient, cookie, triplestoreID, issuer);
+            HTTPResponse response = deleteEncryptedTriplestore(httpClient, cookie, protocolVersion, triplestoreID, issuer);
             if (response.getStatus() != OK)
                 return response.build();
             return Response.ok(SUCCESSFUL_DELETION).build();
@@ -144,8 +147,8 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseMapOfStringString(response.getBody());
+            secrets.entrySet().forEach(System.out::println);
             Protocol2 protocol = getProtocol2(secrets);
-
             if (schema)
                 return uploadOntologySchema(httpClient, cookie, triplestoreID, protocol, triples, accessToken);
             else {
@@ -168,6 +171,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol2 protocol, List<Triple> triples, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
         String schemaKeyword = protocol.getSchemaKeyword();
+        System.out.println(schemaKeyword);
         int numTrapdoors = rnd.nextInt(minimumTrapdoors, maximumTrapdoors);
         List<String> trapdoors = new ArrayList<>(numTrapdoors);
         int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
@@ -178,6 +182,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
         }
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
+        System.out.println("Searched contents.");
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -498,7 +503,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return response.build();
         }
         //TODO: Add v2 endpoints. Maybe if there is time fix garbage from eqTags.
-        return updateTriplestore(httpClient, cookie, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
+        return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
     }
 
     private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol2 protocol,
@@ -611,7 +616,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         if (response != null && response.getStatus() != OK)
             return response;
         protocol.seEqTags(eqTags);
+        long startTime = System.nanoTime();
         protocol.exec(triplesToUpload, false);
+        long duration = System.nanoTime() - startTime;
+        System.out.println("Protocol duration: " + duration / 1000);
         System.out.println("PRESERVED:" + totalPreserved);
         System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
         return null;
@@ -621,12 +629,12 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         int totalNodes = 3 * triples.size();
         String[] shuffledEqTagTrapdoors = new String[totalNodes];
         List<Integer> permutation = generateRandomPermutation(totalNodes);
+        int i = 0;
         for (Triple triple : triples) {
-            for (int i = 0; i < totalNodes; i += 3) {
-                shuffledEqTagTrapdoors[permutation.get(i)] = protocol.generateKeywordsEqTagTrapdoor(triple.getSubject());
-                shuffledEqTagTrapdoors[permutation.get(i + 1)] = protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate());
-                shuffledEqTagTrapdoors[permutation.get(i + 2)] = protocol.generateKeywordsEqTagTrapdoor(triple.getObject());
-            }
+            shuffledEqTagTrapdoors[permutation.get(i)] = protocol.generateKeywordsEqTagTrapdoor(triple.getSubject());
+            shuffledEqTagTrapdoors[permutation.get(i + 1)] = protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate());
+            shuffledEqTagTrapdoors[permutation.get(i + 2)] = protocol.generateKeywordsEqTagTrapdoor(triple.getObject());
+            i += 3;
         }
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTagTrapdoors), accessToken);
         if (response.getStatus() != OK) {
@@ -634,7 +642,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         }
         List<String> encryptedEqTags = ParsingUtils.parseListOfStrings(response.getBody());
         String encryptedEqTag;
-        for (int i = 0; i < encryptedEqTags.size(); i++) {
+        for (i = 0; i < encryptedEqTags.size(); i++) {
             encryptedEqTag = encryptedEqTags.get(permutation.get(i));
             if (encryptedEqTag != null)
                 eqTagsCollector.put(shuffledEqTagTrapdoors[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));

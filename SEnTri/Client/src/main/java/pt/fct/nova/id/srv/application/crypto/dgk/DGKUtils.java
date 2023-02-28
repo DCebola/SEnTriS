@@ -28,6 +28,9 @@ public class DGKUtils {
         try (ByteArrayInputStream is = new ByteArrayInputStream(contents);
              ObjectInputStream ois = new ObjectInputStream(is)) {
             return (KeyPair) ois.readObject();
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
         }
     }
 }

@@ -98,7 +98,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         if (cookie == null)
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            HTTPResponse response = deleteEncryptedTriplestore(httpClient, cookie, triplestoreID, issuer);
+            HTTPResponse response = deleteEncryptedTriplestore(httpClient, cookie, protocolVersion, triplestoreID, issuer);
             if (response.getStatus() != OK)
                 return response.build();
             return Response.ok(SUCCESSFUL_DELETION).build();
@@ -477,7 +477,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
-        return updateTriplestore(httpClient, cookie, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
+        return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
     }
 
     private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,

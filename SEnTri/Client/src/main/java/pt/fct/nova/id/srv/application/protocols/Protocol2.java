@@ -63,6 +63,7 @@ public class Protocol2 implements EncryptionProtocol {
         this.base64Decoder = Base64.getUrlDecoder();
         this.base64Encoder = Base64.getUrlEncoder();
         this.zeroIV = SymmetricEncryptionUtils.generateZeroFilledIV();
+        System.out.println("Generated secrets.");
     }
 
     public byte[] getIvDET() {
