@@ -39,7 +39,7 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public static Response prepareSearch(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public static Response prepareSearch(EncryptedStorageEngine storageEngine, String protocolVersion, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -50,7 +50,7 @@ public class EncryptedTriplestoreController {
                     return HTTPUtils.buildResponse(response);
             }
 
-            try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
+            try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
                 return HTTPUtils.buildResponse(response);
             }
         } catch (Exception e) {

@@ -25,10 +25,12 @@ public class EncryptedTriplestoreClient {
     }
 
     public static CloseableHttpResponse search(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+        System.out.printf((SEARCH_URI) + "POST %n", protocolVersion, triplestoreID);
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, protocolVersion, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
     public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException, URISyntaxException {
+        System.out.printf((PREPARE_SEARCH_URI) + "POST %n", protocolVersion, triplestoreID);
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(PREPARE_SEARCH_URI, protocolVersion, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 

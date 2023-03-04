@@ -377,6 +377,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             else
                 keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], 0);
         }
+        keywordsFrequencyCollector.entrySet().forEach(System.out::println);
         return null;
     }
 
@@ -701,13 +702,13 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                                  Protocol2 protocol, Collection<Binding> bindingsCollector,
                                                  String accessToken) throws AEADBadTagException, IOException {
         List<String> eqTags = new LinkedList<>();
-        Set<String> uniqueEqTags = new HashSet<>();
+        Map<String, Integer> uniqueEqTags = new HashMap<>();
         String nextEqTag;
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 nextEqTag = binding.get(it.next());
                 eqTags.add(nextEqTag);
-                uniqueEqTags.add(nextEqTag);
+                uniqueEqTags.put(nextEqTag, 0);
             }
         }
         String[] shuffledEqTag = new String[uniqueEqTags.size()];
@@ -716,13 +717,14 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         int i = 0;
         uniqueEqTags.clear();
         for (String eqTag : eqTags) {
-            if (!uniqueEqTags.contains(eqTag)) {
+            if (!uniqueEqTags.containsKey(eqTag)) {
+                uniqueEqTags.put(eqTag, i);
                 shuffledEqTag[permutation.get(i)] = eqTag; //TODO: decode from base64, subtract r, encode to base64.
                 i++;
-            } else
-                expandedPermutation.add(permutation.get(i));
-            uniqueEqTags.add(eqTag);
+            }
+            expandedPermutation.add(permutation.get(uniqueEqTags.get(eqTag)));
         }
+
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTag), accessToken);
         if (response.getStatus() != OK) {
             return response;

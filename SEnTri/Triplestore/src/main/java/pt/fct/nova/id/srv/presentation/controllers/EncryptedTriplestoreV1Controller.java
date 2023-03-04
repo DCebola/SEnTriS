@@ -11,7 +11,7 @@ import java.util.*;
 @Path("/encrypted/v1")
 public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreAPI {
     private static final EncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngineV1();
-
+    private static final String protocolVersion = "v1";
     @Override
     public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
         return EncryptedTriplestoreController.upload(storageEngine, triplestoreID, encryptedNodes, authorizationHeaders);
@@ -19,7 +19,7 @@ public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreAPI
 
     @Override
     public Response prepareSearch(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
-        return EncryptedTriplestoreController.prepareSearch(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
+        return EncryptedTriplestoreController.prepareSearch(storageEngine, protocolVersion, triplestoreID, trapdoors, authorizationHeaders);
     }
 
     @Override
