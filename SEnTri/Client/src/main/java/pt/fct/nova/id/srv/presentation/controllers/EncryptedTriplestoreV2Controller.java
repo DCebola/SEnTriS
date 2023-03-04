@@ -719,7 +719,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         for (String eqTag : eqTags) {
             if (!uniqueEqTags.containsKey(eqTag)) {
                 uniqueEqTags.put(eqTag, i);
-                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: decode from base64, subtract r, encode to base64.
+                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: decode from base64, subtract r, encode to base64. Use JNA for the pows
                 i++;
             }
             expandedPermutation.add(permutation.get(uniqueEqTags.get(eqTag)));
