@@ -13,9 +13,7 @@ import redis.clients.jedis.Response;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
@@ -37,20 +35,31 @@ public class ProxyStorageV2 extends ProxyStorage {
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get());
 
-            HashMap<Var, Set<BigInteger>> groupedEqTags = new HashMap<>();
+            Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
 
             System.out.println("creating service");
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(16);
 
-            List<Runnable> runnables = new ArrayList<>(16);
+            List<Thread> threads = new ArrayList<>(16);
             int total = searchResults.get(vars[0]).size();
             int batchSize = total / 16;
-            int currentLimit = batchSize + (total % 16);
+            int totalBatches;
+            int currentLimit;
+            if (total < 16) {
+                totalBatches = 1;
+                currentLimit = total;
+            } else {
+                batchSize = total / 16;
+                totalBatches = 16;
+                currentLimit = batchSize + (total % 16);
+            }
             int offset = 0;
-            for (int t = 0; t < 16; t++) {
+            for (int t = 0; t < totalBatches; t++) {
                 int finalCurrentLimit = currentLimit;
                 int finalOffset = offset;
-                runnables.add(() -> {
+                int finalT = t;
+                threads.add(new Thread(() -> {
+                    System.out.println("T" + finalT + " | " + finalOffset + " | " + finalCurrentLimit);
+                    int x = 0;
                     for (int i = finalOffset; i < finalCurrentLimit; i++) {
                         String p_idx = generateID();
                         for (Var var : vars) {
@@ -61,13 +70,16 @@ public class ProxyStorageV2 extends ProxyStorage {
                                 throw new RuntimeException(e);
                             }
                         }
+                        x = i;
                     }
-                });
+                    System.out.println("T" + finalT + " | " + x);
+                }));
                 offset = currentLimit;
                 currentLimit += batchSize;
             }
-            runnables.forEach(executor::execute);
-            while (executor.getActiveCount() > 0) {}
+            threads.forEach(Thread::start);
+            for (Thread thread : threads)
+                thread.join();
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;
         } catch (Exception e) {
@@ -75,10 +87,10 @@ public class ProxyStorageV2 extends ProxyStorage {
         }
     }
 
-    private static BigInteger groupEqTag(DGKEqKey key, HashMap<Var, Set<BigInteger>> groupedEqTags, Var var, BigInteger newEqTag) throws HomomorphicException {
+    private static BigInteger groupEqTag(DGKEqKey key, Map<Var, Set<BigInteger>> groupedEqTags, Var var, BigInteger newEqTag) throws HomomorphicException {
         Set<BigInteger> eqTags = groupedEqTags.get(var);
         if (eqTags == null) {
-            eqTags = new HashSet<>();
+            eqTags = ConcurrentHashMap.newKeySet();
             eqTags.add(newEqTag);
             groupedEqTags.put(var, eqTags);
             return newEqTag;

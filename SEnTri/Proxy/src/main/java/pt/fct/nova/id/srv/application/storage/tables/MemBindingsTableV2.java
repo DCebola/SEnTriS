@@ -209,8 +209,9 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
                 return false;
             else if (l_binding != null && r_binding == null)
                 return false;
-            else if (l_binding != null && !DGKEqUtils.equals(key, l_binding, r_binding))
-                return false;
+            else if (l_binding != null && !l_binding.equals(r_binding))
+                if (!DGKEqUtils.equals(key, l_binding, r_binding))
+                    return false;
         }
         return true;
     }
@@ -277,12 +278,18 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     private Set<String> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<String>> bindings, BigInteger target) throws HomomorphicException {
-        for (BigInteger source : bindings.keySet()) {
-            if (DGKEqUtils.equals(key, source, target))
-                return bindings.get(source);
-        }
-        return null;
+        BigInteger res = bindings.keySet().parallelStream()
+                .filter(item -> {
+                    try {
+                        return DGKEqUtils.equals(key, item, target);
+                    } catch (HomomorphicException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .findAny()
+                .orElse(null);
+        if (res == null)
+            return null;
+        else return bindings.get(res);
     }
-
-
 }
