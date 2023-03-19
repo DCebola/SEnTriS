@@ -8,6 +8,7 @@ import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.jena.sparql.algebra.JoinType.INNER;
 import static org.apache.jena.sparql.algebra.JoinType.LEFT;
@@ -19,26 +20,26 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     private final Map<Var, Map<String, BigInteger>> patterns;
 
     public MemBindingsTableV2() {
-        bindings = new HashMap<>();
-        patterns = new HashMap<>();
+        bindings = new ConcurrentHashMap<>();
+        patterns = new ConcurrentHashMap<>();
     }
 
 
     public MemBindingsTableV2(Iterable<Var> vars) {
-        bindings = new HashMap<>();
-        patterns = new HashMap<>();
+        bindings = new ConcurrentHashMap<>();
+        patterns = new ConcurrentHashMap<>();
         for (Var v : vars) {
-            bindings.put(v, new HashMap<>());
-            patterns.put(v, new HashMap<>());
+            bindings.put(v, new ConcurrentHashMap<>());
+            patterns.put(v, new ConcurrentHashMap<>());
         }
     }
 
     public MemBindingsTableV2(Var... vars) {
-        bindings = new HashMap<>();
-        patterns = new HashMap<>();
+        bindings = new ConcurrentHashMap<>();
+        patterns = new ConcurrentHashMap<>();
         for (Var v : vars) {
-            bindings.put(v, new HashMap<>());
-            patterns.put(v, new HashMap<>());
+            bindings.put(v, new ConcurrentHashMap<>());
+            patterns.put(v, new ConcurrentHashMap<>());
         }
     }
 
@@ -52,7 +53,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     private void addPattern(BigInteger binding, Var var, String patternIdx) {
         Map<String, BigInteger> v_p_idxs = patterns.get(var);
         if (v_p_idxs == null) {
-            v_p_idxs = new HashMap<>();
+            v_p_idxs = new ConcurrentHashMap<>();
             v_p_idxs.put(patternIdx, binding);
             patterns.put(var, v_p_idxs);
         } else v_p_idxs.put(patternIdx, binding);
@@ -61,7 +62,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     private void addIRI(BigInteger binding, Var var, String patternIdx) {
         Map<BigInteger, Set<String>> v_bindings = bindings.get(var);
         if (v_bindings == null) {
-            v_bindings = new HashMap<>();
+            v_bindings = new ConcurrentHashMap<>();
             savePatternIdxs(v_bindings, binding, patternIdx);
             bindings.put(var, v_bindings);
         } else {

@@ -1,11 +1,13 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
 
+import com.squareup.jnagmp.Gmp;
+
 import java.math.BigInteger;
 
 public class DGKEqUtils {
 
     /**
-     * @param key - DGK equality key.
+     * @param key        - DGK equality key.
      * @param ciphertext - DGK ciphertext
      * @return ciphertext.mod(n)
      */
@@ -25,7 +27,7 @@ public class DGKEqUtils {
      */
     public static boolean equals(DGKEqKey key, BigInteger ciphertext1, BigInteger ciphertext2) throws HomomorphicException {
         BigInteger p = key.getP();
-        return NTL.POSMOD(subtract(key, ciphertext1, ciphertext2).modPow(key.getVp(), p), p).equals(BigInteger.ONE);
+        return NTL.POSMOD(modPow(subtract(key, ciphertext1, ciphertext2), key.getVp(), p), p).equals(BigInteger.ONE);
     }
 
 
@@ -46,6 +48,13 @@ public class DGKEqUtils {
             throw new HomomorphicException("DGKEqCheck: Invalid Parameter ciphertext2: " + ciphertext2);
         }
         long u = key.getU();
-        return ciphertext1.multiply(ciphertext2.modPow(BigInteger.valueOf(u - 1), n)).mod(n);
+        return ciphertext1.multiply(modPow(ciphertext2, BigInteger.valueOf(u - 1), n)).mod(n);
     }
+
+    private static BigInteger modPow(BigInteger base, BigInteger exponent, BigInteger modulus) {
+        if (exponent.signum() < 0)
+            return Gmp.modInverse(Gmp.modPowSecure(base, exponent.negate(), modulus), modulus);
+        return Gmp.modPowSecure(base, exponent, modulus);
+    }
+
 }

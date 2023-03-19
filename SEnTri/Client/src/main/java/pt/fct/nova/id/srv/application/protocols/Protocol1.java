@@ -16,6 +16,7 @@ import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Protocol1 implements EncryptionProtocol {
+    //TODO: Remove access pattern w/ obfuscation buckets for trapdoors
     private final byte[] ivDET;
     private final SecretKey kMASTER, kRND, kDET;
     private final Map<String, String> encryptedNodes;

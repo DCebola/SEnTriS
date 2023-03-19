@@ -87,13 +87,6 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public List<Integer> generateRandomPermutation(int total) {
-        List<Integer> idxs = new ArrayList<>(total);
-        for (int i = 0; i < total; i++) idxs.add(i);
-        Collections.shuffle(idxs);
-        return idxs;
-    }
-
     public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
         List<SortCondition> sortConditions = new LinkedList<>();
         for (SerializableSortCondition condition : serializableSortConditions)

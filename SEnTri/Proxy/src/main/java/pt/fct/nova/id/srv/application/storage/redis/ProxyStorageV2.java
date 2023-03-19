@@ -13,6 +13,9 @@ import redis.clients.jedis.Response;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
@@ -35,15 +38,36 @@ public class ProxyStorageV2 extends ProxyStorage {
                 searchResults.put(vars[i], responses.get(i).get());
 
             HashMap<Var, Set<BigInteger>> groupedEqTags = new HashMap<>();
-            BigInteger eqTag;
-            String p_idx;
-            for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
-                p_idx = generateID();
-                for (Var var : vars) {
-                    eqTag = DGKEqUtils.mod(key, new BigInteger(base64Decoder.decode(searchResults.get(var).get(i))));
-                    res.add(p_idx, var, groupEqTag(key, groupedEqTags, var, eqTag));
-                }
+
+            System.out.println("creating service");
+            ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(16);
+
+            List<Runnable> runnables = new ArrayList<>(16);
+            int total = searchResults.get(vars[0]).size();
+            int batchSize = total / 16;
+            int currentLimit = batchSize + (total % 16);
+            int offset = 0;
+            for (int t = 0; t < 16; t++) {
+                int finalCurrentLimit = currentLimit;
+                int finalOffset = offset;
+                runnables.add(() -> {
+                    for (int i = finalOffset; i < finalCurrentLimit; i++) {
+                        String p_idx = generateID();
+                        for (Var var : vars) {
+                            BigInteger eqTag = DGKEqUtils.mod(key, new BigInteger(base64Decoder.decode(searchResults.get(var).get(i))));
+                            try {
+                                res.add(p_idx, var, groupEqTag(key, groupedEqTags, var, eqTag));
+                            } catch (HomomorphicException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                });
+                offset = currentLimit;
+                currentLimit += batchSize;
             }
+            runnables.forEach(executor::execute);
+            while (executor.getActiveCount() > 0) {}
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;
         } catch (Exception e) {

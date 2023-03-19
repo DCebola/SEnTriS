@@ -19,6 +19,8 @@ import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.SPO;
 
 public class Protocol2 implements EncryptionProtocol {
+    //TODO: Remove access pattern w/ obfuscation buckets for trapdoors
+    //TODO: Clean eqTags that do not reference any triple.
     private final byte[] ivDET;
     private final SecretKey kMASTER, kRND;
     private final PrivateKey privDGK;
@@ -26,7 +28,7 @@ public class Protocol2 implements EncryptionProtocol {
     private final Map<String, String> encryptedNodes;
     private final Map<String, Integer> keywordFrequencies;
     private final Map<String, SecretKey> derivedKeys;
-    private final Map<String, Integer> eqTags; //TODO: If there is time, clean eqTags that do not reference any triple.
+    private final Map<String, Integer> eqTags;
     private final Base64.Decoder base64Decoder;
     private final Base64.Encoder base64Encoder;
     private final String schemaKeyword;

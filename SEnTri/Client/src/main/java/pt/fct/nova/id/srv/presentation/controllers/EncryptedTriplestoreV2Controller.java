@@ -194,20 +194,18 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedFrequency));
         System.out.println("SCHEMA FREQUENCY: " + schemaFrequency);
         if (schemaFrequency > 0) {
-            String[] schemaTrapdoors = new String[schemaFrequency];
-            List<Integer> permutation = generateRandomPermutation(schemaFrequency);
+            Set<String> schemaTrapdoors = new HashSet<>(schemaFrequency);
 
             for (int i = 0; i < schemaFrequency; i++)
-                schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
+                schemaTrapdoors.add(protocol.generateTrapdoorAndIncrementIV(schemaKeyword));
 
-            response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, Set.of(schemaTrapdoors), accessToken);
+            response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, schemaTrapdoors, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
         }
-        Collections.shuffle(triples);
         protocol.exec(triples, true);
         response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -270,13 +268,12 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedFrequency));
         if (schemaFrequency > 0) {
             System.out.println("SCHEMA FREQUENCY: " + schemaFrequency);
-            String[] schemaTrapdoors = new String[schemaFrequency];
-            List<Integer> permutation = generateRandomPermutation(schemaFrequency);
+            List<String> schemaTrapdoors = new ArrayList<>(schemaFrequency);
 
             for (int i = 0; i < schemaFrequency; i++)
-                schemaTrapdoors[permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(schemaKeyword);
+                schemaTrapdoors.add(protocol.generateTrapdoorAndIncrementIV(schemaKeyword));
 
-            response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(schemaTrapdoors), accessToken);
+            response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, schemaTrapdoors, accessToken);
             if (response.getStatus() != OK)
                 return response;
 
@@ -284,9 +281,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             Set<Triple> schema = new HashSet<>();
             for (int i = 0; i < schemaFrequency; i += 3) {
                 schema.add(Triple.create(
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i))))),
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 1))))),
-                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(permutation.get(i + 2)))))
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(i)))),
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(i + 1)))),
+                        generateNode(new String(protocol.decryptRNDLayer(encryptedSchema.get(i + 2))))
                 ));
             }
             System.out.println("SCHEMA: " + schema.size());
@@ -354,28 +351,23 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         };
     }
 
-    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, Set<String> keywords,
+    private HTTPResponse fetchKeywordsFrequencies(HttpClient httpClient, String triplestoreID, List<String> keywords,
                                                   Map<String, Integer> keywordsFrequencyCollector, Protocol2 protocol, String accessToken) throws AEADBadTagException, IOException {
-        String[] shuffledKeywords = new String[keywords.size()];
-        String[] trapdoors = new String[keywords.size()];
-        List<Integer> permutation = generateRandomPermutation(keywords.size());
-        int i = 0;
-        for (String keyword : keywords) {
-            shuffledKeywords[permutation.get(i)] = keyword;
-            trapdoors[permutation.get(i)] = protocol.generateKeywordsFrequencyTrapdoor(keyword);
-            i++;
-        }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(trapdoors), accessToken);
+        List<String> trapdoors = new ArrayList<>(keywords.size());
+        for (String keyword : keywords)
+            trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
+
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;
         List<String> encryptedKeywordsFrequencies = ParsingUtils.parseListOfStrings(response.getBody());
         String frequency;
-        for (i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
-            frequency = encryptedKeywordsFrequencies.get(permutation.get(i));
+        for (int i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
+            frequency = encryptedKeywordsFrequencies.get(i);
             if (frequency != null)
-                keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
+                keywordsFrequencyCollector.put(keywords.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
             else
-                keywordsFrequencyCollector.put(shuffledKeywords[permutation.get(i)], 0);
+                keywordsFrequencyCollector.put(keywords.get(i), 0);
         }
         keywordsFrequencyCollector.entrySet().forEach(System.out::println);
         return null;
@@ -385,7 +377,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                         QueryType queryType, SecureSPARQLPlanner planner, DefaultQueryExecutionPlan plan,
                                         Protocol2 protocol, String accessToken) throws IOException, AEADBadTagException, URISyntaxException, ClassNotFoundException {
         Map<String, Integer> keywordsFrequency = new HashMap<>();
-        Set<String> keywords = planner.getKeywords();
+        List<String> keywords = planner.getKeywords().stream().toList();
 
         HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywords, keywordsFrequency, protocol, accessToken);
         if (response != null && response.getStatus() != OK) {
@@ -441,7 +433,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         List<Triple> triplesToUpload, triplesToDelete;
         Map<String, Integer> keywordsFrequency = new HashMap<>();
         if (queryType == DELETE_WHERE || queryType == MODIFY) {
-            HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, planner.getKeywords(), keywordsFrequency, protocol, accessToken);
+            HTTPResponse response = fetchKeywordsFrequencies(httpClient, triplestoreID, planner.getKeywords().stream().toList(), keywordsFrequency, protocol, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -492,8 +484,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             triplesToDelete = planner.getDeleteTemplate();
             triplesToUpload = new ArrayList<>(0);
         }
-        Collections.shuffle(triplesToDelete);
-        Collections.shuffle(triplesToUpload);
+
         System.out.println("Triples to Upload: " + triplesToUpload.size());
         System.out.println("Triples to Delete: " + triplesToDelete.size());
         HTTPResponse response = computeDeletionsSwapsAndUploads(httpClient, triplestoreID, protocol, keywordsFrequency,
@@ -515,7 +506,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
         if (!keywords.isEmpty()) {
-            response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywords, keywordsFrequency, protocol, accessToken);
+            response = fetchKeywordsFrequencies(httpClient, triplestoreID, keywords.stream().toList(), keywordsFrequency, protocol, accessToken);
             if (response != null && response.getStatus() != OK)
                 return response;
         }
@@ -524,35 +515,30 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         List<String> keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
 
         Map<String, Set<Integer>> keywordsInstances = new HashMap<>(keywordList.size());
-        List<String> encryptedInstances, trapdoors;
+        List<String> encryptedInstances;
         Set<Integer> instancesToDelete;
         String encryptedInstance;
-        int totalTrapdoors = keywordsTrapdoors.values().stream().mapToInt(List::size).sum();
-        String[] trapdoorsToDelete = new String[totalTrapdoors];
-        List<Integer> permutation = generateRandomPermutation(totalTrapdoors);
-        int offset = 0, length;
-        for (String keyword : keywordList) {
-            trapdoors = keywordsTrapdoors.get(keyword);
-            length = trapdoors.size();
-            for (int i = 0; i < length; i++)
-                trapdoorsToDelete[permutation.get(offset + i)] = trapdoors.get(i);
-            offset += length;
-        }
-        System.out.println(trapdoorsToDelete.length);
-        response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(trapdoorsToDelete), accessToken);
+
+        List<String> trapdoors = new ArrayList<>(keywordsTrapdoors.values().stream().mapToInt(List::size).sum());
+        for (String keyword : keywordList)
+            trapdoors.addAll(keywordsTrapdoors.get(keyword));
+
+        System.out.println(trapdoors.size());
+        response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;
         encryptedInstances = ParsingUtils.parseListOfStrings(response.getBody());
 
-        offset = 0;
+        int offset = 0;
+        int length;
         for (String keyword : keywordList) {
             length = keywordsTrapdoors.get(keyword).size();
             instancesToDelete = new HashSet<>();
             for (int i = offset; i < offset + length; i++) {
-                encryptedInstance = encryptedInstances.get(permutation.get(i));
+                encryptedInstance = encryptedInstances.get(i);
                 if (encryptedInstance != null) {
                     instancesToDelete.add(ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedInstance)));
-                    deletionsCollector.add(trapdoorsToDelete[permutation.get(i)]);
+                    deletionsCollector.add(trapdoors.get(i));
                 }
             }
             if (!instancesToDelete.isEmpty())
@@ -628,25 +614,22 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse fetchEqTags(CloseableHttpClient httpClient, String triplestoreID, List<Triple> triples, Protocol2 protocol, Map<String, Integer> eqTagsCollector, String accessToken) throws InvalidNodeException, IOException, AEADBadTagException {
         int totalNodes = 3 * triples.size();
-        String[] shuffledEqTagTrapdoors = new String[totalNodes];
-        List<Integer> permutation = generateRandomPermutation(totalNodes);
-        int i = 0;
+        List<String> eqTagTrapdoors = new ArrayList<>(totalNodes);
         for (Triple triple : triples) {
-            shuffledEqTagTrapdoors[permutation.get(i)] = protocol.generateKeywordsEqTagTrapdoor(triple.getSubject());
-            shuffledEqTagTrapdoors[permutation.get(i + 1)] = protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate());
-            shuffledEqTagTrapdoors[permutation.get(i + 2)] = protocol.generateKeywordsEqTagTrapdoor(triple.getObject());
-            i += 3;
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getSubject()));
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate()));
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getObject()));
         }
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTagTrapdoors), accessToken);
-        if (response.getStatus() != OK) {
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, eqTagTrapdoors, accessToken);
+        if (response.getStatus() != OK)
             return response;
-        }
+
         List<String> encryptedEqTags = ParsingUtils.parseListOfStrings(response.getBody());
         String encryptedEqTag;
-        for (i = 0; i < encryptedEqTags.size(); i++) {
-            encryptedEqTag = encryptedEqTags.get(permutation.get(i));
+        for (int i = 0; i < encryptedEqTags.size(); i++) {
+            encryptedEqTag = encryptedEqTags.get(i);
             if (encryptedEqTag != null)
-                eqTagsCollector.put(shuffledEqTagTrapdoors[permutation.get(i)], ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
+                eqTagsCollector.put(eqTagTrapdoors.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
         }
         return null;
     }
@@ -659,7 +642,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         SecureSearchJob secureSearchJob;
         String[][] trapdoors;
         Var[] vars;
-        List<Integer> permutation;
+
         List<String> searchIDs;
         Map<String, List<String>> searchIDCollector = new HashMap<>();
         int keywordFrequency;
@@ -671,11 +654,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             if (searchIDs == null) {
                 searchIDs = new ArrayList<>(vars.length);
                 keywordFrequency = keywordsFrequency.get(keyword);
-                permutation = generateRandomPermutation(keywordFrequency / vars.length);
                 trapdoors = new String[vars.length][keywordFrequency / vars.length];
                 for (int i = 0; i < keywordFrequency / vars.length; i++) {
                     for (int j = 0; j < vars.length; j++)
-                        trapdoors[j][permutation.get(i)] = protocol.generateTrapdoorAndIncrementIV(keyword);
+                        trapdoors[j][i] = protocol.generateTrapdoorAndIncrementIV(keyword);
                 }
                 for (int i = 0; i < vars.length; i++) {
                     response = prepareSearch(httpClient, protocolVersion, triplestoreID, List.of(trapdoors[i]), accessToken);
@@ -701,31 +683,22 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                                  Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap,
                                                  Protocol2 protocol, Collection<Binding> bindingsCollector,
                                                  String accessToken) throws AEADBadTagException, IOException {
-        List<String> eqTags = new LinkedList<>();
-        Map<String, Integer> uniqueEqTags = new HashMap<>();
-        String nextEqTag;
+        Map<String, Integer> eqTagsOrder = new HashMap<>();
+        List<String> eqTags = new ArrayList<>();
+        String eqTag;
+        int i = 0;
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                nextEqTag = binding.get(it.next());
-                eqTags.add(nextEqTag);
-                uniqueEqTags.put(nextEqTag, 0);
+                eqTag = binding.get(it.next());
+                if (!eqTagsOrder.containsKey(eqTag)) {
+                    eqTagsOrder.put(eqTag, i);
+                    eqTags.add(eqTag);
+                    i++;
+                }
             }
-        }
-        String[] shuffledEqTag = new String[uniqueEqTags.size()];
-        List<Integer> permutation = generateRandomPermutation(uniqueEqTags.size());
-        List<Integer> expandedPermutation = new ArrayList<>(eqTags.size());
-        int i = 0;
-        uniqueEqTags.clear();
-        for (String eqTag : eqTags) {
-            if (!uniqueEqTags.containsKey(eqTag)) {
-                uniqueEqTags.put(eqTag, i);
-                shuffledEqTag[permutation.get(i)] = eqTag; //TODO: decode from base64, subtract r, encode to base64. Use JNA for the pows
-                i++;
-            }
-            expandedPermutation.add(permutation.get(uniqueEqTags.get(eqTag)));
         }
 
-        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, List.of(shuffledEqTag), accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, eqTags, accessToken);
         if (response.getStatus() != OK) {
             return response;
         }
@@ -733,18 +706,18 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         BindingBuilder builder = Binding.builder();
         Map<Integer, Node> decryptedNodes = new HashMap<>();
         Node decryptedNode;
-        i = 0;
-        int j;
+
+        Var var;
         for (SerializableBinding binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                j = expandedPermutation.get(i);
-                decryptedNode = decryptedNodes.get(j);
+                var = it.next();
+                i = eqTagsOrder.get(binding.get(var));
+                decryptedNode = decryptedNodes.get(i);
                 if (decryptedNode == null) {
-                    decryptedNode = generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(j))));
-                    decryptedNodes.put(j, decryptedNode);
+                    decryptedNode = generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(i))));
+                    decryptedNodes.put(i, decryptedNode);
                 }
-                builder.add(obfuscationMap.get(it.next()), decryptedNode);
-                i++;
+                builder.add(obfuscationMap.get(var), decryptedNode);
             }
             bindingsCollector.add(builder.build());
             builder.reset();
