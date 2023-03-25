@@ -151,19 +151,29 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         r_vars.removeAll(left.getVars());
 
         BindingsTableV2 res = new MemBindingsTableV2(vars);
-
-        Set<String> l_p_idxs, r_p_idxs;
         Map<BigInteger, Set<String>> l_bindings, r_bindings;
-
         for (Var v : mutualVars) {
             l_bindings = left.getBindings(v);
             r_bindings = right.getBindings(v);
-            for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet()) {
-                l_p_idxs = entry.getValue();
-                r_p_idxs = searchVarBindings(key, r_bindings, entry.getKey());
-                if (r_p_idxs != null || joinType.equals(LEFT))
-                    joinPatterns(key, mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
-            }
+            l_bindings.entrySet().parallelStream().forEach(
+                    entry -> {
+                        Set<String> l_p_idxs = entry.getValue();
+                        try {
+                            Set<String> r_p_idxs = searchVarBindings(key, r_bindings, entry.getKey());
+                            if (r_p_idxs != null || joinType.equals(LEFT))
+                                joinPatterns(key, mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
+                        } catch (HomomorphicException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
+
+            //for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet()) {
+            //    l_p_idxs = entry.getValue();
+            //    r_p_idxs = searchVarBindings(key, r_bindings, entry.getKey());
+            //    if (r_p_idxs != null || joinType.equals(LEFT))
+            //        joinPatterns(key, mutualVars, left, l_vars, l_p_idxs, right, r_vars, r_p_idxs, res, joinType);
+            // }
             break;
         }
         return res;
@@ -234,10 +244,15 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
     private void copyAllIRIs(Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
         for (Var v : vars) {
-            for (Map.Entry<BigInteger, Set<String>> entry : source.getBindings(v).entrySet()) {
-                for (String p : entry.getValue())
-                    target.add(p, v, entry.getKey());
-            }
+            source.getBindings(v).entrySet().parallelStream().forEach(
+                    entry -> entry.getValue().parallelStream().forEach(
+                            pattern -> target.add(pattern, v, entry.getKey()))
+            );
+
+            //for (Map.Entry<BigInteger, Set<String>> entry : source.getBindings(v).entrySet()) {
+            //    for (String p : entry.getValue())
+            //        target.add(p, v, entry.getKey());
+            //}
         }
     }
 

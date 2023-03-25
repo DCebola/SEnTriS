@@ -19,6 +19,7 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV2 extends ProxyStorage {
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+    private static final int NUM_THREADS = Integer.parseInt(System.getenv("NUM_THREADS"));
 
     public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -39,27 +40,24 @@ public class ProxyStorageV2 extends ProxyStorage {
 
             System.out.println("creating service");
 
-            List<Thread> threads = new ArrayList<>(16);
+            List<Thread> threads = new ArrayList<>(NUM_THREADS);
             int total = searchResults.get(vars[0]).size();
-            int batchSize = total / 16;
+            int batchSize = total / NUM_THREADS;
             int totalBatches;
             int currentLimit;
-            if (total < 16) {
+            if (total < NUM_THREADS) {
                 totalBatches = 1;
                 currentLimit = total;
             } else {
-                batchSize = total / 16;
-                totalBatches = 16;
-                currentLimit = batchSize + (total % 16);
+                batchSize = total / NUM_THREADS;
+                totalBatches = NUM_THREADS;
+                currentLimit = batchSize + (total % NUM_THREADS);
             }
             int offset = 0;
             for (int t = 0; t < totalBatches; t++) {
                 int finalCurrentLimit = currentLimit;
                 int finalOffset = offset;
-                int finalT = t;
                 threads.add(new Thread(() -> {
-                    System.out.println("T" + finalT + " | " + finalOffset + " | " + finalCurrentLimit);
-                    int x = 0;
                     for (int i = finalOffset; i < finalCurrentLimit; i++) {
                         String p_idx = generateID();
                         for (Var var : vars) {
@@ -70,9 +68,7 @@ public class ProxyStorageV2 extends ProxyStorage {
                                 throw new RuntimeException(e);
                             }
                         }
-                        x = i;
                     }
-                    System.out.println("T" + finalT + " | " + x);
                 }));
                 offset = currentLimit;
                 currentLimit += batchSize;
