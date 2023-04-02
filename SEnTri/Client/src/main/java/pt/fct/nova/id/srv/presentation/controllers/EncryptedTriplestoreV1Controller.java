@@ -429,6 +429,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
+            System.out.println(Arrays.toString(plan.getVars().toArray()));
             response = query(httpClient, protocolVersion, protocol.getRNDKey().getEncoded(), plan, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);

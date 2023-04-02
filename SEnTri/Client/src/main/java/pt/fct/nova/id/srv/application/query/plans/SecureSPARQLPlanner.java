@@ -671,9 +671,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     public void visitUpdate(UpdateDeleteWhere op) {
         setQueryType(QueryType.MODIFY);
-        List<Triple> bgp = new LinkedList<>();
         op.getQuads().forEach(quad -> deleteTemplate.add(quad.asTriple()));
-        OpWalker.walk(new OpBGP(BasicPattern.wrap(bgp)), this);
+        OpWalker.walk(new OpBGP(BasicPattern.wrap(deleteTemplate)), this);
     }
 
     public void visitUpdate(UpdateModify op, AlgebraGenerator algebraGenerator) {

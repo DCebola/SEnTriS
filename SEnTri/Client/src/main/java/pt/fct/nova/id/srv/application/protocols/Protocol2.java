@@ -214,13 +214,13 @@ public class Protocol2 implements EncryptionProtocol {
     private void encryptKeywordInfo() {
         byte[] st, ct;
         for (String keyword : keywordFrequencies.keySet()) {
-            st = encryptDET(derivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), zeroIV);
+            st = encryptDET(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), zeroIV);
             ct = encryptRND(ParsingUtils.integerToByteArray(keywordFrequencies.get(keyword)));
             encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
         }
 
         for (String node : eqTags.keySet()) {
-            st = encryptDET(derivedKeys.get(node), node.getBytes(StandardCharsets.UTF_8), zeroIV);
+            st = encryptDET(getDerivedKey(node), node.getBytes(StandardCharsets.UTF_8), zeroIV);
             ct = encryptRND(ParsingUtils.integerToByteArray(eqTags.get(node)));
             encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
         }
