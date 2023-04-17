@@ -267,14 +267,4 @@ public class Protocol1 implements EncryptionProtocol {
                 keywordFrequencies.put(keyword, frequency);
         }
     }
-
-    public void deleteKeyword(String keyword) {
-        Integer frequency = keywordFrequencies.get(keyword);
-        if (frequency != null) {
-            if (frequency <= 1)
-                keywordFrequencies.remove(keyword);
-            else
-                keywordFrequencies.put(keyword, frequency - 1);
-        }
-    }
 }

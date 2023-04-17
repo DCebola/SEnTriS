@@ -265,7 +265,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             if (response.getStatus() != OK)
                 return response;
 
-            List<String> encryptedSchema = ParsingUtils.parseListOfStrings(response.getBody());
+            List<String> encryptedSchema = ParsingUtils.parseListOfStrings(response.getBody()).stream().filter(Objects::nonNull).toList();
             Set<Triple> schema = new HashSet<>();
             for (int i = 0; i < schemaFrequency; i += 3) {
                 schema.add(Triple.create(
@@ -407,7 +407,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
                                               DefaultQueryExecutionPlan plan, Protocol1 protocol, String accessToken) throws IOException, URISyntaxException, ClassNotFoundException, InvalidNodeException, AEADBadTagException {
-        Map<String, String> swaps = new HashMap<>();
         Set<String> deletions = new HashSet<>();
         List<Triple> triplesToUpload, triplesToDelete;
         Map<String, Integer> keywordsFrequency = new HashMap<>();
@@ -429,7 +428,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            System.out.println(Arrays.toString(plan.getVars().toArray()));
             response = query(httpClient, protocolVersion, protocol.getRNDKey().getEncoded(), plan, accessToken);
             if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -461,20 +459,19 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
         System.out.println("Triples to Upload: " + triplesToUpload.size());
         System.out.println("Triples to Delete: " + triplesToDelete.size());
-        HTTPResponse response = computeDeletionsSwapsAndUploads(httpClient, triplestoreID, protocol, keywordsFrequency,
-                triplesToDelete, triplesToUpload, swaps, deletions, accessToken);
+        HTTPResponse response = computeDeletionsAndUploads(httpClient, triplestoreID, protocol, keywordsFrequency,
+                triplesToDelete, triplesToUpload, deletions, accessToken);
         if (response != null && response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
-        return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), deletions, swaps, accessToken);
+        return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), deletions, accessToken);
     }
 
-    private HTTPResponse computeDeletionsSwapsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
-                                                         Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
-                                                         Map<String, String> swapsCollector, Set<String> deletionsCollector,
-                                                         String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
+    private HTTPResponse computeDeletionsAndUploads(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
+                                                    Map<String, Integer> keywordsFrequency, List<Triple> triplesToDelete, List<Triple> triplesToUpload,
+                                                    Set<String> deletionsCollector, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException {
         Set<String> keywords = ParsingUtils.generateKeywords(triplesToDelete);
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
@@ -487,9 +484,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         Map<String, List<String>> keywordsTrapdoors = protocol.generateKeywordsPatternTrapdoors(triplesToDelete);
         List<String> keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
 
-        Map<String, Set<Integer>> keywordsInstances = new HashMap<>(keywordList.size());
         List<String> encryptedInstances;
-        Set<Integer> instancesToDelete;
         String encryptedInstance;
 
         List<String> trapdoors = new ArrayList<>(keywordsTrapdoors.values().stream().mapToInt(List::size).sum());
@@ -506,73 +501,17 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         int length;
         for (String keyword : keywordList) {
             length = keywordsTrapdoors.get(keyword).size();
-            instancesToDelete = new HashSet<>();
             for (int i = offset; i < offset + length; i++) {
                 encryptedInstance = encryptedInstances.get(i);
                 if (encryptedInstance != null) {
-                    instancesToDelete.add(ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedInstance)));
+                    deletionsCollector.add(protocol.generateTrapdoor(keyword, ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedInstance))));
                     deletionsCollector.add(trapdoors.get(i));
                 }
             }
-            if (!instancesToDelete.isEmpty())
-                keywordsInstances.put(keyword, instancesToDelete);
-
             offset += length;
         }
 
-        System.out.println("Keyword Instances to Delete: " + keywordsInstances.size());
-
-        int frequency, swaps, deletions, preserved, totalPreserved = 0;
-        Queue<Integer> instancesToKeep;
-        for (String keyword : keywordsInstances.keySet()) {
-            swaps = 0;
-            deletions = 0;
-            instancesToDelete = keywordsInstances.get(keyword);
-            frequency = keywordsFrequency.get(keyword);
-            instancesToKeep = new ArrayDeque<>(frequency - instancesToDelete.size());
-
-            for (int i = frequency; i > 0; i--) {
-                if (!instancesToDelete.contains(i))
-                    instancesToKeep.add(i);
-            }
-
-            if (!instancesToKeep.isEmpty()) {
-                System.out.println("KEYWORD: " + keyword + " | " + frequency);
-                System.out.println("TO DELETE:" + Arrays.toString(instancesToDelete.toArray()));
-                System.out.println("EXPECTED:" + Arrays.toString(instancesToKeep.toArray()));
-                Integer cur;
-                for (int i = 1; i <= frequency; i++) {
-                    if (instancesToDelete.contains(i)) {
-                        cur = instancesToKeep.peek();
-                        if (cur != null && cur > i) {
-                            swaps += 1;
-                            instancesToDelete.remove(i);
-                            System.out.print(cur + " -> " + i + " | ");
-                            swapsCollector.put(protocol.generateTrapdoor(keyword, cur), protocol.generateTrapdoor(keyword, i));
-                            instancesToKeep.poll();
-                            protocol.deleteKeyword(keyword);
-                        }
-                    }
-                }
-                System.out.println();
-            }
-
-
-            for (int i : instancesToDelete) {
-                deletionsCollector.add(protocol.generateTrapdoor(keyword, i));
-                protocol.deleteKeyword(keyword);
-                deletions += 1;
-            }
-
-            preserved = frequency - deletions - swaps;
-            totalPreserved += preserved;
-            if (!instancesToKeep.isEmpty()) {
-                System.out.println("Deleted: " + Arrays.toString(instancesToDelete.toArray()));
-                System.out.println("[ " + keyword + "] - f" + protocol.getKeywordFrequencies().get(keyword) + " | p" + preserved + " | d" + deletions + " | s" + swaps);
-            }
-        }
         protocol.exec(triplesToUpload, false);
-        System.out.println("PRESERVED:" + totalPreserved);
         System.out.println("KEYWORD FREQUENCIES TRAPDOORS:" + protocol.getKeywordFrequencies().size());
         return null;
     }

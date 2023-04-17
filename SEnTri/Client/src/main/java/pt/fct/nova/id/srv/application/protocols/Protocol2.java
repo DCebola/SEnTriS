@@ -19,8 +19,6 @@ import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.SPO;
 
 public class Protocol2 implements EncryptionProtocol {
-    //TODO: Remove access pattern w/ obfuscation buckets for trapdoors
-    //TODO: Clean eqTags that do not reference any triple.
     private final byte[] ivDET;
     private final SecretKey kMASTER, kRND;
     private final PrivateKey privDGK;
@@ -33,8 +31,9 @@ public class Protocol2 implements EncryptionProtocol {
     private final Base64.Encoder base64Encoder;
     private final String schemaKeyword;
     private final byte[] zeroIV;
+    private long lastEqTag;
 
-    public Protocol2(SecretKey kMASTER, SecretKey kRND, KeyPair keyPairDGK, byte[] iv, String schemaKeyword) {
+    public Protocol2(SecretKey kMASTER, SecretKey kRND, KeyPair keyPairDGK, byte[] iv, String schemaKeyword, long lastEqTag) {
         this.ivDET = iv;
         this.kMASTER = kMASTER;
         this.kRND = kRND;
@@ -48,6 +47,7 @@ public class Protocol2 implements EncryptionProtocol {
         this.base64Decoder = Base64.getUrlDecoder();
         this.base64Encoder = Base64.getUrlEncoder();
         this.zeroIV = SymmetricEncryptionUtils.generateZeroFilledIV();
+        this.lastEqTag = lastEqTag;
     }
 
     public Protocol2() throws HomomorphicException {
@@ -65,6 +65,7 @@ public class Protocol2 implements EncryptionProtocol {
         this.base64Decoder = Base64.getUrlDecoder();
         this.base64Encoder = Base64.getUrlEncoder();
         this.zeroIV = SymmetricEncryptionUtils.generateZeroFilledIV();
+        this.lastEqTag = 0L;
         System.out.println("Generated secrets.");
     }
 
@@ -272,7 +273,10 @@ public class Protocol2 implements EncryptionProtocol {
     }
 
     private long getEqTag(String node) {
-        return Math.toIntExact(eqTags.computeIfAbsent(node, k -> eqTags.size() + 1));
+        long eqTag = Math.toIntExact(eqTags.computeIfAbsent(node, k -> Math.toIntExact(lastEqTag + 1)));
+        if (eqTag > lastEqTag)
+            lastEqTag = eqTag;
+        return eqTag;
     }
 
     public String generateTrapdoor(String keyword, int value) {
@@ -307,17 +311,6 @@ public class Protocol2 implements EncryptionProtocol {
         eqTags.putAll(values);
     }
 
-    public void deleteKeyword(String keyword) {
-        Integer frequency = keywordFrequencies.get(keyword);
-        if (frequency != null) {
-            if (frequency <= 1) {
-                keywordFrequencies.remove(keyword);
-                eqTags.remove(keyword);
-            } else
-                keywordFrequencies.put(keyword, frequency - 1);
-        }
-    }
-
 
     public DGKEqKey getEqKey() {
         return new DGKEqKey(
@@ -326,5 +319,9 @@ public class Protocol2 implements EncryptionProtocol {
                 ((DGKPublicKey) pubDGK).getN(),
                 ((DGKPublicKey) pubDGK).getU()
         );
+    }
+
+    public Long getLastEqTag() {
+        return this.lastEqTag;
     }
 }

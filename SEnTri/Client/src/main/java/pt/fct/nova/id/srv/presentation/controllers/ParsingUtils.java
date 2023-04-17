@@ -44,6 +44,7 @@ import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_KEY_PAIR;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_LAST_EQ_TAG;
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
@@ -170,8 +171,9 @@ public class ParsingUtils {
         KeyPair keyPair = DGKUtils.parseKeyPair(base64Decoder.decode(secrets.get(SECRETS_KEY_PAIR)));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
         String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        long lastEqTag = byteArrayToInteger(base64Decoder.decode(secrets.get(SECRETS_LAST_EQ_TAG)));
         System.out.println("Retrieved protocol 2.");
-        return new Protocol2(k1, k2, keyPair, iv, schemaKeyword);
+        return new Protocol2(k1, k2, keyPair, iv, schemaKeyword, lastEqTag);
     }
 
 
@@ -188,6 +190,7 @@ public class ParsingUtils {
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p2.getRNDKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p2.getIvDET()));
             secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p2.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
+            secrets.put(SECRETS_LAST_EQ_TAG, base64Encoder.encodeToString(integerToByteArray(Math.toIntExact(p2.getLastEqTag()))));
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                  ObjectOutputStream oos = new ObjectOutputStream(bos)) {
                 oos.writeObject(new KeyPair(p2.getPubDGK(), p2.getPrivDGK()));
