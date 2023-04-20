@@ -554,10 +554,18 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     private HTTPResponse fetchEqTags(CloseableHttpClient httpClient, String triplestoreID, List<Triple> triples, Protocol2 protocol, Map<String, Integer> eqTagsCollector, String accessToken) throws InvalidNodeException, IOException, AEADBadTagException {
         int totalNodes = 3 * triples.size();
         List<String> eqTagTrapdoors = new ArrayList<>(totalNodes);
+        List<String> nodes = new ArrayList<>(totalNodes);
+        Node s, p, o;
         for (Triple triple : triples) {
-            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getSubject()));
-            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getPredicate()));
-            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(triple.getObject()));
+            s = triple.getSubject();
+            p = triple.getPredicate();
+            o = triple.getObject();
+            nodes.add(ParsingUtils.parseNode(s));
+            nodes.add(ParsingUtils.parseNode(p));
+            nodes.add(ParsingUtils.parseNode(o));
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(s));
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(p));
+            eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(o));
         }
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, eqTagTrapdoors, accessToken);
         if (response.getStatus() != OK)
@@ -565,10 +573,12 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
         List<String> encryptedEqTags = ParsingUtils.parseListOfStrings(response.getBody());
         String encryptedEqTag;
-        for (int i = 0; i < encryptedEqTags.size(); i++) {
+
+
+        for (int i = 0; i < nodes.size(); i+=3) {
             encryptedEqTag = encryptedEqTags.get(i);
             if (encryptedEqTag != null)
-                eqTagsCollector.put(eqTagTrapdoors.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
+                eqTagsCollector.put(nodes.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
         }
         return null;
     }
