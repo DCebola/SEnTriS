@@ -1,13 +1,19 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
+import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
+import java.math.BigInteger;
 import java.util.*;
 
-public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine {
+public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
+
+    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
+    private static final Base64.Encoder base64Encoder = Base64.getEncoder();
+
 
     @Override
     public void delete(String triplestoreID, List<String> trapdoors) {
@@ -23,27 +29,22 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine {
         }
     }
 
-    @Override
-    public void swap(String triplestoreID, Map<String, String> values) {
+    public List<String> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            Map<String, Response<String>> swaps = new HashMap<>(values.size());
-            List<Response<String>> responses = new LinkedList<>();
-            for (String key : values.keySet()) {
-                swaps.put(key, p.get(String.format(KEY_FORMAT, triplestoreID, key)));
-                responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, values.get(key))));
-            }
+            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
+            System.out.println("SEARCH: " + trapdoors.size());
             p.sync();
-
-            Transaction t = jedis.multi();
-            for (String key : swaps.keySet()) {
-                t.set(String.format(KEY_FORMAT, triplestoreID, values.get(key)), swaps.get(key).get());
-                t.del(String.format(KEY_FORMAT, triplestoreID, key));
+            List<String> res = new ArrayList<>(trapdoors.size());
+            String value;
+            for (Response<String> r : responses) {
+                value = r.get();
+                if (value != null)
+                    value = base64Encoder.encodeToString(new BigInteger(base64Decoder.decode(value)).multiply(mask).toByteArray());
+                res.add(value);
             }
-            responses.forEach(response -> t.del(String.format(KEY_FORMAT, triplestoreID, response.get())));
-            t.exec();
+            return res;
         }
     }
-
-    //TODO: Prepare search w/ addition of r...
 }

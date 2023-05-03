@@ -167,20 +167,8 @@ public class EncryptedTriplestoreController {
         return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 
-    private HTTPResponse swapSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.swap(httpClient, protocolVersion, triplestoreID, swaps, accessToken)) {
-            return new HTTPResponse(response);
-        }
-    }
-
     public HTTPResponse query(HttpClient httpClient, String protocolVersion, byte[] keyBytes, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
         try (CloseableHttpResponse response = ProxyClient.query(httpClient, protocolVersion, keyBytes, plan, accessToken)) {
-            return new HTTPResponse(response);
-        }
-    }
-
-    public HTTPResponse prepareSearch(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException, URISyntaxException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }

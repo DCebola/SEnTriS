@@ -6,7 +6,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.clients.ProxyClient;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 
 import java.util.List;
@@ -20,7 +19,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 
 public class EncryptedTriplestoreController {
     private static final String SUCCESSFUL_DELETE_SOME = "Successful deletion of values from store.";
-    private static final String SUCCESSFUL_SWAP = "Successful deletion of values from store.";
 
     public static Response upload(EncryptedStorageEngine storageEngine, String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
@@ -33,26 +31,6 @@ public class EncryptedTriplestoreController {
                 return HTTPUtils.buildResponse(response);
             storageEngine.save(triplestoreID, encryptedNodes);
             return Response.ok(SUCCESSFUL_UPLOAD).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public static Response prepareSearch(EncryptedStorageEngine storageEngine, String protocolVersion, String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
-        String accessToken = extractAccessToken(authorizationHeaders);
-        if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-
-        try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
-                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                    return HTTPUtils.buildResponse(response);
-            }
-
-            try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion, storageEngine.search(triplestoreID, trapdoors), accessToken)) {
-                return HTTPUtils.buildResponse(response);
-            }
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -105,23 +83,6 @@ public class EncryptedTriplestoreController {
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID, trapdoors);
             return Response.ok(SUCCESSFUL_DELETION).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public static Response swap(EncryptedStorageEngine storageEngine, String triplestoreID, Map<String, String> values, List<String> authorizationHeaders) {
-        String accessToken = extractAccessToken(authorizationHeaders);
-        if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-
-        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
-                return HTTPUtils.buildResponse(response);
-            storageEngine.swap(triplestoreID, values);
-            return Response.ok(SUCCESSFUL_SWAP).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

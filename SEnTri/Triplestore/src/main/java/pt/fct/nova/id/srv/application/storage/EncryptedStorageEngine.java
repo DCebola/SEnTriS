@@ -11,8 +11,6 @@ public interface EncryptedStorageEngine {
 
     void save(String triplestoreID, Map<String, String> encryptedNodes);
 
-    void swap(String triplestoreID, Map<String, String> values);
-
     List<String> search(String triplestoreID, List<String> trapdoors);
 
 }

@@ -20,14 +20,6 @@ public interface EncryptedTriplestoreAPI {
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
-    @Path("proxy/{triplestoreID}/search")
-    @Consumes(APPLICATION_JSON)
-    @Produces(TEXT_PLAIN)
-    Response prepareSearch(@PathParam("triplestoreID") String triplestoreID,
-                           List<String> trapdoors,
-                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
-
-    @POST
     @Path("{triplestoreID}/search")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
@@ -49,11 +41,4 @@ public interface EncryptedTriplestoreAPI {
                     List<String> trapdoors,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
-    @PUT
-    @Path("/{triplestoreID}/swap")
-    @Consumes(APPLICATION_JSON)
-    @Produces(TEXT_PLAIN)
-    Response swap(@PathParam("triplestoreID") String triplestoreID,
-                  Map<String, String> values,
-                  @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

@@ -138,6 +138,16 @@ public class ParsingUtils {
 
     }
 
+    public static HttpEntity generateV2SearchRequest(List<String> trapdoors, BigInteger mask) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(trapdoors);
+            return MultipartEntityBuilder.create()
+                    .addBinaryBody("mask", mask.toByteArray())
+                    .addBinaryBody("trapdoors", bos.toByteArray())
+                    .build();
+        }
+    }
+
     public static Map<String, String> parseMapOfStringString(String secrets) {
         return gson.fromJson(secrets, new TypeToken<Map<String, String>>() {
         }.getType());
@@ -251,6 +261,10 @@ public class ParsingUtils {
         return new BigInteger(base64Decoder.decode(value));
     }
 
+    public static String eqTagToString(BigInteger value) {
+        return base64Encoder.encodeToString(value.toByteArray());
+    }
+
     public static byte[] DGKKeyToByteArray(DGKEqKey eqKey) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(eqKey);
@@ -309,5 +323,6 @@ public class ParsingUtils {
             parsed_o = parseKeyword(o);
         return String.format(TRIPLE_KEYWORD, parsed_s, parsed_p, parsed_o);
     }
+
 
 }
