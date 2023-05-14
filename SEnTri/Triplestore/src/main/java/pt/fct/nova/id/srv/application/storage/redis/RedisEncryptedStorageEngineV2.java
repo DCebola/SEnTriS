@@ -12,7 +12,7 @@ import java.util.*;
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
 
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
-    private static final Base64.Encoder base64Encoder = Base64.getEncoder();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
 
     @Override
@@ -38,10 +38,13 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine i
             p.sync();
             List<String> res = new ArrayList<>(trapdoors.size());
             String value;
+            System.out.println("Mask: " + base64Encoder.encodeToString(mask.toByteArray()));
             for (Response<String> r : responses) {
                 value = r.get();
-                if (value != null)
+                if (value != null) {
                     value = base64Encoder.encodeToString(new BigInteger(base64Decoder.decode(value)).multiply(mask).toByteArray());
+                    System.out.println(" - " + value);
+                }
                 res.add(value);
             }
             return res;

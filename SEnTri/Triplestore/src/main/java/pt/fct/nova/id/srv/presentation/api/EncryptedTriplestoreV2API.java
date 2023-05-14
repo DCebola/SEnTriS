@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.PrepareSearchV2Form;
 
 import java.util.List;
@@ -15,6 +16,6 @@ public interface EncryptedTriplestoreV2API extends EncryptedTriplestoreAPI {
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
     Response prepareSearch(@PathParam("triplestoreID") String triplestoreID,
-                           PrepareSearchV2Form search,
+                           @MultipartForm PrepareSearchV2Form search,
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }
