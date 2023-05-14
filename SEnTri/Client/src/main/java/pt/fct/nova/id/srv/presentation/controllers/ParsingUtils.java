@@ -18,8 +18,11 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.CollectorStreamTriples;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
+import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
@@ -32,12 +35,16 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_KEY_PAIR;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_LAST_EQ_TAG;
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
@@ -120,15 +127,25 @@ public class ParsingUtils {
         }
     }
 
-    public static HttpEntity generateSecureQueryRequest(SecretKey key, DefaultQueryExecutionPlan plan) throws IOException {
+    public static HttpEntity generateSecureQueryRequest(byte[] keyBytes, DefaultQueryExecutionPlan plan) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(plan);
             return MultipartEntityBuilder.create()
-                    .addBinaryBody("key", key.getEncoded())
+                    .addBinaryBody("key", keyBytes)
                     .addBinaryBody("queryExecutionPlan", bos.toByteArray())
                     .build();
         }
 
+    }
+
+    public static HttpEntity generateV2SearchRequest(List<String> trapdoors, BigInteger mask) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(trapdoors);
+            return MultipartEntityBuilder.create()
+                    .addBinaryBody("mask", mask.toByteArray())
+                    .addBinaryBody("trapdoors", bos.toByteArray())
+                    .build();
+        }
     }
 
     public static Map<String, String> parseMapOfStringString(String secrets) {
@@ -158,7 +175,19 @@ public class ParsingUtils {
         return new Protocol1(k1, k2, k3, iv, schemaKeyword);
     }
 
-    public static Map<String, String> generateSecretsMap(EncryptionProtocol p) {
+    public static Protocol2 getProtocol2(Map<String, String> secrets) throws IOException, ClassNotFoundException {
+        SecretKey k1 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
+        SecretKey k2 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
+        KeyPair keyPair = DGKUtils.parseKeyPair(base64Decoder.decode(secrets.get(SECRETS_KEY_PAIR)));
+        byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
+        String schemaKeyword = new String(base64Decoder.decode(secrets.get(SECRETS_SCHEMA_KEYWORD)));
+        long lastEqTag = byteArrayToInteger(base64Decoder.decode(secrets.get(SECRETS_LAST_EQ_TAG)));
+        System.out.println("Retrieved protocol 2.");
+        return new Protocol2(k1, k2, keyPair, iv, schemaKeyword, lastEqTag);
+    }
+
+
+    public static Map<String, String> generateSecretsMap(EncryptionProtocol p) throws IOException {
         Map<String, String> secrets = new HashMap<>();
         if (p instanceof Protocol1 p1) {
             secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getKeywordsMasterKey().getEncoded()));
@@ -166,6 +195,17 @@ public class ParsingUtils {
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
             secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p1.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
+        } else if (p instanceof Protocol2 p2) {
+            secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p2.getKeywordsMasterKey().getEncoded()));
+            secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p2.getRNDKey().getEncoded()));
+            secrets.put(SECRETS_IV, base64Encoder.encodeToString(p2.getIvDET()));
+            secrets.put(SECRETS_SCHEMA_KEYWORD, base64Encoder.encodeToString(p2.getSchemaKeyword().getBytes(StandardCharsets.UTF_8)));
+            secrets.put(SECRETS_LAST_EQ_TAG, base64Encoder.encodeToString(integerToByteArray(Math.toIntExact(p2.getLastEqTag()))));
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                oos.writeObject(new KeyPair(p2.getPubDGK(), p2.getPrivDGK()));
+                secrets.put(SECRETS_KEY_PAIR, base64Encoder.encodeToString(bos.toByteArray()));
+            }
         }
         return secrets;
     }
@@ -215,6 +255,21 @@ public class ParsingUtils {
             return NodeFactory.createLiteral(
                     split[VALUE_POS],
                     TypeMapper.getInstance().getSafeTypeByName(split[LITERAL_DATATYPE_POS]));
+    }
+
+    public static BigInteger parseEqTag(String value) {
+        return new BigInteger(base64Decoder.decode(value));
+    }
+
+    public static String eqTagToString(BigInteger value) {
+        return base64Encoder.encodeToString(value.toByteArray());
+    }
+
+    public static byte[] DGKKeyToByteArray(DGKEqKey eqKey) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(eqKey);
+            return bos.toByteArray();
+        }
     }
 
     public static byte[] integerToByteArray(int integer) {

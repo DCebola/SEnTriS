@@ -9,17 +9,17 @@ import static org.apache.jena.sparql.algebra.JoinType.INNER;
 import static org.apache.jena.sparql.algebra.JoinType.LEFT;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
-public class MemBindingsTable implements BindingsTable {
+public class MemBindingsTableV1 implements BindingsTableV1 {
 
     private final Map<Var, Map<String, Set<String>>> bindings;
     private final Map<Var, Map<String, String>> patterns;
 
-    public MemBindingsTable() {
+    public MemBindingsTableV1() {
         bindings = new HashMap<>();
         patterns = new HashMap<>();
     }
 
-    public MemBindingsTable(Iterable<Var> vars) {
+    public MemBindingsTableV1(Iterable<Var> vars) {
         bindings = new HashMap<>();
         patterns = new HashMap<>();
         for (Var v : vars) {
@@ -28,7 +28,7 @@ public class MemBindingsTable implements BindingsTable {
         }
     }
 
-    public MemBindingsTable(Var... vars) {
+    public MemBindingsTableV1(Var... vars) {
         bindings = new HashMap<>();
         patterns = new HashMap<>();
         for (Var v : vars) {
@@ -127,13 +127,13 @@ public class MemBindingsTable implements BindingsTable {
     }
 
     @Override
-    public BindingsTable join(BindingsTable other) {
+    public BindingsTableV1 join(BindingsTableV1 other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         return join(mutual_vars, this, other, INNER);
     }
 
-    private Set<String> getIncompatiblePatterns(BindingsTable left, BindingsTable right, Set<Var> vars) {
+    private Set<String> getIncompatiblePatterns(BindingsTableV1 left, BindingsTableV1 right, Set<Var> vars) {
         Set<String> res = new HashSet<>();
         Map<String, Set<String>> l_bindings, r_bindings;
         for (Var v : vars) {
@@ -150,7 +150,7 @@ public class MemBindingsTable implements BindingsTable {
     }
 
 
-    private BindingsTable join(Set<Var> mutualVars, BindingsTable left, BindingsTable right, JoinType joinType) {
+    private BindingsTableV1 join(Set<Var> mutualVars, BindingsTableV1 left, BindingsTableV1 right, JoinType joinType) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -160,7 +160,7 @@ public class MemBindingsTable implements BindingsTable {
         l_vars.removeAll(right.getVars());
         r_vars.removeAll(left.getVars());
 
-        BindingsTable res = new MemBindingsTable(vars);
+        BindingsTableV1 res = new MemBindingsTableV1(vars);
 
         Set<String> l_p_idxs, r_p_idxs;
         Map<String, Set<String>> l_bindings, r_bindings;
@@ -179,15 +179,15 @@ public class MemBindingsTable implements BindingsTable {
         return res;
     }
 
-    private void copyBindings(String newPattern, String oldPattern, Set<Var> vars, BindingsTable source, BindingsTable target) {
+    private void copyBindings(String newPattern, String oldPattern, Set<Var> vars, BindingsTableV1 source, BindingsTableV1 target) {
         for (Var v : vars) {
             String binding = source.getPatternIdxs(v).get(oldPattern);
             if (binding != null) target.add(newPattern, v, binding);
         }
     }
 
-    private void joinPatterns(Set<Var> mutualVars, BindingsTable left, Set<Var> leftVars, Set<String> leftPatternIdxs,
-                              BindingsTable right, Set<Var> rightVars, Set<String> rightPatternIdxs, BindingsTable res, JoinType joinType) {
+    private void joinPatterns(Set<Var> mutualVars, BindingsTableV1 left, Set<Var> leftVars, Set<String> leftPatternIdxs,
+                              BindingsTableV1 right, Set<Var> rightVars, Set<String> rightPatternIdxs, BindingsTableV1 res, JoinType joinType) {
         String p;
         boolean foundMatch;
         for (String l : leftPatternIdxs) {
@@ -210,7 +210,7 @@ public class MemBindingsTable implements BindingsTable {
         }
     }
 
-    private boolean equalPatterns(Set<Var> mutualVars, BindingsTable left, String leftPattern, BindingsTable right, String rightPattern) {
+    private boolean equalPatterns(Set<Var> mutualVars, BindingsTableV1 left, String leftPattern, BindingsTableV1 right, String rightPattern) {
         String l_binding, r_binding;
         for (Var v : mutualVars) {
             l_binding = left.getPatternIdxs(v).get(leftPattern);
@@ -227,21 +227,21 @@ public class MemBindingsTable implements BindingsTable {
 
 
     @Override
-    public BindingsTable union(BindingsTable other) {
+    public BindingsTableV1 union(BindingsTableV1 other) {
         Set<Var> l_vars = this.getVars();
         Set<Var> r_vars = other.getVars();
 
         Set<Var> vars = new HashSet<>(l_vars);
         vars.addAll(r_vars);
 
-        BindingsTable res = new MemBindingsTable(vars);
+        BindingsTableV1 res = new MemBindingsTableV1(vars);
 
         copyAllIRIs(l_vars, this, res);
         copyAllIRIs(r_vars, other, res);
         return res;
     }
 
-    private void copyAllIRIs(Set<Var> vars, BindingsTable source, BindingsTable target) {
+    private void copyAllIRIs(Set<Var> vars, BindingsTableV1 source, BindingsTableV1 target) {
         for (Var v : vars) {
             for (Map.Entry<String, Set<String>> entry : source.getBindings(v).entrySet()) {
                 for (String p : entry.getValue())
@@ -251,20 +251,27 @@ public class MemBindingsTable implements BindingsTable {
     }
 
     @Override
-    public BindingsTable leftOuterJoin(BindingsTable other) {
+    public BindingsTableV1 leftOuterJoin(BindingsTableV1 other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         return join(mutual_vars, this, other, LEFT);
     }
 
     @Override
-    public BindingsTable minus(BindingsTable other) {
+    public BindingsTableV1 minus(BindingsTableV1 other) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
-        Set<String> diff = getIncompatiblePatterns(this, other, mutual_vars);
+        Set<String> diff = new HashSet<>();
+        Map<String, Set<String>> l_bindings, r_bindings;
+        for (Var v : mutual_vars) {
+            l_bindings = this.getBindings(v);
+            r_bindings = other.getBindings(v);
+            for (Map.Entry<String, Set<String>> entry : l_bindings.entrySet())
+                if (r_bindings.get(entry.getKey()) == null) diff.addAll(entry.getValue());
+        }
 
-        BindingsTable res = new MemBindingsTable(mutual_vars);
+        BindingsTableV1 res = new MemBindingsTableV1(mutual_vars);
         Map<String, Set<String>> bindings;
 
         for (Var v : mutual_vars) {

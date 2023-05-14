@@ -4,7 +4,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.PrivateKey;
 
-public final class DGKPrivateKey implements DGK_Key, Serializable, PrivateKey {
+public final class DGKPrivateKey implements DGK_Key, PrivateKey {
     @Serial
     private static final long serialVersionUID = 4574519230502483629L;
 

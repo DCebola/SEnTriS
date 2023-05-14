@@ -1,0 +1,85 @@
+package pt.fct.nova.id.srv.presentation.controllers;
+
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
+import pt.fct.nova.id.srv.application.clients.HTTPClient;
+import pt.fct.nova.id.srv.application.clients.HTTPUtils;
+import pt.fct.nova.id.srv.application.clients.IAMClient;
+import pt.fct.nova.id.srv.application.clients.ProxyClient;
+import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
+import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngineV2;
+import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreV2API;
+import pt.fct.nova.id.srv.presentation.api.dtos.PrepareSearchV2Form;
+
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
+
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.OK;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
+import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.NO_ACCESS_TOKEN;
+
+
+@Path("/encrypted/v2")
+public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2API {
+    private static final EncryptedStorageEngineV2 storageEngine = new RedisEncryptedStorageEngineV2();
+    private static final String protocolVersion = "v2";
+
+    @Override
+    public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
+        System.out.println("upload v2");
+        return EncryptedTriplestoreController.upload(storageEngine, triplestoreID, encryptedNodes, authorizationHeaders);
+    }
+
+    @Override
+    public Response prepareSearch(String triplestoreID, PrepareSearchV2Form form, List<String> authorizationHeaders) {
+        System.out.println("prepare search v2");
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             ByteArrayInputStream trapdoors_is = new ByteArrayInputStream(form.getTrapdoors());
+             ObjectInputStream trapdoors_ois = new ObjectInputStream(trapdoors_is)) {
+            try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
+                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                    return HTTPUtils.buildResponse(response);
+            }
+
+            List<String> trapdoors = (List<String>) trapdoors_ois.readObject();
+
+            try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion,
+                    storageEngine.maskedSearch(triplestoreID, trapdoors, new BigInteger(form.getMask())), accessToken)) {
+                return HTTPUtils.buildResponse(response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @Override
+    public Response search(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+        System.out.println("search v2");
+        return EncryptedTriplestoreController.search(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
+    }
+
+    @Override
+    public Response delete(String triplestoreID, List<String> authorizationHeaders) {
+        System.out.println("delete v2");
+        return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, authorizationHeaders);
+    }
+
+    @Override
+    public Response delete(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+        System.out.println("delete some v2");
+        return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
+    }
+
+}

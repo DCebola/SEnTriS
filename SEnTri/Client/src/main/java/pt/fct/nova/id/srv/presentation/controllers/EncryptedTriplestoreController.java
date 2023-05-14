@@ -36,7 +36,17 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.deleteAccessToken;
 
 public class EncryptedTriplestoreController {
-    public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
+    public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
+    public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
+    public static final String SECRETS_SCHEMA_KEYWORD = System.getenv("SECRETS_PROTOCOL_SCHEMA_KEYWORD");
+    public static final String SUCCESSFUL_CREATION = "Successful creation.";
+    public static final String EMPTY_UPLOAD = "No content to upload.";
+    public static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
+    public static final String NO_UPDATES = "No content to update.";
+    public static final int minimumTrapdoors = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
+    public static final int maximumTrapdoors = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
+
+    public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID, String issuer) throws IOException {
         HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
         if (response.getStatus() != OK)
             return response;
@@ -48,7 +58,7 @@ public class EncryptedTriplestoreController {
             return response;
         }
 
-        response = deleteAllContents(httpClient, triplestoreID, accessToken);
+        response = deleteAllContents(httpClient, protocolVersion, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -75,13 +85,6 @@ public class EncryptedTriplestoreController {
             ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, Collections.emptyIterator()));
             return Response.ok(out.toByteArray()).build();
         }
-    }
-
-    public List<Integer> generateRandomPermutation(int total) {
-        List<Integer> idxs = new ArrayList<>(total);
-        for (int i = 0; i < total; i++) idxs.add(i);
-        Collections.shuffle(idxs);
-        return idxs;
     }
 
     public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
@@ -138,31 +141,22 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Map<String, String> uploads, Set<String> deletions,
-                                      Map<String, String> swaps, String accessToken) throws IOException {
+    public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
+                                      Map<String, String> uploads, Set<String> deletions, String accessToken) throws IOException {
         System.out.println("UPLOADS: " + uploads.size());
         System.out.println("DELETIONS: " + deletions.size());
-        System.out.println("SWAPS: " + swaps.size());
         HTTPResponse response;
-        if (!deletions.isEmpty()){
-            response = deleteSomeContents(httpClient, triplestoreID, deletions, accessToken);
-            if(response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
-        }
-        if (!swaps.isEmpty()){
-            response = swapSomeContents(httpClient, triplestoreID, swaps, accessToken);
-            if(response.getStatus() != OK) {
+        if (!deletions.isEmpty()) {
+            response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, deletions, accessToken);
+            if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
         }
         if (!uploads.isEmpty()) {
-            response = upload(httpClient, triplestoreID, uploads, accessToken);
-            if(response.getStatus() != OK) {
+            response = upload(httpClient, protocolVersion, triplestoreID, uploads, accessToken);
+            if (response.getStatus() != OK) {
                 releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
@@ -173,26 +167,14 @@ public class EncryptedTriplestoreController {
         return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 
-    private HTTPResponse swapSomeContents(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> swaps, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.swap(httpClient, triplestoreID, swaps, accessToken)) {
+    public HTTPResponse query(HttpClient httpClient, String protocolVersion, byte[] keyBytes, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = ProxyClient.query(httpClient, protocolVersion, keyBytes, plan, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public HTTPResponse query(HttpClient httpClient, SecretKey secretKey, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = ProxyClient.query(httpClient, secretKey, plan, accessToken)) {
-            return new HTTPResponse(response);
-        }
-    }
-
-    public HTTPResponse prepareSearch(CloseableHttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException, URISyntaxException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.prepareSearch(httpClient, triplestoreID, trapdoors, accessToken)) {
-            return new HTTPResponse(response);
-        }
-    }
-
-    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, triplestoreID, trapdoors, accessToken)) {
+    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }
@@ -204,8 +186,8 @@ public class EncryptedTriplestoreController {
     }
 
 
-    public HTTPResponse upload(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, triplestoreID, encryptedNodes, accessToken)) {
+    public HTTPResponse upload(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, protocolVersion, triplestoreID, encryptedNodes, accessToken)) {
             return new HTTPResponse(response);
         }
     }
@@ -222,14 +204,14 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public static HTTPResponse deleteAllContents(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(httpClient, triplestoreID, accessToken)) {
+    public static HTTPResponse deleteAllContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteAll(httpClient, protocolVersion, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, triplestoreID, trapdoors, accessToken)) {
+    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }

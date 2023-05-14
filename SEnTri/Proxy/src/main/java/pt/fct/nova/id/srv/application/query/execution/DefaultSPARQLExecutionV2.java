@@ -5,20 +5,21 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV2;
+
 import java.util.*;
 
-public class DefaultSPARQLExecution implements SPARQLExecution {
+public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
 
     private final Map<String, Job> jobs;
-    private final Map<String, BindingsTable> jobResults;
+    private final Map<String, BindingsTableV2> jobResults;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
     private SPARQLResult result;
 
 
-    public DefaultSPARQLExecution(QueryExecutionPlan plan) {
+    public DefaultSPARQLExecutionV2(QueryExecutionPlan plan) {
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
@@ -58,7 +59,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public void exec(SPARQLWorker worker) throws SPARQLExecutionException {
+    public void exec(SPARQLWorkerV2 worker) throws SPARQLExecutionException {
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));
@@ -67,7 +68,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
         result = worker.generateResults(jobResults.get(current));
     }
 
-    private BindingsTable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
+    private BindingsTableV2 delegateJob(SPARQLWorkerV2 worker, String current) throws SPARQLExecutionException {
         Job job = jobs.get(current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,

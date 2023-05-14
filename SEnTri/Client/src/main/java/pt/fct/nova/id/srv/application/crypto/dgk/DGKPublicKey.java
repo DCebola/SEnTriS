@@ -1,11 +1,11 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
 
-import java.io.*;
+import java.io.Serial;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.HashMap;
 
-public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, CipherConstants {
+public final class DGKPublicKey implements DGK_Key, PublicKey, CipherConstants {
 
     @Serial
     private static final long serialVersionUID = -1613333167285302035L;
@@ -14,7 +14,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     private final BigInteger h;
     private final long u;
     private final BigInteger bigU;
-    private final HashMap<Long, BigInteger> gLUT = new HashMap<>();
+    private final HashMap<Long, BigInteger> gLUT;
 
     private final int l;
     private final int t;
@@ -31,6 +31,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         this.t = t;
         this.k = k;
         this.rLength = rLength;
+        gLUT = new HashMap<>();
     }
 
 
@@ -59,14 +60,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     }
 
     public byte[] getEncoded() {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-            oos.writeObject(this);
-            oos.flush();
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return null;
     }
 
 
@@ -122,7 +116,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         return encrypt(plaintext.longValue());
     }
 
-    private BigInteger encrypt(long plaintext) {
+    public BigInteger encrypt(long plaintext) {
         BigInteger ciphertext;
         if (plaintext < -1) {
             throw new IllegalArgumentException("Encryption Invalid Parameter: the plaintext is not in Zu (plaintext < 0)"
@@ -136,7 +130,7 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
         gLUT.computeIfAbsent(plaintext, p -> g.modPow(BigInteger.valueOf(p), n));
 
 
-        // Generate 3 * t bit random number
+        // Generate random number
         BigInteger r = NTL.generateXBitRandom(rLength * t);
 
         // First part = g^m
@@ -166,6 +160,22 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
     }
 
     /**
+     * Re-encrypt value.
+     *
+     * @param ciphertext - Encrypted DGK value
+     * @param r          - New random.
+     * @return DGK re-encrypted ciphertext.
+     * @throws HomomorphicException - If either ciphertext is greater than N or negative, throw an exception
+     */
+    public BigInteger reencrypt(BigInteger ciphertext, BigInteger r)
+            throws HomomorphicException {
+        if (ciphertext.signum() == -1 || ciphertext.compareTo(n) > 0) {
+            throw new HomomorphicException("DGKAdd Invalid Parameter ciphertext1: " + ciphertext);
+        }
+        return ciphertext.multiply(r).mod(n);
+    }
+
+    /**
      * Subtract encrypted values.
      *
      * @param ciphertext1 - Encrypted DGK value
@@ -178,6 +188,18 @@ public final class DGKPublicKey implements DGK_Key, Serializable, PublicKey, Cip
             throw new HomomorphicException("DGKMultiply Invalid Parameter ciphertext: " + ciphertext2);
         }
         return add(ciphertext1, ciphertext2.modPow(BigInteger.valueOf(u - 1), n));
+    }
+
+    /**
+     * Generates re-encryption value.
+     * @param r - 3*t bit random
+     * @return h^mod(r, n)
+     */
+    public BigInteger generateReEncryptionR(BigInteger r) throws HomomorphicException {
+        if (r.bitLength() != rLength * t) {
+            throw new HomomorphicException("Invalid Parameter: r must b" + (rLength * t) + " bit length");
+        }
+        return h.modPow(r, n);
     }
 
 }

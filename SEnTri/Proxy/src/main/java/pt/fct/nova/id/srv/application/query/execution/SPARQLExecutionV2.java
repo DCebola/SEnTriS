@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
+import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 
 import javax.crypto.BadPaddingException;
@@ -10,7 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
-public interface SPARQLExecution {
+public interface SPARQLExecutionV2 {
 
     Iterator<String> getPendingJobs();
 
@@ -24,5 +25,5 @@ public interface SPARQLExecution {
 
     SPARQLResult getResults();
 
-    void exec(SPARQLWorker worker) throws SPARQLExecutionException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    void exec(SPARQLWorkerV2 worker) throws SPARQLExecutionException;
 }

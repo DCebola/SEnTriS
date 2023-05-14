@@ -10,11 +10,12 @@ import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
-import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
-import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorker;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecutionV1;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLExecutionV1;
+import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorkerV1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
+import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV1;
 import pt.fct.nova.id.srv.presentation.api.QueriesAPI;
 import pt.fct.nova.id.srv.presentation.api.dtos.SecureSPARQLQueryForm;
 
@@ -29,8 +30,8 @@ import java.util.List;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 import static jakarta.ws.rs.core.Response.Status.*;
 
-@Path("/queries")
-public class QueriesController implements QueriesAPI {
+@Path("/queries/v1")
+public class QueriesControllerV1 implements QueriesAPI {
     public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
@@ -53,8 +54,8 @@ public class QueriesController implements QueriesAPI {
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
             SecretKey secretKey = SymmetricEncryptionUtils.parseKey(form.getKey());
 
-            SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
-            SecureSPARQLWorker worker = new SecureSPARQLWorker(secretKey);
+            SPARQLExecutionV1 execution = new DefaultSPARQLExecutionV1(executionPlan);
+            SecureSPARQLWorkerV1 worker = new SecureSPARQLWorkerV1(secretKey);
             execution.exec(worker);
             ProxyStorage.delete(worker.getAllSearchIDs());
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -79,7 +80,7 @@ public class QueriesController implements QueriesAPI {
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(ProxyStorage.save(encryptedNodes)).build();
+            return Response.ok(ProxyStorageV1.save(encryptedNodes)).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

@@ -28,6 +28,13 @@
             <artifactId>lazysodium-java</artifactId>
             <version>5.1.4</version>
         </dependency>
+        <!-- JNA GMP-->
+        <dependency>
+            <groupId>com.squareup.jnagmp</groupId>
+            <artifactId>jnagmp</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- Servlet/REST  -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

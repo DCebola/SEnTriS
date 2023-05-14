@@ -1,23 +1,33 @@
 package pt.fct.nova.id.srv.application.crypto.dgk;
-import java.io.*;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigInteger;
 
 public class DGKEqChecker implements Serializable, DGK_Key {
     @Serial
     private static final long serialVersionUID = 4574519213202483629L;
 
-    // Equality Check Key Parameters
     private final BigInteger p;
     private final BigInteger vp;
     private final BigInteger n;
 
     private final long u;
 
-    public DGKEqChecker(BigInteger p, BigInteger vp, BigInteger n, long u) {
-        this.p = p;
-        this.vp = vp;
-        this.n = n;
-        this.u = u;
+    public DGKEqChecker(DGKEqKey key) {
+        this.p = key.getP();
+        this.vp = key.getVp();
+        this.n = key.getN();
+        this.u = key.getU();
+    }
+
+    /**
+     *
+     * @param ciphertext - DGK ciphertext
+     * @return ciphertext.mod(n)
+     */
+    public BigInteger mod(BigInteger ciphertext) {
+        return ciphertext.mod(n);
     }
 
     /**
