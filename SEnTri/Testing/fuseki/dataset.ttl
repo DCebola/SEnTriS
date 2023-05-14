@@ -1,0 +1,41 @@
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+PREFIX :        <#>
+PREFIX fuseki:  <http://jena.apache.org/fuseki#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+
+[] rdf:type fuseki:Server ;
+   fuseki:services (
+     :service
+   ) .
+
+:service rdf:type fuseki:Service ;
+    fuseki:name   "lubm" ;
+    fuseki:endpoint [ 
+         # SPARQL query service
+        fuseki:operation fuseki:query ; 
+        fuseki:name "sparql"
+    ] ;
+    
+    fuseki:endpoint [ 
+         # SPARQL update service
+        fuseki:operation fuseki:update ; 
+        fuseki:name "update" 
+    ] ;
+
+    fuseki:dataset  <#dataset> ;
+    .
+
+<#dataset> rdf:type ja:RDFDataset;
+     ja:defaultGraph <#inferenceModel>
+     .
+
+<#inferenceModel> rdf:type      ja:InfModel;
+     ja:reasoner [ ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner> ];
+     ja:baseModel <#baseModel>;
+     .
+<#baseModel> rdf:type ja:MemoryModel ;
+    ja:content [ja:externalContent <./data/lubm-full.owl> ] ;
+    .

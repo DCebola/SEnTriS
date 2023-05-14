@@ -271,12 +271,18 @@ TSWLatexianTemp*
 
 # xwatermark package
 *.xwm
-Implementation/Secure-Storage/.idea/
+SEnTri/*/.idea/
 
-Implementation/Scripts/SSL/
+SEnTri/*/SSL/
 
-Implementation/Scripts/Secrets/
+SEnTri/*/Secrets/
 
-Implementation/Scripts/db_data/
+SEnTri/*/db_data/
 
-Implementation/Secure-Storage/target/
+SEnTri/*/target/
+
+SEnTri/Scripts/Triplestore/db_data/
+
+*.war
+
+*.rdb

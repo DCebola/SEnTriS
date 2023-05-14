@@ -1,0 +1,53 @@
+package pt.fct.nova.id.srv.application.storage.redis;
+
+import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
+    public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
+    public final static String KEY_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
+    public static final String TRIPLESTORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
+
+    @Override
+    public void delete(String triplestoreID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
+            t.exec();
+        }
+    }
+
+    @Override
+    public void save(String triplestoreID, Map<String, String> encryptedNodes) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Transaction t = jedis.multi();
+            for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                t.set(String.format(KEY_FORMAT, triplestoreID, key), value);
+            }
+            t.exec();
+        }
+    }
+
+    @Override
+    public List<String> search(String triplestoreID, List<String> trapdoors) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
+            System.out.println("SEARCH: " + trapdoors.size());
+            p.sync();
+            List<String> res = new ArrayList<>(trapdoors.size());
+            for (Response<String> r : responses) res.add(r.get());
+            return res;
+        }
+    }
+}

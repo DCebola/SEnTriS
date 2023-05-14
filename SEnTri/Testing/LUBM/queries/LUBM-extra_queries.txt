@@ -1,0 +1,106 @@
+#Query 15: Test UNION
+#Find all graduate and undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+SELECT ?graduate ?undergraduate
+WHERE
+{
+ {
+  ?graduate rdf:type ub:GraduateStudent
+ } 
+UNION 
+ {
+  ?undergraduate rdf:type ub:UndergraduateStudent
+ }
+}
+ORDER BY ASC(?graduate) ASC(?undergraduate)
+
+#Query 16: Test MINUS
+#Find all members of departments which are not undergraduate students.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+SELECT ?member ?department
+WHERE
+{
+  {
+    ?member rdf:type ?Z .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+MINUS
+  {
+    ?member rdf:type ub:UndergraduateStudent .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+} 
+ORDER BY ASC(?member) ASC(?department)
+
+#Query 17: Test OPTIONAL
+#Find all members of departments, if they are taking a graduate course, show the course.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+SELECT ?member ?graduateCourse
+WHERE
+{
+  {
+    ?member rdf:type ?Z .
+    ?department rdf:type ub:Department .
+    ?member ub:memberOf ?department
+  }
+OPTIONAL
+  {
+    ?member ub:takesCourse ?graduateCourse .
+    ?graduateCourse rdf:type ub:GraduateCourse
+  }
+} 
+ORDER BY ASC(?member) ASC(?graduateCourse)
+
+#Query18: INSERT DATA
+#Upload data of a new graduate student
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+INSERT DATA {
+<http://www.Department0.University0.edu/GraduateStudent146>
+  a ub:GraduateStudent ;
+  ub:name "GraduateStudent146" ;
+  ub:memberOf <http://www.Department0.University0.edu> ;
+  ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
+  ub:telephone "xxx-xxx-xxxx" ;
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
+  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
+}
+
+
+
+#Query20: DELETE DATA
+#Delete data of a the new graduate student.
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+DELETE DATA {
+<http://www.Department0.University0.edu/GraduateStudent146>
+  a ub:GraduateStudent ;
+  ub:name "GraduateStudent146" ;
+  ub:memberOf <http://www.Department0.University0.edu> ;
+  ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
+  ub:telephone "xxx-xxx-xxxx" ;
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
+  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
+}
+
+#Query21
+#Delete data of a the new graduate student, but via pattern matching.
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+DELETE WHERE {<http://www.Department0.University0.edu/GraduateStudent146> ?p ?o}
+
+#Query 20: INSERT/DELETE
+#Update all graduate students' phone numbers.
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+DELETE {?graduate ub:telephone ?phoneNumber}
+INSERT {?graduate ub:telephone "yyy-yyy-yyyy"}
+WHERE
+{
+   ?graduate a ub:GraduateStudent;
+   ub:telephone ?phoneNumber
+} 
