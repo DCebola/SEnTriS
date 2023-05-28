@@ -15,6 +15,7 @@ import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafe;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
@@ -68,6 +69,17 @@ public class QueryUtils {
 
     public static String generateID() {
         return uuidToBase64(UUID.randomUUID().toString());
+    }
+
+    public static byte[] generateBinaryID() {
+        return uuidToBase64Bytes(UUID.randomUUID());
+    }
+
+    public static byte[] uuidToBase64Bytes(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return encodeBase64URLSafe(bb.array());
     }
 
     public static String uuidToBase64(String str) {

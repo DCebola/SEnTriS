@@ -7,44 +7,41 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
-
-    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
-
-
     @Override
-    public void delete(String triplestoreID, List<String> trapdoors) {
+    public void delete(String triplestoreID, List<byte[]> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            List<Response<String>> responses = new LinkedList<>();
-            trapdoors.forEach(trapdoor -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, trapdoor))));
+            List<Response<byte[]>> responses = new LinkedList<>();
+            trapdoors.forEach(trapdoor -> responses.add(
+                    p.get(String.format(KEY_FORMAT, triplestoreID, new String(trapdoor, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
             p.sync();
             Transaction t = jedis.multi();
-            trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, triplestoreID, trapdoor)));
-            responses.forEach(response -> t.del(String.format(KEY_FORMAT, triplestoreID, response.get())));
+            trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, triplestoreID,
+                    new String(trapdoor, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8)));
+            responses.forEach(response -> t.del(String.format(KEY_FORMAT, triplestoreID,
+                    new String(response.get(), StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8)));
             t.exec();
         }
     }
 
-    public List<String> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask) {
+    public List<byte[]> maskedSearch(String triplestoreID, List<byte[]> trapdoors, BigInteger mask) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
+            List<Response<byte[]>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID,
+                    new String(key, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
             System.out.println("SEARCH: " + trapdoors.size());
             p.sync();
-            List<String> res = new ArrayList<>(trapdoors.size());
-            String value;
-            System.out.println("Mask: " + base64Encoder.encodeToString(mask.toByteArray()));
-            for (Response<String> r : responses) {
+            List<byte[]> res = new ArrayList<>(trapdoors.size());
+            byte[] value;
+            for (Response<byte[]> r : responses) {
                 value = r.get();
-                if (value != null) {
-                    value = base64Encoder.encodeToString(new BigInteger(base64Decoder.decode(value)).multiply(mask).toByteArray());
-                    System.out.println(" - " + value);
-                }
+                if (value != null)
+                    value = new BigInteger(value).multiply(mask).toByteArray();
                 res.add(value);
             }
             return res;

@@ -17,21 +17,22 @@ public class EncryptedTriplestoreClient {
     private static final String DELETE_SOME_URI = System.getenv("ENCRYPTED_TRIPLESTORE_DELETE_SOME_URI");
     private static final String SEARCH_URI = System.getenv("ENCRYPTED_TRIPLESTORE_SEARCH_URI");
 
-    public static CloseableHttpResponse upload(HttpClient httpClient, String protocolVersion, String triplestoreID, Map<String, String> values, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, protocolVersion, triplestoreID), ParsingUtils.mapOfStringStringToHttpEntity(values), accessToken);
+    public static CloseableHttpResponse upload(HttpClient httpClient, String protocolVersion, String triplestoreID, Map<byte[], byte[]> values, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, protocolVersion, triplestoreID), ParsingUtils.mapOfBytesBytesToHttpEntity(values), accessToken);
     }
 
-    public static CloseableHttpResponse search(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+    public static CloseableHttpResponse search(HttpClient httpClient, String protocolVersion, String triplestoreID, List<byte[]> trapdoors, String accessToken) throws IOException {
         System.out.printf((SEARCH_URI) + "POST %n", protocolVersion, triplestoreID);
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, protocolVersion, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, protocolVersion, triplestoreID), ParsingUtils.bytesListToHttpEntity(trapdoors), accessToken);
     }
 
-    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String protocolVersion, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, protocolVersion, triplestoreID), ParsingUtils.stringSetToHttpEntity(trapdoors), accessToken);
+    public static CloseableHttpResponse deleteSome(HttpClient httpClient, String protocolVersion, String triplestoreID, Set<byte[]> trapdoors, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(DELETE_SOME_URI, protocolVersion, triplestoreID), ParsingUtils.bytesSetToHttpEntity(trapdoors), accessToken);
     }
 
     public static CloseableHttpResponse deleteAll(HttpClient httpClient, String protocolVersion, String triplestoreID, String accessToken) throws IOException {
         return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, protocolVersion, triplestoreID), accessToken);
     }
+
 
 }

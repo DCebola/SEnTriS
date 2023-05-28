@@ -19,14 +19,13 @@ import java.util.stream.Collectors;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV2 extends ProxyStorage {
-    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
 
-    public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
+    public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, byte[]> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             BindingsTableV2 res = new MemBindingsTableV2(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
-            List<Response<List<String>>> responses = new ArrayList<>(searches.size());
+            List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());
             for (Var var : vars)
                 responses.add(p.lrange(searches.get(var), 0, -1));
 
@@ -34,14 +33,14 @@ public class ProxyStorageV2 extends ProxyStorage {
             Map<Var, List<BigInteger>> searchResults = new HashMap<>();
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get().parallelStream()
-                        .map(eqTag -> DGKEqUtils.mod(key, new BigInteger(base64Decoder.decode(eqTag))))
+                        .map(eqTag -> DGKEqUtils.mod(key, new BigInteger(eqTag)))
                         .collect(Collectors.toCollection(ArrayList::new)));
 
 
             Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
             for (Var var : vars)
                 groupedEqTags.put(var, ConcurrentHashMap.newKeySet());
-            String p_idx;
+            byte[] p_idx;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
                 p_idx = generateID();
                 for (Var var : vars)

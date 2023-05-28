@@ -5,29 +5,25 @@ import org.apache.jena.graph.Triple;
 
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
-import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
+import static pt.fct.nova.id.srv.application.query.QueryUtils.generateBinaryID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class Protocol1 implements EncryptionProtocol {
-    //TODO: Remove access pattern w/ obfuscation buckets for trapdoors
     private final byte[] ivDET;
     private final SecretKey kMASTER, kRND, kDET;
-    private final Map<String, String> encryptedNodes;
-    private final Map<String, Integer> keywordFrequencies;
-    private final Map<String, SecretKey> derivedKeys;
-    private final Base64.Decoder base64Decoder;
-    private final Base64.Encoder base64Encoder;
-    private final String schemaKeyword;
+    private final Map<byte[], byte[]> encryptedNodes;
+    private final Map<byte[], Integer> keywordFrequencies;
+    private final Map<byte[], SecretKey> derivedKeys;
+    private final byte[] schemaKeyword;
     private final byte[] frequencyIV;
 
-    public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv, String schemaKeyword) {
+    public Protocol1(SecretKey kMASTER, SecretKey kRND, SecretKey kDET, byte[] iv, byte[] schemaKeyword) {
         this.ivDET = iv;
         this.kMASTER = kMASTER;
         this.kRND = kRND;
@@ -36,8 +32,6 @@ public class Protocol1 implements EncryptionProtocol {
         this.encryptedNodes = new HashMap<>();
         this.keywordFrequencies = new HashMap<>();
         this.derivedKeys = new HashMap<>();
-        this.base64Decoder = Base64.getUrlDecoder();
-        this.base64Encoder = Base64.getUrlEncoder();
         this.frequencyIV = SymmetricEncryptionUtils.generateZeroFilledIV();
 
     }
@@ -47,16 +41,14 @@ public class Protocol1 implements EncryptionProtocol {
         this.kMASTER = SymmetricEncryptionUtils.generateKey();
         this.kRND = SymmetricEncryptionUtils.generateKey();
         this.kDET = SymmetricEncryptionUtils.generateKey();
-        this.schemaKeyword = generateID();
+        this.schemaKeyword = generateBinaryID();
         this.encryptedNodes = new HashMap<>();
         this.keywordFrequencies = new HashMap<>();
         this.derivedKeys = new HashMap<>();
-        this.base64Decoder = Base64.getUrlDecoder();
-        this.base64Encoder = Base64.getUrlEncoder();
         this.frequencyIV = SymmetricEncryptionUtils.generateZeroFilledIV();
     }
 
-    public String getSchemaKeyword() {
+    public byte[] getSchemaKeyword() {
         return schemaKeyword;
     }
 
@@ -76,11 +68,11 @@ public class Protocol1 implements EncryptionProtocol {
         return kDET;
     }
 
-    public Map<String, String> getEncryptedNodes() {
+    public Map<byte[], byte[]> getEncryptedNodes() {
         return encryptedNodes;
     }
 
-    public Map<String, Integer> getKeywordFrequencies() {
+    public Map<byte[], Integer> getKeywordFrequencies() {
         return keywordFrequencies;
     }
 
@@ -103,16 +95,17 @@ public class Protocol1 implements EncryptionProtocol {
 
     private int encodeSchemaNode(String node) {
         int frequency = incrementKeywordFrequency(schemaKeyword);
-        byte[] st = generateDETLayer(getDerivedKey(schemaKeyword), schemaKeyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(frequency));
+        byte[] st = generateDETLayer(getDerivedKey(schemaKeyword), schemaKeyword, SymmetricEncryptionUtils.ivFromInteger(frequency));
         byte[] ct = generateRNDLayer(node.getBytes(StandardCharsets.UTF_8));
-        encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
+        encryptedNodes.put(st, ct);
         return frequency;
     }
 
 
     private void encryptTriples(List<Triple> triples) throws InvalidNodeException {
         Node s, p, o;
-        String parsed_s, parsed_p, parsed_o, s_keyword, p_keyword, o_keyword, t_keyword;
+        byte[] parsed_s, parsed_p, parsed_o;
+        String s_keyword, p_keyword, o_keyword, t_keyword;
         List<Integer> frequencies;
         Set<String> processed = new HashSet<>();
         for (Triple t : triples) {
@@ -120,53 +113,51 @@ public class Protocol1 implements EncryptionProtocol {
             s = t.getSubject();
             p = t.getPredicate();
             o = t.getObject();
-            parsed_s = ParsingUtils.parseNode(s);
-            parsed_p = ParsingUtils.parseNode(p);
-            parsed_o = ParsingUtils.parseNode(o);
+            parsed_s = ParsingUtils.parseNode(s).getBytes(StandardCharsets.UTF_8);
+            parsed_p = ParsingUtils.parseNode(p).getBytes(StandardCharsets.UTF_8);
+            parsed_o = ParsingUtils.parseNode(o).getBytes(StandardCharsets.UTF_8);
             s_keyword = ParsingUtils.parseKeyword(s);
             p_keyword = ParsingUtils.parseKeyword(p);
             o_keyword = ParsingUtils.parseKeyword(o);
             t_keyword = String.format(TRIPLE_KEYWORD, s_keyword, p_keyword, o_keyword);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                frequencies.add(encodeNode(parsed_p, PO, s_keyword));
-                frequencies.add(encodeNode(parsed_o, PO, s_keyword));
-                frequencies.add(encodeNode(parsed_s, SO, p_keyword));
-                frequencies.add(encodeNode(parsed_o, SO, p_keyword));
-                frequencies.add(encodeNode(parsed_s, SP, o_keyword));
-                frequencies.add(encodeNode(parsed_p, SP, o_keyword));
-                frequencies.add(encodeNode(parsed_s, S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)));
-                frequencies.add(encodeNode(parsed_p, P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)));
-                frequencies.add(encodeNode(parsed_o, O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)));
-                encodeTriple(t_keyword, frequencies);
+                frequencies.add(encodeNode(parsed_p, ParsingUtils.generateKeyword(PO, s_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_o, ParsingUtils.generateKeyword(PO, s_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_s, ParsingUtils.generateKeyword(SO, p_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_o, ParsingUtils.generateKeyword(SO, p_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_s, ParsingUtils.generateKeyword(SP, o_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_p, ParsingUtils.generateKeyword(SP, o_keyword).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_s, ParsingUtils.generateKeyword(S, String.format(COMPOUND_KEYWORD, p_keyword, o_keyword)).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_p, ParsingUtils.generateKeyword(P, String.format(COMPOUND_KEYWORD, s_keyword, o_keyword)).getBytes(StandardCharsets.UTF_8)));
+                frequencies.add(encodeNode(parsed_o, ParsingUtils.generateKeyword(O, String.format(COMPOUND_KEYWORD, s_keyword, p_keyword)).getBytes(StandardCharsets.UTF_8)));
+                encodeTriple(ParsingUtils.generateKeyword(SPO, t_keyword).getBytes(StandardCharsets.UTF_8), frequencies);
             }
         }
     }
 
-    private int encodeNode(String node, VariablesPattern pattern, String keyword) {
-        keyword = ParsingUtils.generateKeyword(pattern, keyword);
+    private int encodeNode(byte[] node, byte[] keyword) {
         int frequency = incrementKeywordFrequency(keyword);
-        byte[] st = generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(frequency));
-        byte[] ct = generateRNDLayer(generateDETLayer(kDET, node.getBytes(StandardCharsets.UTF_8), ivDET));
-        encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
+        byte[] st = generateDETLayer(getDerivedKey(keyword), keyword, SymmetricEncryptionUtils.ivFromInteger(frequency));
+        byte[] ct = generateRNDLayer(generateDETLayer(kDET, node, ivDET));
+        encryptedNodes.put(st, ct);
         return frequency;
     }
 
-    private void encodeTriple(String keyword, List<Integer> frequencies) {
-        keyword = ParsingUtils.generateKeyword(SPO, keyword);
+    private void encodeTriple(byte[] keyword, List<Integer> frequencies) {
         byte[] st;
         int i = 0;
         for (int f : frequencies) {
-            st = generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(i));
-            encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(generateRNDLayer(ParsingUtils.integerToByteArray(f))));
+            st = generateDETLayer(getDerivedKey(keyword), keyword, SymmetricEncryptionUtils.ivFromInteger(i));
+            encryptedNodes.put(st, generateRNDLayer(ParsingUtils.integerToByteArray(f)));
             i++;
         }
     }
 
-    public Map<String, List<String>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
-        Map<String, List<String>> res = new HashMap<>(triples.size() * 6);
+    public Map<byte[], List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
+        Map<byte[], List<byte[]>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
-        List<String> keywords;
+        List<byte[]> keywords;
         Set<String> processed = new HashSet<>();
         for (Triple t : triples) {
             keywords = new ArrayList<>(9);
@@ -176,16 +167,16 @@ public class Protocol1 implements EncryptionProtocol {
             t_keyword = String.format(TRIPLE_KEYWORD, s, p, o);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                keywords.add(ParsingUtils.generateKeyword(PO, s));
-                keywords.add(ParsingUtils.generateKeyword(PO, s));
-                keywords.add(ParsingUtils.generateKeyword(SO, p));
-                keywords.add(ParsingUtils.generateKeyword(SO, p));
-                keywords.add(ParsingUtils.generateKeyword(SP, o));
-                keywords.add(ParsingUtils.generateKeyword(SP, o));
-                keywords.add(ParsingUtils.generateKeyword(S, p, o));
-                keywords.add(ParsingUtils.generateKeyword(P, s, o));
-                keywords.add(ParsingUtils.generateKeyword(O, s, p));
-                generatePatternTrapdoors(res, t_keyword, keywords);
+                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8));
+                keywords.add(ParsingUtils.generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8));
+                generatePatternTrapdoors(res, ParsingUtils.generateKeyword(SPO, t_keyword).getBytes(StandardCharsets.UTF_8), keywords);
             }
         }
         System.out.println("KeywordsPatternTrapdoors: " + res.size());
@@ -194,23 +185,21 @@ public class Protocol1 implements EncryptionProtocol {
 
     private void encryptKeywordInfo() {
         byte[] st, ct;
-        for (String keyword : keywordFrequencies.keySet()) {
-            st = generateDETLayer(derivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), frequencyIV);
+        for (byte[] keyword : keywordFrequencies.keySet()) {
+            st = generateDETLayer(derivedKeys.get(keyword), keyword, frequencyIV);
             ct = generateRNDLayer(ParsingUtils.integerToByteArray(keywordFrequencies.get(keyword)));
-            encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
+            encryptedNodes.put(st, ct);
         }
     }
 
-    private void generatePatternTrapdoors(Map<String, List<String>> keywordPatternTrapdoors, String tripleKeyword, List<String> keywords) {
-        tripleKeyword = ParsingUtils.generateKeyword(SPO, tripleKeyword);
-        List<String> trapdoors;
+    private void generatePatternTrapdoors(Map<byte[], List<byte[]>> keywordPatternTrapdoors, byte[] tripleKeyword, List<byte[]> keywords) {
+        List<byte[]> trapdoors;
         int i = 0;
-        for (String keyword : keywords) {
+        for (byte[] keyword : keywords) {
             trapdoors = keywordPatternTrapdoors.get(keyword);
             if (trapdoors == null)
                 trapdoors = new LinkedList<>();
-            trapdoors.add(base64Encoder.encodeToString(generateDETLayer(getDerivedKey(tripleKeyword),
-                    tripleKeyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(i))));
+            trapdoors.add(generateDETLayer(getDerivedKey(tripleKeyword), tripleKeyword, SymmetricEncryptionUtils.ivFromInteger(i)));
             keywordPatternTrapdoors.put(keyword, trapdoors);
             i++;
         }
@@ -224,44 +213,43 @@ public class Protocol1 implements EncryptionProtocol {
         return SymmetricEncryptionUtils.encrypt(plaintext, key, iv);
     }
 
-    public String generateKeywordsFrequencyTrapdoor(String keyword) {
-        return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), frequencyIV));
+    public byte[] generateKeywordsFrequencyTrapdoor(byte[] keyword) {
+        return generateDETLayer(getDerivedKey(keyword), keyword, frequencyIV);
     }
 
-    public String generateTrapdoorAndIncrementIV(String keyword) {
-        return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword),
-                keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword))));
+    public byte[] generateTrapdoorAndIncrementIV(byte[] keyword) {
+        return generateDETLayer(getDerivedKey(keyword), keyword, SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword)));
     }
 
-    private int incrementKeywordFrequency(String keyword) {
+    private int incrementKeywordFrequency(byte[] keyword) {
         return keywordFrequencies.merge(keyword, 1, Integer::sum);
     }
 
-    public String generateTrapdoor(String keyword, int value) {
-        return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(value)));
+    public byte[] generateTrapdoor(byte[] keyword, int value) {
+        return generateDETLayer(getDerivedKey(keyword), keyword, SymmetricEncryptionUtils.ivFromInteger(value));
     }
 
-    public byte[] decryptRNDLayer(String ciphertext) throws AEADBadTagException {
-        return SymmetricEncryptionUtils.decrypt(kRND, base64Decoder.decode(ciphertext));
+    public byte[] decryptRNDLayer(byte[] ciphertext) throws AEADBadTagException {
+        return SymmetricEncryptionUtils.decrypt(kRND, ciphertext);
     }
 
-    public byte[] decryptDETLayer(String ciphertext) throws AEADBadTagException {
-        return SymmetricEncryptionUtils.decrypt(kDET, base64Decoder.decode(ciphertext), ivDET);
+    public byte[] decryptDETLayer(byte[] ciphertext) throws AEADBadTagException {
+        return SymmetricEncryptionUtils.decrypt(kDET, ciphertext, ivDET);
     }
 
-    private SecretKey getDerivedKey(String context) {
+    private SecretKey getDerivedKey(byte[] context) {
         SecretKey key = derivedKeys.get(context);
         if (key == null) {
-            key = SymmetricEncryptionUtils.generateKey(kMASTER, context.getBytes(StandardCharsets.UTF_8));
+            key = SymmetricEncryptionUtils.generateKey(kMASTER, context);
             derivedKeys.put(context, key);
         }
         return key;
     }
 
-    public void setKeywordFrequencies(Map<String, Integer> values) {
+    public void setKeywordFrequencies(Map<byte[], Integer> values) {
         keywordFrequencies.clear();
         int frequency;
-        for (String keyword : values.keySet()) {
+        for (byte[] keyword : values.keySet()) {
             frequency = values.get(keyword);
             if (frequency > 0)
                 keywordFrequencies.put(keyword, frequency);

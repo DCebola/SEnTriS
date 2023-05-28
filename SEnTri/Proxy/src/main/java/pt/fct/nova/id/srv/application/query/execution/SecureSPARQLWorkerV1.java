@@ -5,7 +5,6 @@ import pt.fct.nova.id.srv.application.query.execution.exceptions.*;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
-import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV1;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
 import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
@@ -17,7 +16,7 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
 
     private final SPARQLResult result;
     private final SecretKey key;
-    private final Set<String> allSearchIDs;
+    private final Set<byte[]> allSearchIDs;
 
     public SecureSPARQLWorkerV1(SecretKey key) {
         result = new DefaultSPARQLResult();
@@ -25,14 +24,14 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
         allSearchIDs = new HashSet<>();
     }
 
-    public Set<String> getAllSearchIDs() {
+    public Set<byte[]> getAllSearchIDs() {
         return allSearchIDs;
     }
 
     @Override
     public BindingsTableV1 exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
-            Map<Var, String> searches = secureSearchJob.getSearches();
+            Map<Var, byte[]> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorageV1.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EmptyResJob) return new MemBindingsTableV1(((EmptyResJob) job).getVars());
@@ -138,11 +137,11 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
     private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, BindingsTableV1 jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
-        HashMap<Var, String> values;
-        for (List<String> p_values : jobResults.getPatterns()) {
+        HashMap<Var, byte[]> values;
+        for (List<byte[]> p_values : jobResults.getPatterns()) {
             values = new HashMap<>();
             i = 0;
-            for (String val : p_values) {
+            for (byte[] val : p_values) {
                 if (val != null)
                     values.put(vars.get(i), val);
                 i++;

@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.util.Base64;
 
 public class DGKUtils {
     private static DGKKeyPairGenerator keyPairGenerator;
-    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static KeyPair generateKeyPair() throws HomomorphicException {
         if (keyPairGenerator == null)

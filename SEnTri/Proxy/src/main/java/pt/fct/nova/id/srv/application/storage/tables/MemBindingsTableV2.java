@@ -8,7 +8,6 @@ import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.jena.sparql.algebra.JoinType.INNER;
 import static org.apache.jena.sparql.algebra.JoinType.LEFT;
@@ -16,8 +15,8 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class MemBindingsTableV2 implements BindingsTableV2 {
 
-    private final Map<Var, Map<BigInteger, Set<String>>> bindings;
-    private final Map<Var, Map<String, BigInteger>> patterns;
+    private final Map<Var, Map<BigInteger, Set<byte[]>>> bindings;
+    private final Map<Var, Map<byte[], BigInteger>> patterns;
 
     public MemBindingsTableV2() {
         bindings = new HashMap<>();
@@ -45,13 +44,13 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
 
     @Override
-    public void add(String patternIdx, Var var, BigInteger binding) {
+    public void add(byte[] patternIdx, Var var, BigInteger binding) {
         addIRI(binding, var, patternIdx);
         addPattern(binding, var, patternIdx);
     }
 
-    private void addPattern(BigInteger binding, Var var, String patternIdx) {
-        Map<String, BigInteger> v_p_idxs = patterns.get(var);
+    private void addPattern(BigInteger binding, Var var, byte[] patternIdx) {
+        Map<byte[], BigInteger> v_p_idxs = patterns.get(var);
         if (v_p_idxs == null) {
             v_p_idxs = new HashMap<>();
             v_p_idxs.put(patternIdx, binding);
@@ -59,21 +58,21 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         } else v_p_idxs.put(patternIdx, binding);
     }
 
-    private void addIRI(BigInteger binding, Var var, String patternIdx) {
-        Map<BigInteger, Set<String>> v_bindings = bindings.get(var);
+    private void addIRI(BigInteger binding, Var var, byte[] patternIdx) {
+        Map<BigInteger, Set<byte[]>> v_bindings = bindings.get(var);
         if (v_bindings == null) {
             v_bindings = new HashMap<>();
             savePatternIdxs(v_bindings, binding, patternIdx);
             bindings.put(var, v_bindings);
         } else {
-            Set<String> p_idxs = v_bindings.get(binding);
+            Set<byte[]> p_idxs = v_bindings.get(binding);
             if (p_idxs == null) savePatternIdxs(v_bindings, binding, patternIdx);
             else p_idxs.add(patternIdx);
         }
     }
 
-    private void savePatternIdxs(Map<BigInteger, Set<String>> varBindings, BigInteger binding, String patternIdx) {
-        Set<String> p_idxs = new HashSet<>();
+    private void savePatternIdxs(Map<BigInteger, Set<byte[]>> varBindings, BigInteger binding, byte[] patternIdx) {
+        Set<byte[]> p_idxs = new HashSet<>();
         p_idxs.add(patternIdx);
         varBindings.put(binding, p_idxs);
     }
@@ -84,22 +83,22 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     @Override
-    public Map<BigInteger, Set<String>> getBindings(Var var) {
+    public Map<BigInteger, Set<byte[]>> getBindings(Var var) {
         return bindings.get(var);
     }
 
     @Override
-    public Map<String, BigInteger> getPatternIdxs(Var var) {
+    public Map<byte[], BigInteger> getPatternIdxs(Var var) {
         return patterns.get(var);
     }
 
     @Override
-    public Map<Var, Map<BigInteger, Set<String>>> getBindings() {
+    public Map<Var, Map<BigInteger, Set<byte[]>>> getBindings() {
         return bindings;
     }
 
     @Override
-    public Map<Var, Map<String, BigInteger>> getPatternIdxs() {
+    public Map<Var, Map<byte[], BigInteger>> getPatternIdxs() {
         return patterns;
     }
 
@@ -108,12 +107,12 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         List<List<BigInteger>> res = new LinkedList<>();
         List<BigInteger> pattern;
         Set<Var> vars = patterns.keySet();
-        Set<String> p_idxs = new HashSet<>();
+        Set<byte[]> p_idxs = new HashSet<>();
         for (Var v : vars)
             p_idxs.addAll(patterns.get(v).keySet());
         BigInteger binding;
         int i;
-        for (String p_idx : p_idxs) {
+        for (byte[] p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
             i = 0;
             for (Var v : vars) {
@@ -151,12 +150,12 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         r_vars.removeAll(left.getVars());
 
         BindingsTableV2 res = new MemBindingsTableV2(vars);
-        Map<BigInteger, Set<String>> l_bindings, r_bindings;
-        Set<String> l_p_idxs, r_p_idxs;
+        Map<BigInteger, Set<byte[]>> l_bindings, r_bindings;
+        Set<byte[]> l_p_idxs, r_p_idxs;
         for (Var v : mutualVars) {
             l_bindings = left.getBindings(v);
             r_bindings = right.getBindings(v);
-            for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet()) {
+            for (Map.Entry<BigInteger, Set<byte[]>> entry : l_bindings.entrySet()) {
                 l_p_idxs = entry.getValue();
                 r_p_idxs = searchVarBindings(key, r_bindings, entry.getKey());
                 if (r_p_idxs != null || joinType.equals(LEFT))
@@ -167,21 +166,21 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         return res;
     }
 
-    private void copyBindings(String newPattern, String oldPattern, Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
+    private void copyBindings(byte[] newPattern, byte[] oldPattern, Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
         for (Var v : vars) {
             BigInteger binding = source.getPatternIdxs(v).get(oldPattern);
             if (binding != null) target.add(newPattern, v, binding);
         }
     }
 
-    private void joinPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Set<Var> leftVars, Set<String> leftPatternIdxs,
-                              BindingsTableV2 right, Set<Var> rightVars, Set<String> rightPatternIdxs, BindingsTableV2 res, JoinType joinType) throws HomomorphicException {
-        String p;
+    private void joinPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Set<Var> leftVars, Set<byte[]> leftPatternIdxs,
+                              BindingsTableV2 right, Set<Var> rightVars, Set<byte[]> rightPatternIdxs, BindingsTableV2 res, JoinType joinType) throws HomomorphicException {
+        byte[] p;
         boolean foundMatch;
-        for (String l : leftPatternIdxs) {
+        for (byte[] l : leftPatternIdxs) {
             foundMatch = false;
             if (rightPatternIdxs != null) {
-                for (String r : rightPatternIdxs) {
+                for (byte[] r : rightPatternIdxs) {
                     if (equalPatterns(key, mutualVars, left, l, right, r)) {
                         foundMatch = true;
                         p = generateID();
@@ -198,7 +197,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         }
     }
 
-    private boolean equalPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, String leftPattern, BindingsTableV2 right, String rightPattern) throws HomomorphicException {
+    private boolean equalPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, byte[] leftPattern, BindingsTableV2 right, byte[] rightPattern) throws HomomorphicException {
         BigInteger l_binding, r_binding;
         for (Var v : mutualVars) {
             l_binding = left.getPatternIdxs(v).get(leftPattern);
@@ -232,8 +231,8 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
     private void copyAllIRIs(Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
         for (Var v : vars) {
-            for (Map.Entry<BigInteger, Set<String>> entry : source.getBindings(v).entrySet())
-                for (String p : entry.getValue())
+            for (Map.Entry<BigInteger, Set<byte[]>> entry : source.getBindings(v).entrySet())
+                for (byte[] p : entry.getValue())
                     target.add(p, v, entry.getKey());
         }
     }
@@ -250,22 +249,22 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
-        Set<String> diff = new HashSet<>();
-        Map<BigInteger, Set<String>> l_bindings, r_bindings;
+        Set<byte[]> diff = new HashSet<>();
+        Map<BigInteger, Set<byte[]>> l_bindings, r_bindings;
         for (Var v : mutual_vars) {
             l_bindings = this.getBindings(v);
             r_bindings = other.getBindings(v);
-            for (Map.Entry<BigInteger, Set<String>> entry : l_bindings.entrySet())
+            for (Map.Entry<BigInteger, Set<byte[]>> entry : l_bindings.entrySet())
                 if (searchVarBindings(key, r_bindings, entry.getKey()) == null) diff.addAll(entry.getValue());
         }
 
         BindingsTableV2 res = new MemBindingsTableV2(mutual_vars);
-        Map<BigInteger, Set<String>> bindings;
+        Map<BigInteger, Set<byte[]>> bindings;
 
         for (Var v : mutual_vars) {
             bindings = this.getBindings(v);
-            for (Map.Entry<BigInteger, Set<String>> entry : bindings.entrySet()) {
-                for (String p : entry.getValue()) {
+            for (Map.Entry<BigInteger, Set<byte[]>> entry : bindings.entrySet()) {
+                for (byte[] p : entry.getValue()) {
                     if (diff.contains(p)) copyBindings(p, p, mutual_vars, this, res);
                 }
             }
@@ -274,7 +273,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         return res;
     }
 
-    private Set<String> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<String>> bindings, BigInteger target) throws HomomorphicException {
+    private Set<byte[]> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<byte[]>> bindings, BigInteger target) throws HomomorphicException {
         BigInteger res = bindings.keySet().parallelStream()
                 .filter(item -> {
                     try {

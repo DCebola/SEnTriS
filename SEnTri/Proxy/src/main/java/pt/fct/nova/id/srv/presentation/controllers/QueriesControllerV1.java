@@ -35,6 +35,7 @@ public class QueriesControllerV1 implements QueriesAPI {
     public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
+
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     @Override
@@ -72,15 +73,17 @@ public class QueriesControllerV1 implements QueriesAPI {
     }
 
     @Override
-    public Response prepareSearch(List<String> encryptedNodes, List<String> authorizationHeaders) {
+    public Response prepareSearch(byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken)) {
+             CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
+             ByteArrayInputStream is = new ByteArrayInputStream(encryptedNodes);
+             ObjectInputStream ois = new ObjectInputStream(is)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(ProxyStorageV1.save(encryptedNodes)).build();
+            return Response.ok(ProxyStorageV1.save((List<byte[]>) ois.readObject())).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

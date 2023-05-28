@@ -11,9 +11,9 @@ import java.util.Map;
 public class SerializableBinding implements Serializable {
     @Serial
     private static final long serialVersionUID = 3345654444362467694L;
-    private final Map<Var, String> values;
+    private final Map<Var, byte[]> values;
 
-    public SerializableBinding(Map<Var, String> values) {
+    public SerializableBinding(Map<Var, byte[]> values) {
         this.values = values;
     }
 
@@ -25,11 +25,11 @@ public class SerializableBinding implements Serializable {
         return values.keySet().iterator();
     }
 
-    public String get(Var var) {
+    public byte[] get(Var var) {
         return values.get(var);
     }
 
-    public Map<Var, String> getValues() {
+    public Map<Var, byte[]> getValues() {
         return values;
     }
 }

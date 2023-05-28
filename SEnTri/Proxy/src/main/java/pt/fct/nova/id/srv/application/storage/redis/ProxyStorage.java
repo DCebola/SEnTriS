@@ -10,7 +10,7 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 public class ProxyStorage {
     private static final long SEARCH_DATA_LIFETIME = Long.parseLong(System.getenv("SEARCH_DATA_LIFETIME"));
 
-    public static void delete(Set<String> searchIDs) {
+    public static void delete(Set<byte[]> searchIDs) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             searchIDs.forEach(t::del);
@@ -18,11 +18,11 @@ public class ProxyStorage {
         }
     }
 
-    public static String save(List<String> encryptedNodes) {
+    public static byte[] save(List<byte[]> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            String uuid = generateID();
-            for (String n : encryptedNodes) {
+            byte[] uuid = generateID();
+            for (byte[] n : encryptedNodes) {
                 if (n != null)
                     t.rpush(uuid, n);
             }

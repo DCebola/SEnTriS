@@ -17,7 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.OK;
@@ -32,7 +31,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
     private static final String protocolVersion = "v2";
 
     @Override
-    public Response upload(String triplestoreID, Map<String, String> encryptedNodes, List<String> authorizationHeaders) {
+    public Response upload(String triplestoreID, byte[] encryptedNodes, List<String> authorizationHeaders) {
         System.out.println("upload v2");
         return EncryptedTriplestoreController.upload(storageEngine, triplestoreID, encryptedNodes, authorizationHeaders);
     }
@@ -52,7 +51,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
                     return HTTPUtils.buildResponse(response);
             }
 
-            List<String> trapdoors = (List<String>) trapdoors_ois.readObject();
+            List<byte[]> trapdoors = (List<byte[]>) trapdoors_ois.readObject();
 
             try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion,
                     storageEngine.maskedSearch(triplestoreID, trapdoors, new BigInteger(form.getMask())), accessToken)) {
@@ -65,7 +64,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
     }
 
     @Override
-    public Response search(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response search(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         System.out.println("search v2");
         return EncryptedTriplestoreController.search(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
     }
@@ -77,7 +76,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
     }
 
     @Override
-    public Response delete(String triplestoreID, List<String> trapdoors, List<String> authorizationHeaders) {
+    public Response delete(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         System.out.println("delete some v2");
         return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
     }

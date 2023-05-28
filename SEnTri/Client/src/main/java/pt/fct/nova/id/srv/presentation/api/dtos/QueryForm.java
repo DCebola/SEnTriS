@@ -4,11 +4,11 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
-import pt.fct.nova.id.srv.presentation.api.RDFMediaType;
+import pt.fct.nova.id.srv.presentation.api.SPARQLMediaType;
 
 public class QueryForm extends TriplestoreForm {
     @FormParam("query")
-    @PartType(RDFMediaType.SPARQL_QUERY)
+    @PartType(SPARQLMediaType.SPARQL_QUERY)
     private final String query;
 
     @FormParam("inference")

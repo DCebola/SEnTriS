@@ -69,15 +69,17 @@ public class QueriesControllerV2 implements QueriesAPI {
     }
 
     @Override
-    public Response prepareSearch(List<String> encryptedNodes, List<String> authorizationHeaders) {
+    public Response prepareSearch(byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
-             CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken)) {
+             CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
+             ByteArrayInputStream is = new ByteArrayInputStream(encryptedNodes);
+             ObjectInputStream ois = new ObjectInputStream(is)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(ProxyStorageV2.save(encryptedNodes)).build();
+            return Response.ok(base64Encoder.encodeToString(ProxyStorageV2.save((List<byte[]>) ois.readObject()))).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

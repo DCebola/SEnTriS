@@ -35,7 +35,7 @@ public class SecureOntology implements Ontology {
     public SecureOntology(String triplestoreID, int t, int e) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
-        this.intersectionClasses = new HashMap<Node, List<? extends OntClass>>();
+        this.intersectionClasses = new HashMap<>();
         this.intersectionsWhereClassIsOperand = new HashMap<>();
         this.classRestrictions = new HashMap<>();
         this.subProperties = new HashMap<>();

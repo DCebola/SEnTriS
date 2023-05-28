@@ -29,6 +29,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
@@ -41,7 +42,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final Map<Op, String> parsed_op;
     private final DefaultQueryExecutionPlan plan;
     private final HashMap<Var, Var> obfuscationMap;
-    private final Set<String> keywords;
+    private final Set<byte[]> keywords;
     private final Set<String> searchJobsIDs;
     private final Random rnd;
     private QueryType queryType;
@@ -129,7 +130,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return deleteTemplate;
     }
 
-    public Set<String> getKeywords() {
+    public Set<byte[]> getKeywords() {
         return keywords;
     }
 
@@ -202,10 +203,10 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private SecureSearchJob generateSecureSearchJob(Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
-        Map<Var, String> searches = new HashMap<>();
+        Map<Var, byte[]> searches = new HashMap<>();
         var = obfuscateVar(var);
         String jobID = generateID();
-        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3));
+        byte[] keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3)).getBytes(StandardCharsets.UTF_8);
         searches.put(var, keyword);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
@@ -213,9 +214,9 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private SecureSearchJob generateSecureSearchJob(Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
-        Map<Var, String> searches = new HashMap<>();
+        Map<Var, byte[]> searches = new HashMap<>();
         String jobID = generateID();
-        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node));
+        byte[] keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node)).getBytes(StandardCharsets.UTF_8);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
         var1 = obfuscateVar(var1);

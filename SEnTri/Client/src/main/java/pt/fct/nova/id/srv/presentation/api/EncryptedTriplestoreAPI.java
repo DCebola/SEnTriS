@@ -11,7 +11,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
-import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.SPARQL_JSON_RESULTS;
+import static pt.fct.nova.id.srv.presentation.api.SPARQLMediaType.SPARQL_JSON_RESULTS;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface EncryptedTriplestoreAPI {
@@ -47,7 +47,7 @@ public interface EncryptedTriplestoreAPI {
 
 
     @POST
-    @Path("query/")
+    @Path("/query")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(SPARQL_JSON_RESULTS)
     Response answerSPARQLQuery(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,

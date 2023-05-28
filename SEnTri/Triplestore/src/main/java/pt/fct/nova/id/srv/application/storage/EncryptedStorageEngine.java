@@ -7,10 +7,10 @@ public interface EncryptedStorageEngine {
 
     void delete(String triplestoreID);
 
-    void delete(String triplestoreID, List<String> trapdoors);
+    void delete(String triplestoreID, List<byte[]> trapdoors);
 
-    void save(String triplestoreID, Map<String, String> encryptedNodes);
+    void save(String triplestoreID, Map<byte[], byte[]> encryptedNodes);
 
-    List<String> search(String triplestoreID, List<String> trapdoors);
+    List<byte[]> search(String triplestoreID, List<byte[]> trapdoors);
 
 }

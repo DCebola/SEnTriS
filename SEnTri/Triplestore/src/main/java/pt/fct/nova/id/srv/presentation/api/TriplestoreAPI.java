@@ -22,6 +22,12 @@ public interface TriplestoreAPI {
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
+    @Path("/{triplestoreID}")
+    @Produces(TEXT_PLAIN)
+    Response fetchInfo(@PathParam("triplestoreID") String triplestoreID,
+                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @GET
     @Path("/{triplestoreID}/schema")
     @Produces(APPLICATION_OCTET_STREAM)
     Response fetchSchema(@PathParam("triplestoreID") String triplestoreID,

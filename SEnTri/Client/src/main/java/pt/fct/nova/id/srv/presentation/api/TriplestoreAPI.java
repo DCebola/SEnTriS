@@ -13,7 +13,7 @@ import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
 
 import static jakarta.ws.rs.core.MediaType.*;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
-import static pt.fct.nova.id.srv.presentation.api.RDFMediaType.*;
+import static pt.fct.nova.id.srv.presentation.api.SPARQLMediaType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface TriplestoreAPI {
@@ -41,6 +41,12 @@ public interface TriplestoreAPI {
                               @DefaultValue("false") @QueryParam("write") boolean write,
                               @DefaultValue("false") @QueryParam("read") boolean read,
                               @DefaultValue("false") @QueryParam("owns") boolean owns);
+    @GET
+    @Path("/{triplestoreID}/{issuer}")
+    @Produces(TEXT_PLAIN)
+    Response info(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
+                    @PathParam("triplestoreID") String triplestoreID,
+                    @PathParam("issuer") String issuer);
 
     @POST
     @Path("/upload")

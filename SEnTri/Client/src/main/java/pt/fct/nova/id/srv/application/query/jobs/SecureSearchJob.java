@@ -11,19 +11,19 @@ public class SecureSearchJob extends BaseJob {
     private static final long serialVersionUID = 6345655033367727692L;
 
     private final Var[] vars;
-    private final Map<Var, String> searches;
+    private final Map<Var, byte[]> searches;
 
-    public SecureSearchJob(String jobID, Var[] vars, Map<Var, String> searches) {
+    public SecureSearchJob(String jobID, Var[] vars, Map<Var, byte[]> searches) {
         super(jobID);
         this.searches = searches;
         this.vars = vars;
     }
 
-    public Map<Var, String> getSearches() {
+    public Map<Var, byte[]> getSearches() {
         return searches;
     }
 
-    public void prepareSearch(Var var, String searchID) {
+    public void prepareSearch(Var var, byte[] searchID) {
         searches.put(var, searchID);
     }
 

@@ -4,7 +4,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
-import java.util.Map;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.*;
@@ -13,15 +12,15 @@ public interface SecretsAPI {
 
     @POST
     @Path("/{triplestoreID}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_JSON)
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(TEXT_PLAIN)
     Response createSecrets(@PathParam("triplestoreID") String triplestoreID,
-                           Map<String, String> secrets,
+                           byte[] secrets,
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @GET
     @Path("/{triplestoreID}")
-    @Produces(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
     Response getSecrets(@PathParam("triplestoreID") String triplestoreID,
                         @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 

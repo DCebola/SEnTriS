@@ -277,6 +277,8 @@ SEnTri/*/SSL/
 
 SEnTri/*/Secrets/
 
+SEnTri/Testing/LUBM/datasets/
+
 SEnTri/*/db_data/
 
 SEnTri/*/target/

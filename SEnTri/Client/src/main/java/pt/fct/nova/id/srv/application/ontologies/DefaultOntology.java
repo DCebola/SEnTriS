@@ -5,7 +5,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.HashMap;

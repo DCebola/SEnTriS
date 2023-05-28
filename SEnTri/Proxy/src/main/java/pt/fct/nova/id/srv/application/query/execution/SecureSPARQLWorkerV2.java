@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.sparql.core.Var;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.JobInstanceException;
@@ -23,7 +22,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
     private final SPARQLResult result;
     private final DGKEqKey key;
-    private final Set<String> allSearchIDs;
+    private final Set<byte[]> allSearchIDs;
 
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
@@ -33,14 +32,14 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         allSearchIDs = new HashSet<>();
     }
 
-    public Set<String> getAllSearchIDs() {
+    public Set<byte[]> getAllSearchIDs() {
         return allSearchIDs;
     }
 
     @Override
     public BindingsTableV2 exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
-            Map<Var, String> searches = secureSearchJob.getSearches();
+            Map<Var, byte[]> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorageV2.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EmptyResJob) return new MemBindingsTableV2(((EmptyResJob) job).getVars());
@@ -150,13 +149,13 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, BindingsTableV2 jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
-        HashMap<Var, String> values;
+        HashMap<Var, byte[]> values;
         for (List<BigInteger> p_values : jobResults.getPatterns()) {
             values = new HashMap<>();
             i = 0;
             for (BigInteger val : p_values) {
                 if (val != null)
-                    values.put(vars.get(i), base64Encoder.encodeToString(val.toByteArray()));
+                    values.put(vars.get(i), val.toByteArray());
                 i++;
             }
             bindings.add(new SerializableBinding(values));

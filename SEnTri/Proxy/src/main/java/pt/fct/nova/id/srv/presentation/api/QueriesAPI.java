@@ -15,14 +15,14 @@ public interface QueriesAPI {
     @POST
     @Path("/")
     @Consumes(MULTIPART_FORM_DATA)
-    @Produces(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
     Response answerSPARQLQuery(@MultipartForm SecureSPARQLQueryForm form,
                                @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
     @POST
     @Path("/prepare")
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_OCTET_STREAM)
-    Response prepareSearch(List<String> encryptedNodes,
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(TEXT_PLAIN)
+    Response prepareSearch(byte[] encryptedNodes,
                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }

@@ -7,6 +7,7 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface StorageEngine {
@@ -35,5 +36,5 @@ public interface StorageEngine {
 
     String parseNode(Node node) throws InvalidNodeException;
 
-
+    long memoryUsage(String triplestoreID);
 }

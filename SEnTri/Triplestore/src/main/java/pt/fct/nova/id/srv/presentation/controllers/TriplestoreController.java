@@ -3,10 +3,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
@@ -64,6 +61,24 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    @Override
+    public Response fetchInfo(String triplestoreID, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            return Response.ok(storageEngine.memoryUsage(triplestoreID)).build();
+        } catch (NotImplemented e) {
+            return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override

@@ -10,6 +10,8 @@ import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.tables.*;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
@@ -47,8 +49,28 @@ public class RedisDefaultStorageEngine implements StorageEngine {
             if (schema)
                 t.del(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID));
             else
-                Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
+                Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID)).forEach(t::del);
             t.exec();
+        }
+    }
+
+    @Override
+    public long memoryUsage(String triplestoreID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Pipeline p = jedis.pipelined();
+            Set<Response<Long>> responses = new HashSet<>();
+            Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID)).forEach(k -> responses.add(p.memoryUsage(k)));
+            p.sync();
+            long memoryUsage = 0L;
+            Long val;
+            System.out.println(responses.size());
+            for (Response<Long> r : responses){
+                val = r.get();
+                if (val != null)
+                    memoryUsage += val;
+            }
+            System.out.println("Memory Usage: " + memoryUsage);
+            return memoryUsage;
         }
     }
 

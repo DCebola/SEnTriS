@@ -6,9 +6,8 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
@@ -19,34 +18,36 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
     public void delete(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            Redis.scan(jedis, TRIPLESTORE_DATA_PATTERN).forEach(t::del);
+            Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID).getBytes(StandardCharsets.UTF_8)).forEach(t::del);
             t.exec();
         }
     }
 
     @Override
-    public void save(String triplestoreID, Map<String, String> encryptedNodes) {
+    public void save(String triplestoreID, Map<byte[], byte[]> encryptedNodes) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                t.set(String.format(KEY_FORMAT, triplestoreID, key), value);
+            for (Map.Entry<byte[], byte[]> entry : encryptedNodes.entrySet()) {
+                String key = new String(entry.getKey(), StandardCharsets.UTF_8);
+                byte[] value = entry.getValue();
+                t.set(String.format(KEY_FORMAT, triplestoreID, key).getBytes(StandardCharsets.UTF_8), value);
             }
             t.exec();
         }
     }
 
     @Override
-    public List<String> search(String triplestoreID, List<String> trapdoors) {
+    public List<byte[]> search(String triplestoreID, List<byte[]> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
-            List<Response<String>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, key))));
+            List<Response<byte[]>> responses = new ArrayList<>(trapdoors.size());
+            trapdoors.forEach(key ->
+                    responses.add(p.get(String.format(KEY_FORMAT, triplestoreID,
+                            new String(key, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
             System.out.println("SEARCH: " + trapdoors.size());
             p.sync();
-            List<String> res = new ArrayList<>(trapdoors.size());
-            for (Response<String> r : responses) res.add(r.get());
+            List<byte[]> res = new ArrayList<>(trapdoors.size());
+            for (Response<byte[]> r : responses) res.add(r.get());
             return res;
         }
     }

@@ -1,6 +1,5 @@
 package pt.fct.nova.id.srv.application.query.plans;
 
-import jakarta.validation.constraints.NotNull;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -23,8 +22,6 @@ import org.apache.jena.sparql.modify.request.UpdateDeleteWhere;
 import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.update.Update;
 import org.apache.jena.vocabulary.RDF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;

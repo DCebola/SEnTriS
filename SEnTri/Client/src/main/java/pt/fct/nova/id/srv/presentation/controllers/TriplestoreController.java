@@ -113,6 +113,26 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     @Override
+    public Response info(Cookie cookie, String triplestoreID, String issuer) {
+        if (cookie == null)
+            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
+            HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
+            if (response.getStatus() != OK)
+                return response.build();
+            String accessToken = response.getBody();
+            response = fetchTriplestoreInfo(httpClient, triplestoreID, accessToken);
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    @Override
     public Response upload(Cookie cookie, boolean schema, UploadForm form) {
         if (cookie == null)
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
@@ -513,6 +533,11 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
+    private HTTPResponse fetchTriplestoreInfo(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = TriplestoreClient.fetchInfo(httpClient, triplestoreID, accessToken)) {
+            return new HTTPResponse(response);
+        }
+    }
 
     public static HTTPResponse createAccessToken(CloseableHttpClient httpClient, Cookie cookie, String issuer, String triplestoreID) throws IOException {
         try (CloseableHttpResponse response = IAMClient.createAccessToken(httpClient, cookie, issuer, triplestoreID)) {

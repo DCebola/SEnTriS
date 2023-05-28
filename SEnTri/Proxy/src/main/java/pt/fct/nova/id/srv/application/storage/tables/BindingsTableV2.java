@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.storage.tables;
 
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
-import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 
 import java.math.BigInteger;
@@ -13,17 +12,17 @@ import java.util.Set;
 
 public interface BindingsTableV2 {
 
-    void add(String patternIdx, Var var, BigInteger binding);
+    void add(byte[] patternIdx, Var var, BigInteger binding);
 
     Set<Var> getVars();
 
-    Map<BigInteger, Set<String>> getBindings(Var var);
+    Map<BigInteger, Set<byte[]>> getBindings(Var var);
 
-    Map<String, BigInteger> getPatternIdxs(Var var);
+    Map<byte[], BigInteger> getPatternIdxs(Var var);
 
-    Map<Var, Map<BigInteger, Set<String>>> getBindings();
+    Map<Var, Map<BigInteger, Set<byte[]>>> getBindings();
 
-    Map<Var, Map<String, BigInteger>> getPatternIdxs();
+    Map<Var, Map<byte[], BigInteger>> getPatternIdxs();
 
     List<List<BigInteger>> getPatterns();
 

@@ -24,11 +24,13 @@ GET    Client/api/triplestores/{TriplestoreID}/{issuer}/access/requests         
 PUT    Client/api/triplestores/{TriplestoreID}/{issuer}/access/requests/{requestID}  #Process access request.       (Owner)
 
 GET    Client/api/triplestores/{issuer}                               #List triplestores.                      (Basic)
+GET    Client/api/triplestores/{TriplestoreID}/{issuer}               #Fecth triplestore info.                 (Read Access)
 POST   Client/api/triplestores                                        #Create triplestore.                     (Privileged)
 POST   Client/api/triplestores/upload                                 #Upload data to triplestore.             (Write Access)
 POST   Client/api/triplestore/query                                   #Execute a SPARQL query.                 (Read Access)
 POST   Client/api/triplestore/schema                                  #Fetch triplestore schema.               (Read Access)
 DELETE Client/api/triplestores/{TriplestoreID}/{issuer}               #Delete triplestore.                     (Owner)
+
 
 POST   Client/api/triplestores/encrypted/{version}                    #Create encrypted triplestore.           (Privileged)
 POST   Client/api/triplestores/encrypted/{version}/upload             #Upload data to encrypted triplestore.   (Write Access)
@@ -79,13 +81,15 @@ DELETE Vault/api/secrets/{TriplestoreID}  #Delete triplestore secrets.     (Owne
 ```
 ### Triplestore API
 ```perl
-GET    Triplestore/api/ctrl/version                     #Get service version                            (Basic)
+GET    Triplestore/api/ctrl/version                      #Get service version                            (Basic)
 
 POST   Triplestore/api/{TriplestoreID}                   #Upload data to triplestore.                    (Write Access)
 DELETE Triplestore/api/{TriplestoreID}                   #Delete triplestore.                            (Owner)
 POST   Triplestore/api/{TriplestoreID}/delete            #Delete data from triplestore.                  (Write Access)
 POST   Triplestore/api/{TriplestoreID}/query             #Execute a SPARQL query over triplestore.       (Read Access)
+GET    Triplestore/api/{TriplestoreID}                   #Fecth triplestore info.                        (Read Access)
 GET    Triplestore/api/{TriplestoreID}/schema            #Fetch triplestore schema.                      (Read Access)
+
 
 POST   Triplestore/api/encrypted/{TriplestoreID}         #Upload data to encrypted triplestore.          (Write Access)
 POST   Triplestore/api/encrypted/{TriplestoreID}/delete  #Delete data from encrypted triplestore.        (Write Access)

@@ -1,8 +1,6 @@
 package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.query.Query;
-import org.apache.jena.query.SortCondition;
-import org.apache.jena.sparql.engine.binding.Binding;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 

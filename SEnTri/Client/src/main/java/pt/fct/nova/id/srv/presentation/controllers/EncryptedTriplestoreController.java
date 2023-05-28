@@ -24,10 +24,8 @@ import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableSortCondition;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 
-import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,17 +75,8 @@ public class EncryptedTriplestoreController {
         return response;
     }
 
-    public Response getEmptySPARQLQueryResult(DefaultQueryExecutionPlan plan, Map<Var, Var> obfuscationMap) throws IOException {
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            List<Var> vars = new LinkedList<>();
-            for (Var var : plan.getVars())
-                vars.add(obfuscationMap.get(var));
-            ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, Collections.emptyIterator()));
-            return Response.ok(out.toByteArray()).build();
-        }
-    }
-
-    public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions, Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
+    public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions,
+                                            Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
         List<SortCondition> sortConditions = new LinkedList<>();
         for (SerializableSortCondition condition : serializableSortConditions)
             sortConditions.add(new SortCondition(obfuscationMap.get(condition.getVar()), condition.getDir()));
@@ -142,7 +131,7 @@ public class EncryptedTriplestoreController {
     }
 
     public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
-                                      Map<String, String> uploads, Set<String> deletions, String accessToken) throws IOException {
+                                      Map<byte[], byte[]> uploads, Set<byte[]> deletions, String accessToken) throws IOException {
         System.out.println("UPLOADS: " + uploads.size());
         System.out.println("DELETIONS: " + deletions.size());
         HTTPResponse response;
@@ -173,7 +162,7 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
+    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String protocolVersion, String triplestoreID, List<byte[]> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
@@ -185,14 +174,13 @@ public class EncryptedTriplestoreController {
         }
     }
 
-
-    public HTTPResponse upload(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
+    public HTTPResponse upload(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<byte[], byte[]> encryptedNodes, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, protocolVersion, triplestoreID, encryptedNodes, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
+    public HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<byte[], byte[]> secrets, String accessToken) throws IOException {
         try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(httpClient, triplestoreID, secrets, accessToken)) {
             return new HTTPResponse(response);
         }
@@ -210,9 +198,10 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
+    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<byte[]> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }
+
 }

@@ -9,19 +9,19 @@ import java.util.Set;
 
 public interface BindingsTableV1 {
 
-    void add(String patternIdx, Var var, String binding);
+    void add(byte[] patternIdx, Var var, byte[] binding);
 
     Set<Var> getVars();
 
-    Map<String, Set<String>> getBindings(Var var);
+    Map<byte[], Set<byte[]>> getBindings(Var var);
 
-    Map<String, String> getPatternIdxs(Var var);
+    Map<byte[], byte[]> getPatternIdxs(Var var);
 
-    Map<Var, Map<String, Set<String>>> getBindings();
+    Map<Var, Map<byte[], Set<byte[]>>> getBindings();
 
-    Map<Var, Map<String, String>> getPatternIdxs();
+    Map<Var, Map<byte[], byte[]>> getPatternIdxs();
 
-    List<List<String>> getPatterns();
+    List<List<byte[]>> getPatterns();
 
     void project(Collection<Var> vars);
 
