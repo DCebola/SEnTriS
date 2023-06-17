@@ -37,5 +37,5 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
      ja:baseModel <#baseModel>;
      .
 <#baseModel> rdf:type ja:MemoryModel ;
-    ja:content [ja:externalContent <./data/lubm-full.owl> ] ;
+    ja:content [ja:externalContent <./data/dataset.owl> ] ;
     .

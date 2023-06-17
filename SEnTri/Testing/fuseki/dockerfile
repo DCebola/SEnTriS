@@ -1,3 +1,0 @@
-FROM stain/jena-fuseki:latest
-COPY ./dataset.ttl /fuseki/configuration/
-COPY ./lubm-full.owl /fuseki/configuration/data/
