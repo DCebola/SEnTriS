@@ -99,6 +99,12 @@ public class EncryptedTriplestoreController {
         else return bindings;
     }
 
+    public static Response generateASKResults(SPARQLResult<byte[]> sparqlResult) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ResultSetFormatter.outputAsJSON(out, !sparqlResult.getBindings().isEmpty());
+            return Response.ok(out.toByteArray()).build();
+        }
+    }
     public Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult<byte[]> sparqlResult) {
         Map<Var, Integer> frequencies = new HashMap<>();
         for (Var v : vars)

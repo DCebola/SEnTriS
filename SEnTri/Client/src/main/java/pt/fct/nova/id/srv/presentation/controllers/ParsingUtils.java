@@ -17,6 +17,7 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
+import pt.fct.nova.id.srv.application.protocols.Bytes;
 import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
 import pt.fct.nova.id.srv.application.protocols.Protocol1;
 import pt.fct.nova.id.srv.application.protocols.Protocol2;
@@ -298,19 +299,19 @@ public class ParsingUtils {
         return String.format(KEYWORD_FORMAT, pattern, keyword);
     }
 
-    public static Set<byte[]> generateKeywords(List<Triple> triples) throws InvalidNodeException {
-        Set<byte[]> keywords = new HashSet<>();
+    public static Set<Bytes> generateKeywords(List<Triple> triples) throws InvalidNodeException {
+        Set<Bytes> keywords = new HashSet<>();
         String s, p, o;
         for (Triple t : triples) {
             s = parseKeyword(t.getSubject());
             p = parseKeyword(t.getPredicate());
             o = parseKeyword(t.getObject());
-            keywords.add(generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
-            keywords.add(generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
-            keywords.add(generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
-            keywords.add(generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8));
-            keywords.add(generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8));
-            keywords.add(generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8));
+            keywords.add(new Bytes(generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8)));
+            keywords.add(new Bytes(generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8)));
+            keywords.add(new Bytes(generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8)));
+            keywords.add(new Bytes(generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8)));
+            keywords.add(new Bytes(generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8)));
+            keywords.add(new Bytes(generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8)));
         }
         return keywords;
     }

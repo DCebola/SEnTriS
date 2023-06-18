@@ -52,6 +52,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
@@ -417,7 +418,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         }
-        SPARQLResult sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
+        SPARQLResult<byte[]> sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
         Response res = null;
         if (queryType == SELECT || queryType == CONSTRUCT) {
             Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
@@ -533,7 +534,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                                     Map<byte[], Integer> keywordsFrequency, List<Triple> triplesToDelete,
                                                     List<Triple> triplesToUpload, Set<byte[]> deletionsCollector,
                                                     String accessToken) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
-        Set<byte[]> keywords = ParsingUtils.generateKeywords(triplesToDelete);
+        Set<byte[]> keywords = ParsingUtils.generateKeywords(triplesToDelete).stream().map(Bytes::getData).collect(Collectors.toSet()); //TODO: Fix
         keywords.removeAll(keywordsFrequency.keySet());
         HTTPResponse response;
         if (!keywords.isEmpty()) {

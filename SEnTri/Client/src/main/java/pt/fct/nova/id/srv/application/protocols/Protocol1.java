@@ -154,10 +154,10 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    public Map<byte[], List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
-        Map<byte[], List<byte[]>> res = new HashMap<>(triples.size() * 6);
+    public Map<Bytes, List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
+        Map<Bytes, List<byte[]>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
-        List<byte[]> keywords;
+        List<Bytes> keywords;
         Set<String> processed = new HashSet<>();
         for (Triple t : triples) {
             keywords = new ArrayList<>(9);
@@ -167,15 +167,15 @@ public class Protocol1 implements EncryptionProtocol {
             t_keyword = String.format(TRIPLE_KEYWORD, s, p, o);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8)));
                 generatePatternTrapdoors(res, ParsingUtils.generateKeyword(SPO, t_keyword).getBytes(StandardCharsets.UTF_8), keywords);
             }
         }
@@ -192,10 +192,10 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    private void generatePatternTrapdoors(Map<byte[], List<byte[]>> keywordPatternTrapdoors, byte[] tripleKeyword, List<byte[]> keywords) {
+    private void generatePatternTrapdoors(Map<Bytes, List<byte[]>> keywordPatternTrapdoors, byte[] tripleKeyword, List<Bytes> keywords) {
         List<byte[]> trapdoors;
         int i = 0;
-        for (byte[] keyword : keywords) {
+        for (Bytes keyword : keywords) {
             trapdoors = keywordPatternTrapdoors.get(keyword);
             if (trapdoors == null)
                 trapdoors = new LinkedList<>();
@@ -247,13 +247,13 @@ public class Protocol1 implements EncryptionProtocol {
         return key;
     }
 
-    public void setKeywordFrequencies(Map<byte[], Integer> values) {
+    public void setKeywordFrequencies(Map<Bytes, Integer> values) {
         keywordFrequencies.clear();
         int frequency;
-        for (byte[] keyword : values.keySet()) {
+        for (Bytes keyword : values.keySet()) {
             frequency = values.get(keyword);
             if (frequency > 0)
-                keywordFrequencies.put(new Bytes(keyword), frequency);
+                keywordFrequencies.put(keyword, frequency);
         }
     }
 }
