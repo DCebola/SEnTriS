@@ -12,7 +12,7 @@ import java.util.*;
 
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
     @Override
-    public void delete(String triplestoreID, List<byte[]> trapdoors) {
+    public void delete(String triplestoreID, Set<byte[]> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<Response<byte[]>> responses = new LinkedList<>();

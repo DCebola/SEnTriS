@@ -15,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
@@ -96,7 +97,7 @@ public class EncryptedTriplestoreController {
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.delete(triplestoreID, (List<byte[]>) ois.readObject());
+            storageEngine.delete(triplestoreID, (Set<byte[]>) ois.readObject());
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             e.printStackTrace();
