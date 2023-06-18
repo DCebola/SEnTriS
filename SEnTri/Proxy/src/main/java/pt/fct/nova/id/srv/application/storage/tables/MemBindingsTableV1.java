@@ -2,6 +2,7 @@ package pt.fct.nova.id.srv.application.storage.tables;
 
 import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
+import pt.fct.nova.id.srv.application.storage.Bytes;
 
 import java.util.*;
 
@@ -11,8 +12,8 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class MemBindingsTableV1 implements BindingsTableV1 {
 
-    private final Map<Var, Map<byte[], Set<byte[]>>> bindings;
-    private final Map<Var, Map<byte[], byte[]>> patterns;
+    private final Map<Var, Map<Bytes, Set<Bytes>>> bindings;
+    private final Map<Var, Map<Bytes, Bytes>> patterns;
 
     public MemBindingsTableV1() {
         bindings = new HashMap<>();
@@ -39,13 +40,13 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
 
 
     @Override
-    public void add(byte[] patternIdx, Var var, byte[] binding) {
+    public void add(Bytes patternIdx, Var var, Bytes binding) {
         addIRI(binding, var, patternIdx);
         addPattern(binding, var, patternIdx);
     }
 
-    private void addPattern(byte[] binding, Var var, byte[] patternIdx) {
-        Map<byte[], byte[]> v_p_idxs = patterns.get(var);
+    private void addPattern(Bytes binding, Var var, Bytes patternIdx) {
+        Map<Bytes, Bytes> v_p_idxs = patterns.get(var);
         if (v_p_idxs == null) {
             v_p_idxs = new HashMap<>();
             v_p_idxs.put(patternIdx, binding);
@@ -53,21 +54,21 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         } else v_p_idxs.put(patternIdx, binding);
     }
 
-    private void addIRI(byte[] binding, Var var, byte[] patternIdx) {
-        Map<byte[], Set<byte[]>> v_bindings = bindings.get(var);
+    private void addIRI(Bytes binding, Var var, Bytes patternIdx) {
+        Map<Bytes, Set<Bytes>> v_bindings = bindings.get(var);
         if (v_bindings == null) {
             v_bindings = new HashMap<>();
             savePatternIdxs(v_bindings, binding, patternIdx);
             bindings.put(var, v_bindings);
         } else {
-            Set<byte[]> p_idxs = v_bindings.get(binding);
+            Set<Bytes> p_idxs = v_bindings.get(binding);
             if (p_idxs == null) savePatternIdxs(v_bindings, binding, patternIdx);
             else p_idxs.add(patternIdx);
         }
     }
 
-    private void savePatternIdxs(Map<byte[], Set<byte[]>> varBindings, byte[] binding, byte[] patternIdx) {
-        Set<byte[]> p_idxs = new HashSet<>();
+    private void savePatternIdxs(Map<Bytes, Set<Bytes>> varBindings, Bytes binding, Bytes patternIdx) {
+        Set<Bytes> p_idxs = new HashSet<>();
         p_idxs.add(patternIdx);
         varBindings.put(binding, p_idxs);
     }
@@ -78,22 +79,22 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
     }
 
     @Override
-    public Map<byte[], Set<byte[]>> getBindings(Var var) {
+    public Map<Bytes, Set<Bytes>> getBindings(Var var) {
         return bindings.get(var);
     }
 
     @Override
-    public Map<byte[], byte[]> getPatternIdxs(Var var) {
+    public Map<Bytes, Bytes> getPatternIdxs(Var var) {
         return patterns.get(var);
     }
 
     @Override
-    public Map<Var, Map<byte[], Set<byte[]>>> getBindings() {
+    public Map<Var, Map<Bytes, Set<Bytes>>> getBindings() {
         return bindings;
     }
 
     @Override
-    public Map<Var, Map<byte[], byte[]>> getPatternIdxs() {
+    public Map<Var, Map<Bytes, Bytes>> getPatternIdxs() {
         return patterns;
     }
 
@@ -102,16 +103,16 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         List<List<byte[]>> res = new LinkedList<>();
         List<byte[]> pattern;
         Set<Var> vars = patterns.keySet();
-        Set<byte[]> p_idxs = new HashSet<>();
+        Set<Bytes> p_idxs = new HashSet<>();
         for (Var v : vars)
             p_idxs.addAll(patterns.get(v).keySet());
         byte[] binding;
         int i;
-        for (byte[] p_idx : p_idxs) {
+        for (Bytes p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
             i = 0;
             for (Var v : vars) {
-                binding = patterns.get(v).get(p_idx);
+                binding = patterns.get(v).get(p_idx).getData();
                 pattern.add(binding);
                 if (binding == null) i++;
             }
@@ -133,16 +134,16 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         return join(mutual_vars, this, other, INNER);
     }
 
-    private Set<byte[]> getIncompatiblePatterns(BindingsTableV1 left, BindingsTableV1 right, Set<Var> vars) {
-        Set<byte[]> res = new HashSet<>();
-        Map<byte[], Set<byte[]>> l_bindings, r_bindings;
+    private Set<Bytes> getIncompatiblePatterns(BindingsTableV1 left, BindingsTableV1 right, Set<Var> vars) {
+        Set<Bytes> res = new HashSet<>();
+        Map<Bytes, Set<Bytes>> l_bindings, r_bindings;
         for (Var v : vars) {
             l_bindings = left.getBindings(v);
             r_bindings = right.getBindings(v);
-            for (Map.Entry<byte[], Set<byte[]>> entry : l_bindings.entrySet()) {
+            for (Map.Entry<Bytes, Set<Bytes>> entry : l_bindings.entrySet()) {
                 if (r_bindings.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
-            for (Map.Entry<byte[], Set<byte[]>> entry : r_bindings.entrySet()) {
+            for (Map.Entry<Bytes, Set<Bytes>> entry : r_bindings.entrySet()) {
                 if (l_bindings.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
         }
@@ -162,13 +163,13 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
 
         BindingsTableV1 res = new MemBindingsTableV1(vars);
 
-        Set<byte[]> l_p_idxs, r_p_idxs;
-        Map<byte[], Set<byte[]>> l_bindings, r_bindings;
+        Set<Bytes> l_p_idxs, r_p_idxs;
+        Map<Bytes, Set<Bytes>> l_bindings, r_bindings;
 
         for (Var v : mutualVars) {
             l_bindings = left.getBindings(v);
             r_bindings = right.getBindings(v);
-            for (Map.Entry<byte[], Set<byte[]>> entry : l_bindings.entrySet()) {
+            for (Map.Entry<Bytes, Set<Bytes>> entry : l_bindings.entrySet()) {
                 l_p_idxs = entry.getValue();
                 r_p_idxs = r_bindings.get(entry.getKey());
                 if (r_p_idxs != null || joinType.equals(LEFT))
@@ -179,24 +180,24 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         return res;
     }
 
-    private void copyBindings(byte[] newPattern, byte[] oldPattern, Set<Var> vars, BindingsTableV1 source, BindingsTableV1 target) {
+    private void copyBindings(Bytes newPattern, Bytes oldPattern, Set<Var> vars, BindingsTableV1 source, BindingsTableV1 target) {
         for (Var v : vars) {
-            byte[] binding = source.getPatternIdxs(v).get(oldPattern);
+            Bytes binding = source.getPatternIdxs(v).get(oldPattern);
             if (binding != null) target.add(newPattern, v, binding);
         }
     }
 
-    private void joinPatterns(Set<Var> mutualVars, BindingsTableV1 left, Set<Var> leftVars, Set<byte[]> leftPatternIdxs,
-                              BindingsTableV1 right, Set<Var> rightVars, Set<byte[]> rightPatternIdxs, BindingsTableV1 res, JoinType joinType) {
-        byte[] p;
+    private void joinPatterns(Set<Var> mutualVars, BindingsTableV1 left, Set<Var> leftVars, Set<Bytes> leftPatternIdxs,
+                              BindingsTableV1 right, Set<Var> rightVars, Set<Bytes> rightPatternIdxs, BindingsTableV1 res, JoinType joinType) {
+        Bytes p;
         boolean foundMatch;
-        for (byte[] l : leftPatternIdxs) {
+        for (Bytes l : leftPatternIdxs) {
             foundMatch = false;
             if (rightPatternIdxs != null) {
-                for (byte[] r : rightPatternIdxs) {
+                for (Bytes r : rightPatternIdxs) {
                     if (equalPatterns(mutualVars, left, l, right, r)) {
                         foundMatch = true;
-                        p = generateID();
+                        p = new Bytes(generateID());
                         copyBindings(p, l, mutualVars, left, res);
                         copyBindings(p, l, leftVars, left, res);
                         copyBindings(p, r, rightVars, right, res);
@@ -210,8 +211,8 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         }
     }
 
-    private boolean equalPatterns(Set<Var> mutualVars, BindingsTableV1 left, byte[] leftPattern, BindingsTableV1 right, byte[] rightPattern) {
-        byte[] l_binding, r_binding;
+    private boolean equalPatterns(Set<Var> mutualVars, BindingsTableV1 left, Bytes leftPattern, BindingsTableV1 right, Bytes rightPattern) {
+        Bytes l_binding, r_binding;
         for (Var v : mutualVars) {
             l_binding = left.getPatternIdxs(v).get(leftPattern);
             r_binding = right.getPatternIdxs(v).get(rightPattern);
@@ -243,8 +244,8 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
 
     private void copyAllIRIs(Set<Var> vars, BindingsTableV1 source, BindingsTableV1 target) {
         for (Var v : vars) {
-            for (Map.Entry<byte[], Set<byte[]>> entry : source.getBindings(v).entrySet()) {
-                for (byte[] p : entry.getValue())
+            for (Map.Entry<Bytes, Set<Bytes>> entry : source.getBindings(v).entrySet()) {
+                for (Bytes p : entry.getValue())
                     target.add(p, v, entry.getKey());
             }
         }
@@ -262,22 +263,22 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
-        Set<byte[]> diff = new HashSet<>();
-        Map<byte[], Set<byte[]>> l_bindings, r_bindings;
+        Set<Bytes> diff = new HashSet<>();
+        Map<Bytes, Set<Bytes>> l_bindings, r_bindings;
         for (Var v : mutual_vars) {
             l_bindings = this.getBindings(v);
             r_bindings = other.getBindings(v);
-            for (Map.Entry<byte[], Set<byte[]>> entry : l_bindings.entrySet())
+            for (Map.Entry<Bytes, Set<Bytes>> entry : l_bindings.entrySet())
                 if (r_bindings.get(entry.getKey()) == null) diff.addAll(entry.getValue());
         }
 
         BindingsTableV1 res = new MemBindingsTableV1(mutual_vars);
-        Map<byte[], Set<byte[]>> bindings;
+        Map<Bytes, Set<Bytes>> bindings;
 
         for (Var v : mutual_vars) {
             bindings = this.getBindings(v);
-            for (Map.Entry<byte[], Set<byte[]>> entry : bindings.entrySet()) {
-                for (byte[] p : entry.getValue()) {
+            for (Map.Entry<Bytes, Set<Bytes>> entry : bindings.entrySet()) {
+                for (Bytes p : entry.getValue()) {
                     if (diff.contains(p)) copyBindings(p, p, mutual_vars, this, res);
                 }
             }

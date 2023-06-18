@@ -258,7 +258,7 @@ public class TriplestoreController implements TriplestoreAPI {
         HTTPResponse response = query(httpClient, triplestoreID, plan, accessToken);
         if (response.getStatus() != OK)
             return response.build();
-        SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
+        SPARQLResult<String> sparqlResult = parseSPARQLResult(response.getBody());
         Response res = null;
         if (queryType == SELECT) res = generateSELECTResults(plan.getVars(), sparqlResult);
         else if (queryType == CONSTRUCT) res = generateCONSTRUCTResults(planner.getConstructTemplate(), sparqlResult);
@@ -284,7 +284,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
+            SPARQLResult<String> sparqlResult = parseSPARQLResult(response.getBody());
             if (queryType == MODIFY)
                 triplesToUpload = QueryUtils.generateTriplesFromSerializableBindings(planner.getUploadTemplate(), sparqlResult.getBindings());
             triplesToDelete = QueryUtils.generateTriplesFromSerializableBindings(planner.getDeleteTemplate(), sparqlResult.getBindings());
@@ -319,14 +319,14 @@ public class TriplestoreController implements TriplestoreAPI {
         return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 
-    public static Response generateASKResults(SPARQLResult sparqlResult) throws IOException {
+    public static Response generateASKResults(SPARQLResult<String> sparqlResult) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             ResultSetFormatter.outputAsJSON(out, !sparqlResult.getBindings().isEmpty());
             return Response.ok(out.toByteArray()).build();
         }
     }
 
-    private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult sparqlResult) throws IOException {
+    private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult<String> sparqlResult) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Graph g = QueryUtils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings());
             RDFWriter.create(g).lang(Lang.JSONLD11).output(out);
@@ -334,11 +334,11 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private Response generateSELECTResults(List<Var> vars, SPARQLResult sparqlResult) throws IOException {
+    private Response generateSELECTResults(List<Var> vars, SPARQLResult<String> sparqlResult) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Collection<Binding> bindings = new LinkedList<>();
             BindingBuilder builder = Binding.builder();
-            for (SerializableBinding binding : sparqlResult.getBindings()) {
+            for (SerializableBinding<String> binding : sparqlResult.getBindings()) {
                 for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                     Var var = it.next();
                     builder.add(var, ParsingUtils.generateNode(binding.get(var)));
@@ -351,11 +351,11 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private Response generateDESCRIBEResults(List<Var> vars, SPARQLResult sparqlResult) {
+    private Response generateDESCRIBEResults(List<Var> vars, SPARQLResult<String> sparqlResult) {
         Map<Var, Integer> frequencies = new HashMap<>();
         for (Var v : vars)
             frequencies.put(v, 0);
-        for (SerializableBinding binding : sparqlResult.getBindings()) {
+        for (SerializableBinding<String> binding : sparqlResult.getBindings()) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var v = it.next();
                 frequencies.put(v, frequencies.get(v) + 1);

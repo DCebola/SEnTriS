@@ -14,5 +14,5 @@ public interface SPARQLWorker {
 
     BindingsTable exec(Job2 job, BindingsTable left, BindingsTable right) throws SPARQLExecutionException;
 
-    SPARQLResult generateResults(BindingsTable jobResults) throws SPARQLExecutionException;
+    SPARQLResult<String> generateResults(BindingsTable jobResults) throws SPARQLExecutionException;
 }

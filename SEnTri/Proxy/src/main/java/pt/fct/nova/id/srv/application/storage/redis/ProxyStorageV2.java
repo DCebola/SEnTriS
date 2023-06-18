@@ -5,6 +5,7 @@ import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
+import pt.fct.nova.id.srv.application.storage.Bytes;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV2;
 import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV2;
 import redis.clients.jedis.Jedis;
@@ -40,9 +41,9 @@ public class ProxyStorageV2 extends ProxyStorage {
             Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
             for (Var var : vars)
                 groupedEqTags.put(var, ConcurrentHashMap.newKeySet());
-            byte[] p_idx;
+            Bytes p_idx;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
-                p_idx = generateID();
+                p_idx = new Bytes(generateID());
                 for (Var var : vars)
                     res.add(p_idx, var, findEqTagGroup(key, groupedEqTags.get(var), searchResults.get(var).get(i)));
             }

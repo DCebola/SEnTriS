@@ -152,11 +152,11 @@ public class QueryUtils {
         return g;
     }
 
-    public static Graph generateGraphFromSerializableBindings(List<Triple> template, Collection<SerializableBinding> bindings) {
+    public static Graph generateGraphFromSerializableBindings(List<Triple> template, Collection<SerializableBinding<String>> bindings) {
         Graph g = GraphFactory.createDefaultGraph();
         Node s, p, o;
         String val1, val2;
-        for (SerializableBinding binding : bindings) {
+        for (SerializableBinding<String> binding : bindings) {
             for (Triple t : template) {
                 s = t.getSubject();
                 p = t.getPredicate();
@@ -202,11 +202,11 @@ public class QueryUtils {
         return g;
     }
 
-    public static Set<Triple> generateTriplesFromSerializableBindings(Set<Triple> template, Collection<SerializableBinding> bindings) {
+    public static Set<Triple> generateTriplesFromSerializableBindings(Set<Triple> template, Collection<SerializableBinding<String>> bindings) {
         Set<Triple> triples = new HashSet<>();
         Node s, p, o;
         String val1, val2;
-        for (SerializableBinding binding : bindings) {
+        for (SerializableBinding<String> binding : bindings) {
             for (Triple t : template) {
                 s = t.getSubject();
                 p = t.getPredicate();

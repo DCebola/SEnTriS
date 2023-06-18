@@ -28,9 +28,8 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             for (Map.Entry<byte[], byte[]> entry : encryptedNodes.entrySet()) {
-                String key = new String(entry.getKey(), StandardCharsets.UTF_8);
-                byte[] value = entry.getValue();
-                t.set(String.format(KEY_FORMAT, triplestoreID, key).getBytes(StandardCharsets.UTF_8), value);
+                t.set(String.format(KEY_FORMAT, triplestoreID, new String(entry.getKey(), StandardCharsets.UTF_8))
+                        .getBytes(StandardCharsets.UTF_8), entry.getValue());
             }
             t.exec();
         }
@@ -41,13 +40,19 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<Response<byte[]>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key ->
-                    responses.add(p.get(String.format(KEY_FORMAT, triplestoreID,
-                            new String(key, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
-            System.out.println("SEARCH: " + trapdoors.size());
+            trapdoors.forEach(trapdoor ->
+                    responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, new String(trapdoor, StandardCharsets.UTF_8))
+                            .getBytes(StandardCharsets.UTF_8))));
+
             p.sync();
             List<byte[]> res = new ArrayList<>(trapdoors.size());
-            for (Response<byte[]> r : responses) res.add(r.get());
+            int total = 0;
+            for (Response<byte[]> r : responses) {
+                res.add(r.get());
+                total++;
+            }
+
+            System.out.println("SEARCH: " + trapdoors.size() + " | " + "FOUND: " + total);
             return res;
         }
     }

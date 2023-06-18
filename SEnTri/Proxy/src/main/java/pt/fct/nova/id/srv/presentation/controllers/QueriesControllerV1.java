@@ -83,7 +83,7 @@ public class QueriesControllerV1 implements QueriesAPI {
              ObjectInputStream ois = new ObjectInputStream(is)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(ProxyStorageV1.save((List<byte[]>) ois.readObject())).build();
+            return Response.ok(base64Encoder.encodeToString(ProxyStorageV1.save((List<byte[]>) ois.readObject()))).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

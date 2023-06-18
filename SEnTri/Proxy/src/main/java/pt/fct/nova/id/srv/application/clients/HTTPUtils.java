@@ -14,11 +14,6 @@ import java.util.List;
 public class HTTPUtils {
     private static final String BEARER = "Bearer ";
 
-    public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, String uri) throws IOException {
-        HttpGet request = new HttpGet(uri);
-        return (CloseableHttpResponse) httpClient.execute(request);
-    }
-
     public static CloseableHttpResponse sendGETRequest(HttpClient httpClient, String uri, String accessToken) throws IOException {
         HttpGet request = new HttpGet(uri);
         request.setHeader(HttpHeaders.AUTHORIZATION, BEARER.concat(accessToken));

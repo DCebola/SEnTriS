@@ -274,10 +274,6 @@ public class ParsingUtils {
         return base64Decoder.decode(value);
     }
 
-    public static BigInteger parseEqTag(String value) {
-        return new BigInteger(value);
-    }
-
 
     public static byte[] DGKKeyToByteArray(DGKEqKey eqKey) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
@@ -338,5 +334,21 @@ public class ParsingUtils {
         return String.format(TRIPLE_KEYWORD, parsed_s, parsed_p, parsed_o);
     }
 
+    private static String toHex(byte[] data, int length) {
+        String digits = "0123456789abcdef";
+        StringBuilder buf = new StringBuilder();
 
+        for (int i = 0; i != length; i++) {
+            int v = data[i] & 0xff;
+
+            buf.append(digits.charAt(v >> 4));
+            buf.append(digits.charAt(v & 0xf));
+        }
+
+        return buf.toString();
+    }
+
+    public static String toHex(byte[] data) {
+        return toHex(data, data.length);
+    }
 }

@@ -25,6 +25,7 @@ import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.ontologies.SecureOntology;
+import pt.fct.nova.id.srv.application.protocols.Bytes;
 import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;
@@ -480,7 +481,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
-                SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
+                SPARQLResult<byte[]> sparqlResult = parseSPARQLResult(response.getBody());
                 Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
                 Collection<Binding> bindings = new LinkedList<>();
                 response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), obfuscationMap, protocol, bindings,
@@ -660,20 +661,20 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     }
 
     private HTTPResponse fetchAndDecryptBindings(CloseableHttpClient httpClient, String triplestoreID,
-                                                 Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap,
+                                                 Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> obfuscationMap,
                                                  Protocol2 protocol, Collection<Binding> bindingsCollector,
                                                  BigInteger r, String accessToken) throws AEADBadTagException, IOException, HomomorphicException, ClassNotFoundException {
-        Map<String, Integer> eqTagsOrder = new HashMap<>();
+        Map<Bytes, Integer> eqTagsOrder = new HashMap<>();
         List<byte[]> eqTags = new ArrayList<>();
-        String eqTag;
+        Bytes eqTag;
         int i = 0;
         DGKPublicKey k = (DGKPublicKey) protocol.getPubDGK();
-        for (SerializableBinding binding : bindings) {
+        for (SerializableBinding<byte[]> binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
-                eqTag = binding.get(it.next());
+                eqTag = new Bytes(binding.get(it.next()));
                 if (!eqTagsOrder.containsKey(eqTag)) {
                     eqTagsOrder.put(eqTag, i);
-                    eqTags.add(DGKUtils.unmask(k, r, ParsingUtils.parseEqTag(eqTag)).toByteArray());
+                    eqTags.add(DGKUtils.unmask(k, r, new BigInteger(eqTag.getData())).toByteArray());
                     i++;
                 }
             }
@@ -689,10 +690,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         Node decryptedNode;
 
         Var var;
-        for (SerializableBinding binding : bindings) {
+        for (SerializableBinding<byte[]> binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 var = it.next();
-                i = eqTagsOrder.get(binding.get(var));
+                i = eqTagsOrder.get(new Bytes(binding.get(var)));
                 decryptedNode = decryptedNodes.get(i);
                 if (decryptedNode == null) {
                     decryptedNode = generateNode(new String(protocol.decryptRNDLayer(encryptedBindings.get(i))));

@@ -20,14 +20,12 @@ import java.util.*;
 
 public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
-    private final SPARQLResult result;
+    private final SPARQLResult<byte[]> result;
     private final DGKEqKey key;
     private final Set<byte[]> allSearchIDs;
 
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
-
     public SecureSPARQLWorkerV2(DGKEqKey key) {
-        result = new DefaultSPARQLResult();
+        result = new DefaultSPARQLResult<>();
         this.key = key;
         allSearchIDs = new HashSet<>();
     }
@@ -135,8 +133,8 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     @Override
-    public SPARQLResult generateResults(BindingsTableV2 jobResults) {
-        Collection<SerializableBinding> bindings;
+    public SPARQLResult<byte[]> generateResults(BindingsTableV2 jobResults) {
+        Collection<SerializableBinding<byte[]>> bindings;
         boolean isDistinct = result.isDistinct();
         if (isDistinct)
             bindings = generateBindings(new HashSet<>(), jobResults);
@@ -146,7 +144,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         return result;
     }
 
-    private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, BindingsTableV2 jobResults) {
+    private Collection<SerializableBinding<byte[]>> generateBindings(Collection<SerializableBinding<byte[]>> bindings, BindingsTableV2 jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
         HashMap<Var, byte[]> values;
@@ -158,7 +156,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
                     values.put(vars.get(i), val.toByteArray());
                 i++;
             }
-            bindings.add(new SerializableBinding(values));
+            bindings.add(new SerializableBinding<>(values));
         }
         return bindings;
     }

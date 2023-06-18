@@ -17,7 +17,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
-    private SPARQLResult result;
+    private SPARQLResult<String> result;
 
 
     public DefaultSPARQLExecution(QueryExecutionPlan plan) {
@@ -55,7 +55,7 @@ public class DefaultSPARQLExecution implements SPARQLExecution {
     }
 
     @Override
-    public SPARQLResult getResults() {
+    public SPARQLResult<String> getResults() {
         return result;
     }
 

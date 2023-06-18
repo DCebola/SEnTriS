@@ -22,4 +22,8 @@ do
    docker push $1/fuseki-$i
    wait
 done
+docker build --build-arg dataset=develop -t $1/fuseki-develop .
+wait
+docker push $1/fuseki-develop
+wait
 rm -rf ./datasets

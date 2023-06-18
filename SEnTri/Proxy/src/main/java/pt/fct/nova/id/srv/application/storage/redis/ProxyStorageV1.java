@@ -4,6 +4,7 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.Bytes;
 import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -29,11 +30,11 @@ public class ProxyStorageV1 extends ProxyStorage {
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get());
 
-            byte[] p_idx;
+            Bytes p_idx;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
-                p_idx = generateID();
+                p_idx = new Bytes(generateID());
                 for (Var var : vars)
-                    res.add(p_idx, var, SymmetricEncryptionUtils.decrypt(key, searchResults.get(var).get(i)));
+                    res.add(p_idx, var, new Bytes(SymmetricEncryptionUtils.decrypt(key, searchResults.get(var).get(i))));
             }
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;

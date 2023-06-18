@@ -32,8 +32,8 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine i
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<Response<byte[]>> responses = new ArrayList<>(trapdoors.size());
-            trapdoors.forEach(key -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID,
-                    new String(key, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
+            trapdoors.forEach(trapdoor -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID,
+                    new String(trapdoor, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
             System.out.println("SEARCH: " + trapdoors.size());
             p.sync();
             List<byte[]> res = new ArrayList<>(trapdoors.size());

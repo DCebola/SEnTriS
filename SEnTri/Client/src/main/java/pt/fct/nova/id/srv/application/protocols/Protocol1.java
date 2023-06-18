@@ -18,8 +18,8 @@ public class Protocol1 implements EncryptionProtocol {
     private final byte[] ivDET;
     private final SecretKey kMASTER, kRND, kDET;
     private final Map<byte[], byte[]> encryptedNodes;
-    private final Map<byte[], Integer> keywordFrequencies;
-    private final Map<byte[], SecretKey> derivedKeys;
+    private final Map<Bytes, Integer> keywordFrequencies;
+    private final Map<Bytes, SecretKey> derivedKeys;
     private final byte[] schemaKeyword;
     private final byte[] frequencyIV;
 
@@ -72,7 +72,7 @@ public class Protocol1 implements EncryptionProtocol {
         return encryptedNodes;
     }
 
-    public Map<byte[], Integer> getKeywordFrequencies() {
+    public Map<Bytes, Integer> getKeywordFrequencies() {
         return keywordFrequencies;
     }
 
@@ -185,8 +185,8 @@ public class Protocol1 implements EncryptionProtocol {
 
     private void encryptKeywordInfo() {
         byte[] st, ct;
-        for (byte[] keyword : keywordFrequencies.keySet()) {
-            st = generateDETLayer(derivedKeys.get(keyword), keyword, frequencyIV);
+        for (Bytes keyword : keywordFrequencies.keySet()) {
+            st = generateDETLayer(derivedKeys.get(keyword), keyword.getData(), frequencyIV);
             ct = generateRNDLayer(ParsingUtils.integerToByteArray(keywordFrequencies.get(keyword)));
             encryptedNodes.put(st, ct);
         }
@@ -222,7 +222,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     private int incrementKeywordFrequency(byte[] keyword) {
-        return keywordFrequencies.merge(keyword, 1, Integer::sum);
+        return keywordFrequencies.merge(new Bytes(keyword), 1, Integer::sum);
     }
 
     public byte[] generateTrapdoor(byte[] keyword, int value) {
@@ -238,10 +238,11 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     private SecretKey getDerivedKey(byte[] context) {
-        SecretKey key = derivedKeys.get(context);
+        Bytes bytes = new Bytes(context);
+        SecretKey key = derivedKeys.get(bytes);
         if (key == null) {
             key = SymmetricEncryptionUtils.generateKey(kMASTER, context);
-            derivedKeys.put(context, key);
+            derivedKeys.put(bytes, key);
         }
         return key;
     }
@@ -252,7 +253,7 @@ public class Protocol1 implements EncryptionProtocol {
         for (byte[] keyword : values.keySet()) {
             frequency = values.get(keyword);
             if (frequency > 0)
-                keywordFrequencies.put(keyword, frequency);
+                keywordFrequencies.put(new Bytes(keyword), frequency);
         }
     }
 }

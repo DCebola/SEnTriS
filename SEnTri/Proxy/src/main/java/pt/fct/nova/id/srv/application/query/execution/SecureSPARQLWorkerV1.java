@@ -14,12 +14,12 @@ import java.util.*;
 
 public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
 
-    private final SPARQLResult result;
+    private final SPARQLResult<byte[]> result;
     private final SecretKey key;
     private final Set<byte[]> allSearchIDs;
 
     public SecureSPARQLWorkerV1(SecretKey key) {
-        result = new DefaultSPARQLResult();
+        result = new DefaultSPARQLResult<>();
         this.key = key;
         allSearchIDs = new HashSet<>();
     }
@@ -123,8 +123,8 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
     }
 
     @Override
-    public SPARQLResult generateResults(BindingsTableV1 jobResults) {
-        Collection<SerializableBinding> bindings;
+    public SPARQLResult<byte[]> generateResults(BindingsTableV1 jobResults) {
+        Collection<SerializableBinding<byte[]>> bindings;
         boolean isDistinct = result.isDistinct();
         if (isDistinct)
             bindings = generateBindings(new HashSet<>(), jobResults);
@@ -134,7 +134,7 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
         return result;
     }
 
-    private Collection<SerializableBinding> generateBindings(Collection<SerializableBinding> bindings, BindingsTableV1 jobResults) {
+    private Collection<SerializableBinding<byte[]>> generateBindings(Collection<SerializableBinding<byte[]>> bindings, BindingsTableV1 jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
         HashMap<Var, byte[]> values;
@@ -146,7 +146,7 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
                     values.put(vars.get(i), val);
                 i++;
             }
-            bindings.add(new SerializableBinding(values));
+            bindings.add(new SerializableBinding<>(values));
         }
         return bindings;
     }

@@ -99,11 +99,11 @@ public class EncryptedTriplestoreController {
         else return bindings;
     }
 
-    public Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult sparqlResult) {
+    public Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult<byte[]> sparqlResult) {
         Map<Var, Integer> frequencies = new HashMap<>();
         for (Var v : vars)
             frequencies.put(v, 0);
-        for (SerializableBinding binding : sparqlResult.getBindings()) {
+        for (SerializableBinding<byte[]> binding : sparqlResult.getBindings()) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var v = it.next();
                 frequencies.put(v, frequencies.get(v) + 1);

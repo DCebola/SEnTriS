@@ -10,7 +10,7 @@ import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultSPARQLResult implements SPARQLResult {
+public class DefaultSPARQLResult<T> implements SPARQLResult<T> {
     @Serial
     private static final long serialVersionUID = 5345654479992467695L;
     private List<SerializableSortCondition> sortConditions;
@@ -20,7 +20,7 @@ public class DefaultSPARQLResult implements SPARQLResult {
     private Long offset;
     private Long length;
 
-    private Collection<SerializableBinding> bindings;
+    private Collection<SerializableBinding<T>> bindings;
 
     public DefaultSPARQLResult(List<SerializableSortCondition> sortConditions, boolean isDistinct, boolean isOrdered, boolean isSliced, Long offset, Long length) {
         this.sortConditions = sortConditions;
@@ -42,7 +42,7 @@ public class DefaultSPARQLResult implements SPARQLResult {
     }
 
     @Override
-    public void setBindings(Collection<SerializableBinding> bindings) {
+    public void setBindings(Collection<SerializableBinding<T>> bindings) {
         this.bindings = bindings;
     }
 
@@ -52,53 +52,64 @@ public class DefaultSPARQLResult implements SPARQLResult {
         else
             sortConditions = conditions;
     }
+
     @Override
     public void setDistinct(boolean distinct) {
         isDistinct = distinct;
     }
+
     @Override
     public void setOrdered(boolean ordered) {
         isOrdered = ordered;
     }
+
     @Override
     public void setSliced(boolean sliced) {
         isSliced = sliced;
     }
+
     @Override
     public void setOffset(Long offset) {
         this.offset = offset;
     }
+
     @Override
     public void setLength(Long length) {
         this.length = length;
     }
+
     @Override
     public List<SerializableSortCondition> getSortConditions() {
         return sortConditions;
     }
+
     @Override
     public boolean isDistinct() {
         return isDistinct;
     }
+
     @Override
     public boolean isOrdered() {
         return isOrdered;
     }
+
     @Override
     public boolean isSliced() {
         return isSliced;
     }
+
     @Override
     public Long getOffset() {
         return offset;
     }
+
     @Override
     public Long getLength() {
         return length;
     }
 
     @Override
-    public Collection<SerializableBinding> getBindings() {
+    public Collection<SerializableBinding<T>> getBindings() {
         return bindings;
     }
 }

@@ -7,9 +7,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public interface SPARQLResult extends Serializable {
-
-    void setBindings(Collection<SerializableBinding> bindings);
+public interface SPARQLResult<T> extends Serializable {
+    void setBindings(Collection<SerializableBinding<T>> bindings);
 
     void setSortConditions(List<SerializableSortCondition> sortConditions);
 
@@ -35,5 +34,5 @@ public interface SPARQLResult extends Serializable {
 
     Long getLength();
 
-    Collection<SerializableBinding> getBindings();
+    Collection<SerializableBinding<T>> getBindings();
 }

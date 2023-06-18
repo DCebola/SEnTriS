@@ -16,7 +16,7 @@ public interface SPARQLExecution {
 
     boolean isFinished(String jobID);
 
-    SPARQLResult getResults();
+    SPARQLResult<String> getResults();
 
     void exec(SPARQLWorker worker) throws SPARQLExecutionException;
 }

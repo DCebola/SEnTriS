@@ -16,7 +16,7 @@ public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
-    private SPARQLResult result;
+    private SPARQLResult<byte[]> result;
 
 
     public DefaultSPARQLExecutionV2(QueryExecutionPlan plan) {
@@ -54,7 +54,7 @@ public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
     }
 
     @Override
-    public SPARQLResult getResults() {
+    public SPARQLResult<byte[]> getResults() {
         return result;
     }
 

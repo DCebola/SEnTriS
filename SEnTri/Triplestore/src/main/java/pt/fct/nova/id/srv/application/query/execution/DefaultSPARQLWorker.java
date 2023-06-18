@@ -24,12 +24,12 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
 
     private final StorageEngine storageEngine;
     private final String triplestoreID;
-    private final SPARQLResult result;
+    private final SPARQLResult<String> result;
 
     public DefaultSPARQLWorker(String triplestoreID, StorageEngine storageEngine) {
         this.triplestoreID = triplestoreID;
         this.storageEngine = storageEngine;
-        result = new DefaultSPARQLResult();
+        result = new DefaultSPARQLResult<>();
     }
 
     @Override
@@ -143,8 +143,8 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
     }
 
     @Override
-    public SPARQLResult generateResults(BindingsTable jobResults) throws SPARQLExecutionException {
-        Collection<SerializableBinding> serializableBindings;
+    public SPARQLResult<String> generateResults(BindingsTable jobResults) throws SPARQLExecutionException {
+        Collection<SerializableBinding<String>> serializableBindings;
         boolean isDistinct = result.isDistinct();
         boolean isOrdered = result.isOrdered();
 
@@ -196,8 +196,8 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
         return bindings;
     }
 
-    private Collection<SerializableBinding> generateSerializableBindings(Collection<Binding> bindings) throws SPARQLExecutionException {
-        List<SerializableBinding> serializableBindings = new ArrayList<>(bindings.size());
+    private Collection<SerializableBinding<String>> generateSerializableBindings(Collection<Binding> bindings) throws SPARQLExecutionException {
+        List<SerializableBinding<String>> serializableBindings = new ArrayList<>(bindings.size());
         HashMap<Var, String> values;
         for (Binding binding : bindings) {
             values = new HashMap<>();
@@ -209,12 +209,12 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
                     throw new SPARQLExecutionException("Invalid node.");
                 }
             }
-            serializableBindings.add(new SerializableBinding(values));
+            serializableBindings.add(new SerializableBinding<>(values));
         }
         return serializableBindings;
     }
 
-    private Collection<SerializableBinding> generateSerializableBindings(Collection<SerializableBinding> bindings, BindingsTable jobResults) {
+    private Collection<SerializableBinding<String>> generateSerializableBindings(Collection<SerializableBinding<String>> bindings, BindingsTable jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
         HashMap<Var, String> values;
@@ -226,7 +226,7 @@ public class DefaultSPARQLWorker implements SPARQLWorker {
                     values.put(vars.get(i), val);
                 i++;
             }
-            bindings.add(new SerializableBinding(values));
+            bindings.add(new SerializableBinding<>(values));
         }
         return bindings;
     }

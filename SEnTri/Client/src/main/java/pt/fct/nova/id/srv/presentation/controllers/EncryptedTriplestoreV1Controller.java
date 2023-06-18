@@ -370,9 +370,10 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         byte[] frequency;
         for (int i = 0; i < encryptedKeywordsFrequencies.size(); i++) {
             frequency = encryptedKeywordsFrequencies.get(i);
-            if (frequency != null)
+            if (frequency != null) {
                 keywordsFrequencyCollector.put(keywords.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
-            else
+                System.out.println(toHex(keywords.get(i)) + " | " + byteArrayToInteger(protocol.decryptRNDLayer(frequency)));
+            } else
                 keywordsFrequencyCollector.put(keywords.get(i), 0);
         }
         return null;
@@ -458,7 +459,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     return response.build();
                 }
                 Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
-                SPARQLResult sparqlResult = parseSPARQLResult(response.getBody());
+                SPARQLResult<byte[]> sparqlResult = parseSPARQLResult(response.getBody());
                 Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
                 if (sparqlResult.isOrdered())
                     bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
@@ -576,26 +577,26 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     byte[] searchID = ParsingUtils.parseSearchID(response.getBody());
                     searchIDs.add(searchID);
                     secureSearchJob.prepareSearch(vars[i], searchID);
-                    System.out.println("[ " + vars[i] + " ] - " + trapdoors.get(i).size() + " | " + Arrays.toString(searchID) + " | " + Arrays.toString(keyword));
+                    System.out.println("[ " + vars[i] + " ] - " + trapdoors.get(i).size() + " | " + toHex(searchID) + " | " + toHex(keyword));
                 }
                 searchIDCollector.put(keyword, searchIDs);
             } else {
                 for (int i = 0; i < vars.length; i++) {
                     secureSearchJob.prepareSearch(vars[i], searchIDs.get(i));
-                    System.out.println("[ " + vars[i] + " ] - " + " | " + Arrays.toString(searchIDs.get(i)) + " | " + Arrays.toString(keyword));
+                    System.out.println("[ " + vars[i] + " ] - " + " | " + toHex(searchIDs.get(i)) + " | " + toHex(keyword));
                 }
             }
         }
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws AEADBadTagException {
+    private Collection<Binding> decryptBindings(Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws AEADBadTagException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
-        for (SerializableBinding binding : bindings) {
+        for (SerializableBinding<byte[]> binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptDETLayer(binding.get(var).getBytes(StandardCharsets.UTF_8)))));
+                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptDETLayer(binding.get(var)))));
             }
             decryptedBindings.add(builder.build());
             builder.reset();
