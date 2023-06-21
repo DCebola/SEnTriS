@@ -23,9 +23,9 @@ public class Protocol2 implements EncryptionProtocol {
     private final PrivateKey privDGK;
     private final PublicKey pubDGK;
     private final Map<byte[], byte[]> encryptedNodes;
-    private final Map<byte[], Integer> keywordFrequencies;
-    private final Map<byte[], SecretKey> derivedKeys;
-    private final Map<byte[], Integer> eqTags;
+    private final Map<Bytes, Integer> keywordFrequencies;
+    private final Map<Bytes, SecretKey> derivedKeys;
+    private final Map<Bytes, Integer> eqTags;
     private final byte[] schemaKeyword;
     private final byte[] zeroIV;
     private long lastEqTag;
@@ -90,7 +90,7 @@ public class Protocol2 implements EncryptionProtocol {
         return encryptedNodes;
     }
 
-    public Map<byte[], Integer> getKeywordFrequencies() {
+    public Map<Bytes, Integer> getKeywordFrequencies() {
         return keywordFrequencies;
     }
 
@@ -175,10 +175,10 @@ public class Protocol2 implements EncryptionProtocol {
         }
     }
 
-    public Map<byte[], List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
-        Map<byte[], List<byte[]>> res = new HashMap<>(triples.size() * 6);
+    public Map<Bytes, List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
+        Map<Bytes, List<byte[]>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
-        List<byte[]> keywords;
+        List<Bytes> keywords;
         Set<String> processed = new HashSet<>();
         for (Triple t : triples) {
             keywords = new ArrayList<>(9);
@@ -188,15 +188,15 @@ public class Protocol2 implements EncryptionProtocol {
             t_keyword = String.format(TRIPLE_KEYWORD, s, p, o);
             if (!processed.contains(t_keyword)) {
                 processed.add(t_keyword);
-                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8));
-                keywords.add(ParsingUtils.generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(PO, s).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SO, p).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(SP, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(S, p, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(P, s, o).getBytes(StandardCharsets.UTF_8)));
+                keywords.add(new Bytes(ParsingUtils.generateKeyword(O, s, p).getBytes(StandardCharsets.UTF_8)));
                 generatePatternTrapdoors(res, ParsingUtils.generateKeyword(SPO, t_keyword).getBytes(StandardCharsets.UTF_8), keywords);
             }
         }
@@ -206,23 +206,23 @@ public class Protocol2 implements EncryptionProtocol {
 
     private void encryptKeywordInfo() {
         byte[] st, ct;
-        for (byte[] keyword : keywordFrequencies.keySet()) {
-            st = encryptDET(getDerivedKey(keyword), keyword, zeroIV);
+        for (Bytes keyword : keywordFrequencies.keySet()) {
+            st = encryptDET(derivedKeys.get(keyword), keyword.getData(), zeroIV);
             ct = encryptRND(ParsingUtils.integerToByteArray(keywordFrequencies.get(keyword)));
             encryptedNodes.put(st, ct);
         }
 
-        for (byte[] node : eqTags.keySet()) {
-            st = encryptDET(getDerivedKey(node), node, zeroIV);
+        for (Bytes node : eqTags.keySet()) {
+            st = encryptDET(derivedKeys.get(node), node.getData(), zeroIV);
             ct = encryptRND(ParsingUtils.integerToByteArray(eqTags.get(node)));
             encryptedNodes.put(st, ct);
         }
     }
 
-    private void generatePatternTrapdoors(Map<byte[], List<byte[]>> keywordPatternTrapdoors, byte[] tripleKeyword, List<byte[]> keywords) {
+    private void generatePatternTrapdoors(Map<Bytes, List<byte[]>> keywordPatternTrapdoors, byte[] tripleKeyword, List<Bytes> keywords) {
         List<byte[]> trapdoors;
         int i = 0;
-        for (byte[] keyword : keywords) {
+        for (Bytes keyword : keywords) {
             trapdoors = keywordPatternTrapdoors.get(keyword);
             if (trapdoors == null)
                 trapdoors = new LinkedList<>();
@@ -257,11 +257,11 @@ public class Protocol2 implements EncryptionProtocol {
     }
 
     private int incrementKeywordFrequency(byte[] keyword) {
-        return keywordFrequencies.merge(keyword, 1, Integer::sum);
+        return keywordFrequencies.merge(new Bytes(keyword), 1, Integer::sum);
     }
 
     private long getEqTag(byte[] node) {
-        long eqTag = Math.toIntExact(eqTags.computeIfAbsent(node, k -> Math.toIntExact(lastEqTag + 1)));
+        long eqTag = Math.toIntExact(eqTags.computeIfAbsent(new Bytes(node), k -> Math.toIntExact(lastEqTag + 1)));
         if (eqTag > lastEqTag)
             lastEqTag = eqTag;
         return eqTag;
@@ -276,25 +276,26 @@ public class Protocol2 implements EncryptionProtocol {
     }
 
     private SecretKey getDerivedKey(byte[] context) {
-        SecretKey key = derivedKeys.get(context);
+        Bytes bytes = new Bytes(context);
+        SecretKey key = derivedKeys.get(bytes);
         if (key == null) {
             key = SymmetricEncryptionUtils.generateKey(kMASTER, context);
-            derivedKeys.put(context, key);
+            derivedKeys.put(bytes, key);
         }
         return key;
     }
 
-    public void setKeywordFrequencies(Map<byte[], Integer> values) {
+    public void setKeywordFrequencies(Map<Bytes, Integer> values) {
         keywordFrequencies.clear();
         int frequency;
-        for (byte[] keyword : values.keySet()) {
+        for (Bytes keyword : values.keySet()) {
             frequency = values.get(keyword);
             if (frequency > 0)
                 keywordFrequencies.put(keyword, frequency);
         }
     }
 
-    public void seEqTags(Map<byte[], Integer> values) {
+    public void seEqTags(Map<Bytes, Integer> values) {
         eqTags.clear();
         eqTags.putAll(values);
     }
