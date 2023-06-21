@@ -484,6 +484,12 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
             System.out.println("Triples to Upload: " + triplesToUpload.size());
             System.out.println("Triples to Delete: " + triplesToDelete.size());
+
+            /*
+             * TODO: Need to do in batches, due to memory
+             * TODO: Need to separate deletions from inserts, can also be done in batches, asynchronously.
+             * TODO: Collect responses, if error stop else continue and return ok.
+             */
             HTTPResponse response = computeDeletionsAndUploads(httpClient, triplestoreID, protocol, keywordsFrequency,
                     triplesToDelete, triplesToUpload, deletions, accessToken);
 
