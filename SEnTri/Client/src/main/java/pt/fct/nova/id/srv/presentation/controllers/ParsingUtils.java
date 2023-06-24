@@ -133,6 +133,18 @@ public class ParsingUtils {
         }
     }
 
+    public static HttpEntity generateUpdateRequest(List<byte[]> deletions, List<byte[]> uploads) throws IOException {
+        try (ByteArrayOutputStream bos_deletions = new ByteArrayOutputStream(); ObjectOutputStream oos_deletions = new ObjectOutputStream(bos_deletions);
+             ByteArrayOutputStream bos_uploads = new ByteArrayOutputStream(); ObjectOutputStream oos_uploads = new ObjectOutputStream(bos_uploads)) {
+            oos_deletions.writeObject(deletions);
+            oos_uploads.writeObject(uploads);
+            return MultipartEntityBuilder.create()
+                    .addBinaryBody("deletions", bos_deletions.toByteArray())
+                    .addBinaryBody("uploads", bos_uploads.toByteArray())
+                    .build();
+        }
+    }
+
     public static HttpEntity queryExecutionPlanToHttpEntity(DefaultQueryExecutionPlan plan) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(plan);
@@ -224,10 +236,10 @@ public class ParsingUtils {
         return secrets;
     }
 
-    public static List<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
+    public static Set<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
         CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
-        return tripleCollector.getCollected();
+        return new HashSet<>(tripleCollector.getCollected());
     }
 
     public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
@@ -271,7 +283,7 @@ public class ParsingUtils {
                     TypeMapper.getInstance().getSafeTypeByName(split[LITERAL_DATATYPE_POS]));
     }
 
-    public static byte[] parseSearchID(String value) {
+    public static byte[] parseID(String value) {
         return base64Decoder.decode(value);
     }
 
@@ -299,7 +311,7 @@ public class ParsingUtils {
         return String.format(KEYWORD_FORMAT, pattern, keyword);
     }
 
-    public static Set<Bytes> generateKeywords(List<Triple> triples) throws InvalidNodeException {
+    public static Set<Bytes> generateKeywords(Set<Triple> triples) throws InvalidNodeException {
         Set<Bytes> keywords = new HashSet<>();
         String s, p, o;
         for (Triple t : triples) {
@@ -352,4 +364,5 @@ public class ParsingUtils {
     public static String toHex(byte[] data) {
         return toHex(data, data.length);
     }
+
 }

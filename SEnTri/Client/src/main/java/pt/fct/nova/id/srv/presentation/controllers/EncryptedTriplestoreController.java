@@ -34,6 +34,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.deleteAccessToken;
 
 public class EncryptedTriplestoreController {
+
     public static final String SECRETS_KEY = System.getenv("SECRETS_PROTOCOL_KEY");
     public static final String SECRETS_IV = System.getenv("SECRETS_PROTOCOL_IV");
     public static final String SECRETS_SCHEMA_KEYWORD = System.getenv("SECRETS_PROTOCOL_SCHEMA_KEYWORD");
@@ -41,8 +42,9 @@ public class EncryptedTriplestoreController {
     public static final String EMPTY_UPLOAD = "No content to upload.";
     public static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NO_UPDATES = "No content to update.";
-    public static final int minimumTrapdoors = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
-    public static final int maximumTrapdoors = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
+    public static final int MIN_TRAPDOORS = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
+    public static final int MAX_TRAPDOORS = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
+    public static final int BATCH_SIZE = Integer.parseInt(System.getenv("BATCH_SIZE"));
 
     public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID, String issuer) throws IOException {
         HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
@@ -105,6 +107,7 @@ public class EncryptedTriplestoreController {
             return Response.ok(out.toByteArray()).build();
         }
     }
+
     public Response generateDESCRIBEResults(List<Var> vars, Map<Var, Var> obfuscationMap, SPARQLResult<byte[]> sparqlResult) {
         Map<Var, Integer> frequencies = new HashMap<>();
         for (Var v : vars)
@@ -137,25 +140,12 @@ public class EncryptedTriplestoreController {
     }
 
     public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
-                                      Map<byte[], byte[]> uploads, Set<byte[]> deletions, String accessToken) throws IOException {
-        System.out.println("UPLOADS: " + uploads.size());
-        System.out.println("DELETIONS: " + deletions.size());
-        HTTPResponse response;
-        if (!deletions.isEmpty()) {
-            response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, deletions, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
-        }
-        if (!uploads.isEmpty()) {
-            response = upload(httpClient, protocolVersion, triplestoreID, uploads, accessToken);
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                return response.build();
-            }
+                                      List<byte[]> deletions, List<byte[]> uploads, String accessToken) throws IOException {
+        HTTPResponse response = execTriplestoreUpdate(httpClient, protocolVersion, triplestoreID, uploads, deletions, accessToken);
+        if (response.getStatus() != OK) {
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response.build();
         }
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -206,6 +196,14 @@ public class EncryptedTriplestoreController {
 
     public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<byte[]> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
+            return new HTTPResponse(response);
+        }
+    }
+
+    public static HTTPResponse execTriplestoreUpdate(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID,
+                                                     List<byte[]> deletions, List<byte[]> uploads, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = EncryptedTriplestoreClient.update(httpClient, protocolVersion, triplestoreID,
+                deletions, uploads, accessToken)) {
             return new HTTPResponse(response);
         }
     }

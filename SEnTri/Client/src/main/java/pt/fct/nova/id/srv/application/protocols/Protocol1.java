@@ -77,7 +77,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     @Override
-    public void exec(List<Triple> triples, boolean schema) throws InvalidNodeException {
+    public void exec(Set<Triple> triples, boolean schema) throws InvalidNodeException {
         if (schema)
             encryptSchemaTriples(triples);
         else
@@ -85,7 +85,7 @@ public class Protocol1 implements EncryptionProtocol {
         encryptKeywordInfo();
     }
 
-    private void encryptSchemaTriples(List<Triple> triples) throws InvalidNodeException {
+    private void encryptSchemaTriples(Set<Triple> triples) throws InvalidNodeException {
         for (Triple t : triples) {
             encodeSchemaNode(ParsingUtils.parseNode(t.getSubject()));
             encodeSchemaNode(ParsingUtils.parseNode(t.getPredicate()));
@@ -102,7 +102,7 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
 
-    private void encryptTriples(List<Triple> triples) throws InvalidNodeException {
+    private void encryptTriples(Set<Triple> triples) throws InvalidNodeException {
         Node s, p, o;
         byte[] parsed_s, parsed_p, parsed_o;
         String s_keyword, p_keyword, o_keyword, t_keyword;
@@ -154,7 +154,7 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    public Map<Bytes, List<byte[]>> generateKeywordsPatternTrapdoors(List<Triple> triples) throws InvalidNodeException {
+    public Map<Bytes, List<byte[]>> generateKeywordsPatternTrapdoors(Set<Triple> triples) throws InvalidNodeException {
         Map<Bytes, List<byte[]>> res = new HashMap<>(triples.size() * 6);
         String s, p, o, t_keyword;
         List<Bytes> keywords;
@@ -255,5 +255,10 @@ public class Protocol1 implements EncryptionProtocol {
             if (frequency > 0)
                 keywordFrequencies.put(keyword, frequency);
         }
+    }
+
+    public void clear() {
+        keywordFrequencies.clear();
+        encryptedNodes.clear();
     }
 }

@@ -9,7 +9,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
+import java.util.Set;
 
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.BASIC_SEPARATOR;
 
@@ -19,6 +19,6 @@ public interface EncryptionProtocol {
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 
-    void exec(List<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    void exec(Set<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
 }

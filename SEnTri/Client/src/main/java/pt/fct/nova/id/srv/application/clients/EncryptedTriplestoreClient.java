@@ -17,6 +17,8 @@ public class EncryptedTriplestoreClient {
     private static final String DELETE_SOME_URI = System.getenv("ENCRYPTED_TRIPLESTORE_DELETE_SOME_URI");
     private static final String SEARCH_URI = System.getenv("ENCRYPTED_TRIPLESTORE_SEARCH_URI");
 
+    private static final String UPDATE_URI = System.getenv("ENCRYPTED_TRIPLESTORE_UPDATE_URI");
+
     public static CloseableHttpResponse upload(HttpClient httpClient, String protocolVersion, String triplestoreID, Map<byte[], byte[]> values, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPLOAD_URI, protocolVersion, triplestoreID), ParsingUtils.mapOfBytesBytesToHttpEntity(values), accessToken);
     }
@@ -34,5 +36,7 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, protocolVersion, triplestoreID), accessToken);
     }
 
-
+    public static CloseableHttpResponse update(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, List<byte[]> deletions, List<byte[]> uploads, String accessToken) throws IOException {
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPDATE_URI, protocolVersion, triplestoreID), ParsingUtils.generateUpdateRequest(deletions, uploads), accessToken);
+    }
 }
