@@ -220,6 +220,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                     return response.build();
                 }
             }
+            //TODO: BATCH upload of ontology
             protocol.exec(triples, true);
             response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

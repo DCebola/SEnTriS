@@ -34,4 +34,8 @@ public class ParsingUtils {
     public static String toHex(byte[] data) {
         return toHex(data, data.length);
     }
+
+    public static byte[] integerToByteArray(int integer) {
+        return new byte[]{(byte) (integer >> 24), (byte) (integer >> 16), (byte) (integer >> 8), (byte) integer};
+    }
 }

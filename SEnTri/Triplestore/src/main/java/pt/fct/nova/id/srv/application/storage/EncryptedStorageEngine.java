@@ -8,9 +8,11 @@ public interface EncryptedStorageEngine {
 
     void delete(String triplestoreID);
 
-    void delete(String triplestoreID, Set<byte[]> trapdoors);
+    byte[] commitDelete(String triplestoreID, Set<byte[]> trapdoors);
 
-    void save(String triplestoreID, Map<byte[], byte[]> encryptedNodes);
+    byte[] commitUpload(String triplestoreID, Map<byte[], byte[]> encryptedNodes);
+
+    void update(String triplestoreID, List<byte[]> uploads, List<byte[]> deletions);
 
     List<byte[]> search(String triplestoreID, List<byte[]> trapdoors);
 

@@ -1,5 +1,6 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
+import pt.fct.nova.id.srv.application.Utils;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
@@ -11,8 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
+
     @Override
-    public void delete(String triplestoreID, Set<byte[]> trapdoors) {
+    public byte[] commitDelete(String triplestoreID, Set<byte[]> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<Response<byte[]>> responses = new LinkedList<>();
@@ -20,11 +22,13 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine i
                     p.get(String.format(KEY_FORMAT, triplestoreID, new String(trapdoor, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8))));
             p.sync();
             Transaction t = jedis.multi();
-            trapdoors.forEach(trapdoor -> t.del(String.format(KEY_FORMAT, triplestoreID,
+            byte[] id = Utils.generateID();
+            trapdoors.forEach(trapdoor -> t.sadd(id, String.format(KEY_FORMAT, triplestoreID,
                     new String(trapdoor, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8)));
-            responses.forEach(response -> t.del(String.format(KEY_FORMAT, triplestoreID,
+            responses.forEach(response -> t.sadd(id, String.format(KEY_FORMAT, triplestoreID,
                     new String(response.get(), StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8)));
             t.exec();
+            return id;
         }
     }
 

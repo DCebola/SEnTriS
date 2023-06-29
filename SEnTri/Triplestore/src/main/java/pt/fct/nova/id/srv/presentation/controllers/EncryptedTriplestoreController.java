@@ -23,7 +23,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 
 
 public class EncryptedTriplestoreController {
-    private static final String SUCCESSFUL_DELETE_SOME = "Successful deletion of values from store.";
+    private static final String SUCCESSFUL_UPDATE = "Successful update.";
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static Response upload(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] encryptedNodes, List<String> authorizationHeaders) {
@@ -38,8 +38,7 @@ public class EncryptedTriplestoreController {
 
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.save(triplestoreID, (Map<byte[], byte[]>) ois.readObject());
-            return Response.ok(SUCCESSFUL_UPLOAD).build();
+            return Response.ok(base64Encoder.encodeToString(storageEngine.commitUpload(triplestoreID, (Map<byte[], byte[]>) ois.readObject()))).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -79,7 +78,7 @@ public class EncryptedTriplestoreController {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID);
-            return Response.ok(SUCCESSFUL_DELETE_SOME).build();
+            return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -97,8 +96,29 @@ public class EncryptedTriplestoreController {
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.delete(triplestoreID, (Set<byte[]>) ois.readObject());
-            return Response.ok(SUCCESSFUL_DELETION).build();
+            return Response.ok(base64Encoder.encodeToString(storageEngine.commitDelete(triplestoreID, (Set<byte[]>) ois.readObject()))).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public static Response update(EncryptedStorageEngine storageEngine, String triplestoreID,
+                                  byte[] uploads, byte[] deletions, List<String> authorizationHeaders) {
+        String accessToken = extractAccessToken(authorizationHeaders);
+        if (accessToken == null)
+            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+
+        try (CloseableHttpClient httpClient = HTTPClient.buildClient();
+             CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
+             ByteArrayInputStream uploads_bis = new ByteArrayInputStream(uploads);
+             ObjectInputStream uploads_ois = new ObjectInputStream(uploads_bis);
+             ByteArrayInputStream deletions_bis = new ByteArrayInputStream(deletions);
+             ObjectInputStream deletions_ois = new ObjectInputStream(deletions_bis)) {
+            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                return HTTPUtils.buildResponse(response);
+            storageEngine.update(triplestoreID, (List<byte[]>) uploads_ois.readObject(), (List<byte[]>) deletions_ois.readObject());
+            return Response.ok(SUCCESSFUL_UPDATE).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

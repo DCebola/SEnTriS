@@ -2,6 +2,8 @@ package pt.fct.nova.id.srv.presentation.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import pt.fct.nova.id.srv.presentation.api.dtos.UpdateForm;
 
 import java.util.List;
 
@@ -38,6 +40,14 @@ public interface EncryptedTriplestoreAPI {
     @Produces(TEXT_PLAIN)
     Response delete(@PathParam("triplestoreID") String triplestoreID,
                     byte[] trapdoors,
+                    @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+
+    @POST
+    @Path("/{triplestoreID}/update")
+    @Consumes(MULTIPART_FORM_DATA)
+    @Produces(TEXT_PLAIN)
+    Response update(@PathParam("triplestoreID") String triplestoreID,
+                    @MultipartForm UpdateForm search,
                     @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 
 }

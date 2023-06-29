@@ -12,6 +12,7 @@ import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
 import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngineV2;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreV2API;
 import pt.fct.nova.id.srv.presentation.api.dtos.PrepareSearchV2Form;
+import pt.fct.nova.id.srv.presentation.api.dtos.UpdateForm;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -32,13 +33,11 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
 
     @Override
     public Response upload(String triplestoreID, byte[] encryptedNodes, List<String> authorizationHeaders) {
-        System.out.println("upload v2");
         return EncryptedTriplestoreController.upload(storageEngine, triplestoreID, encryptedNodes, authorizationHeaders);
     }
 
     @Override
     public Response prepareSearch(String triplestoreID, PrepareSearchV2Form form, List<String> authorizationHeaders) {
-        System.out.println("prepare search v2");
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
@@ -65,20 +64,23 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
 
     @Override
     public Response search(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
-        System.out.println("search v2");
         return EncryptedTriplestoreController.search(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
     }
 
     @Override
     public Response delete(String triplestoreID, List<String> authorizationHeaders) {
-        System.out.println("delete v2");
         return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, authorizationHeaders);
     }
 
     @Override
     public Response delete(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
-        System.out.println("delete some v2");
         return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
+    }
+
+    @Override
+    public Response update(String triplestoreID, UpdateForm form, List<String> authorizationHeaders) {
+        return EncryptedTriplestoreController.update(storageEngine, triplestoreID, form.getUploads(),
+                form.getDeletions(), authorizationHeaders);
     }
 
 }

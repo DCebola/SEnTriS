@@ -19,7 +19,6 @@ import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.ontologies.SecureOntology;
 import pt.fct.nova.id.srv.application.protocols.Bytes;
-import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -202,6 +201,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     return response.build();
                 }
             }
+            //TODO: BATCH upload of ontology schema
             protocol.exec(triples, true);
             response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

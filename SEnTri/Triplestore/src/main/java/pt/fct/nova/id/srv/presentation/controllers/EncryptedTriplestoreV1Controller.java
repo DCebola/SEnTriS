@@ -11,6 +11,7 @@ import pt.fct.nova.id.srv.application.clients.ProxyClient;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
 import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngineV1;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreV1API;
+import pt.fct.nova.id.srv.presentation.api.dtos.UpdateForm;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -69,6 +70,12 @@ public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1A
     @Override
     public Response delete(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         return EncryptedTriplestoreController.delete(storageEngine, triplestoreID, trapdoors, authorizationHeaders);
+    }
+
+    @Override
+    public Response update(String triplestoreID, UpdateForm form, List<String> authorizationHeaders) {
+        return EncryptedTriplestoreController.update(storageEngine, triplestoreID, form.getUploads(),
+                form.getDeletions(), authorizationHeaders);
     }
 
 }
