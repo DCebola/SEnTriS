@@ -50,10 +50,8 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
                     return HTTPUtils.buildResponse(response);
             }
 
-            List<byte[]> trapdoors = (List<byte[]>) trapdoors_ois.readObject();
-
             try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion,
-                    storageEngine.maskedSearch(triplestoreID, trapdoors, new BigInteger(form.getMask())), accessToken)) {
+                    storageEngine.maskedSearch(triplestoreID, (List<String>) trapdoors_ois.readObject(), new BigInteger(form.getMask())), accessToken)) {
                 return HTTPUtils.buildResponse(response);
             }
         } catch (Exception e) {

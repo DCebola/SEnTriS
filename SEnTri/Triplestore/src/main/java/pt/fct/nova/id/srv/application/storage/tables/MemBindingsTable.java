@@ -7,7 +7,7 @@ import java.util.*;
 
 import static org.apache.jena.sparql.algebra.JoinType.INNER;
 import static org.apache.jena.sparql.algebra.JoinType.LEFT;
-import static pt.fct.nova.id.srv.application.Utils.generateB64ID;
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class MemBindingsTable implements BindingsTable {
 
@@ -196,7 +196,7 @@ public class MemBindingsTable implements BindingsTable {
                 for (String r : rightPatternIdxs) {
                     if (equalPatterns(mutualVars, left, l, right, r)) {
                         foundMatch = true;
-                        p = generateB64ID();
+                        p = generateID();
                         copyBindings(p, l, mutualVars, left, res);
                         copyBindings(p, l, leftVars, left, res);
                         copyBindings(p, r, rightVars, right, res);

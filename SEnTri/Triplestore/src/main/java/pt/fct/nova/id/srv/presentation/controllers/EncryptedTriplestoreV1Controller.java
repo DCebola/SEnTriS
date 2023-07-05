@@ -48,7 +48,7 @@ public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1A
             }
 
             try (CloseableHttpResponse response = ProxyClient.prepareSearch(httpClient, protocolVersion, storageEngine.search(triplestoreID,
-                    (List<byte[]>) ois.readObject()), accessToken)) {
+                    (List<String>) ois.readObject()), accessToken)) {
                 return HTTPUtils.buildResponse(response);
             }
         } catch (Exception e) {

@@ -140,8 +140,8 @@ public class EncryptedTriplestoreController {
     }
 
     public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
-                                      List<byte[]> deletions, List<byte[]> uploads, String accessToken) throws IOException {
-        HTTPResponse response = execTriplestoreUpdate(httpClient, protocolVersion, triplestoreID, uploads, deletions, accessToken);
+                                      Set<String> deletions, Set<String> uploads, String accessToken) throws IOException {
+        HTTPResponse response = execTriplestoreUpdate(httpClient, protocolVersion, triplestoreID, deletions, uploads, accessToken);
         if (response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -158,7 +158,7 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String protocolVersion, String triplestoreID, List<byte[]> trapdoors, String accessToken) throws IOException {
+    public HTTPResponse searchEncryptedTriplestoreContents(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.search(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
@@ -170,13 +170,13 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse upload(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<byte[], byte[]> encryptedNodes, String accessToken) throws IOException {
+    public HTTPResponse upload(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Map<String, String> encryptedNodes, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.upload(httpClient, protocolVersion, triplestoreID, encryptedNodes, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<byte[], byte[]> secrets, String accessToken) throws IOException {
+    public HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
         try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(httpClient, triplestoreID, secrets, accessToken)) {
             return new HTTPResponse(response);
         }
@@ -194,14 +194,14 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<byte[]> trapdoors, String accessToken) throws IOException {
+    public static HTTPResponse deleteSomeContents(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<String> trapdoors, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.deleteSome(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
     public static HTTPResponse execTriplestoreUpdate(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID,
-                                                     List<byte[]> deletions, List<byte[]> uploads, String accessToken) throws IOException {
+                                                     Set<String> deletions, Set<String> uploads, String accessToken) throws IOException {
         try (CloseableHttpResponse response = EncryptedTriplestoreClient.update(httpClient, protocolVersion, triplestoreID,
                 deletions, uploads, accessToken)) {
             return new HTTPResponse(response);

@@ -13,13 +13,9 @@ public class VaultClient {
     private static final String GET_SECRETS_URI = System.getenv("VAULT_GET_SECRETS_URI");
     private static final String DELETE_SECRETS_URI = System.getenv("VAULT_DELETE_SECRETS_URI");
 
-    public static CloseableHttpResponse saveProtocolV1Secrets(HttpClient httpClient, String triplestoreID, Map<String, byte[]> secrets, String accessToken) throws IOException {
+    public static CloseableHttpResponse saveProtocolSecrets(HttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
         System.out.printf("POST" + (CREATE_SECRETS_URI) + "%n", triplestoreID);
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(CREATE_SECRETS_URI, triplestoreID), ParsingUtils.mapOfStringBytesToHttpEntity(secrets), accessToken);
-    }
-    public static CloseableHttpResponse saveProtocolSecrets(HttpClient httpClient, String triplestoreID, Map<byte[], byte[]> secrets, String accessToken) throws IOException {
-        System.out.printf("POST" + (CREATE_SECRETS_URI) + "%n", triplestoreID);
-        return HTTPUtils.sendPOSTRequest(httpClient, String.format(CREATE_SECRETS_URI, triplestoreID), ParsingUtils.mapOfBytesBytesToHttpEntity(secrets), accessToken);
+        return HTTPUtils.sendPOSTRequest(httpClient, String.format(CREATE_SECRETS_URI, triplestoreID), ParsingUtils.mapOfStringsStringsToHttpEntity(secrets), accessToken);
     }
 
     public static CloseableHttpResponse getProtocolSecrets(HttpClient httpClient, String triplestoreID, String accessToken) throws IOException {

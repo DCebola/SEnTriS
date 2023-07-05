@@ -5,15 +5,12 @@ import java.util.*;
 import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 
 public class Utils {
-    public static byte[] generateID() {
+    public static String generateID() {
         UUID uuid = UUID.randomUUID();
         ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
-    }
-    public static String generateB64ID() {
-        return encodeBase64URLSafeString(generateID());
+        return encodeBase64URLSafeString(bb.array());
     }
 
 }

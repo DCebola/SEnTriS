@@ -10,12 +10,11 @@ import java.util.*;
 public class RedisEncryptedStorageEngineV1 extends RedisEncryptedStorageEngine {
 
     @Override
-    public byte[] commitDelete(String triplestoreID, Set<byte[]> trapdoors) {
+    public String commitDelete(String triplestoreID, Set<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            byte[] id = Utils.generateID();
-            trapdoors.forEach(trapdoor -> t.sadd(id, String.format(KEY_FORMAT, triplestoreID, new String(trapdoor, StandardCharsets.UTF_8))
-                    .getBytes(StandardCharsets.UTF_8)));
+            String id = Utils.generateID();
+            trapdoors.forEach(trapdoor -> t.lpush(id, String.format(KEY_FORMAT, triplestoreID, trapdoor, StandardCharsets.UTF_8)));
             t.expire(id, COMMIT_LIFETIME);
             t.exec();
             return id;

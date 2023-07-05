@@ -38,7 +38,7 @@ public class EncryptedTriplestoreController {
 
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(base64Encoder.encodeToString(storageEngine.commitUpload(triplestoreID, (Map<byte[], byte[]>) ois.readObject()))).build();
+            return Response.ok(storageEngine.commitUpload(triplestoreID, (Map<String, String>) ois.readObject())).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -58,7 +58,7 @@ public class EncryptedTriplestoreController {
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                  ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-                oos.writeObject(storageEngine.search(triplestoreID, (List<byte[]>) ois.readObject()));
+                oos.writeObject(storageEngine.search(triplestoreID, (List<String>) ois.readObject()));
                 return Response.ok(base64Encoder.encodeToString(bos.toByteArray())).build();
             }
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class EncryptedTriplestoreController {
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(base64Encoder.encodeToString(storageEngine.commitDelete(triplestoreID, (Set<byte[]>) ois.readObject()))).build();
+            return Response.ok(storageEngine.commitDelete(triplestoreID, (Set<String>) ois.readObject())).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -117,7 +117,7 @@ public class EncryptedTriplestoreController {
              ObjectInputStream deletions_ois = new ObjectInputStream(deletions_bis)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.update(triplestoreID, (List<byte[]>) uploads_ois.readObject(), (List<byte[]>) deletions_ois.readObject());
+            storageEngine.update(triplestoreID, (List<String>) uploads_ois.readObject(), (List<String>) deletions_ois.readObject());
             return Response.ok(SUCCESSFUL_UPDATE).build();
         } catch (Exception e) {
             e.printStackTrace();

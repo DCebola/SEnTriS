@@ -68,22 +68,7 @@ public class QueryUtils {
     }
 
     public static String generateID() {
-        return uuidToBase64(UUID.randomUUID().toString());
-    }
-
-    public static byte[] generateBinaryID() {
-        return uuidToBase64Bytes(UUID.randomUUID());
-    }
-
-    public static byte[] uuidToBase64Bytes(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return encodeBase64URLSafe(bb.array());
-    }
-
-    public static String uuidToBase64(String str) {
-        UUID uuid = UUID.fromString(str);
+        UUID uuid = UUID.randomUUID();
         ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());

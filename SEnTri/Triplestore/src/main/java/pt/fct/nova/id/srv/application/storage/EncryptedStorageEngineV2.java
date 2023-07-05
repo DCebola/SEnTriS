@@ -5,6 +5,6 @@ import java.util.List;
 
 public interface EncryptedStorageEngineV2 extends EncryptedStorageEngine{
 
-    List<byte[]> maskedSearch(String triplestoreID, List<byte[]> trapdoors, BigInteger mask);
+    List<byte[]> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask);
 
 }

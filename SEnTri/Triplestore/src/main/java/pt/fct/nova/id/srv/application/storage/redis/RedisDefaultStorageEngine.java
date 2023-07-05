@@ -16,7 +16,7 @@ import redis.clients.jedis.Transaction;
 
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.Utils.generateB64ID;
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 
 public class RedisDefaultStorageEngine implements StorageEngine {
@@ -225,7 +225,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             BindingsTable res = new MemBindingsTable(var);
             Set<String> nodes = jedis.smembers(keyword);
-            nodes.forEach(node -> res.add(generateB64ID(), var, node));
+            nodes.forEach(node -> res.add(generateID(), var, node));
             System.out.println(keyword + " | " + var.getVarName() + " | " + res.getPatterns().size());
             return res;
         }
@@ -253,7 +253,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
             compound_nodes.forEach(
                     node -> {
                         String[] nodes = node.split(COMPOUND_NODE_SEPARATOR);
-                        String p_idx = generateB64ID();
+                        String p_idx = generateID();
                         res.add(p_idx, var1, nodes[0]);
                         res.add(p_idx, var2, nodes[1]);
                     }

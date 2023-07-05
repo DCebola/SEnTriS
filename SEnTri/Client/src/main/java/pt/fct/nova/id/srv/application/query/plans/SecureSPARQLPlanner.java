@@ -42,7 +42,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final Map<Op, String> parsed_op;
     private final DefaultQueryExecutionPlan plan;
     private final HashMap<Var, Var> obfuscationMap;
-    private final Set<byte[]> keywords;
+    private final Set<String> keywords;
     private final Set<String> searchJobsIDs;
     private final Random rnd;
     private QueryType queryType;
@@ -130,7 +130,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return deleteTemplate;
     }
 
-    public Set<byte[]> getKeywords() {
+    public Set<String> getKeywords() {
         return keywords;
     }
 
@@ -203,10 +203,10 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private SecureSearchJob generateSecureSearchJob(Var var, Node node2, Node node3, VariablesPattern pattern) throws InvalidNodeException {
-        Map<Var, byte[]> searches = new HashMap<>();
+        Map<Var, String> searches = new HashMap<>();
         var = obfuscateVar(var);
         String jobID = generateID();
-        byte[] keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3)).getBytes(StandardCharsets.UTF_8);
+        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node2), ParsingUtils.parseKeyword(node3));
         searches.put(var, keyword);
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
@@ -214,9 +214,9 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private SecureSearchJob generateSecureSearchJob(Var var1, Var var2, Node node, VariablesPattern pattern) throws InvalidNodeException {
-        Map<Var, byte[]> searches = new HashMap<>();
+        Map<Var, String> searches = new HashMap<>();
         String jobID = generateID();
-        byte[] keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node)).getBytes(StandardCharsets.UTF_8);
+        String keyword = ParsingUtils.generateKeyword(pattern, ParsingUtils.parseKeyword(node));
         keywords.add(keyword);
         searchJobsIDs.add(jobID);
         var1 = obfuscateVar(var1);
