@@ -481,20 +481,20 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
             System.out.println("Triples to Upload: " + triplesToUpload.size());
             System.out.println("Triples to Delete: " + triplesToDelete.size());
-
-
-            System.out.println("Triples to Upload: " + triplesToUpload.size());
-            System.out.println("Triples to Delete: " + triplesToDelete.size());
             HTTPResponse response;
             Set<Triple> batch = new HashSet<>();
             Set<String> deletions = new HashSet<>();
             Set<String> uploads = new HashSet<>();
-            response = batchExecute(httpClient, cookie, triplestoreID, protocol, accessToken, triplesToUpload, keywordsFrequency, batch, deletions, BatchOperation.DELETION);
+            response = batchExecute(httpClient, cookie, triplestoreID, protocol, accessToken, triplesToDelete,
+                    keywordsFrequency, batch, deletions, BatchOperation.DELETION);
             if (response != null && response.getStatus() != OK)
                 return response.build();
-            response = batchExecute(httpClient, cookie, triplestoreID, protocol, accessToken, triplesToUpload, keywordsFrequency, batch, uploads, BatchOperation.UPLOAD);
+            response = batchExecute(httpClient, cookie, triplestoreID, protocol, accessToken, triplesToUpload,
+                    keywordsFrequency, batch, uploads, BatchOperation.UPLOAD);
             if (response != null && response.getStatus() != OK)
                 return response.build();
+            System.out.println("Deletion IDs: " + Arrays.toString(deletions.toArray()));
+            System.out.println("Uploads IDs: " + Arrays.toString(uploads.toArray()));
             return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, deletions, uploads, accessToken);
         } catch (Exception e) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
@@ -504,13 +504,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private HTTPResponse batchExecute(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
-                                      Protocol1 protocol, String accessToken, List<Triple> triplesToUpload,
+                                      Protocol1 protocol, String accessToken, List<Triple> triples,
                                       Map<String, Integer> keywordsFrequency, Set<Triple> batch, Set<String> collector, BatchOperation opType) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
         HTTPResponse response = null;
         int offset = 0;
         while (true) {
-            for (int i = offset; i < offset + BATCH_SIZE && i < triplesToUpload.size(); i++)
-                batch.add(triplesToUpload.get(i));
+            for (int i = offset; i < offset + BATCH_SIZE && i < triples.size(); i++)
+                batch.add(triples.get(i));
             offset += batch.size();
             if (batch.isEmpty())
                 return response;

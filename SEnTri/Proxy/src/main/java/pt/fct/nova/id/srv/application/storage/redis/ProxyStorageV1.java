@@ -16,14 +16,14 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV1 extends ProxyStorage {
-    public static BindingsTableV1 search(SecretKey key, Var[] vars, Map<Var, byte[]> searches) throws SPARQLExecutionException {
+    public static BindingsTableV1 search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             BindingsTableV1 res = new MemBindingsTableV1(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());
             for (Var var : vars)
-                responses.add(p.lrange(searches.get(var), 0, -1));
+                responses.add(p.lrange(getBase64Decoder().decode(searches.get(var)), 0, -1));
             p.sync();
             Map<Var, List<byte[]>> searchResults = new HashMap<>();
 

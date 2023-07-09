@@ -12,7 +12,7 @@ public interface EncryptedStorageEngine {
 
     String commitUpload(String triplestoreID, Map<String, String> encryptedNodes);
 
-    void update(String triplestoreID, List<String> uploads, List<String> deletions);
+    void update(String triplestoreID, Set<String> uploads, Set<String> deletions);
 
     List<byte[]> search(String triplestoreID, List<String> trapdoors);
 

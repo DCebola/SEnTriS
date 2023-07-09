@@ -55,17 +55,4 @@ public class Redis {
         } while (!cursor.equals(SCAN_POINTER_START));
         return res;
     }
-
-    public static Set<String> scan(Jedis jedis, byte[] scanPattern){
-        String cursor = SCAN_POINTER_START;
-        ScanParams params = new ScanParams();
-        params.match(scanPattern);
-        Set<String> res = new HashSet<>();
-        do {
-            ScanResult<String> scanResult = jedis.scan(cursor, params);
-            res.addAll(scanResult.getResult());
-            cursor = scanResult.getCursor();
-        } while (!cursor.equals(SCAN_POINTER_START));
-        return res;
-    }
 }

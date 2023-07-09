@@ -16,7 +16,7 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
 
     private final SPARQLResult<byte[]> result;
     private final SecretKey key;
-    private final Set<byte[]> allSearchIDs;
+    private final Set<String> allSearchIDs;
 
     public SecureSPARQLWorkerV1(SecretKey key) {
         result = new DefaultSPARQLResult<>();
@@ -24,14 +24,14 @@ public class SecureSPARQLWorkerV1 implements SPARQLWorkerV1 {
         allSearchIDs = new HashSet<>();
     }
 
-    public Set<byte[]> getAllSearchIDs() {
+    public Set<String> getAllSearchIDs() {
         return allSearchIDs;
     }
 
     @Override
     public BindingsTableV1 exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
-            Map<Var, byte[]> searches = secureSearchJob.getSearches();
+            Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorageV1.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EmptyResJob) return new MemBindingsTableV1(((EmptyResJob) job).getVars());

@@ -21,14 +21,14 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV2 extends ProxyStorage {
 
-    public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, byte[]> searches) throws SPARQLExecutionException {
+    public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             BindingsTableV2 res = new MemBindingsTableV2(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());
             for (Var var : vars)
-                responses.add(p.lrange(searches.get(var), 0, -1));
+                responses.add(p.lrange(getBase64Decoder().decode(searches.get(var)), 0, -1));
 
             p.sync();
             Map<Var, List<BigInteger>> searchResults = new HashMap<>();

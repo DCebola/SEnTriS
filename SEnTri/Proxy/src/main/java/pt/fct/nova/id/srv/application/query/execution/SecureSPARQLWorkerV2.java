@@ -22,7 +22,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
     private final SPARQLResult<byte[]> result;
     private final DGKEqKey key;
-    private final Set<byte[]> allSearchIDs;
+    private final Set<String> allSearchIDs;
 
     public SecureSPARQLWorkerV2(DGKEqKey key) {
         result = new DefaultSPARQLResult<>();
@@ -30,14 +30,14 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         allSearchIDs = new HashSet<>();
     }
 
-    public Set<byte[]> getAllSearchIDs() {
+    public Set<String> getAllSearchIDs() {
         return allSearchIDs;
     }
 
     @Override
     public BindingsTableV2 exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
-            Map<Var, byte[]> searches = secureSearchJob.getSearches();
+            Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
             return ProxyStorageV2.search(key, secureSearchJob.getVars(), searches);
         } else if (job instanceof EmptyResJob) return new MemBindingsTableV2(((EmptyResJob) job).getVars());

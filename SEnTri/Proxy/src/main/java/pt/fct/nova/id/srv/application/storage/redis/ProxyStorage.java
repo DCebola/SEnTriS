@@ -8,12 +8,17 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorage {
+    private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
     private static final long SEARCH_DATA_LIFETIME = Long.parseLong(System.getenv("SEARCH_DATA_LIFETIME"));
 
-    public static void delete(Set<byte[]> searchIDs) {
+    public static Base64.Decoder getBase64Decoder() {
+        return base64Decoder;
+    }
+
+    public static void delete(Set<String> searchIDs) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
-            searchIDs.forEach(t::del);
+            searchIDs.forEach( searchID -> t.del(base64Decoder.decode(searchID)));
             t.exec();
         }
     }

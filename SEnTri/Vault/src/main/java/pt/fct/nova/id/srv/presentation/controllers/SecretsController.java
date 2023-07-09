@@ -42,7 +42,7 @@ public class SecretsController implements SecretsAPI {
                 return HTTPUtils.buildResponse(response);
             if (Vault.exists(triplestoreID))
                 return Response.ok(SECRETS_ALREADY_EXIST).status(NOT_FOUND).build();
-            Vault.saveSecrets(triplestoreID, (Map<byte[], byte[]>) ois.readObject());
+            Vault.saveSecrets(triplestoreID, (Map<String, String>) ois.readObject());
             return Response.ok(SUCCESSFUL_SECRETS_CREATION).build();
         } catch (IOException | ClassNotFoundException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

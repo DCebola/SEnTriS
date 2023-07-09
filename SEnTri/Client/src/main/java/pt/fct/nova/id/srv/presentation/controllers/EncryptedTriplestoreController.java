@@ -142,13 +142,10 @@ public class EncryptedTriplestoreController {
     public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
                                       Set<String> deletions, Set<String> uploads, String accessToken) throws IOException {
         HTTPResponse response = execTriplestoreUpdate(httpClient, protocolVersion, triplestoreID, deletions, uploads, accessToken);
-        if (response.getStatus() != OK) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            return response.build();
-        }
         releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+        if (response.getStatus() != OK)
+            return response.build();
         return Response.ok(SUCCESSFUL_UPDATE).build();
     }
 

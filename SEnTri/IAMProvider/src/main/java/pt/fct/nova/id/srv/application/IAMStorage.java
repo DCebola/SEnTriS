@@ -47,7 +47,6 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String key = String.format(SESSION, username);
             String uuid = UUIDUtils.generateID();
-            ;
             Transaction t = jedis.multi();
             t.del(key);
             t.set(key, uuid);
