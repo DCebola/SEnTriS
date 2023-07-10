@@ -264,4 +264,14 @@ public class Protocol1 implements EncryptionProtocol {
         keywordFrequencies.clear();
         encryptedNodes.clear();
     }
+
+    public void clearNodes() {
+        keywordFrequencies.clear();
+        encryptedNodes.clear();
+    }
+
+    public void clearFrequencies() {
+        keywordFrequencies.clear();
+        encryptedNodes.clear();
+    }
 }

@@ -99,6 +99,18 @@ public class Protocol2 implements EncryptionProtocol {
         eqTags.clear();
     }
 
+    public void clearEqTags() {
+        eqTags.clear();
+    }
+
+    public void clearNodes() {
+        encryptedNodes.clear();
+    }
+
+    public void clearKeywordFrequencies() {
+        keywordFrequencies.clear();
+    }
+
 
     public Map<String, Integer> getKeywordFrequencies() {
         return keywordFrequencies;
