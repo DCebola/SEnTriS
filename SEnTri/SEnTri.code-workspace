@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "../../../Deployment"
+			"path": "./Deployment"
 		},
 		{
-			"path": "../.."
+			"path": "./Testing"
 		}
 	],
 	"settings": {}
