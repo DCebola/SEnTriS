@@ -15,7 +15,7 @@ wait
 cd ./fuseki
 cp -r ../LUBM/datasets ./datasets
 wait
-for i in 2 4 6 8 10
+for i in 1 5 10 20
 do
    docker build --build-arg dataset=$i -t $1/fuseki-$i .
    wait

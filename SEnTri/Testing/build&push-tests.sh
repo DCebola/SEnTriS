@@ -4,16 +4,24 @@ if [ $# -ne 2  ]; then
     echo "Usage: build&push-tests <docker-registry> <dropbox-token>"
     exit 1
 fi
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-experimental-evaluation")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-concurrency-test")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-write-test")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-stress-test")) &> /dev/null
+wait
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-experimental-evaluation")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-concurrency-test")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-write-test")) &> /dev/null
+docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentri-stress-test")) &> /dev/null
+wait
 
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/test")) &> /dev/null
-
-scenarios=("upload-2", "upload-4", "upload-6", "upload-8", "upload-10", "query-2", "query-4", "query-6", "query-8", "query-10")
+scenarios=("experimental-evaluation", "concurrency-test", "write-test", "stress-test")
 for scenario in ${scenarios[@]}; do
-    docker build -t $1/sentri-test-$scenario \
+    docker build -t $1/sentri-$scenario \
     --build-arg TEST_SCENARIO=$scenario  \
     --build-arg DROPBOX_TOKEN=$dropbox_token  \
     .
     wait
-    docker push $1/sentri-test\
+    docker push $1/sentri-$scenario
 done
 
