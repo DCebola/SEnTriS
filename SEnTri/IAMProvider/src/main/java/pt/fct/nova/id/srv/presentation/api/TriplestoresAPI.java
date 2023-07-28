@@ -3,7 +3,7 @@ package pt.fct.nova.id.srv.presentation.api;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
-import org.jboss.resteasy.annotations.Form;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
 
 import java.util.List;
@@ -15,10 +15,10 @@ import static pt.fct.nova.id.srv.application.IAMStorage.COOKIE_PARAM;
 public interface TriplestoresAPI {
     @POST
     @Path("")
-    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
     Response createTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
-                                           @Form TriplestoreForm form);
+                                           @MultipartForm TriplestoreForm form);
 
     @GET
     @Path("/{issuer}")

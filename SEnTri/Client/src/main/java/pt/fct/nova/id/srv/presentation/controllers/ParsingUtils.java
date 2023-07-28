@@ -63,31 +63,31 @@ public class ParsingUtils {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static HttpEntity generateTriplestoreForm(String username, String triplestoreID) {
-        List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("issuer", username));
-        pairs.add(new BasicNameValuePair("triplestoreID", triplestoreID));
-        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+        return MultipartEntityBuilder.create()
+                .addTextBody("issuer", username, ContentType.TEXT_PLAIN)
+                .addTextBody("triplestoreID", triplestoreID, ContentType.TEXT_PLAIN)
+                .build();
     }
 
     public static HttpEntity credentialsFormToHttpEntity(AuthForm credentialsForm) {
-        List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("username", credentialsForm.getUsername()));
-        pairs.add(new BasicNameValuePair("password", credentialsForm.getPassword()));
-        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+        return MultipartEntityBuilder.create()
+                .addTextBody("username", credentialsForm.getUsername(), ContentType.TEXT_PLAIN)
+                .addTextBody("password", credentialsForm.getPassword(), ContentType.TEXT_PLAIN)
+                .build();
     }
 
-    public static UrlEncodedFormEntity requestDecisionFormToHttpEntity(RequestDecisionForm decisionForm) {
-        List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("target", decisionForm.getTarget()));
-        pairs.add(new BasicNameValuePair("accept", Boolean.toString(decisionForm.isAccept())));
-        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+    public static HttpEntity requestDecisionFormToHttpEntity(RequestDecisionForm decisionForm) {
+        return MultipartEntityBuilder.create()
+                .addTextBody("target", decisionForm.getTarget(), ContentType.TEXT_PLAIN)
+                .addTextBody("accept", Boolean.toString(decisionForm.isAccept()), ContentType.TEXT_PLAIN)
+                .build();
     }
 
     public static HttpEntity generateRoleRequest(String issuer, Role role) {
-        List<NameValuePair> pairs = new ArrayList<>(2);
-        pairs.add(new BasicNameValuePair("issuer", issuer));
-        pairs.add(new BasicNameValuePair("role", role.name()));
-        return new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8);
+        return MultipartEntityBuilder.create()
+                .addTextBody("issuer", issuer, ContentType.TEXT_PLAIN)
+                .addTextBody("role", role.name(), ContentType.TEXT_PLAIN)
+                .build();
     }
 
 

@@ -16,6 +16,10 @@ module.exports = {
 	selectTriplestoreFromList,
 	genReadAccessRequest,
 	genWriteAccessRequest,
+	setDatasets,
+	hasDataset,
+	uploadDataset,
+	uploadOntology,
 
 	genSPARQLQuery,
 	processSPARQLQueryControlAnswer,
@@ -26,26 +30,34 @@ module.exports = {
 const Faker = require('faker')
 const fs = require('fs')
 const crypto = require('crypto');
+const FormData = require('form-data');
 const secret = crypto.randomBytes(64).toString('hex');
 
 setTimeout(console.log, +Infinity)
 
 var users = []
 var queries = []
+var datasetNames = []
 var datasets = new Map()
+var ontologyNames = []
+var ontologies = new Map()
 var answers = new Map()
 var nonEntailedAnswers = new Map()
 
 // Loads dataset from disk
 function loadData() {
 	if (fs.existsSync('./Data/LUBM/datasets.json')) {
-		let datasetNames = []
 		JSON.parse(fs.readFileSync('./Data/datasets.json', 'utf8')).forEach(i => { datasetNames.push(i) })
 		fs.readdirSync('./Data/LUBM/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
+	}
+	if (fs.existsSync('./Data/LUBM/ontologies.json')) {
+		JSON.parse(fs.readFileSync('./Data/ontologies.json', 'utf8')).forEach(i => { ontologyNames.push(i) })
+		fs.readdirSync('./Data/LUBM/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
 	}
 	if (fs.existsSync('./Data/LUBM/queries.json')) {
 		JSON.parse(fs.readFileSync('./Data/LUBM/queries.json', 'utf8')).forEach(q => { queries.push(q) })
 	}
+
 }
 loadData()
 
@@ -79,7 +91,7 @@ function extractCookie(response, context, next) {
 /**
  * Generate data for a new user using Faker
  */
-function genUser(context, events, done) {
+function genUser(context, done) {
 	context.vars.username = Faker.internet.userName(Faker.name.firstName(), Faker.name.lastName())
 	context.vars.password = `${Faker.internet.password()}`
 	return done()
@@ -88,7 +100,7 @@ function genUser(context, events, done) {
 /**
  * Stores new user data
  */
-function processGenUserReply(requestParams, response, context, ee, next) {
+function processGenUserReply(response, context, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		users.push({
 			"username": context.vars.username,
@@ -101,7 +113,7 @@ function processGenUserReply(requestParams, response, context, ee, next) {
 /**
  * Select an user.
  */
-function selectUser(context, events, done) {
+function selectUser(context, done) {
 	if (users.length > 0) {
 		let user = users.sample()
 		context.vars.username = user.username
@@ -116,6 +128,44 @@ function selectUser(context, events, done) {
 function genTriplestore(context, done) {
 	context.vars.name = `${Faker.string.nanoid()}`
 	return done()
+}
+
+/**
+ * Copies datasetNames into current context
+ */
+function setDatasets(context, done) {
+	context.vars.datasetNames = datasetNames.map((x) => x)
+	return done()
+}
+
+/**
+ * Prepares dataset upload
+ */
+function uploadDataset(requestParams, context, ee, next) {
+	const form = new FormData()
+	form.append('issuer', context.vars.username)
+	form.append('triplestoreID', context.vars.triplestoreID)
+	form.append('syntax', "rdf/xml")
+	form.append('contents', datasets.get(context.vars.datasetNames.slice(1)))
+	requestParams.body = form
+	return next()
+}
+
+/**
+ * Prepares ontology upload
+ */
+function uploadOntology(requestParams, context, ee, next) {
+	const form = new FormData()
+	form.append('issuer', context.vars.username)
+	form.append('triplestoreID', context.vars.triplestoreID)
+	form.append('syntax', "rdf/xml")
+	form.append('contents', ontologies.get(ontologyNames[0]))
+	requestParams.body = form
+	return next()
+}
+
+function hasDataset() {
+	return next(context.vars.datasetNames.length !== 0)
 }
 
 /**

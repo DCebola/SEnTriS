@@ -1,12 +1,17 @@
 package pt.fct.nova.id.srv.presentation.api.dtos;
 
+import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.annotations.jaxrs.FormParam;
+import org.jboss.resteasy.annotations.providers.multipart.PartType;
+
 
 public class AuthForm {
     @FormParam("username")
+    @PartType(MediaType.TEXT_PLAIN)
     private final String username;
 
     @FormParam("password")
+    @PartType(MediaType.TEXT_PLAIN)
     private final String password;
 
     public AuthForm(String username, String password) {

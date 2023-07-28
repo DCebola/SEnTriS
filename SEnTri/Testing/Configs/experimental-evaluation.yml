@@ -7,7 +7,10 @@ config:
       useOnlyRequestNames: true
   processor: "./processor.js"
   variables:
-    metricsProcessEndpoint : "myProcessEndpoint"  
+    protocolEndpoints:
+      - ""
+      - "/encrypted/v1"
+      - "/encrypted/v2"
   phases:
   - name: "Create users"   
     duration: 1
@@ -23,7 +26,7 @@ before:
         url: ":8080/Client/api/ctrl/users"
         name: "create-user"
         headers:
-          Content-Type: application/json
+          Content-Type: multipart/form-data
         json:
           username: "{{ username }}"
           password: "{{ password }}"
@@ -32,7 +35,7 @@ before:
         url: ":8080/Client/api/ctrl/users/auth"
         name: "auth"
         headers:
-          Content-Type: application/json
+          Content-Type: multipart/form-data
         json:
           username: "{{ username }}"
           password: "{{ password }}"
@@ -44,37 +47,54 @@ before:
 scenarios:
  - name: 'Experimental evaluation'
    weight: 1
-   flow:
-    - loop:                         
-      - log: "Authenticating user"
-      - function: "selectUser"
-      - post:                          
-          url: ":8080/Client/api/ctrl/users/auth"
-          name: "auth"
-          headers:
-            Content-Type: application/json
-          json:
-            username: "{{ username }}"
-            password: "{{ password }}"
-          afterResponse: "extractCookie"
+   flow:                         
       - loop:
-        - loop:
-            - log: "Uploading dataset"
-            - post:                          
-              url: ":8080/Client/api/triplestores"
-              name: "upload-dataset"
-              headers:
-                Content-Type: application/octet-stream
-                Accept: text/plain
-                cookie: "[{{ session_cookie }}]"
+        - function: "setDatasets"
+        - function: "selectUser"
+        - log: "Authenticating user"
+        - post:                          
+            url: ":8080/Client/api/ctrl/users/auth"
+            name: "auth"
+            headers:
+              Content-Type: multipart/form-data
+            json:
+              username: "{{ username }}"
+              password: "{{ password }}"
+            afterResponse: "extractCookie"
+        loop:
+          - log: "Create triplestore"
+          - post:                          
+            url: ":8080/Client/api/triplestores{{ $loopElement }}"
+            name: "create-triplestore"
+            headers:
+              Content-Type: multipart/form-data
               cookie: "[{{ session_cookie }}]"
-              json:
-                username: "{{ username }}"
-                password: "{{ password }}"
-              afterResponse: "extractCookie"
-          count: 1
-        over: "datasets"
-      count: 250
+            formData:
+              issuer: "{{ username }}"
+              triplestoreID: "{{ triplestoreID }}"
+
+          - log: "Uploading dataset"
+          - post:                          
+            url: ":8080/Client/api/triplestores{{ $loopElement }}/upload?schema=false"
+            name: "upload-dataset"
+            headers:
+              Content-Type: multipart/form-data
+              cookie: "[{{ session_cookie }}]"
+            beforeRequest: uploadDataset
+
+          - log: "Uploading ontology"
+          - post:                          
+            url: ":8080/Client/api/triplestores{{ $loopElement }}/upload?schema=true"
+            name: "upload-ontology"
+            headers:
+              Content-Type: multipart/form-data
+              cookie: "[{{ session_cookie }}]"
+            beforeRequest: uploadOntology
+
+          
+
+          whileTrue: "hasDataset"
+        over: "protocolEndpoints"
 
       #Loop over datasets
         #Loop over count

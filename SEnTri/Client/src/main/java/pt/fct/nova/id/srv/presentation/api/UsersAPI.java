@@ -5,25 +5,27 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Form;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
+import static jakarta.ws.rs.core.MediaType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.COOKIE_PARAM;
 
 public interface UsersAPI {
     @POST
     @Path("/auth")
-    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response auth(@Form AuthForm credentialsForm);
+    Response auth(@MultipartForm AuthForm credentialsForm);
 
     @POST
     @Path("")
-    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response registerUser(@Form AuthForm credentialsForm);
+    Response registerUser(@MultipartForm AuthForm credentialsForm);
+
+
 
     @DELETE
     @Path("/{username}")
@@ -55,5 +57,5 @@ public interface UsersAPI {
     Response processPendingRequest(@NotNull @CookieParam(COOKIE_PARAM) Cookie cookie,
                                    @PathParam("username") String username,
                                    @PathParam("requestID") String requestID,
-                                   @Form RequestDecisionForm decisionForm);
+                                   @MultipartForm RequestDecisionForm decisionForm);
 }
