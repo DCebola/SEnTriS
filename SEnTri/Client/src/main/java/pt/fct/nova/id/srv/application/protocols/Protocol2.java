@@ -93,25 +93,6 @@ public class Protocol2 implements EncryptionProtocol {
         return encryptedNodes;
     }
 
-    public void clear() {
-        encryptedNodes.clear();
-        keywordFrequencies.clear();
-        eqTags.clear();
-    }
-
-    public void clearEqTags() {
-        eqTags.clear();
-    }
-
-    public void clearNodes() {
-        encryptedNodes.clear();
-    }
-
-    public void clearKeywordFrequencies() {
-        keywordFrequencies.clear();
-    }
-
-
     public Map<String, Integer> getKeywordFrequencies() {
         return keywordFrequencies;
     }
@@ -310,7 +291,6 @@ public class Protocol2 implements EncryptionProtocol {
     }
 
     public void setKeywordFrequencies(Map<String, Integer> values) {
-        keywordFrequencies.clear();
         int frequency;
         for (String keyword : values.keySet()) {
             frequency = values.get(keyword);
@@ -335,5 +315,17 @@ public class Protocol2 implements EncryptionProtocol {
 
     public Long getLastEqTag() {
         return this.lastEqTag;
+    }
+
+    public void clearEqTags() {
+        eqTags.clear();
+    }
+
+    public void clearNodes() {
+        encryptedNodes.clear();
+    }
+
+    public void clearFrequencies() {
+        keywordFrequencies.clear();
     }
 }
