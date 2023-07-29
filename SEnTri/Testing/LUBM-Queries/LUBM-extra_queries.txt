@@ -60,15 +60,15 @@ ORDER BY ASC(?member) ASC(?graduateCourse)
 #Upload data of a new graduate student
 PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 INSERT DATA {
-<http://www.Department0.University0.edu/GraduateStudent146>
+<http://www.Department0.University0.edu/GraduateStudent0>
   a ub:GraduateStudent ;
-  ub:name "GraduateStudent146" ;
+  ub:name "GraduateStudent0" ;
   ub:memberOf <http://www.Department0.University0.edu> ;
   ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
   ub:telephone "xxx-xxx-xxxx" ;
-  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
-  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
-  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>, <http://www.Department0.University0.edu/GraduateCourse0>, <http://www.Department0.University0.edu/GraduateCourse0> ;
+  ub:undergraduateDegreeFrom <http://www.University0.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor0> .
 }
 
 

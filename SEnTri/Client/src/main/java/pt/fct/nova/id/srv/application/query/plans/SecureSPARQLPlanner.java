@@ -29,7 +29,6 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.QueryUtils.*;
@@ -42,6 +41,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     private final Map<Op, String> parsed_op;
     private final DefaultQueryExecutionPlan plan;
     private final HashMap<Var, Var> obfuscationMap;
+    private final HashMap<Var, Var> deobfuscationMap;
     private final Set<String> keywords;
     private final Set<String> searchJobsIDs;
     private final Random rnd;
@@ -55,6 +55,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.keywords = new HashSet<>();
         this.parsed_op = new HashMap<>();
         this.obfuscationMap = new HashMap<>();
+        this.deobfuscationMap = new HashMap<>();
         this.plan = new DefaultQueryExecutionPlan();
         this.searchJobsIDs = new HashSet<>();
         this.rnd = new Random();
@@ -67,6 +68,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         this.keywords = new HashSet<>();
         this.parsed_op = new HashMap<>();
         this.obfuscationMap = new HashMap<>();
+        this.deobfuscationMap = new HashMap<>();
         this.plan = new DefaultQueryExecutionPlan();
         this.searchJobsIDs = new HashSet<>();
         this.rnd = new Random();
@@ -78,6 +80,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     @Override
     public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
+        if (plan.getVars().isEmpty())
+            plan.setVars(obfuscationMap.values().stream().toList());
         return plan;
     }
 
@@ -94,6 +98,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         } else {
             throw new NotImplemented();
         }
+        if (plan.getVars().isEmpty())
+            plan.setVars(obfuscationMap.values().stream().toList());
         return plan;
     }
 
@@ -138,8 +144,8 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return searchJobsIDs;
     }
 
-    public Map<Var, Var> getObfuscationMap() {
-        return obfuscationMap;
+    public Map<Var, Var> getDeobfuscationMap() {
+        return deobfuscationMap;
     }
 
     private Var obfuscateVar(Var var) {
@@ -148,7 +154,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
             obfuscatedVar = Var.alloc(generateID());
             System.out.println("Obfuscation: " + var + " | " + obfuscatedVar);
             obfuscationMap.put(var, obfuscatedVar);
-            obfuscationMap.put(obfuscatedVar, var);
+            deobfuscationMap.put(obfuscatedVar, var);
         }
         return obfuscatedVar;
     }

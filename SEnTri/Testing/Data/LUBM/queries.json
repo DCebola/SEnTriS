@@ -82,5 +82,41 @@
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE {?X rdf:type ub:UndergraduateStudent}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
         "expansionDepth": 2
+    },
+    {
+        "name": "lubm-15",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-16",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-17",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-18",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-19",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-20",
+        "body": "",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
     }
 ]

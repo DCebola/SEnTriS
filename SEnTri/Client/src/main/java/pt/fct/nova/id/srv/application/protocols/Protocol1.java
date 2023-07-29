@@ -251,7 +251,6 @@ public class Protocol1 implements EncryptionProtocol {
     }
 
     public void setKeywordFrequencies(Map<String, Integer> values) {
-        keywordFrequencies.clear();
         int frequency;
         for (String keyword : values.keySet()) {
             frequency = values.get(keyword);
@@ -260,18 +259,11 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    public void clear() {
-        keywordFrequencies.clear();
-        encryptedNodes.clear();
-    }
-
     public void clearNodes() {
-        keywordFrequencies.clear();
         encryptedNodes.clear();
     }
 
     public void clearFrequencies() {
         keywordFrequencies.clear();
-        encryptedNodes.clear();
     }
 }

@@ -45,8 +45,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     private final Set<Triple> deleteTemplate;
     private QueryType queryType;
     private List<Triple> constructTemplate;
-
     private final Ontology ontology;
+    private final Set<Var> vars;
 
     public DefaultSPARQLPlanner() {
         this.parsed_op = new HashMap<>();
@@ -56,6 +56,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         this.uploadTemplate = new HashSet<>();
         this.deleteTemplate = new HashSet<>();
         this.ontology = null;
+        this.vars = new HashSet<>();
     }
 
     public DefaultSPARQLPlanner(Ontology ontology) {
@@ -66,6 +67,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         this.uploadTemplate = new HashSet<>();
         this.deleteTemplate = new HashSet<>();
         this.ontology = ontology;
+        this.vars = new HashSet<>();
     }
 
     @Override
@@ -104,6 +106,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     @Override
     public QueryExecutionPlan generatePlan(Op op) {
         OpWalker.walk(op, this);
+        if (plan.getVars().isEmpty())
+            plan.setVars(vars.stream().toList());
         return plan;
     }
 
@@ -120,6 +124,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         } else {
             throw new NotImplemented();
         }
+        if (plan.getVars().isEmpty())
+            plan.setVars(vars.stream().toList());
         return plan;
     }
 
@@ -160,12 +166,15 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                     jobID = expandProperty("PATTERN", jobID, s, p, o, 0, jobs, jobIDs, true, true);
             }
             job = jobs.get(jobID);
-            if (job instanceof SearchJob searchJob)
+            Set<Var> extractedVars;
+            if (job instanceof SearchJob searchJob) {
+                extractedVars = extractVars(searchJob);
+                vars.addAll(extractedVars);
                 bgp.put(jobID, extractVars(searchJob));
-            else if (job instanceof Job2 job2)
+            } else if (job instanceof Job2 job2)
                 bgp.put(jobID, extractVarsOfJob2(jobs, job2));
-        }
 
+        }
         if (patterns.size() > 1) {
             generateRandomJoinPipeline(op, bgp);
         } else if (jobID != null)
@@ -251,7 +260,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         return jobID;
     }
 
-    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
+    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs,
+                                     Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         Var var;
         Node property;
         String right, left, join;
@@ -473,6 +483,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
 
     private void visitOpModifier(OpModifier op) {
+        System.out.println(op.toString());
         if (op instanceof OpDistinctReduced opDistinctReduced) {
             generateDistinctJob(opDistinctReduced);
         } else if (op instanceof OpOrder opOrder) {

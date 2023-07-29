@@ -18,6 +18,7 @@ import java.util.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.storage.redis.Redis.SCAN_COUNT;
 
 public class RedisDefaultStorageEngine implements StorageEngine {
 
@@ -42,6 +43,23 @@ public class RedisDefaultStorageEngine implements StorageEngine {
     private static final String COMPOUND_NODE = "%s".concat(COMPOUND_NODE_SEPARATOR).concat("%s");
     private static final String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
 
+    public final static String DELETE_ALL_SCRIPT = """
+            local keys = {};
+            local done = false;
+            local cursor = "0"
+            repeat
+                local result = redis.call("SCAN", cursor, "match", ARGV[1], "count", ARGV[2])
+                cursor = result[1];
+                keys = result[2];
+                for i, key in ipairs(keys) do
+                    redis.call("DEL", key);
+                end
+                if cursor == "0" then
+                    done = true;
+                end
+            until done
+            """;
+
     @Override
     public void delete(String triplestoreID, boolean schema) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
@@ -49,9 +67,17 @@ public class RedisDefaultStorageEngine implements StorageEngine {
             if (schema)
                 t.del(String.format(SCHEMA_KEYWORD_FORMAT, triplestoreID));
             else
-                Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID)).forEach(t::del);
+                deleteAll(triplestoreID, jedis, TRIPLESTORE_DATA_PATTERN);
             t.exec();
         }
+    }
+
+    static void deleteAll(String triplestoreID, Jedis jedis, String triplestoreDataPattern) {
+        List<String> keys = new ArrayList<>(1);
+        List<String> args = new ArrayList<>(2);
+        args.add(String.format(triplestoreDataPattern, triplestoreID));
+        args.add(SCAN_COUNT);
+        jedis.eval(DELETE_ALL_SCRIPT, keys, args);
     }
 
     @Override
@@ -64,7 +90,7 @@ public class RedisDefaultStorageEngine implements StorageEngine {
             long memoryUsage = 0L;
             Long val;
             System.out.println(responses.size());
-            for (Response<Long> r : responses){
+            for (Response<Long> r : responses) {
                 val = r.get();
                 if (val != null)
                     memoryUsage += val;

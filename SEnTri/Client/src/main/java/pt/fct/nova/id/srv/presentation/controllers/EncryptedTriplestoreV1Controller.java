@@ -18,7 +18,6 @@ import org.apache.jena.update.UpdateRequest;
 import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.ontologies.SecureOntology;
-import pt.fct.nova.id.srv.application.protocols.Protocol2;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
 import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
@@ -216,7 +215,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     batch.add(triples.removeFirst());
                 if (!batch.isEmpty())
                     batchOntologyUpload(httpClient, cookie, triplestoreID, protocol, accessToken, uploads, batch);
-                protocol.clear();
+                protocol.clearNodes();
                 batch.clear();
             }
             return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, deletions, uploads, accessToken);
@@ -430,13 +429,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         SPARQLResult<byte[]> sparqlResult = ParsingUtils.parseSPARQLResult(response.getBody());
         Response res = null;
         if (queryType == SELECT || queryType == CONSTRUCT) {
-            Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
+            Map<Var, Var> deobfuscationMap = planner.getDeobfuscationMap();
             List<Var> vars = new LinkedList<>();
             for (Var var : plan.getVars())
-                vars.add(obfuscationMap.get(var));
-            Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
+                vars.add(deobfuscationMap.get(var));
+            Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), deobfuscationMap, protocol);
             if (sparqlResult.isOrdered())
-                bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
+                bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), deobfuscationMap, bindings);
             if (sparqlResult.isSliced())
                 bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
             if (queryType == SELECT)
@@ -446,7 +445,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         } else if (queryType == ASK)
             res = generateASKResults(sparqlResult);
         else if (queryType == DESCRIBE)
-            res = generateDESCRIBEResults(plan.getVars(), planner.getObfuscationMap(), sparqlResult);
+            res = generateDESCRIBEResults(plan.getVars(), planner.getDeobfuscationMap(), sparqlResult);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         return res;
     }
@@ -484,11 +483,11 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
-                Map<Var, Var> obfuscationMap = planner.getObfuscationMap();
+                Map<Var, Var> deobfuscationMap = planner.getDeobfuscationMap();
                 SPARQLResult<byte[]> sparqlResult = parseSPARQLResult(response.getBody());
-                Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), obfuscationMap, protocol);
+                Collection<Binding> bindings = decryptBindings(sparqlResult.getBindings(), deobfuscationMap, protocol);
                 if (sparqlResult.isOrdered())
-                    bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), obfuscationMap, bindings);
+                    bindings = orderResults(sparqlResult.isDistinct(), sparqlResult.getSortConditions(), deobfuscationMap, bindings);
                 if (sparqlResult.isSliced())
                     bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
                 if (bindings.isEmpty()) {
@@ -499,6 +498,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 triplesToUpload = QueryUtils.generateTriplesFromBindings(planner.getUploadTemplate(), bindings);
                 triplesToDelete = QueryUtils.generateTriplesFromBindings(planner.getDeleteTemplate(), bindings);
                 triplesToDelete.addAll(triplesToUpload);
+                keywordsFrequency.clear();
             } else if (queryType == INSERT_DATA) {
                 triplesToDelete = planner.getUploadTemplate();
                 triplesToUpload = new LinkedList<>(planner.getUploadTemplate());
@@ -543,10 +543,11 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             System.out.println("Triples: " + triples.size());
             if (!batch.isEmpty())
                 response = batch(httpClient, cookie, triplestoreID, protocol, accessToken, keywordsFrequency, batch, collector, opType);
-            keywordsFrequency.clear();
-            protocol.clear();
             batch.clear();
+            protocol.clearNodes();
         }
+        protocol.clearFrequencies();
+        System.out.println("Check batch is empty" + batch.size());
         return response;
     }
 
@@ -555,8 +556,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         switch (opType) {
             case UPLOAD ->
                     response = prepareUploads(httpClient, triplestoreID, protocol, keywordsFrequency, batch, accessToken);
-            case DELETION ->
-                    response = prepareDeletions(httpClient, triplestoreID, protocol, keywordsFrequency, batch, accessToken);
+            case DELETION -> response = prepareDeletions(httpClient, triplestoreID, protocol, batch, accessToken);
             default -> throw new IllegalStateException("Unexpected value: " + opType);
         }
         if (response != null) {
@@ -570,17 +570,14 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private HTTPResponse prepareDeletions(CloseableHttpClient httpClient, String triplestoreID, Protocol1 protocol,
-                                          Map<String, Integer> keywordsFrequency, Set<Triple> triplesToDelete,
-                                          String accessToken) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
-        HTTPResponse response = setKeywordFrequencies(httpClient, triplestoreID, protocol, keywordsFrequency, triplesToDelete, accessToken);
-        if (response != null) return response;
+                                          Set<Triple> triplesToDelete, String accessToken) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
         Map<String, List<String>> keywordsTrapdoors = protocol.generateKeywordsPatternTrapdoors(triplesToDelete);
         List<String> keywordList = new ArrayList<>(keywordsTrapdoors.keySet());
         List<String> trapdoors = new ArrayList<>(keywordsTrapdoors.values().stream().mapToInt(List::size).sum());
         for (String keyword : keywordList)
             trapdoors.addAll(keywordsTrapdoors.get(keyword));
 
-        response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
+        HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;
         List<byte[]> encryptedInstances = ParsingUtils.parseListOfBytes(response.getBody());
@@ -683,13 +680,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         return null;
     }
 
-    private Collection<Binding> decryptBindings(Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> obfuscationMap, Protocol1 protocol) throws AEADBadTagException {
+    private Collection<Binding> decryptBindings(Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> deobfuscationMap, Protocol1 protocol) throws AEADBadTagException {
         Collection<Binding> decryptedBindings = new LinkedList<>();
         BindingBuilder builder = Binding.builder();
         for (SerializableBinding<byte[]> binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 Var var = it.next();
-                builder.add(obfuscationMap.get(var), generateNode(new String(protocol.decryptDETLayer(binding.get(var)))));
+                builder.add(deobfuscationMap.get(var), generateNode(new String(protocol.decryptDETLayer(binding.get(var)))));
             }
             decryptedBindings.add(builder.build());
             builder.reset();

@@ -15,6 +15,7 @@ import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
 public class Redis {
 
     private static JedisPool instance;
+    public static String SCAN_COUNT = System.getenv("REDIS_SCAN_COUNT");
 
     private synchronized static JedisPool getInstance() {
         if (instance != null)
@@ -45,7 +46,7 @@ public class Redis {
 
     public static Set<String> scan(Jedis jedis, String scanPattern){
         String cursor = SCAN_POINTER_START;
-        ScanParams params = new ScanParams();
+        ScanParams params = new ScanParams().count(Integer.valueOf(SCAN_COUNT));
         params.match(scanPattern);
         Set<String> res = new HashSet<>();
         do {

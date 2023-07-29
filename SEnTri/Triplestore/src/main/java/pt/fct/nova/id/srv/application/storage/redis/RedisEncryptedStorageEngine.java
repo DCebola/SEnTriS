@@ -9,6 +9,9 @@ import redis.clients.jedis.Transaction;
 
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.storage.redis.Redis.SCAN_COUNT;
+import static pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine.DELETE_ALL_SCRIPT;
+
 public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
 
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
@@ -28,13 +31,22 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
                         redis.call("del", t)
                     end
                 else
-                    len = redis.call("llen", key) / 2
-                    print("Uploads: " .. key .. " | " .. tostring(len))
+                    len = redis.call("llen", key)
+                    print("Expected Uploads: " .. key .. " | " .. tostring(len/2))
+                    local t
+                    local n
+                    local totalUploads = 0
                     for i = 1, len, 1 do
-                        local t = redis.call("lpop", key)
-                        local n = redis.call("lpop", key)
-                        redis.call("set", t, n)
+                        if (i % 2) == 1 then
+                            t = redis.call("lpop", key)
+                        else
+                            n = redis.call("lpop", key)
+                            redis.call("set", t, n)
+                            totalUploads = totalUploads + 1
+                        end
                     end
+                    print("Last Upload: " .. t .. " -> " .. n)
+                    print("Total Uploads: " .. key .. " | " .. tostring(totalUploads))
                 end
                 redis.call("del", key)
             end
@@ -43,9 +55,7 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
     @Override
     public void delete(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Transaction t = jedis.multi();
-            Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID)).forEach(t::del);
-            t.exec();
+            RedisDefaultStorageEngine.deleteAll(triplestoreID, jedis, TRIPLESTORE_DATA_PATTERN);
         }
     }
 

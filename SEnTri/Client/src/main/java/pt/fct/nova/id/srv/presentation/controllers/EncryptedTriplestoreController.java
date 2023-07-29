@@ -78,10 +78,10 @@ public class EncryptedTriplestoreController {
     }
 
     public Collection<Binding> orderResults(boolean isDistinct, List<SerializableSortCondition> serializableSortConditions,
-                                            Map<Var, Var> obfuscationMap, Collection<Binding> bindings) {
+                                            Map<Var, Var> deobfuscationMap, Collection<Binding> bindings) {
         List<SortCondition> sortConditions = new LinkedList<>();
         for (SerializableSortCondition condition : serializableSortConditions)
-            sortConditions.add(new SortCondition(obfuscationMap.get(condition.getVar()), condition.getDir()));
+            sortConditions.add(new SortCondition(deobfuscationMap.get(condition.getVar()), condition.getDir()));
 
         if (isDistinct) {
             Collection<Binding> res = new TreeSet<>(new BindingComparator(sortConditions));
