@@ -1,34 +1,15 @@
 package pt.fct.nova.id.srv.application.storage.redis;
 
-import pt.fct.nova.id.srv.application.Utils;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
 
 import java.math.BigInteger;
 import java.util.*;
 
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
-
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
-    @Override
-    public String commitDelete(String triplestoreID, Set<String> trapdoors) {
-        try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-            List<Response<String>> responses = new LinkedList<>();
-            trapdoors.forEach(trapdoor -> responses.add(p.get(String.format(KEY_FORMAT, triplestoreID, trapdoor))));
-            p.sync();
-            Transaction t = jedis.multi();
-            String id = Utils.generateID();
-            trapdoors.forEach(trapdoor -> t.lpush(id, String.format(KEY_FORMAT, triplestoreID, trapdoor)));
-            responses.forEach(response -> t.lpush(id, String.format(KEY_FORMAT, triplestoreID, response.get())));
-            t.expire(id, COMMIT_LIFETIME);
-            t.exec();
-            return id;
-        }
-    }
 
     public List<byte[]> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {

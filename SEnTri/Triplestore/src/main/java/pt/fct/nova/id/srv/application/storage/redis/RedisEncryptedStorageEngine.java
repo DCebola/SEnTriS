@@ -7,46 +7,50 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.storage.redis.Redis.SCAN_COUNT;
-import static pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine.DELETE_ALL_SCRIPT;
-
-public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
+public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
 
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public final static String KEY_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
     public static final String TRIPLESTORE_DATA_PATTERN = "%s".concat(BASIC_SEPARATOR).concat("*");
     public static final long COMMIT_LIFETIME = Long.parseLong(System.getenv("COMMIT_LIFETIME"));
-    private final static String UPDATE_SCRIPT = """
+
+    public final static String UPDATE_SCRIPT = """
             local numDeletions = tonumber(ARGV[1])
             local len
+            local total
             for i, key in ipairs(KEYS) do
                 if i <= numDeletions then
                     len = redis.call("llen", key)
-                    print("Delete: " .. key .. " | " .. tostring(len))
+                    print("v1: Delete: " .. key .. " | " .. tostring(len))
+                    local t
+                    total = 0
                     for i = 1, len, 1 do
-                        local t = redis.call("lpop", key)
+                        t = redis.call("lpop", key)
                         redis.call("del", t)
+                        total = total + 1
                     end
+                    print("v1: Last Deletion: " .. t)
+                    print("v1: Total Deletions: " .. key .. " | " .. tostring(total))
                 else
                     len = redis.call("llen", key)
-                    print("Expected Uploads: " .. key .. " | " .. tostring(len/2))
                     local t
                     local n
-                    local totalUploads = 0
+                    total = 0
                     for i = 1, len, 1 do
-                        if (i % 2) == 1 then
+                        if (i % 2 == 1) then
                             t = redis.call("lpop", key)
                         else
                             n = redis.call("lpop", key)
                             redis.call("set", t, n)
-                            totalUploads = totalUploads + 1
+                            total = total + 2
                         end
                     end
-                    print("Last Upload: " .. t .. " -> " .. n)
-                    print("Total Uploads: " .. key .. " | " .. tostring(totalUploads))
+                    print("v1: Last Upload: " .. t .. " -> " .. n)
+                    print("v1: Total Uploads: " .. key .. " | " .. tostring(total))
                 end
                 redis.call("del", key)
             end
@@ -73,16 +77,14 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
     }
 
     @Override
-    public void update(String triplestoreID, Set<String> uploads, Set<String> deletions) {
+    public String commitDelete(String triplestoreID, Set<String> trapdoors) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            List<String> keys = new ArrayList<>(uploads.size() + deletions.size());
-            List<String> args = new ArrayList<>(1);
-            System.out.println("Deletion IDs: " + Arrays.toString(deletions.toArray()) + " | " + deletions.size());
-            System.out.println("Uploads IDs: " + Arrays.toString(uploads.toArray()) + " | " + uploads.size());
-            keys.addAll(deletions);
-            keys.addAll(uploads);
-            args.add(String.valueOf(deletions.size()));
-            jedis.eval(UPDATE_SCRIPT, keys, args);
+            Transaction t = jedis.multi();
+            String id = Utils.generateID();
+            trapdoors.forEach(trapdoor -> t.lpush(id, String.format(KEY_FORMAT, triplestoreID, trapdoor, StandardCharsets.UTF_8)));
+            t.expire(id, COMMIT_LIFETIME);
+            t.exec();
+            return id;
         }
     }
 
@@ -107,6 +109,20 @@ public abstract class RedisEncryptedStorageEngine implements EncryptedStorageEng
 
             System.out.println("SEARCH: " + trapdoors.size() + " | " + "FOUND: " + total);
             return res;
+        }
+    }
+
+    @Override
+    public void update(List<String> uploads, List<String> deletions) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            List<String> keys = new ArrayList<>(uploads.size() + deletions.size());
+            List<String> args = new ArrayList<>(1);
+            System.out.println("Deletion IDs: " + Arrays.toString(deletions.toArray()) + " | " + deletions.size());
+            System.out.println("Uploads IDs: " + Arrays.toString(uploads.toArray()) + " | " + uploads.size());
+            keys.addAll(deletions);
+            keys.addAll(uploads);
+            args.add(String.valueOf(deletions.size()));
+            jedis.eval(UPDATE_SCRIPT, keys, args);
         }
     }
 }

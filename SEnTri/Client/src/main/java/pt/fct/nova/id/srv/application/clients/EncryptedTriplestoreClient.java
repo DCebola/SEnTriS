@@ -24,7 +24,6 @@ public class EncryptedTriplestoreClient {
     }
 
     public static CloseableHttpResponse search(HttpClient httpClient, String protocolVersion, String triplestoreID, List<String> trapdoors, String accessToken) throws IOException {
-        System.out.printf((SEARCH_URI) + "POST %n", protocolVersion, triplestoreID);
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(SEARCH_URI, protocolVersion, triplestoreID), ParsingUtils.stringListToHttpEntity(trapdoors), accessToken);
     }
 
@@ -36,7 +35,7 @@ public class EncryptedTriplestoreClient {
         return HTTPUtils.sendDELETERequest(httpClient, String.format(DELETE_ALL_URI, protocolVersion, triplestoreID), accessToken);
     }
 
-    public static CloseableHttpResponse update(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, Set<String> deletions, Set<String> uploads, String accessToken) throws IOException {
+    public static CloseableHttpResponse update(CloseableHttpClient httpClient, String protocolVersion, String triplestoreID, List<String> deletions, List<String> uploads, String accessToken) throws IOException {
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(UPDATE_URI, protocolVersion, triplestoreID), ParsingUtils.generateUpdateRequest(deletions, uploads), accessToken);
     }
 }

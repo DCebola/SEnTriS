@@ -117,7 +117,7 @@ public class EncryptedTriplestoreController {
              ObjectInputStream deletions_ois = new ObjectInputStream(deletions_bis)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            storageEngine.update(triplestoreID, (Set<String>) uploads_ois.readObject(), (Set<String>) deletions_ois.readObject());
+            storageEngine.update((List<String>) uploads_ois.readObject(), (List<String>) deletions_ois.readObject());
             return Response.ok(SUCCESSFUL_UPDATE).build();
         } catch (Exception e) {
             e.printStackTrace();

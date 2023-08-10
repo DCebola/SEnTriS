@@ -1,0 +1,616 @@
+config:
+  target: 'http://20.103.140.70:8080/scc2122-TP2-1.0/rest'
+  plugins:
+    metrics-by-endpoint: 
+      useOnlyRequestNames: true
+  processor: "./test-utils.js"
+  variables: 
+     offsets: [0, 20, 40, 60, 80]
+  phases:
+  - name: "Warm up"    # 10s, starting with 1 new client/sec up to 5 new clients/sec
+    duration: 10
+    arrivalRate: 1
+    rampTo: 5
+  - name: "Main"       # 50s, with 5 new clients/sec
+    arrivalRate: 5
+    duration: 50
+
+scenarios:
+
+  ############   Possible Use Case Scenarions   ############
+
+  - name: 'Casual' #Reads most recent msgs to catch up with new posts.
+    weight: 10
+    flow:
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          
+            url: "/users/auth"
+            name: "POST auth"
+            headers:
+              Content-Type: application/json
+            json:
+              userID: "{{ userID }}"
+              pwd: "{{ pwd }}"
+            afterResponse: "extractCookie"
+        - get:                          
+            url: "/users/{{ userID }}/channels"
+            name: "GET user's channels"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            capture: 
+              json: "$"
+              as: "channelLst"
+        - function: "selectChannelFromChannelLstSkewed"   
+        - get:                         
+            url: "/channels/{{ channelID }}/messages"      # Reads messages from channel  
+            name: "GET channel's messages"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            afterResponse: "extractMsgLst"
+            ifTrue: "channelID"
+        - function: "selectImagesIdFromMsgList" 
+        - loop:                                   
+            - get:
+                url: "/media/{{ $loopElement }}"          # Downloads media from messages
+                name: "GET media"
+                headers: 
+                  Accept: application/octet-stream
+                  cookie: "[{{ session_cookie }}]"
+          over: "imageIdLst"
+        whileTrue: "random50"
+
+  - name: 'Scroller' #Reads from channels and keeps scrolling up to read older messages.
+    weight: 8
+    flow:
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          
+            url: "/users/auth"
+            name: "POST auth"
+            headers:
+              Content-Type: application/json
+            json:
+              userID: "{{ userID }}"
+              pwd: "{{ pwd }}"
+            afterResponse: "extractCookie"
+        - get:                          
+            url: "/users/{{ userID }}/channels"
+            name: "GET user's channels"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            capture: 
+              json: "$"
+              as: "channelLst"
+        - function: "selectChannelFromChannelLstSkewed"
+        - get:                         
+            url: "/channels/{{ channelID }}/messages" # Reads messages from channel
+            qs:
+              st: "{{ $loopElement }}"
+              len: 20
+            name: "GET channel's messages"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            afterResponse: "extractMsgLst"
+            ifTrue: "channelID"
+        - function: "selectImagesIdFromMsgList"   
+        - loop:                                   
+            - get:
+                url: "/media/{{ $loopElement }}"                                   # Downloads media from messages
+                name: "GET media"
+                headers: 
+                  Accept: application/octet-stream
+                  cookie: "[{{ session_cookie }}]"
+          over: "imageIdLst"
+        over: offsets                                                              # Continues scrolling up to read older messages
+
+  - name: 'Spammer' #Spams replies to recent messages.
+    weight: 6
+    flow:
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          
+            url: "/users/auth"
+            name: "POST auth"
+            headers:
+              Content-Type: application/json
+            json:
+              userID: "{{ userID }}"
+              pwd: "{{ pwd }}"
+            afterResponse: "extractCookie"
+        - get:                          
+            url: "/users/{{ userID }}/channels"
+            name: "GET user's channels"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            capture: 
+              json: "$"
+              as: "channelLst"
+        - function: "selectChannelFromChannelLstSkewed"   
+        - get:                         
+            url: "/channels/{{ channelID }}/messages"   # Reads first messages from channel
+            qs:
+              st: 0
+              len: 2
+            name: "GET channel's messages"
+            headers:
+              Accept: application/json
+              cookie: "[{{ session_cookie }}]"
+            capture: 
+              json: "$"
+              as: "msgList"
+            ifTrue: "channelID"
+        - loop:                                 
+          - function: "genMessage"                                # Spams replies to the messages
+          - post:                          
+              url: "/media"
+              name: "POST media"
+              headers:
+                Content-Type: application/octet-stream
+                Accept: text/plain
+                cookie: "[{{ session_cookie }}]"
+              beforeRequest: "uploadRandomImageBody"
+              capture: 
+                regexp: "(.+)"
+                as: "imageId"              
+              ifTrue: "hasImage"  
+          - post:                         
+              url: "/messages"
+              name: "POST message"
+              headers:
+                Content-Type: application/json
+                Accept: text/plain
+                cookie: "[{{ session_cookie }}]"
+              json:
+                sender: "{{ userID }}"
+                channel: "{{ $loopElement.channel }}"
+                replyOf: "{{ $loopElement.id }}"
+                media: "{{ imageId }}"
+                text: "{{ msgText }}"
+          over: "msgList"
+        whileTrue: "random50"
+
+  - name: 'Group Party' # User creates channel for group of 10 friends, when party is over deletes channel
+    weight: 4
+    flow:
+      - function: "selectUser"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - function: "select10ChannelMembersSkewed"
+      - function: "genChannel"
+      - post:                                             # Create Party Channel with friends                         
+          url: "/channels"
+          name: "POST channel"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:
+            name: "{{ name }}"
+            owner: "{{ userID }}"
+            priv: true
+            users: []
+          capture:
+            regexp: "(.+)"
+            as: "channelID"
+      - post:                                             # Posts party invite in channel
+          url: "/media"
+          name: "POST media"                           
+          headers:
+            Content-Type: application/octet-stream
+          beforeRequest: "uploadRandomImageBody"
+          capture: 
+            regexp: "(.+)"
+            as: "imageId"              
+          ifTrue: "hasImage"   
+      - post:
+          url: "/messages"
+          name: "POST message"                           
+          headers:
+            Content-Type: application/json
+            cookie: "[{{ session_cookie }}]"
+          json:                        
+            channel: "{{ channelID }}"
+            replyOf: ""
+            sender: "{{ userID }}"
+            text: "{{ msgText }}"
+            media: "{{ imageId }}"
+          ifTrue: "channelID"
+      - loop:                                             # Adds frients to channel
+        - post:                                                             
+            url: "/channels/{{ channelID }}/users"
+            name: "POST add user to channel"
+            headers:
+              Content-Type: text/plain
+              cookie: "[{{ session_cookie }}]"
+            body: "{{ $loopElement }}"
+        over: members
+      - loop:
+        - delete:                                           # Remove friends from channel                         
+            url: "/channels/{{ channelID }}/users/{{ $loopElement }}"
+            name: "DELETE remove user from channel"
+            headers:
+              cookie: "[{{ session_cookie }}]"
+        over: members
+      - delete:                                               # Deletes channel
+          url: "/channels/{{ channelID }}"
+          name: "DELETE channel"
+          headers:
+            cookie: "[{{ session_cookie }}]"
+
+  - name: 'Demo User' # Creates account to try service, then deletes account.
+    weight: 1
+    flow:
+      - function: "selectUser"
+      - post:                          
+          url: "/media"
+          name: "POST media"
+          headers:
+            Content-Type: application/octet-stream
+          beforeRequest: "uploadProfileImageBody"
+          capture:
+            regexp: "(.+)"
+            as: "imageId"             
+      - function: "genUser"        
+      - post:                                               
+          url: "/users"                                         # Creates Account
+          name: "POST user"
+          headers:
+            Content-Type: application/json
+          json:
+            userName: "{{ username }}"
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+            photoID: "{{ imageId }}"
+            channelIDs: []
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ username }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - delete:                                               # Deletes Account
+          url: "/users/{{ username }}"
+          name: "DELETE user"
+          headers:
+            Content-Type: application/json
+            cookie: "[{{ session_cookie }}]"
+
+  ############   Simple Operations   ############
+
+  - name: 'Create User'
+    weight: 1
+    flow:
+      - post:                          
+          url: "/media"
+          name: "POST media"
+          headers:
+            Content-Type: application/octet-stream
+          beforeRequest: "uploadProfileImageBody"
+          capture:
+            regexp: "(.+)"
+            as: "imageId"             
+      - function: "genUser"        
+      - post:
+          url: "/users"
+          name: "POST user"
+          headers:
+            Content-Type: application/json
+          json:
+            userName: "{{ username }}"
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+            photoID: "{{ imageId }}"
+            channelIDs: []
+          afterResponse: "processGenUserReply"
+
+  - name: 'Update User'
+    weight: 1
+    flow:
+      - function: "selectUser"  
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - post:                          
+          url: "/media"
+          name: "POST media"
+          headers:
+            Content-Type: application/octet-stream
+          beforeRequest: "uploadProfileImageBody"
+          capture:
+            regexp: "(.+)"
+            as: "imageId"
+      - function: "updateUser"       
+      - put:
+          url: "/users/{{ userID }}"
+          name: "PUT user"
+          headers:
+            Content-Type: application/json
+            cookie: "[{{ session_cookie }}]"
+          json:
+            userName: "{{ userID }}"
+            nickname: "{{ nickname }}"
+            pwd: "{{ pwd }}"
+            photoID: "{{ imageId }}"
+            channelIDs: []
+          afterResponse: "processGenUserReply"
+
+  - name: 'User Unsubscribe Channel'
+    weight: 1
+    flow:
+      - function: "selectUserSkewed"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - get:                          
+          url: "/users/{{ userID }}/channels"
+          name: "GET user's channels"
+          headers:
+            Accept: application/json
+            cookie: "[{{ session_cookie }}]"
+          capture: 
+            json: "$"
+            as: "channelLst"
+      - function: "selectChannelFromChannelLstSkewed"
+      - delete: 
+          url: "/users/{{ userID }}/channels/{{ channelID }}"
+          name: "DELETE unsubscribe"
+          headers:
+            cookie: "[{{ session_cookie }}]"
+          ifTrue: "channelID"
+
+  ############   Message Resource Operations   ############
+
+  - name: 'Post Media message'
+    weight: 3
+    flow:
+      - function: "selectUser"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - get:                         
+          url: "/users/{{ userID }}"
+          name: "GET user"
+          headers:
+            Accept: application/json
+            cookie: "[{{ session_cookie }}]"
+          capture: 
+            json: "$"
+            as: "userObj"
+      - function: "selectChannelFromUserSkewed"   
+      - function: "genMessage"           
+      - post:                          
+          url: "/media"
+          name: "POST media"
+          headers:
+            Content-Type: application/octet-stream
+            Accept: text/plain
+          beforeRequest: "uploadRandomImageBody"
+          capture: 
+            regexp: "(.+)"
+            as: "imageId"              
+          ifTrue: "hasImage"   
+      - post:                          
+          url: "/messages"
+          name: "POST message"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:
+            channel: "{{ channelID }}"
+            replyOf: ""
+            sender: "{{ userID }}"
+            text: "{{ msgText }}"
+            media: "{{ imageId }}"
+          ifTrue: "channelID"
+
+  - name: 'Post Text message'
+    weight: 3
+    flow:
+      - function: "selectUser"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - get:                         
+          url: "/users/{{ userID }}"
+          name: "GET user"
+          headers:
+            Accept: application/json
+            cookie: "[{{ session_cookie }}]"
+          capture: 
+            json: "$"
+            as: "userObj"
+      - function: "selectChannelFromUserSkewed"   
+      - function: "genMessage"              
+      - post:                          
+          url: "/messages"
+          name: "POST message"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:                        
+            channel: "{{ channelID }}"
+            replyOf: ""
+            sender: "{{ userID }}"
+            text: "{{ msgText }}"
+            media: ""
+          ifTrue: "channelID"
+
+  - name: 'Delete message'
+    weight: 2
+    flow:
+      - function: "selectUser"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - get:                         
+          url: "/users/{{ userID }}"
+          name: "GET user"
+          headers:
+            Accept: application/json
+            cookie: "[{{ session_cookie }}]"
+          capture: 
+            json: "$"
+            as: "userObj"
+      - function: "selectChannelFromUserSkewed"   
+      - function: "genMessage"
+      - post:                          
+          url: "/messages"
+          name: "POST message"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:                        
+            channel: "{{ channelID }}"
+            sender: "{{ userID }}"
+            text: "{{ msgText }}"
+            media: ""
+          capture: 
+            regexp: "(.+)"
+            as: "msgID"
+          ifTrue: "channelID"              
+      - delete:                          
+          url: "/messages/{{ msgID }}"
+          name: "DELETE message"
+          headers:
+            cookie: "[{{ session_cookie }}]"
+          ifTrue: "msgID"
+
+  ############   Channel Resource Operations   ############
+
+  - name: 'Create Public channel'
+    weight: 1
+    flow:                 
+      - function: "selectUser"  
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - function: "genChannel"
+      - post:
+          url: "/channels"
+          name: "POST channel"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:
+            name: "{{ name }}"
+            owner: "{{ userID }}"
+            priv: false
+            users: []
+          capture:
+            regexp: "(.+)"
+            as: "channelID"
+      - loop:  
+        - function: "selectUserSkewed"                                     # Users subscribe to public channel 
+        - post:                          
+            url: "/users/auth"
+            name: "POST auth"
+            headers:
+              Content-Type: application/json
+            json:
+              userID: "{{ userID }}"
+              pwd: "{{ pwd }}"
+            afterResponse: "extractCookie"                          
+        - post:
+            url: "/users/{{ userID }}/channels"
+            name: "POST subscribe"
+            headers:
+              Content-Type: "text/plain"
+              cookie: "[{{ session_cookie }}]"                             
+            body: "{{ channelID }}"
+        count: 20
+
+  - name: 'Create Private channel'
+    weight: 1
+    flow:  
+      - function: "selectUserSkewed"
+      - post:                          
+          url: "/users/auth"
+          name: "POST auth"
+          headers:
+            Content-Type: application/json
+          json:
+            userID: "{{ userID }}"
+            pwd: "{{ pwd }}"
+          afterResponse: "extractCookie"
+      - function: "select10ChannelMembersSkewed"
+      - function: "genChannel"
+      - post:                          
+          url: "/channels"
+          name: "POST channel"
+          headers:
+            Content-Type: application/json
+            Accept: text/plain
+            cookie: "[{{ session_cookie }}]"
+          json:
+            name: "{{ name }}"
+            owner: "{{ userID }}"
+            priv: true
+            users: []
+          capture:
+            regexp: "(.+)"
+            as: "channelID"
+      - loop:
+          - post:                                                             
+              url: "/channels/{{ channelID }}/users"
+              name: "POST add user to channel"
+              headers:
+                Content-Type: text/plain
+                cookie: "[{{ session_cookie }}]"
+              body: "{{ $loopElement }}"
+        over: members

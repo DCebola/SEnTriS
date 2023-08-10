@@ -9,7 +9,7 @@ import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.ProxyClient;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngine;
-import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngineV1;
+import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngine;
 import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreV1API;
 import pt.fct.nova.id.srv.presentation.api.dtos.UpdateForm;
 
@@ -25,7 +25,7 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.
 
 @Path("/encrypted/v1")
 public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1API {
-    private static final EncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngineV1();
+    private static final EncryptedStorageEngine storageEngine = new RedisEncryptedStorageEngine();
     private static final String protocolVersion = "v1";
 
     @Override

@@ -188,8 +188,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedFrequency));
 
             System.out.println("SCHEMA FREQUENCY: " + schemaFrequency);
-            Set<String> deletions = new HashSet<>();
-            Set<String> uploads = new HashSet<>();
+            List<String> deletions = new LinkedList<>();
+            List<String> uploads = new LinkedList<>();
             if (schemaFrequency > 0) {
                 Set<String> batch = new HashSet<>();
                 int offset = 0;
@@ -226,7 +226,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         }
     }
 
-    private void batchOntologyUpload(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, String accessToken, Set<String> uploads, Set<Triple> batch) throws InvalidNodeException, IOException {
+    private void batchOntologyUpload(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, String accessToken,
+                                     List<String> uploads, Set<Triple> batch) throws InvalidNodeException, IOException {
         HTTPResponse response;
         protocol.exec(batch, true);
         response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
@@ -511,8 +512,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             System.out.println("Triples to Delete: " + triplesToDelete.size());
             HTTPResponse response;
             Set<Triple> batch = new HashSet<>();
-            Set<String> deletions = new HashSet<>();
-            Set<String> uploads = new HashSet<>();
+            List<String> deletions = new LinkedList<>();
+            List<String> uploads = new LinkedList<>();
             response = batchExecute(httpClient, cookie, triplestoreID, protocol, accessToken, (LinkedList<Triple>) triplesToDelete,
                     keywordsFrequency, batch, deletions, BatchOperation.DELETION);
             if (response != null && response.getStatus() != OK)
@@ -533,7 +534,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse batchExecute(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
                                       Protocol1 protocol, String accessToken, LinkedList<Triple> triples,
-                                      Map<String, Integer> keywordsFrequency, Set<Triple> batch, Set<String> collector, BatchOperation opType) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
+                                      Map<String, Integer> keywordsFrequency, Set<Triple> batch, List<String> collector, BatchOperation opType) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
         System.out.println("Triples: " + triples.size());
         HTTPResponse response = null;
         while (!triples.isEmpty()) {
@@ -551,7 +552,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         return response;
     }
 
-    private HTTPResponse batch(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol, String accessToken, Map<String, Integer> keywordsFrequency, Set<Triple> batch, Set<String> collector, BatchOperation opType) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
+    private HTTPResponse batch(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, Protocol1 protocol,
+                               String accessToken, Map<String, Integer> keywordsFrequency, Set<Triple> batch,
+                               List<String> collector, BatchOperation opType) throws IOException, InvalidNodeException, AEADBadTagException, ClassNotFoundException {
         HTTPResponse response;
         switch (opType) {
             case UPLOAD ->

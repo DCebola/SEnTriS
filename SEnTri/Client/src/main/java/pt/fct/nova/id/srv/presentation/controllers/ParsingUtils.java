@@ -127,7 +127,7 @@ public class ParsingUtils {
         }
     }
 
-    public static HttpEntity generateUpdateRequest(Set<String> deletions, Set<String> uploads) throws IOException {
+    public static HttpEntity generateUpdateRequest(List<String> deletions, List<String> uploads) throws IOException {
         try (ByteArrayOutputStream bos_deletions = new ByteArrayOutputStream(); ObjectOutputStream oos_deletions = new ObjectOutputStream(bos_deletions);
              ByteArrayOutputStream bos_uploads = new ByteArrayOutputStream(); ObjectOutputStream oos_uploads = new ObjectOutputStream(bos_uploads)) {
             oos_deletions.writeObject(deletions);
@@ -340,4 +340,8 @@ public class ParsingUtils {
     public static String eqTagToString(BigInteger eqTag) {
         return base64Encoder.encodeToString(eqTag.toByteArray());
     }
+    public static String eqTagBytesToString(byte[] eqTag) {
+        return base64Encoder.encodeToString(eqTag);
+    }
+
 }

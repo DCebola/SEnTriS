@@ -14,7 +14,6 @@ public class EncryptedTriplestoreV2Client extends EncryptedTriplestoreClient {
     public static CloseableHttpResponse prepareSearch(CloseableHttpClient httpClient, String protocolVersion,
                                                       String triplestoreID, List<String> trapdoors, BigInteger mask,
                                                       String accessToken) throws IOException {
-        System.out.printf((PREPARE_SEARCH_URI) + "POST %n", protocolVersion, triplestoreID);
         return HTTPUtils.sendPOSTRequest(httpClient, String.format(PREPARE_SEARCH_URI, protocolVersion, triplestoreID),
                 ParsingUtils.generateV2SearchRequest(trapdoors, mask), accessToken);
     }
