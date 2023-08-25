@@ -54,13 +54,13 @@ Taking into consideration the efficiency, security trade-offs and ease of implem
 
 Semantic data can be represented as a graph and \gls{STE} supports various types of query operations in graph-structured data. Some existing schemes, adapted to conceptual graphs, need to pre-compute all possible query answers \emph{a priori}, which is not practical for large datasets \autocite{Poh2012-qs}. Furthermore, there can be leakage of information about the topology of the data while trying to pre-compute all query answers. 
 
-Recent developments do not require pre-computation of all query answers. The \emph{CryptGraphDB} system is an adaptation of CryptDB capable of answering queries over conceptual graphs, but it was developed for the cypher language and not \gls{SPARQL}. \mytodo{Cite cryptdb, cypher, work}
+Recent developments do not require pre-computation of all query answers. The \emph{CryptGraphDB} \cite{Aburawi2018-pq} system is an adaptation of CryptDB \cite{Popa2011-zb, Popa2012-bw, Popa2011-ci} capable of answering queries over conceptual graphs, but it was developed for the cypher \cite{Neo4j_Inc_undated-ft} language and not \gls{SPARQL}.
 
-Another work, focuses on functional encryption for access control on RDF datasets. The system is capable of retrieving simple triple patterns over an encrypted dataset, but, due to performance needs, hashes are used for indexing the encrypted triples. This leaks the structure of the dataset, which they mitigate by creating dummy triples. \mytodo{cite functional encryption and work}
+Another work, focused on access control for RDF datasets, did also implement a solution for retrieving simple triple patterns over an encrypted dataset, but, due to performance needs, hashes were used for indexing the encrypted triples. This leaks the structure of the dataset, which they tried to mitigate by creating dummy triples \cite{Fernandez2017-bh}.
 
-The \gls{GOOSE} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic encryption is used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries. \mytodo{cite GOOSE}
+The \gls{GOOSE} \cite{Ciucanu2020-lx} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic encryption is used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries.
 
-The $HDT_{crypt}$ solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client). \mytodo{cite HDTcrypt}
+The $HDT_{crypt}$ \cite{Fernandez2020-fc} solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client).
 
 Although, a lot of progress has been made in this field of research there are still various open questions. In this thesis, we will focus on answering the following questions:
 
@@ -99,7 +99,7 @@ In this thesis we aim to develop a practical and secure solution for the collabo
     For the second protocol we developed a novel equality join, which operates over non-deterministic values, which we denominate $Eq_{Tags}$. These values are encrypted using the DGK cryptosystem, an additive homomorphic scheme developed for secure integer comparison. 
 \end{description}
 
-All the prototypes developed will be available as open-source code in a public repository, alongside the benchmark results.
+The prototype will be available as open-source code in a public repository, alongside the benchmark results.
 
 \section{Document Organization}
 \label{ch1:sec:organization}

@@ -394,15 +394,15 @@ WHERE
 }
 \end{lstlisting}
 
-Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options for inserting, publishing and deleting data in triple stores. For operations over the \gls{HTTP}, \emph{\gls{SPARQL} 1.1 graph store \gls{HTTP} protocol} has similar, but more limited, features\footnote{Full examples and syntax can be found in the \gls{W3C} recommendations.}.
+Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options for inserting, publishing and deleting data in triplestores. For operations over the \gls{HTTP}, \emph{\gls{SPARQL} 1.1 graph store \gls{HTTP} protocol} has similar, but more limited, features\footnote{Full examples and syntax can be found in the \gls{W3C} recommendations.}.
 
 
 \subsection{Tools \& Development Software for Ontologies}
 \label{ch2:sec:semantic-web:tools}
 
-To developed and maintain ontologies, professionals use advanced semantic editors. \emph{Protégé} \autocite{Musen2015-kh} is a free, open-source, and usual choice. It provides a rich ontology editing environment with full support for \gls{OWL2}, available in a desktop version or on the web \autocite{Tudorache2009-ja}. Many of its functionalities are based on plugins: automatic verification of errors and consistency in the design using reasoners like \emph{Pellet} \autocite{Sirin2007-lo}; debugging tools; query answering; collaborative development \autocite{Tudorache2008-tu}; graphic visualization of data and knowledge.
+To developed and maintain ontologies, professionals use advanced semantic editors. \emph{Protégé} \autocite{Musen2015-kh} is a free, open-source, and the usual choice. It provides a rich ontology editing environment with full support for \gls{OWL2}, available in a desktop version or on the web \autocite{Tudorache2009-ja}. Many of its functionalities are based on plugins: automatic verification of errors and consistency in the design using reasoners like \emph{Pellet} \autocite{Sirin2007-lo}; debugging tools; query answering; collaborative development \autocite{Tudorache2008-tu}; graphic visualization of data and knowledge.
 
-To store RDF data, popular storage solutions are: \emph{MarkLogic} \autocite{}, \emph{Virtuoso} \autocite{OpenLink_Software_undated-km}, \emph{Amazon Neptune} \autocite{Amazon_Web_Services_Inc_or_its_affiliates_undated-fj}, \emph{GraphDB} \autocite{Ontotext_undated-mj}, \emph{Apache Jena - TDB} \autocite{The_Apache_Software_Foundation_undated-mg}. While \emph{Apache Jena - TDB} is primarily a \gls{RDF} store, the rest are \emph{multi-model} database systems. To test their capability to handle \gls{SPARQL} queries, the \gls{BSBM} is a standard benchmark \autocite{Chris_undated-hq}. The \gls{LUBM} is another benchmark, which is tailored for \gls{OWL2} data \autocite{Guo2005-ja}. It provided synthetic data generation for a single realistic ontology.
+To store RDF data, popular storage solutions are: \emph{MarkLogic} \autocite{MarkLogic2020-pb}, \emph{Virtuoso} \autocite{OpenLink_Software_undated-km}, \emph{Amazon Neptune} \autocite{Amazon_Web_Services_Inc_or_its_affiliates_undated-fj}, \emph{GraphDB} \autocite{Ontotext_undated-mj}, \emph{Apache Jena - TDB} \autocite{The_Apache_Software_Foundation_undated-mg}. While \emph{Apache Jena - TDB} is primarily a \gls{RDF} store, the rest are \emph{multi-model} database systems. To test their capability to handle \gls{SPARQL} queries, the \gls{BSBM} is a standard benchmark \autocite{Chris_undated-hq}. The \gls{LUBM} is another benchmark, which is tailored for \gls{OWL2} data \autocite{Guo2005-ja}. It provided synthetic data generation for a single realistic ontology.
 
 Finally, for developers, many \gls{API}s \autocite{Owlcs_undated-im} or full framework solutions, such as \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}, are available for building \emph{Semantic Web} applications.
 
@@ -418,7 +418,7 @@ In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, ad
 
 The \emph{Encryption at Rest} approach encrypts all data stored in the untrusted server. To perform computations we need to download the full dataset, decrypt it, and only then can we execute operations on the data. This is too inflexible and computationally expensive. 
 
-\gls{ORAM} \autocite{Goldreich1996-yb} fits well the adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
+\gls{ORAM} \autocite{Goldreich1996-yb} fits well this adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
 
 When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following Sections we will discuss related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}.
 
@@ -495,7 +495,7 @@ In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext,
 \subsubsection{Information Leakage}
 
 % Explain more about each type of leakage
-Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This can leak \emph{index} information, \emph{search pattern}, and \emph{access pattern} during execution:
+Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This leakage can be \emph{index} information, the \emph{search pattern}, or \emph{access pattern} during execution:
 
 \begin{itemize}
     \item \emph{Index Information} refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
@@ -558,13 +558,63 @@ Others, proposed a \gls{SSE} scheme that supports \emph{subgraph isomorphism que
 
 Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with a bucketization algorithm. By doing so, queries do not leak information about the structure of the graph. Although the authors state that their approach works with any kind of query, they only focused on neighbor and adjacency ones. 
 
-\subsection{Other Approaches}
-\label{ch2:sec:other}
+\subsection{Secure Semantic Data Sharing}
+\label{ch2:sec:semantic-data}
 
 
-Besides the previous \gls{SSE} approaches, some authors proposed using onion-encryption, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}, for protecting graph-structured data \autocite{Aburawi2018-pq}. 
+Secure collaborative solutions for semantic data development require not only  secure sharing but also access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired.
 
-Additionally, some research has been done for protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, protecting only their values, leaving the schema of the ontology public. Our approach aims to fully secure the individuals and schema information. 
+\subsubsection{Self-Enforcing Access Control for Encrypted RDF}
+
+One of the first works in this topic, was focused on implementing access control for RDF datasets \cite{Fernandez2017-bh} through the use of functional encryption \cite{Boneh2010-bw}
+
+In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption  key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
+
+To encrypt an RDF triple $t_i = (s_i,p_i,o_i)$ we functionally encrypt a random seed $m_{t_i}$, with an attribute vector $\overrightarrow{y}_{t_i} = (y_{s_i},y'_{s_i},y_{p_i},y'_{p_i},y_{o_i},y'_{o_i})$ such that $\overrightarrow{y}_l = -r \cdot \sigma(l), \:\: y'_l := r, \:\: l \in \{s,p,o\}$ with $\sigma$ being a function that maps a triple's subject, predicate and object to a value in $\mathbb{Z}_N$, and $r$ a random value also in $\mathbb{Z}_N$
+
+\gls{AES} \cite{Studer1998-kp} encryption is used to encrypt the plaintext triple using a key derivable from the generated seed $m_{t_i}$. The final ciphertext $c_{t_i} = \left\langle AES(t_i), \: FE(m_{t_i}) \right\rangle$ corresponds to both the \gls{AES} ciphertext and the ciphertext of the seed.
+
+The decryption keys are generated taking into account the possible triple patterns $tp = (s,p,o)$ combinations. For each triple pattern  we define $\overrightarrow{x}_{tp} =(x_s,x'_s,x_p,x'_p,x_o,x'_o)$ such that $x_l := 1,\: x'_l := \sigma(l) \textrm{ if } l \textrm{ is bound}$ and $x_l := 0,\: x'_l := 0 \textrm{ otherwise}$.
+
+Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (s_{tp},p_{tp},o_{tp})$ we compute the inner product $\overrightarrow{y}_t \cdot \overrightarrow{x}_{tp} = y_{s_t}x_{s_{tp}} + y'_{s_t}x'_{s_{tp}} + y_{p_t}x_{p_{tp}} + y'_{p_t}x'_{p_{tp}} + y_{o_t}x_{o_{tp}} + y'_{o_t}x'_{o_{tp}}$
+
+Only if the result of this inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
+
+The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
+
+The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ with unbound values corresponding to $h(?)$. Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all the triple pattern combinations and associate each value to the corresponding ID.
+
+The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"|"os",s,o)$.
+
+Nonetheless, the solution could retrieve simple triple patterns over an encrypted dataset, but, due to performance needs, hashes were used for indexing the encrypted triples. This leaks the structure of the dataset, which they tried to mitigate by creating dummy triples.
+
+\subsubsection{CryptGraphDB}
+
+Besides the previous \gls{SSE} approaches, some authors proposed using onion-encryption, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}, for protecting graph-structured data. The \emph{CryptGraphDB} \cite{Aburawi2018-pq} system is an adaptation of CryptDB capable of answering queries over conceptual graphs, but it was developed for the cypher \cite{Neo4j_Inc_undated-ft} language and not \gls{SPARQL}.
+
+\mytodo{Describe join using deterministic encryption}
+
+
+\subsubsection{\gls{GOOSE}}
+
+The \gls{GOOSE} \cite{Ciucanu2020-lx} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic encryption is used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries.
+
+\mytodo{Describe protocol. Describe security guaranties}
+
+\subsubsection{$HDT_{crypt}$}
+
+The $HDT_{crypt}$ \cite{Fernandez2020-fc} solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client).
+
+\mytodo{Describe successintly hdt tables, how to encrypt}
+
+\subsubsection{Discussion}
+\label{ch2:sec:semantic-data:discussion}
+
+\mytodo{Discuss trade-offs, remove from previous subsections. Do not forget to mention leakage that can arise from joins... Create resume table for solutions}
+
+
+
+Besides the previous works, there exists also a work focused only on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, mainly their values, leaving the schema of the ontology public. Our approach aims to fully secure the individuals and schema information. 
  
 For mitigating information leakage, \emph{hybrid} \gls{SE} schemes, that require \emph{trusted hardware}, have been proposed \autocite{Ferreira2020-ze}, but solutions based on special hardware are not on the scope of this thesis.
 
@@ -593,8 +643,9 @@ In Section \ref{ch2:sec:searchable-encryption}, we explained the difference betw
 
 In Section \ref{ch2:sec:symmetric-searchable-encryption} we specified the standard security definitions in use, and gave an in depth explanation of reference \gls{SSE} schemes. We finished the \gls{SSE} Section by showing recent generalizations, focusing on dynamic solutions and schemes that support structured data.
 
-In Section \ref{ch2:sec:other}, we mentioned approaches that try to secure ontologies but are not based on \gls{SE}. Additionally, we briefly covered parallel work on security and ontologies in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}.
+In Section \ref{ch2:sec:semantic-data}, we mentioned related research on the topic of secure semantic data sharing, discussing the trade-off of each approach. Additionally, we briefly covered parallel work on security and ontologies in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}.
 
+\mytodo{re-contextualize based on new works}
 To conclude, we state that there still needs to be conducted more research in the field of \gls{SSE} for graph-structured data. To justify our statement, we argue that approaches are either too generic \autocite{Cao2011-is}, lack schema protection \autocite{Nejjahi2019-ig}, have been implemented considering types of queries not used by \gls{SPARQL} \autocite{Suntaxi2021-sj}, or require pre-computation of all possible query answers beforehand \autocite{Poh2012-qs}.
 
 
