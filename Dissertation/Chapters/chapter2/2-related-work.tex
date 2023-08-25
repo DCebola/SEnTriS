@@ -562,13 +562,15 @@ Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with
 \label{ch2:sec:semantic-data}
 
 
-Secure collaborative solutions for semantic data development require not only  secure sharing but also access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired.
+Secure collaborative solutions for semantic data development require not only  secure sharing but also access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired. 
+
+One of the simplest works in the field focuses solely on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, uniquely encrypting their values and leaving the rest of the data in plaintext. This approach aimed at retaining functionality but leaks too much information. The following solutions try to achieve more robust security guaranties.
 
 \subsubsection{Self-Enforcing Access Control for Encrypted RDF}
 
-One of the first works in this topic, was focused on implementing access control for RDF datasets \cite{Fernandez2017-bh} through the use of functional encryption \cite{Boneh2010-bw}
+This work researched the implementation of access control in RDF datasets \cite{Fernandez2017-bh} through the use of functional encryption \cite{Boneh2010-bw}.
 
-In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption  key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
+In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
 
 To encrypt an RDF triple $t_i = (s_i,p_i,o_i)$ we functionally encrypt a random seed $m_{t_i}$, with an attribute vector $\overrightarrow{y}_{t_i} = (y_{s_i},y'_{s_i},y_{p_i},y'_{p_i},y_{o_i},y'_{o_i})$ such that $\overrightarrow{y}_l = -r \cdot \sigma(l), \:\: y'_l := r, \:\: l \in \{s,p,o\}$ with $\sigma$ being a function that maps a triple's subject, predicate and object to a value in $\mathbb{Z}_N$, and $r$ a random value also in $\mathbb{Z}_N$
 
@@ -578,22 +580,27 @@ The decryption keys are generated taking into account the possible triple patter
 
 Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (s_{tp},p_{tp},o_{tp})$ we compute the inner product $\overrightarrow{y}_t \cdot \overrightarrow{x}_{tp} = y_{s_t}x_{s_{tp}} + y'_{s_t}x'_{s_{tp}} + y_{p_t}x_{p_{tp}} + y'_{p_t}x'_{p_{tp}} + y_{o_t}x_{o_{tp}} + y'_{o_t}x'_{o_{tp}}$
 
-Only if the result of this inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
+Only if the result of the inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
 
 The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
 
-The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ with unbound values corresponding to $h(?)$. Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all the triple pattern combinations and associate each value to the corresponding ID.
+The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ (unbound values correspond to $h(?)$). Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding ID.
 
 The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"|"os",s,o)$.
 
-Nonetheless, the solution could retrieve simple triple patterns over an encrypted dataset, but, due to performance needs, hashes were used for indexing the encrypted triples. This leaks the structure of the dataset, which they tried to mitigate by creating dummy triples.
-
 \subsubsection{CryptGraphDB}
 
-Besides the previous \gls{SSE} approaches, some authors proposed using onion-encryption, based on the mechanisms of \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}, for protecting graph-structured data. The \emph{CryptGraphDB} \cite{Aburawi2018-pq} system is an adaptation of CryptDB capable of answering queries over conceptual graphs, but it was developed for the cypher \cite{Neo4j_Inc_undated-ft} language and not \gls{SPARQL}.
+\emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} is a practical solution for processing \gls{SQL} queries over encrypted relational datasets. This solution leverages onion-encryption to support the various primitive operations necessary to answer a \gls{SQL} query (equality checks, order comparisons, aggregates and joins). 
 
-\mytodo{Describe join using deterministic encryption}
+The system consists of a database proxy and an unmodified DBMS. The proxy intercepts all queries,  encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
 
+
+\mytodo{Describe sql-aware-encryption schemes, RND, DET, HOM, OPE, SEARCH}
+
+
+\emph{CryptGraphDB} \cite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} system to graph-structured data. It is capable of answering cypher \cite{Neo4j_Inc_undated-ft} queries over conceptual graphs.
+
+\mytodo{Explain adaptations}
 
 \subsubsection{\gls{GOOSE}}
 
@@ -611,10 +618,10 @@ The $HDT_{crypt}$ \cite{Fernandez2020-fc} solution combines RDF compression with
 \label{ch2:sec:semantic-data:discussion}
 
 \mytodo{Discuss trade-offs, remove from previous subsections. Do not forget to mention leakage that can arise from joins... Create resume table for solutions}
-
-
-
-Besides the previous works, there exists also a work focused only on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, mainly their values, leaving the schema of the ontology public. Our approach aims to fully secure the individuals and schema information. 
+\mytodo{1 - hashes for indexes, leaked structure. Only search over simple patterns, no complex operations, no updates, only upload}
+\mytodo{2 - Not for SPARQL, same leakage as CryptDB, can do updates}
+\mytodo{3 - Leaks structure. Can answer complex queries, no updates}
+\mytodo{4 - Leaks structure. Can store large dataset. Only simple pattern search, no updates}
  
 For mitigating information leakage, \emph{hybrid} \gls{SE} schemes, that require \emph{trusted hardware}, have been proposed \autocite{Ferreira2020-ze}, but solutions based on special hardware are not on the scope of this thesis.
 
