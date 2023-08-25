@@ -574,7 +574,7 @@ In the proposed encryption scheme, functions correspond to the computation of in
 
 To encrypt an RDF triple $t_i = (s_i,p_i,o_i)$ we functionally encrypt a random seed $m_{t_i}$, with an attribute vector $\overrightarrow{y}_{t_i} = (y_{s_i},y'_{s_i},y_{p_i},y'_{p_i},y_{o_i},y'_{o_i})$ such that $\overrightarrow{y}_l = -r \cdot \sigma(l), \:\: y'_l := r, \:\: l \in \{s,p,o\}$ with $\sigma$ being a function that maps a triple's subject, predicate and object to a value in $\mathbb{Z}_N$, and $r$ a random value also in $\mathbb{Z}_N$
 
-\gls{AES} \cite{Studer1998-kp} encryption is used to encrypt the plaintext triple using a key derivable from the generated seed $m_{t_i}$. The final ciphertext $c_{t_i} = \left\langle AES(t_i), \: FE(m_{t_i}) \right\rangle$ corresponds to both the \gls{AES} ciphertext and the ciphertext of the seed.
+\gls{AES}\footnote{For information on \gls{AES} we recommend reading chapter 6 of \autocite{Pearson2017-ve}.} encryption is used to encrypt the plaintext triple using a key derivable from the generated seed $m_{t_i}$. The final ciphertext $c_{t_i} = \left\langle AES(t_i), \: FE(m_{t_i}) \right\rangle$ corresponds to both the \gls{AES} ciphertext and the ciphertext of the seed.
 
 The decryption keys are generated taking into account the possible triple patterns $tp = (s,p,o)$ combinations. For each triple pattern  we define $\overrightarrow{x}_{tp} =(x_s,x'_s,x_p,x'_p,x_o,x'_o)$ such that $x_l := 1,\: x'_l := \sigma(l) \textrm{ if } l \textrm{ is bound}$ and $x_l := 0,\: x'_l := 0 \textrm{ otherwise}$.
 
