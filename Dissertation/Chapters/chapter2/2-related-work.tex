@@ -446,6 +446,14 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
     \item \glsxtrlong{LFHE} \autocite{Brakerski2014-nm}, which supports any type of operations for a limited, and expected, number of $L$ times (referred to as depth-$L$).
 \end{itemize}
 
+\subsection{Property-preserving Encryption}
+\label{ch2:sec:property-preserving-encryption}
+
+Homomorphic encryption allows arbitrary computations to be executed on encrypted data while not leaking any information about the original plaintext. For operations such as equality joins, where we require equality checks, we do need to preserve (leak) certain properties from the original plaintexts. This type of encryption is known as property-preserving encryption.
+
+\paragraph{Deterministic Encryption} Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
+
+\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. 
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
@@ -570,7 +578,7 @@ One of the simplest works in the field focuses solely on protecting individuals 
 
 This work researched the implementation of access control in RDF datasets \cite{Fernandez2017-bh} through the use of functional encryption \cite{Boneh2010-bw}.
 
-In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
+\paragraph{Encryption Scheme} In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
 
 To encrypt an RDF triple $t_i = (s_i,p_i,o_i)$ we functionally encrypt a random seed $m_{t_i}$, with an attribute vector $\overrightarrow{y}_{t_i} = (y_{s_i},y'_{s_i},y_{p_i},y'_{p_i},y_{o_i},y'_{o_i})$ such that $\overrightarrow{y}_l = -r \cdot \sigma(l), \:\: y'_l := r, \:\: l \in \{s,p,o\}$ with $\sigma$ being a function that maps a triple's subject, predicate and object to a value in $\mathbb{Z}_N$, and $r$ a random value also in $\mathbb{Z}_N$
 
@@ -582,23 +590,50 @@ Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (
 
 Only if the result of the inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
 
-The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
+\paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
 
 The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ (unbound values correspond to $h(?)$). Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding ID.
 
 The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"|"os",s,o)$.
 
+\mytodo{Add image with both index schemes}
+
 \subsubsection{CryptGraphDB}
 
-\emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} is a practical solution for processing \gls{SQL} queries over encrypted relational datasets. This solution leverages onion-encryption to support the various primitive operations necessary to answer a \gls{SQL} query (equality checks, order comparisons, aggregates and joins). 
+\emph{CryptGraphDB} \cite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \cite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guaranties, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
 
-The system consists of a database proxy and an unmodified DBMS. The proxy intercepts all queries,  encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
+\paragraph{System Architecture} \emph{CryptDB} is a practical solution for processing \gls{SQL} queries over encrypted relational datasets. This solution leverages onion-encryption to support various primitive operations necessary to answer a \gls{SQL} query (equality checks, order comparisons, aggregates and joins).
+
+The system is composed by an application server, a proxy and an unmodified \gls{DBMS}. The proxy intercepts all queries, encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
+
+\mytodo{Add image of Cryptdb system}
+
+\paragraph{Security Threats} \emph{CryptDB} addresses two security threats. The first threat, consists in a passive attacker (e.g. database administrator), which only observes confidential data in the \gls{DBMS} server. Against this attacker \emph{CryptDB} provides a few security guaranties: sensitive data is always encrypted; the \gls{DBMS} server cannot generate results for queries whose primitives do not belong in the subset of supported operations; information leakage depends on the types of computations that will be executed over the data - if no relational predicate filtering is needed, nothing more than the data's length is leaked; on equality checks, it reveals the histogram of encrypted values in the respective columns; in order checks, the system reveals the order between the encrypted values in the column.
+
+The second threat is an attacker that gains control over the proxy, application server and \gls{DBMS} server. Against this adversary, \emph{CryptDB} provides confidentiality of data belonging to users not logged in during the period of the compromise (until it has been fixed). The adversary can, however, delete data stored in the database.
+
+Besides confidentiality, \emph{CryptDB} does not ensure integrity, freshness, or completeness of results.
+
+\paragraph{Query Execution Pipeline} For executing a query issued by the application server, a sequence of steps are necessary: i) the proxy intercepts and rewrites the query, anonymizing the table and column names and encrypting each constant present with the adequate encryption scheme for the desired operation, using a master key; ii) the proxy checks whether it should provide keys to the \gls{DBMS} server, so that adjustments can be done on the encryption layers of the targeted data, if the check is positive it issues an UPDATE query that triggers a custom function to adjust the encryption of the selected columns; iii) the encrypted query is forwarded to the \gls{DBMS} server and is executed using plain \gls{SQL}; iv) the encrypted results are sent to the proxy, which are then decrypted and forwarded to the application server.
+
+\paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guaranties, the data encryption layers are pealed. We now present the different encryption schemes supported by \emph{Cryptdb}:
+
+\mytodo{Add onion encryption image}
 
 
-\mytodo{Describe sql-aware-encryption schemes, RND, DET, HOM, OPE, SEARCH}
 
+%Random (RND) RND provides the maximum level of security between those used by CryptDB. It uses a probabilistic encryption scheme, so that when encrypting the same plaintext multiple times, the resulting ciphertext is different.
 
-\emph{CryptGraphDB} \cite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} system to graph-structured data. It is capable of answering cypher \cite{Neo4j_Inc_undated-ft} queries over conceptual graphs.
+%Deterministic (DET) and order-preserving encryption (OPE) These two types of encryption are described in Section 2.1.2. They use property-preserving encryption schemes that allow CryptDB to perform equality checks, range queries, sorting and aggregations. 
+
+%Homomorphic encryption (HOM) As described in Section 2.1.1, homomorphic encryption allows one to perform computations on encrypted data. CryptDB uses homomorphic encryption, particularly the scheme proposed by Paillier [45], whenever it needs to perform an addition, e.g., SUM or incrementing values.
+
+%Join (JOIN and OPE-JOIN) The encryption types JOIN and OPE-JOIN are similar to DET and OPE, respectively. In order to prevent an adversary from learning information about values in different columns, CryptDB uses different keys for different columns when encrypting with the DET and OPE schemes. JOIN and OPE-JOIN enable the server to perform join operations between columns, with the downside of leaking more information than DET and OPE.
+
+%Word search (SEARCH) SEARCH allows CryptDB to perform searches on encrypted data, and as a result, perform queries with the LIKE operator. It uses the symmetric searchable encryption scheme proposed by Dawn Xiaoding Song et al. [25] and briefly described in Section 2.1.3. The SEARCH encryption type leaks the number of keywords searched.
+
+%CryptGraphDB modifications
+
 
 \mytodo{Explain adaptations}
 
