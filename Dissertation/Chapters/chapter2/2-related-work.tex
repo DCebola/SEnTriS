@@ -453,7 +453,7 @@ Homomorphic encryption allows arbitrary computations to be executed on encrypted
 
 \paragraph{Deterministic Encryption} Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
 
-\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. 
+\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \cite{Popa2012-bw}.
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
@@ -616,26 +616,26 @@ Besides confidentiality, \emph{CryptDB} does not ensure integrity, freshness, or
 
 \paragraph{Query Execution Pipeline} For executing a query issued by the application server, a sequence of steps are necessary: i) the proxy intercepts and rewrites the query, anonymizing the table and column names and encrypting each constant present with the adequate encryption scheme for the desired operation, using a master key; ii) the proxy checks whether it should provide keys to the \gls{DBMS} server, so that adjustments can be done on the encryption layers of the targeted data, if the check is positive it issues an UPDATE query that triggers a custom function to adjust the encryption of the selected columns; iii) the encrypted query is forwarded to the \gls{DBMS} server and is executed using plain \gls{SQL}; iv) the encrypted results are sent to the proxy, which are then decrypted and forwarded to the application server.
 
-\paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guaranties, the data encryption layers are pealed. We now present the different encryption schemes supported by \emph{Cryptdb}:
+\paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guaranties, the data encryption layers are pealed. For each layer, per onion, per column, the proxy uses the same encryption key, derived from a master key, $MK$. This reduces the leakage of relations between columns and avoids the complexity of having different keys for each row in a column. For table $t$, column $c$, onion $o$, and encryption layer $l$, the proxy would use the encryption key $K_{t,c,o,l} = PRP_{MK}(t,c,o,l)$.
 
+We now present the different encryption schemes supported by \emph{CryptDB}:
+
+\begin{itemize}
+    \item \textbf{Random (RND)} A probabilistic encryption scheme that provides the most security but does not allow any computations on the ciphertexts.
+    \item \textbf{Deterministic (DET)}  A deterministic encryption scheme which allows equality checks to be executed over ciphertexts.
+    \item \textbf{Order-Preserving (OPE)} An encryption scheme that preserves order between the ciphertexts in a column. This allows the server to execute range queries.
+    \item \textbf{Homomorphic encryption (HOM)} The Paillier cryptosystem \cite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
+    \item \textbf{Join (equi-JOIN)} In \emph{CryptDB} columns are encrypted with a different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
+    \item \textbf{OPE-JOIN} \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
+    \item \textbf{Word search (SEARCH)} This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \cite{Song2000-hu}. The information leakage is similar to that of the RND layer.
+\end{itemize}
+
+The following images provide, respectively, an overview of the different onions types in \emph{CryptDB} and an example a query execution where layer adjustments are needed.
+
+\mytodo{Add query flow image}
 \mytodo{Add onion encryption image}
 
-
-
-%Random (RND) RND provides the maximum level of security between those used by CryptDB. It uses a probabilistic encryption scheme, so that when encrypting the same plaintext multiple times, the resulting ciphertext is different.
-
-%Deterministic (DET) and order-preserving encryption (OPE) These two types of encryption are described in Section 2.1.2. They use property-preserving encryption schemes that allow CryptDB to perform equality checks, range queries, sorting and aggregations. 
-
-%Homomorphic encryption (HOM) As described in Section 2.1.1, homomorphic encryption allows one to perform computations on encrypted data. CryptDB uses homomorphic encryption, particularly the scheme proposed by Paillier [45], whenever it needs to perform an addition, e.g., SUM or incrementing values.
-
-%Join (JOIN and OPE-JOIN) The encryption types JOIN and OPE-JOIN are similar to DET and OPE, respectively. In order to prevent an adversary from learning information about values in different columns, CryptDB uses different keys for different columns when encrypting with the DET and OPE schemes. JOIN and OPE-JOIN enable the server to perform join operations between columns, with the downside of leaking more information than DET and OPE.
-
-%Word search (SEARCH) SEARCH allows CryptDB to perform searches on encrypted data, and as a result, perform queries with the LIKE operator. It uses the symmetric searchable encryption scheme proposed by Dawn Xiaoding Song et al. [25] and briefly described in Section 2.1.3. The SEARCH encryption type leaks the number of keywords searched.
-
-%CryptGraphDB modifications
-
-
-\mytodo{Explain adaptations}
+\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer cypher queries \cite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle cypher queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the cypher language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
 \subsubsection{\gls{GOOSE}}
 

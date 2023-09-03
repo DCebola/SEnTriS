@@ -67,11 +67,11 @@ Although, a lot of progress has been made in this field of research there are st
 \begin{enumerate}
     \item \emph{How to support secure and expressive read and write \gls{SPARQL} queries over encrypted data?}
     
-    A practical solution ought to support more than basic triple pattern retrieval, it must be capable of querying complex patterns. As such it should be able to execute secure set operations over the result set from simple pattern, without the client needing to decrypt the intermediate values. Furthermore, it must be able to execute write queries, so that datasets can be updated. 
+    A practical solution ought to support more than basic triple pattern retrieval, it must be capable of querying complex patterns. As such it should be able to execute secure set operations without the client needing to decrypt the intermediate values (obtained from simple triple patterns). Furthermore, it must be able to execute write queries, so that datasets can be updated. 
 
     \item \emph{How can we add reasoning capabilities to the solution?}
     
-    A simple \gls{SPARQL} engine do not possess reasoning capabilities. The query results may or may not possess inferred values, depending on the underlying storage solution. When working with ontologies, a system should have reasoning capabilities to take full advantage of the semantics preserved within the data.
+    A simple \gls{SPARQL} engine does not possess reasoning capabilities. The query results may or may not possess inferred values, depending on the underlying storage solution. When working with ontologies, a system should have reasoning capabilities to take full advantage of the semantics preserved within the data.
 
     \item \emph{How can we minimize the information leakage and enforce access control?}
     
