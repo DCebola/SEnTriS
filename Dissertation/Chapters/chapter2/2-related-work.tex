@@ -15,13 +15,13 @@ In this chapter, we will discuss the architecture and design of the \emph{Semant
 In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
 \begin{enumerate}
     \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
-    \item All data items are identified by \gls{URI};
+    \item All data items are identified by \gls{IRI} \autocite{Durst2005-xq};
     \item Usage of ontologies to model semantics within a domain.
 \end{enumerate}
 
 Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
-Briefly describing this layered architecture, at the root level, we have the \gls{URI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
+Briefly describing this layered architecture, at the root level, we have the \gls{IRI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
 
 \begin{figure}[H]
     \centering
@@ -57,13 +57,13 @@ In the following of this Section we will describe, in more detail, some language
 \subsubsection{Overview}
 \gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain-independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed of a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
 
-Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{URI}s. Resources without a \gls{URI} are called \emph{blank nodes} (or \emph{bnodes}).
+Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{IRI}s. Resources without a \gls{IRI} are called \emph{blank nodes} (or \emph{bnodes}).
 
 To make a statement $B$ about a statement $A$ we can use a technique called \emph{reification}. Reification consists in: firstly, defining a statement $B$ where the object $objA$ represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and original object of statement $A$ \autocite{Antoniou2012-nj}.
 
 \subsubsection{Syntax}
 
-\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{URI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{URI}s. The arcs are directed from subject to object of a statement. Figure \ref{fig:rdf-grafical-example} provides an example of a \gls{RDF} graph.
+\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{IRI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{IRI}s. The arcs are directed from subject to object of a statement. Figure \ref{fig:rdf-grafical-example} provides an example of a \gls{RDF} graph.
 
 
 \begin{figure}[H]
@@ -77,7 +77,9 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 
 
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
-In \gls{TURTLE}, \gls{URI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{URI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{URI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{URI}, a colon, the \gls{URI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
+In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
+
+\pagebreak
 
 \begin{lstlisting}[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
@@ -206,7 +208,9 @@ In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \e
 
 \subsubsection*{Individual Assertions}
 
-In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{URI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
+In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{IRI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
+
+\pagebreak
 
 \begin{lstlisting}[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
@@ -324,10 +328,36 @@ In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} 
 
 \subsubsection{SPARQL Queries}
 
-\paragraph{Mathematical Basis}
-An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+\paragraph{Defining an RDF dataset} Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
 
-The basis of \gls{SPARQL} queries is finding matches, on triple patterns, also referred as \emph{Basic Graph Pattern}, in a \gls{RDF} graph \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the subgraph isomorphism problem, a generalization of the graph isomorphism problem: given two graphs $G1$ and $G2$, we try to find if $G1$ contains a subgraph that is isomorphic to $G2$. In the context of \gls{SPARQL} queries, $G1$ is the published \gls{RDF} graph and $G2$ is the query triple pattern. 
+Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G_{default}, G_{d_{i}}, G_{d_{i+1}}, ..., G_{d_{i+n}}\}$, where $n \in \mathbb{Z}^{+}_{0}$ and every element $d_i \in I \cup B$.
+
+
+\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{SELECT, ASK, CONSTRUCT, DESCRIBE\}$. A \gls{SPARQL} query can be defined as a tuple $q = (q_t,d,m,P)$ where $q_t \in T$ is the \emph{query type}, $d \in I$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P$ is a \emph{graph pattern}.
+
+
+
+\paragraph{Defining a graph pattern} Let $V = \{?v_i,?v_{i + 1},...,?v_{i + n}\}$, where $n \in \mathbb{Z}^{+}_{0}$, be a set of variables, disjoint from $I$, $B$, and $L$. A triple pattern is a tuple $t_p = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a graph pattern is an expression specified by the following grammar:
+
+\begin{equation}
+    \begin{split} 
+    P ::= & t_p \;\;|\;\; pp \;\;|\;\; q \;\;|\;\; P_1\; AND\; P_2 \;\;|\;\; P\; FILTER\; R \;\;|\;\; P_1\; UNION\; P_2 \;\;|\;\; P_1\; OPTIONAL\; P_2 \;\;|\;\; \\ 
+    & P_1\; MINUS\; P_2 \;\;|\;\; Graph\; iv\; P
+    \end{split}
+\end{equation}
+
+
+
+
+%Graph Patterns.  . . A graph pattern is an expression that can be generated by the following grammar:
+%P ::= BGP | P_1 AND P_1 | P1 UNION P2 | P1 OPTIONAL P2| P FILTER R | graph iv P
+%Here, t ranges over triple patterns, i ranges over IRIs in I , and ?x ranges over variables in V. R ranges over SPARQL filter constraints.
+
+
+\paragraph{Graph Isomorphism Problem} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+
+The basis of \gls{SPARQL} queries is finding matches with patterns of triples, in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the subgraph isomorphism problem, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. In the context of a \gls{SPARQL} query $q$, $G_1$ is the published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to $P$. 
+
 
 \paragraph{Syntax}
 
@@ -359,8 +389,6 @@ WHERE
 }
 
 \end{lstlisting}
-
-\pagebreak
 
 \begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with filters and modifiers example}, label={listing-sparql-modifiers-example}]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -453,7 +481,7 @@ Homomorphic encryption allows arbitrary computations to be executed on encrypted
 
 \paragraph{Deterministic Encryption} Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
 
-\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \cite{Popa2012-bw}.
+\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
@@ -520,7 +548,13 @@ Almost all \gls{SE} techniques have privacy issues because they leak some inform
 
 \subsubsection{Security Definitions}
 
-In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security definitions for \gls{SSE} schemes, contributing with two new definitions, which are still the standard in use. Both require that only the outcome of search patterns may be leaked. Additionally, they guarantee that trapdoors do not leak information about the keywords, apart from what can be inferred from the search and access pattern. \gls{IND-CKA1} and \gls{IND-CKA2} differ from each based on whether the adversary can produce an adaptive or non-adaptive attack.
+\gls{IND-CPA} is a property commonly used to evaluate encryption schemes, particularly in the context of public-key or symmetric-key cryptography. Informally, a scheme is \gls{IND-CPA} secure if an adversary $A$, given two arbitrary plaintext messages and their respective ciphertexts, cannot distinguish which ciphertext corresponds to each message with a probability higher than that of random chance. This probability upholds even if $A$ can adaptively query the encryption oracle. 
+
+This definition is not appropriate for \gls{SE} schemes where the leakage of information originates from trapdoors and queries.
+
+In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security definitions for \gls{SSE} schemes, contributing with two new definitions, which are still the standard in use: \gls{IND-CKA1} and \gls{IND-CKA2}. 
+
+Both require that only the outcome of search patterns may be leaked. Additionally, they guarantee that trapdoors do not leak information about the keywords, apart from what can be inferred from the search and access pattern. Their main difference is whether the adversary can produce an adaptive or non-adaptive attack.
 
 \begin{itemize}
     \item \gls{IND-CKA1} guarantees security if the client generates all queries at once;
@@ -569,14 +603,13 @@ Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with
 \subsection{Secure Semantic Data Sharing}
 \label{ch2:sec:semantic-data}
 
-
-Secure collaborative solutions for semantic data development require not only  secure sharing but also access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired. 
+Secure collaborative solutions for semantic data development require secure sharing, access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired. 
 
 One of the simplest works in the field focuses solely on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, uniquely encrypting their values and leaving the rest of the data in plaintext. This approach aimed at retaining functionality but leaks too much information. The following solutions try to achieve more robust security guaranties.
 
 \subsubsection{Self-Enforcing Access Control for Encrypted RDF}
 
-This work researched the implementation of access control in RDF datasets \cite{Fernandez2017-bh} through the use of functional encryption \cite{Boneh2010-bw}.
+This work researched the implementation of access control in RDF datasets \autocite{Fernandez2017-bh} through the use of functional encryption \autocite{Boneh2010-bw}.
 
 \paragraph{Encryption Scheme} In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
 
@@ -600,7 +633,7 @@ The second strategy is \emph{vertical partitioning}. Instead of indexing the per
 
 \subsubsection{CryptGraphDB}
 
-\emph{CryptGraphDB} \cite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \cite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guaranties, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
+\emph{CryptGraphDB} \autocite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \autocite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guaranties, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
 
 \paragraph{System Architecture} \emph{CryptDB} is a practical solution for processing \gls{SQL} queries over encrypted relational datasets. This solution leverages onion-encryption to support various primitive operations necessary to answer a \gls{SQL} query (equality checks, order comparisons, aggregates and joins).
 
@@ -624,10 +657,10 @@ We now present the different encryption schemes supported by \emph{CryptDB}:
     \item \textbf{Random (RND)} A probabilistic encryption scheme that provides the most security but does not allow any computations on the ciphertexts.
     \item \textbf{Deterministic (DET)}  A deterministic encryption scheme which allows equality checks to be executed over ciphertexts.
     \item \textbf{Order-Preserving (OPE)} An encryption scheme that preserves order between the ciphertexts in a column. This allows the server to execute range queries.
-    \item \textbf{Homomorphic encryption (HOM)} The Paillier cryptosystem \cite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
+    \item \textbf{Homomorphic encryption (HOM)} The Paillier cryptosystem \autocite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
     \item \textbf{Join (equi-JOIN)} In \emph{CryptDB} columns are encrypted with a different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
     \item \textbf{OPE-JOIN} \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
-    \item \textbf{Word search (SEARCH)} This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \cite{Song2000-hu}. The information leakage is similar to that of the RND layer.
+    \item \textbf{Word search (SEARCH)} This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \autocite{Song2000-hu}. The information leakage is similar to that of the RND layer.
 \end{itemize}
 
 The following images provide, respectively, an overview of the different onions types in \emph{CryptDB} and an example a query execution where layer adjustments are needed.
@@ -635,17 +668,21 @@ The following images provide, respectively, an overview of the different onions 
 \mytodo{Add query flow image}
 \mytodo{Add onion encryption image}
 
-\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer cypher queries \cite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle cypher queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the cypher language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
+\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer cypher queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle cypher queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the cypher language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
 \subsubsection{\gls{GOOSE}}
 
-The \gls{GOOSE} \cite{Ciucanu2020-lx} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic encryption is used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries.
+\gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution uses secure multiparty computation techniques, encryption schemes and a standard SPARQL engine.
+
+\paragraph{Security Guaranties}
+\paragraph{System Architecture}
+
 
 \mytodo{Describe protocol. Describe security guaranties}
 
 \subsubsection{$HDT_{crypt}$}
 
-The $HDT_{crypt}$ \cite{Fernandez2020-fc} solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client).
+The $HDT_{crypt}$ \autocite{Fernandez2020-fc} solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client).
 
 \mytodo{Describe successintly hdt tables, how to encrypt}
 
