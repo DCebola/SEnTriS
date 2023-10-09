@@ -57,7 +57,7 @@ In the following of this Section we will describe, in more detail, some language
 \subsubsection{Overview}
 \gls{RDF} \autocite{W3c_undated-vq} is a flexible \emph{domain-independent} data model. The \gls{RDF} basic primitives are \emph{resources}, \emph{properties} and \emph{literals}. We can construct \emph{statements} about resources by organizing these basic primitives in sets of \emph{triples}. A triple is composed of a \emph{subject}, a \emph{predicate} and an \emph{object}. In a statement (triple) about a subject (always a resource) we define the value (object) of a property (predicate), which can be another resource or a literal.
 
-Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{IRI}s. Resources without a \gls{IRI} are called \emph{blank nodes} (or \emph{bnodes}).
+Literals are atomic values (e.g. strings, numbers). Resources and properties, respectively, model the "things" and relationships between such "things". Both are identified using \gls{IRI}s. Resources without an \gls{IRI} are called \emph{blank nodes} (or \emph{bnodes}).
 
 To make a statement $B$ about a statement $A$ we can use a technique called \emph{reification}. Reification consists in: firstly, defining a statement $B$ where the object $objA$ represents the statement $A$; secondly, creating the properties \emph{subject}, \emph{predicate} and \emph{object} mapped from $objA$ to the original subject, predicate (now a resource), and original object of statement $A$ \autocite{Antoniou2012-nj}.
 
@@ -77,7 +77,7 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 
 
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
-In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with a \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
+In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with an \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
 \pagebreak
 
@@ -330,50 +330,61 @@ In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} 
 
 \paragraph{Defining an RDF dataset} Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
 
-Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G_{default}, G_{d_{i}}, G_{d_{i+1}}, ..., G_{d_{i+n}}\}$, where $n \in \mathbb{Z}^{+}_{0}$ and every element $d_i \in I \cup B$.
+Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G_{default}, G_{d_{i}}, G_{d_{i+1}}, ..., G_{d_{i+n}}\}$, where $n \in \mathbb{Z}^{+}$ and every element $d_i \in I \cup B$ \autocite{Picalausa2011-ca}.
 
 
-\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{SELECT, ASK, CONSTRUCT, DESCRIBE\}$. A \gls{SPARQL} query can be defined as a tuple $q = (q_t,d,m,P)$ where $q_t \in T$ is the \emph{query type}, $d \in I$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P$ is a \emph{graph pattern}.
+\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{SELECT, ASK, CONSTRUCT, DESCRIBE\}$, a \gls{SPARQL} query can be defined as a tuple $q = (qt,d,m,P)$ where $qt \in T$ is the \emph{query type}, $d \in I$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P$ is a \emph{graph pattern}.                    
 
 
-
-\paragraph{Defining a graph pattern} Let $V = \{?v_i,?v_{i + 1},...,?v_{i + n}\}$, where $n \in \mathbb{Z}^{+}_{0}$, be a set of variables, disjoint from $I$, $B$, and $L$. A triple pattern is a tuple $t_p = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a graph pattern is an expression specified by the following grammar:
+\paragraph{Defining a graph pattern} Let $V = \{?v_i,?v_{i + 1},...,?v_{i + n}\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
-    P ::= & t_p \;\;|\;\; pp \;\;|\;\; q \;\;|\;\; P_1\; AND\; P_2 \;\;|\;\; P\; FILTER\; R \;\;|\;\; P_1\; UNION\; P_2 \;\;|\;\; P_1\; OPTIONAL\; P_2 \;\;|\;\; \\ 
-    & P_1\; MINUS\; P_2 \;\;|\;\; Graph\; iv\; P
+    P ::= \;\; & tp \;\;|\;\; pp \;\;|\;\; q \;\;|\;\; P_1\; .\; P_2 \;\;|\;\; P\; FILTER\; R \;\;|\;\; P_1\; UNION\; P_2 \;\;|\;\; P_1\; OPTIONAL\; P_2 \;\;|\;\; \\ 
+    & P_1\; MINUS\; P_2 \;\;|\;\; Graph\; i\; P \;\;|\;\; Graph\; v?\; P
     \end{split}
 \end{equation}
 
 
+Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint\footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we'll define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
 
 
-%Graph Patterns.  . . A graph pattern is an expression that can be generated by the following grammar:
-%P ::= BGP | P_1 AND P_1 | P1 UNION P2 | P1 OPTIONAL P2| P FILTER R | graph iv P
-%Here, t ranges over triple patterns, i ranges over IRIs in I , and ?x ranges over variables in V. R ranges over SPARQL filter constraints.
+\paragraph{Semantics of \gls{SPARQL} graph pattern} A \emph{mapping} $\mu$ is a partial function $\mu : \; V \to \; I \cup U \cup L$ that assigns values to a finite set of variables. The domain of $\mu$, denoted by $dom(\mu)$, is the subset of $V$ where $\mu$ is defined. 
+
+Two \emph{mappings} $\mu_1$ and $\mu_2$ are compatible, denoted by $\mu_1 \sim \mu_2$, if $\mu_1(?v) = \mu_2(?v)$ for all common variables $?v \in dom(\mu_1) \cap dom(\mu_2)$.
+
+Abusing notation, we define $t = \mu(tp)$ as the triple obtained after replacing the variables in the \emph{triple pattern} $tp$ according to $\mu$ \autocite{Letelier2013-rs, Picalausa2011-ca}.
+
+We define join, union, difference, and left outer join on two sets of mappings $\Omega_1$ and $\Omega_2$ as follows:
+
+%view in paper
+
+%Semantically,  each graph pattern P evaluates to a set of mappings PD when evaluated on an RDF dataset D = (G, γ). This semantics is inductively defined as follows. Let μ |= R denote that μ satisfies filter condition R, as defined in [12].
+
+%view in paper
 
 
-\paragraph{Graph Isomorphism Problem} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
 
-The basis of \gls{SPARQL} queries is finding matches with patterns of triples, in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the subgraph isomorphism problem, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. In the context of a \gls{SPARQL} query $q$, $G_1$ is the published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to $P$. 
+\paragraph{How do \gls{SPARQL} queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+
+The basis of \gls{SPARQL} queries is finding matches with \emph{graph patterns}, in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the \emph{subgraph isomorphism problem}, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. 
+
+In the context of a \gls{SPARQL} query $q$, $G_1$ is the published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to $P$. From this match we obtain a set of \emph{bindings}: a multiset of mappings between $vars(P)$ and data within $G_d$. The final result of a query will also depend on $t$, the \emph{query type}, and $m$, the specified \emph{solution modifiers} (i.e. aggregation, grouping, sorting, duplicate removal). 
 
 
 \paragraph{Syntax}
 
-In a \gls{SPARQL} query we define variables, which will be mapped onto the values of the corresponding matching triples. We call the result set for each variable, the \emph{bindings} of that variable. \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the triple pattern to match, enclosed in brackets, and, optionally, some modifiers of the result. The \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can also specify prefixes for namespaces. 
-
-The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query operations: 
+\emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the \emph{graph pattern}, enclosed in brackets, and, optionally, some modifiers of the result (i.e. \emph{ORDER BY} to sort results and \emph{DISTINCT} to remove duplicates). Additionally, we may also specify the \gls{RDF} graph to consider for the query evaluation with the keywords \emph{FROM} or \emph{FROM NAMED}. Furthermore, the \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can specify prefixes for namespaces. 
+The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query types: 
 
 \begin{itemize}
-    \item \emph{SELECT}, used to extract values from a \gls{RDF} graph. The result is a table with the variable bindings;
-    \item \emph{ASK}, which returns a boolean, true if there was a match in the \gls{RDF} graph, false otherwise; 
-    \item \emph{CONSTRUCT}, which returns a set of triples from the constructions of a new \gls{RDF} graph, based on the matching pattern;
-    \item \emph{DESCRIBE}, which usually return a set of RDF triples that describes the matching patterns.The results depend on implementation \autocite{Picalausa2011-ca}. 
+    \item \emph{SELECT}: used to extract values from a \gls{RDF} graph. The result is a set of bindings;
+    \item \emph{ASK}: returns a boolean, true if there was a match between the \emph{graph pattern} and the \gls{RDF} graph, false otherwise; 
+    \item \emph{CONSTRUCT}: we specify two \emph{graph patterns}, one to fetch \emph{bindings} and another to use as template for constructing new triples, from the values in the \emph{bindings}. The final result is the set of newly generated triples.
+    \item \emph{DESCRIBE}: results depend on implementation \autocite{Picalausa2011-ca}, but usually returns a set of RDF triples describing the matching patterns. 
 \end{itemize}
 
-In listing \ref{listing-sparql-example} we show a simple query. However, \gls{SPARQL} provides additional features for more complex queries (listings \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example}): definition of the disjunction and conjunction of triple patterns, using the keywords \emph{UNION} and \emph{AND}; definition of optional patterns, using the \emph{OPTIONAL} construct; filtering bindings, using the \emph{FILTER} construct; elimination of duplicates with \emph{DISTINCT}; application of aggregate and various functions to variables; matching 
-regex patterns; ordering of results with \emph{ORDER BY}; and, usage of named graphs, with the \emph{FROM} and \emph{FROM NAMED} constructs.
+In the following listings \ref{listing-sparql-example}, \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example} we show a few query examples.
 
 \begin{lstlisting}[language=XML, caption={Simple \gls{SPARQL} example}, label={listing-sparql-example}]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -424,6 +435,14 @@ WHERE
 
 Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options for inserting, publishing and deleting data in triplestores. For operations over the \gls{HTTP}, \emph{\gls{SPARQL} 1.1 graph store \gls{HTTP} protocol} has similar, but more limited, features\footnote{Full examples and syntax can be found in the \gls{W3C} recommendations.}.
 
+\mytodo{add SPARQL update operations}
+
+%The INSERT DATA operation adds some triples, given inline in the request, into a graph. This SHOULD create the destination graph if it does not exist. If the graph does not exist and it can not be created for any reason, then a failure MUST be returned.
+%The DELETE DATA operation removes some triples, given inline in the request, if the respective graph contains those.
+%The fundamental pattern-based actions for graph updates are INSERT and DELETE (which can co-occur in a single DELETE/INSERT operation). These actions consist of groups of triples to be deleted and groups of triples to be added. The specification of the triples is based on query patterns. The difference between INSERT / DELETE and INSERT DATA / DELETE DATA is that INSERT DATA and DELETE DATA do not substitute bindings into a template from a pattern. The DATA forms require concrete data (triple templates containing variables within DELETE DATA and INSERT DATA operations are disallowed and blank nodes are disallowed within DELETE DATA, see Notes 8+9 in the grammar).  Having specific operations for concrete data means that a request can be streamed so that large, pure-data updates can be done.
+%The LOAD operation reads the contents of a document representing a graph into a graph in the Graph Store.
+%The CLEAR operation removes all the triples in (one or more) graphs. 
+
 
 \subsection{Tools \& Development Software for Ontologies}
 \label{ch2:sec:semantic-web:tools}
@@ -439,7 +458,6 @@ Finally, for developers, many \gls{API}s \autocite{Owlcs_undated-im} or full fra
 
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
-%Give broad overview, simmilar to context in chapter 1. Start with ORam, homomorphic then SE. 
 In Section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over cloud or other distributed networks.
 
 In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. As such an adversary will follow the protocol properly but keep a record of all intermediate computations \autocite{Goldreich2001-sr} in an attempt to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. Security concerns should take into account the operation history, data stored in the server and also the memory access pattern, as the adversary will have access to all of this information.
@@ -668,7 +686,7 @@ The following images provide, respectively, an overview of the different onions 
 \mytodo{Add query flow image}
 \mytodo{Add onion encryption image}
 
-\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer cypher queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle cypher queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the cypher language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
+\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
 \subsubsection{\gls{GOOSE}}
 
