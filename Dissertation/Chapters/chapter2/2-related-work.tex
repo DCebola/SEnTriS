@@ -711,13 +711,22 @@ The following images provide, respectively, an overview of the different onions 
 
 \subsubsection{\gls{GOOSE}}
 
-\gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution uses secure multiparty computation techniques, encryption schemes and a standard SPARQL engine.
+\gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution relies on secure multiparty computation techniques, encryption schemes and a standard SPARQL engine. The authors prove the security and correctness guarantees of \gls{GOOSE} in an \emph{honest-but-curious} adversary setting.
 
-\paragraph{Security Guaranties}
-\paragraph{System Architecture}
+\paragraph{Security Model}
+%We assume that the cloud is honest-but-curious
+%As already outlined in the introduction and in Fig.1, we assume that the data (i.e., the graph) and the computations (i.e., the query evaluation algorithm) are outsourced. More precisely, the data owner outsources the graph G to the cloud once at the beginning. Then, the user sends query Q1 to the cloud and receives Ans(G, Q1), then the user sends query Q2 to the cloud and receives Ans(G, Q2), Etc. The user does not have to do any query evaluation on her side. We expect the following security properties:
+%1.  No cloud node can learn the graph G.
+%2.  No cloud node can learn at the same time a query Q submitted by the user and the answers Ans(G, Q) of the query Q on the graph G.
+%3.  By analyzing network messages, an external observer cannot learn the graph G, cannot learn any query Q, and cannot learn any Ans(G, Q).
 
 
-\mytodo{Describe protocol. Describe security guaranties}
+\paragraph{The Protocol}
+%data owner (DO), who owns the graph that it outsources to the cloud in order to be queried, user (U), who submits graph queries to the cloud and receives query answers, and 3 cloud participants: query translator (QT), SPARQL engine (SE) and answers translator (AT).
+%Add system arquitecure figure
+%Add mathematical definition of a query (so that we can explain the algorithm)
+%Explain 4 steps , refeer 
+%Write pseudocode
 
 \subsubsection{$HDT_{crypt}$}
 
