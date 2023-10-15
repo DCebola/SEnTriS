@@ -180,6 +180,8 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
     \label{tbl:rdfs-properties}
 \end{table}
 
+\pagebreak
+
 \subsection{OWL2: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}
 
@@ -324,53 +326,71 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
 
-\gls{RDF} triples are stored in \emph{triple stores}, specialized databases for this type of data. The underlying architecture of such databases varies, from relational to NoSQL approaches \autocite{Cure2014-vm, Modoni2014-cz}. The recommended query language to use is \gls{SPARQL} \autocite{W3c2013-hd}. It provides a range of operations over published \gls{RDF} graphs, accessible via SPARQL endpoints: from read queries \autocite{W3c2008-vf} to write operations \autocite{W3c_undated-tw, W3c2013-rr}.
+\gls{RDF} triples are stored in \emph{triple stores}, specialized databases for this type of data. The underlying architecture of such databases varies, from relational to NoSQL approaches \autocite{Cure2014-vm, Modoni2014-cz}. The recommended query language to use is \gls{SPARQL} \autocite{W3c2013-hd}. It provides a range of operations over published \gls{RDF} graphs, accessible via SPARQL endpoints: from read queries \autocite{W3c2008-vf} to write operations \autocite{W3c_undated-tw, W3c2013-rr}. 
 
 \subsubsection{SPARQL Queries}
+In this section we will mathematically define core components of \emph{SPARQL}, briefly discuss the basis of functioning for this type of queries, explain how they are evaluated, given the semantics of \emph{graph patterns}, and cover their syntax. 
 
 \paragraph{Defining an RDF dataset} Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
 
-Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G_{default}, G_{d_{i}}, G_{d_{i+1}}, ..., G_{d_{i+n}}\}$, where $n \in \mathbb{Z}^{+}$ and every element $d_i \in I \cup B$ \autocite{Picalausa2011-ca}.
+Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G, \gamma\}$, where $\gamma$ is a function which assigns a named graph $\gamma(i)$ to each $i$ in a finite set $dom(\gamma) \in I \cup B$ \autocite{Picalausa2011-ca, noauthor_undated-ev}.
 
 
-\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{SELECT, ASK, CONSTRUCT, DESCRIBE\}$, a \gls{SPARQL} query can be defined as a tuple $q = (qt,d,m,P)$ where $qt \in T$ is the \emph{query type}, $d \in I$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P$ is a \emph{graph pattern}.                    
+\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
 
 
 \paragraph{Defining a graph pattern} Let $V = \{?v_i,?v_{i + 1},...,?v_{i + n}\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
-    P ::= \;\; & tp \;\;|\;\; pp \;\;|\;\; q \;\;|\;\; P_1\; .\; P_2 \;\;|\;\; P\; FILTER\; R \;\;|\;\; P_1\; UNION\; P_2 \;\;|\;\; P_1\; OPTIONAL\; P_2 \;\;|\;\; \\ 
-    & P_1\; MINUS\; P_2 \;\;|\;\; Graph\; i\; P \;\;|\;\; Graph\; v?\; P
+    P ::= \;\; & tp \;\;\vert\;\; pp \;\;\vert\;\; q \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P\; \textrm{FILTER}\; R \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; \\ 
+    & P_1\; \textrm{MINUS}\; P_2 \;\;\vert\;\; \textrm{Graph}\; i\; P \;\;\vert\;\; \textrm{Graph}\; v?\; P
     \end{split}
 \end{equation}
 
 
 Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint\footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we'll define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
 
+\paragraph{How do \gls{SPARQL} queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
 
-\paragraph{Semantics of \gls{SPARQL} graph pattern} A \emph{mapping} $\mu$ is a partial function $\mu : \; V \to \; I \cup U \cup L$ that assigns values to a finite set of variables. The domain of $\mu$, denoted by $dom(\mu)$, is the subset of $V$ where $\mu$ is defined. 
+The basis of \gls{SPARQL} queries is finding matches with \emph{graph patterns} in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the \emph{subgraph isomorphism problem}, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. 
+
+In the context of a \gls{SPARQL} query $q$, $G_1$ is a published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to a \emph{graph pattern} $P_q$. From this match we obtain a set of \emph{bindings}: a multiset of mappings between $vars(P)$ and data within $G_d$. The final result of a query will also depend on $t_q$, the \emph{query type}, and $m$, the specified \emph{solution modifiers} (i.e. aggregation, grouping, sorting, duplicate removal). 
+
+
+\paragraph{Semantics of \gls{SPARQL} graph patterns} A \emph{mapping} $\mu$ is a partial function $\mu : \; V \to \; I \cup B \cup L$ that assigns values to a finite set of variables. The domain of $\mu$, denoted by $dom(\mu)$, is the subset of $V$ where $\mu$ is defined. 
 
 Two \emph{mappings} $\mu_1$ and $\mu_2$ are compatible, denoted by $\mu_1 \sim \mu_2$, if $\mu_1(?v) = \mu_2(?v)$ for all common variables $?v \in dom(\mu_1) \cap dom(\mu_2)$.
 
-Abusing notation, we define $t = \mu(tp)$ as the triple obtained after replacing the variables in the \emph{triple pattern} $tp$ according to $\mu$ \autocite{Letelier2013-rs, Picalausa2011-ca}.
+Abusing notation, we define $t = \mu(tp)$ as the triple obtained after replacing the variables in the \emph{triple pattern} $tp$ according to $\mu$ \autocite{Letelier2013-rs, Picalausa2011-ca}. Finally, let $\mu \vDash R$ represent a mapping that satisfies a filter condition $R$.
 
-We define join, union, difference, and left outer join on two sets of mappings $\Omega_1$ and $\Omega_2$ as follows:
+We define the \emph{join}, \emph{union}, \emph{difference}, and \emph{left outer join} operations on two sets of mappings $\Omega_1$ and $\Omega_2$ as follows:
 
-%view in paper
+\begin{equation}
+    \begin{split} 
+    & \Omega_1 \Join \; \Omega_2 = \{ \mu_1 \cup \mu_2 \;\vert\; \mu_1 \in \Omega_1 ,\; \mu_2 \in \Omega_2,\; \mu_1 \sim \mu_2 \} \\ 
+    & \Omega_1 \cup \; \Omega_2 = \{ \mu \;\vert\; \mu \in \Omega_1 \vee \mu \in \Omega_2 \} \\
+    & \Omega_1 - \; \Omega_2 = \{ \mu_1 \in \Omega_1 \;\vert\; \forall \mu_2 \in \Omega_2,\; \mu_1 \nsim \mu_2 \} \\
+    & \Omega_1 \leftouterjoin \; \Omega_2 = (\Omega_1 \Join \Omega_2) \; \cup \; (\Omega_1 - \; \Omega_2) \\
+    \end{split}
+\end{equation}
 
-%Semantically,  each graph pattern P evaluates to a set of mappings PD when evaluated on an RDF dataset D = (G, γ). This semantics is inductively defined as follows. Let μ |= R denote that μ satisfies filter condition R, as defined in [12].
+The semantic evaluation of $P$ over a dataset $D$ is a set of mappings $\llbracket P \rrbracket_D$. Inductively, we define it as:
 
-%view in paper
-
-
-
-\paragraph{How do \gls{SPARQL} queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
-
-The basis of \gls{SPARQL} queries is finding matches with \emph{graph patterns}, in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the \emph{subgraph isomorphism problem}, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. 
-
-In the context of a \gls{SPARQL} query $q$, $G_1$ is the published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to $P$. From this match we obtain a set of \emph{bindings}: a multiset of mappings between $vars(P)$ and data within $G_d$. The final result of a query will also depend on $t$, the \emph{query type}, and $m$, the specified \emph{solution modifiers} (i.e. aggregation, grouping, sorting, duplicate removal). 
-
+\begin{equation}
+    \begin{split} 
+    & \llbracket tp \rrbracket_D = \{ \mu \;\vert\; dom(\mu) = vars(tp) \wedge \mu(tp) \in G_D \}\\
+    & \llbracket pp \rrbracket_D = \{ \mu \;\vert\; dom(\mu) = vars(pp) \wedge \mu(pp) \in G_D \}\\
+    & \llbracket q \rrbracket_D = \{ \mu \;\vert\; dom(\mu) = vars(P_q) \wedge \mu(P_q) \in G_D \}\\
+    & \llbracket P_1 \;.\; P_2 \rrbracket_D = \llbracket P_1 \rrbracket_D \Join \llbracket P_2 \rrbracket_D \\
+    & \llbracket P_1 \;\textrm{UNION}\; P_2 \rrbracket_D = \llbracket P_1 \rrbracket_D \cup \;\llbracket P_2 \rrbracket_D \\
+    & \llbracket P_1 \;\textrm{OPTIONAL}\; P_2 \rrbracket_D = \llbracket P_1 \rrbracket_D \leftouterjoin \; \llbracket P_2 \rrbracket_D \\
+    & \llbracket P_1 \;\textrm{MINUS}\; P_2 \rrbracket_D = \llbracket P_1 \rrbracket_D - \; \llbracket P_2 \rrbracket_D \\
+    & \llbracket P_1 \;\textrm{FILTER}\; R \rrbracket_D = \{ \mu \in \llbracket P \rrbracket_D \;\vert\; \mu \vDash R \} \\
+    & \llbracket \textrm{Graph} \;i\; P\rrbracket_D = \{ \mu \in \llbracket P \rrbracket_{(\gamma(i), \gamma)} \;\vert\; i \in dom(\gamma) \}\\
+    & \llbracket \textrm{Graph} \;?v\; P\rrbracket_D = \bigcup_{i \; \in \; dom(\gamma)} \{ ?v \to i \} \Join \llbracket P \rrbracket_{(\gamma(i), \gamma)} \\
+    \end{split}
+\end{equation}
 
 \paragraph{Syntax}
 
@@ -380,13 +400,13 @@ The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides 
 \begin{itemize}
     \item \emph{SELECT}: used to extract values from a \gls{RDF} graph. The result is a set of bindings;
     \item \emph{ASK}: returns a boolean, true if there was a match between the \emph{graph pattern} and the \gls{RDF} graph, false otherwise; 
-    \item \emph{CONSTRUCT}: we specify two \emph{graph patterns}, one to fetch \emph{bindings} and another to use as template for constructing new triples, from the values in the \emph{bindings}. The final result is the set of newly generated triples.
+    \item \emph{CONSTRUCT}: we specify two \emph{graph patterns}, one to fetch \emph{bindings} and another to use as a template for constructing new triples, from the values in the \emph{bindings}. The final result is the set of newly generated triples.
     \item \emph{DESCRIBE}: results depend on implementation \autocite{Picalausa2011-ca}, but usually returns a set of RDF triples describing the matching patterns. 
 \end{itemize}
 
 In the following listings \ref{listing-sparql-example}, \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example} we show a few query examples.
 
-\begin{lstlisting}[language=XML, caption={Simple \gls{SPARQL} example}, label={listing-sparql-example}]
+\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with a conjuntion pattern}, label={listing-sparql-example}]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix fct: <http://www.my-custom-domain/fct.ttl>
 
@@ -396,12 +416,12 @@ SELECT ?opt_course ?man_course ?popular_course
 WHERE
 {
     ?opt_course rdf:type fct:Optional .
-    ?man_course rdf:type fct:Mandatory .
+    ?man_course rdf:type fct:Mandatory
 }
 
 \end{lstlisting}
 
-\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with filters and modifiers example}, label={listing-sparql-modifiers-example}]
+\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with filters and modifiers}, label={listing-sparql-modifiers-example}]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix fct: <http://www.my-custom-domain/fct.ttl>
 
@@ -410,14 +430,16 @@ SELECT DISTINCT ?popular_course
 # Query Pattern
 WHERE
 {
-    ?popular_course fct:hasStudentEnrolled ?num_students
-    FILTER (?num_students > 60).
+    ?popular_course fct:hasStudentEnrolled ?num_students .
+    FILTER (?num_students > 60)
 }
 # Optional Modifiers
 LIMIT 20
 \end{lstlisting}
 
-\begin{lstlisting}[language=XML, caption={\gls{SPARQL} a more complex pattern example}, label={listing-sparql-complex-example}]
+\pagebreak
+
+\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with a disjunction pattern}, label={listing-sparql-complex-example}]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix fct: <http://www.my-custom-domain/fct.ttl>
 @prefix nova: <http://www.my-custom-domain/nova.ttl>
@@ -433,15 +455,14 @@ WHERE
 }
 \end{lstlisting}
 
-Besides read operations, \emph{\gls{SPARQL} Update}, provides additional options for inserting, publishing and deleting data in triplestores. For operations over the \gls{HTTP}, \emph{\gls{SPARQL} 1.1 graph store \gls{HTTP} protocol} has similar, but more limited, features\footnote{Full examples and syntax can be found in the \gls{W3C} recommendations.}.
+Besides read operations, \emph{\gls{SPARQL} Update} \autocite{W3c_undated-tw}, provides additional options for inserting, publishing and deleting data in triplestores:
 
-\mytodo{add SPARQL update operations}
-
-%The INSERT DATA operation adds some triples, given inline in the request, into a graph. This SHOULD create the destination graph if it does not exist. If the graph does not exist and it can not be created for any reason, then a failure MUST be returned.
-%The DELETE DATA operation removes some triples, given inline in the request, if the respective graph contains those.
-%The fundamental pattern-based actions for graph updates are INSERT and DELETE (which can co-occur in a single DELETE/INSERT operation). These actions consist of groups of triples to be deleted and groups of triples to be added. The specification of the triples is based on query patterns. The difference between INSERT / DELETE and INSERT DATA / DELETE DATA is that INSERT DATA and DELETE DATA do not substitute bindings into a template from a pattern. The DATA forms require concrete data (triple templates containing variables within DELETE DATA and INSERT DATA operations are disallowed and blank nodes are disallowed within DELETE DATA, see Notes 8+9 in the grammar).  Having specific operations for concrete data means that a request can be streamed so that large, pure-data updates can be done.
-%The LOAD operation reads the contents of a document representing a graph into a graph in the Graph Store.
-%The CLEAR operation removes all the triples in (one or more) graphs. 
+\begin{itemize}
+    \item \emph{INSERT}/\emph{DELETE}: these operations add and delete, respectively, newly generated triples, based on a template, into a destination graph (if it does not exist it should be created). Like in a \emph{CONSTRUCT} query we specify two \emph{graph patterns}, one to fetch bindings and another to use as a template for constructing triples. We can join both operations, in this situation we specify three \emph{graph patterns}, two to use as templates to generate the triples to be inserted or deleted and a third one to fetch bindings.
+    \item \emph{INSERT}/\emph{DELETE DATA}: similar to their pattern-based variants, but in these operations we specify concrete data inline.
+    \item \emph{LOAD}: used to read the contents of a document that represents a graph and saves it into a destination graph in a triplestore.
+    \item \emph{CLEAR}: this operation removes all the triples in the specified graphs. 
+\end{itemize}
 
 
 \subsection{Tools \& Development Software for Ontologies}
@@ -585,10 +606,10 @@ Both require that only the outcome of search patterns may be leaked. Additionall
 
 First, the plaintext is divided into \emph{fixed-size} blocks $w_i$ and each one is encrypted with a \emph{deterministic}\footnote{Deterministic encryption leaks  message  equality.} encryption algorithm $Enc$, using key $k$. The ciphertexts $X_{i} = Enc_{k}(w_{i})$ are split into two parts $X_{i}=\langle l_{i},r_{i}\rangle$. Using a \emph{stream cipher}\footnote{For information on stream ciphers we recommend reading chapter 8.4 of \autocite{Pearson2017-ve}.} as a \gls{PRF}, a pseudo-random string of bytes $S_{i}=PRF_{k'}(i)$ is generated from the index position using key $k' \neq k$. Then, a hash $Y_{i} = \langle S_{i},F_{k_{i}}(S_{i})\rangle$ of this string of bytes is computed using a keyed hash function $F_{k_{i}}$, where the key is the output of a pseudo-random function $k_{i}=PRF_{k''}(l_{i})$ that takes $l_{i}$ as an input, with key $k''' \neq k''$. Finally, we compute the \emph{XOR} of $X_{i}$ with $S_{i}$ to generate the final ciphertexts $C_{i} = X_{i} \oplus Y_{i}$.
 
-To search, we generate trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}(w) = \langle L, R \rangle$ is the encryption of keyword $w$ and $K_{s}=PRF_{k''}(L)$. A server searches for the keyword in a document by iterating over all ciphertexts $C_{i}$, computing $C_{i} \oplus X$ and checking if the output is of the form $\langle S, PRF_{K_{s}}(S) \rangle$ for some $S$.
+To search, we generate a trapdoor $T = \langle X, K_{s} \rangle$, where $X = E_{k}(w) = \langle L, R \rangle$ is the encryption of keyword $w$ and $K_{s}=PRF_{k''}(L)$. A server searches for the keyword in a document by iterating over all ciphertexts $C_{i}$, computing $C_{i} \oplus X$ and checking if the output is of the form $\langle S, PRF_{K_{s}}(S) \rangle$ for some $S$.
 
 A security analysis of the scheme reveals that it leaks keyword position in the
-document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can inferred).
+document. It is also susceptible to statistical attacks (e.g. after various searches, the words in the document can be inferred).
 
 
 \paragraph{Curtmola et al.} In 2006, two new schemes, for non-adaptive and adaptive adversaries, where proposed \autocite{Curtmola2011-hi}. Each one is, respectively, at least \gls{IND-CKA1} and \gls{IND-CKA2} secure. The idea behind these was to use an \emph{inverted index}, which is an index per distinct word in the database, not per document. 
@@ -597,13 +618,13 @@ document. It is also susceptible to statistical attacks (e.g. after various sear
 
 To build $A$, we start by constructing the nodes. These nodes are encrypted, stored in random order (using permutations) and augmented with information do find and decrypt the next node in the list. The augmentation step happens before the encryption of the node. Each node $n_{i,j} = \langle id_{m}, k_{next}, p_{next} \, || \, \varnothing \rangle$, includes information about the $id$ of document $m$ ($0 \leq m \leq n$) which contains the keyword, a randomly generated key used to encrypt the next node and a pointer to the next node in the list, or $\varnothing$ if it is the last one. The randomized disposition of the nodes, hides the length of the lists.
 
-The look-up table $I$ associates each keyword $w_{i}$ with the node $n_{i,0} = \langle k_{i,1}, p_{i,1} \rangle \oplus PRF_{k}(w_{i})$ stored in a random position using a \gls{PRP}, $PRP_{k'}(w_{i})$, where $k \neq k'$. This node contains the encryption key and the pointer to the first node of the linked list $L_{i}$.
+The look-up table $I$ associates each keyword $w_{i}$ with the node $n_{i,0} = \langle k_{i,1}, p_{i,1} \rangle \oplus PRF_{k}(w_{i})$ stored in a random position using a \gls{PRP}, \linebreak$PRP_{k'}(w_{i})$, where $k \neq k'$. This node contains the encryption key and the pointer to the first node of the linked list $L_{i}$.
 
 To search, we generate trapdoor $T_{w}=\langle PRF_{k}(w), PRP_{k'}(w)\rangle$. The server uses the trapdoor to find the correct node $n_{i,0} = T[PRP_{k'}(w)]$ and then retrieve all the identifiers of the documents that contain the keyword.
 
 \emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing the $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
 
-To search, we generate the trapdoor $T_{w}= (t_{1},...,t{n}) = (PRP_{k}(w \, | \, str(1)),\cdots,PRP_{k}(w \, | \, str(n)))$. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
+We generate the trapdoor $T_{w}= (t_{1},\;\cdots,\;t{n}) = (PRP_{k}(w \; | \; str(1)),\;\cdots,\;PRP_{k}(w \;|\; str(n)))$ to search. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
 
 \paragraph{Generalization to the Dynamic Setting} The previous schemes where considered static, as they do not allow modifications on the database after setting up the scheme. In 2012, Kamara et al. \autocite{Kamara2012-lm} proposed a \emph{dynamic} extension to the \emph{non-adaptive} scheme in \autocite{Curtmola2011-hi}. They used a \emph{deletion} array to track the positions on the search array that needed to be modified, after an update. They encrypted the array pointers, using homomorphic encryption, to support modifications on their values without decryption.
 
@@ -629,7 +650,7 @@ One of the simplest works in the field focuses solely on protecting individuals 
 
 This work researched the implementation of access control in RDF datasets \autocite{Fernandez2017-bh} through the use of functional encryption \autocite{Boneh2010-bw}.
 
-\paragraph{Encryption Scheme} In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: iff \:\:\:\sum^n_{i = 1} y_ix_i = 0$
+\paragraph{Encryption Scheme} In the proposed encryption scheme, functions correspond to the computation of inner-products over $\mathbb{Z}_N$. The set of possible ciphertext attributes of length $n$ is $\sum = \mathbb{Z}^n_N$ and the class of decryption key functions is $F =\{ f_{\overrightarrow{x}} \; | \; \overrightarrow{x} \in \mathbb{Z}^n_N\}$. An attribute vector $\overrightarrow{y} \in F$ is associated with each ciphertext. A decryption key is a vector $\overrightarrow{x}$ such that $f_{\overrightarrow{x}}(y) = 1 \:\:\: \textrm{\emph{iff}} \:\:\:\sum^n_{i = 1} y_ix_i = 0$
 
 To encrypt an RDF triple $t_i = (s_i,p_i,o_i)$ we functionally encrypt a random seed $m_{t_i}$, with an attribute vector $\overrightarrow{y}_{t_i} = (y_{s_i},y'_{s_i},y_{p_i},y'_{p_i},y_{o_i},y'_{o_i})$ such that $\overrightarrow{y}_l = -r \cdot \sigma(l), \:\: y'_l := r, \:\: l \in \{s,p,o\}$ with $\sigma$ being a function that maps a triple's subject, predicate and object to a value in $\mathbb{Z}_N$, and $r$ a random value also in $\mathbb{Z}_N$
 
