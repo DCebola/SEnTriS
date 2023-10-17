@@ -339,7 +339,7 @@ Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edg
 \paragraph{Defining a \gls{SPARQL} Query} Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
 
 
-\paragraph{Defining a graph pattern} Let $V = \{?v_i,?v_{i + 1},...,?v_{i + n}\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
+\paragraph{Defining a graph pattern} Let $V = \{?v_0,?v_1,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}_0$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
@@ -666,7 +666,7 @@ Only if the result of the inner product is 0 can we decrypt the seed, derive the
 
 The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ (unbound values correspond to $h(?)$). Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding ID.
 
-The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"|"os",s,o)$.
+The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"\;\vert\;"os",\;s,\;o)$.
 
 \mytodo{Add image with both index schemes}
 
@@ -711,22 +711,37 @@ The following images provide, respectively, an overview of the different onions 
 
 \subsubsection{\gls{GOOSE}}
 
-\gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution relies on secure multiparty computation techniques, encryption schemes and a standard SPARQL engine. The authors prove the security and correctness guarantees of \gls{GOOSE} in an \emph{honest-but-curious} adversary setting.
+\gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution relies on secure multiparty computation techniques, encryption schemes and a standard SPARQL engine. 
+
+\gls{GOOSE} was designed as a distributed system with 5 participants: a \emph{data owner} (DO), who owns the outsourced graph $G$; a \emph{user} (U), who submits graph queries against $G$ and receives query answers; a \emph{query translator} (QT); \emph{answer translator} (AT); and a \emph{\gls{SPARQL} engine} (SE).
+
+\mytodo{Add protocol image}
+
+\paragraph{Preliminaries}
+
+Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} encryption using a shared key between participants A and B. Let the outsourced \gls{RDF} graph be $G = (V, E)$ where $V$ is a set of nodes and $E \in V \times \Sigma \times V$ is a set of directed edges between the nodes, labeled using the alphabet $\Sigma$. Let $\sigma_V: V \to \{0,\:\cdots,\: \vert V \vert - 1\}$ and $\sigma_\Sigma : \Sigma \to \{0,\:\cdots,\: \vert \Sigma \vert - 1\}$ be two random bijections, respectively, for the edges and nodes, and let $\sigma^{-1}$ represent the inverse of $\sigma$. The hidden set of edges from $E$ is defined as $\hat{E} = \{(\sigma_V(s), \sigma_\Sigma(p), \sigma_V(o)) \;\vert\; (s, p, o) \in E\}$.
+
+\mytodo{Add UCRPQ queries definition}
+
+\paragraph{Graph outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. It then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
+
+\paragraph{Query Evaluation} In \gls{GOOSE}, query evaluation is a four steps process: 
+
+\begin{enumerate}
+    \item First, the \emph{user} generates a query $q$ and sends $\textrm{ENC}_{U\_QT}(q)$ to the \emph{query translator}. 
+    \item The \emph{query translator} generates $\hat{q}$ by applying the $\sigma_\Sigma$ function to all predicates in $q$. $\textrm{ENC}_{QT\_SE}(\hat{q})$ is sent to the \emph{\gls{SPARQL} engine}.
+    \item The \emph{\gls{SPARQL} engine} evaluates $\hat{q}$ over $\hat{G} = (\bigcup_{(\hat{s},\hat{p}, \hat{o}) \in \hat{E}} \{\hat{s},\hat{o}\}, \hat{E})$ obtaining the answer $ans(\hat{G}, \hat{q})$. It then sends $\textrm{ENC}_{SE\_AT}(ans(\hat{G}, \hat{q}))$ to the \emph{answer translator}.
+    \item The \emph{answer translator} deobfuscates $ans(\hat{G}, \hat{q})$ using ${\sigma_V}^{-1}$ and generates the final answer $ans(G, q)$. It then sends $\textrm{ENC}_{AT\_U}(ans(G, q))$ to the \emph{user}.
+\end{enumerate}
 
 \paragraph{Security Model}
-%We assume that the cloud is honest-but-curious
-%As already outlined in the introduction and in Fig.1, we assume that the data (i.e., the graph) and the computations (i.e., the query evaluation algorithm) are outsourced. More precisely, the data owner outsources the graph G to the cloud once at the beginning. Then, the user sends query Q1 to the cloud and receives Ans(G, Q1), then the user sends query Q2 to the cloud and receives Ans(G, Q2), Etc. The user does not have to do any query evaluation on her side. We expect the following security properties:
-%1.  No cloud node can learn the graph G.
-%2.  No cloud node can learn at the same time a query Q submitted by the user and the answers Ans(G, Q) of the query Q on the graph G.
-%3.  By analyzing network messages, an external observer cannot learn the graph G, cannot learn any query Q, and cannot learn any Ans(G, Q).
+\gls{GOOSE} is designed to be secure against \emph{honest-but-curious} adversaries. It is assumed that data and computations are outsourced to external servers. The solution is expected to have the following security properties, which have been formally proven by the authors: 
 
-
-\paragraph{The Protocol}
-%data owner (DO), who owns the graph that it outsources to the cloud in order to be queried, user (U), who submits graph queries to the cloud and receives query answers, and 3 cloud participants: query translator (QT), SPARQL engine (SE) and answers translator (AT).
-%Add system arquitecure figure
-%Add mathematical definition of a query (so that we can explain the algorithm)
-%Explain 4 steps , refeer 
-%Write pseudocode
+\begin{enumerate}
+    \item No cloud node can learn $G$.
+    \item Let $q$ be a query submitted by a user and $ans(G, q)$ the answer of the query on the graph $G$. No cloud node can learn simultaneously $q$ and $ans(G, q)$.
+    \item An external observer cannot learn $G$, any query $q$ nor answer $ans(G, q)$ by analyzing the network messages.
+\end{enumerate}
 
 \subsubsection{$HDT_{crypt}$}
 
