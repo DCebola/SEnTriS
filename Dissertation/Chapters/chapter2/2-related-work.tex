@@ -339,7 +339,7 @@ Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edg
 \paragraph{Defining a \gls{SPARQL} Query} Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
 
 
-\paragraph{Defining a graph pattern} Let $V = \{?v_0,?v_1,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}_0$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
+\paragraph{Defining a graph pattern} Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
@@ -719,9 +719,13 @@ The following images provide, respectively, an overview of the different onions 
 
 \paragraph{Preliminaries}
 
-Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} encryption using a shared key between participants A and B. Let the outsourced \gls{RDF} graph be $G = (V, E)$ where $V$ is a set of nodes and $E \in V \times \Sigma \times V$ is a set of directed edges between the nodes, labeled using the alphabet $\Sigma$. Let $\sigma_V: V \to \{0,\:\cdots,\: \vert V \vert - 1\}$ and $\sigma_\Sigma : \Sigma \to \{0,\:\cdots,\: \vert \Sigma \vert - 1\}$ be two random bijections, respectively, for the edges and nodes, and let $\sigma^{-1}$ represent the inverse of $\sigma$. The hidden set of edges from $E$ is defined as $\hat{E} = \{(\sigma_V(s), \sigma_\Sigma(p), \sigma_V(o)) \;\vert\; (s, p, o) \in E\}$.
+Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} encryption using a shared key between participants A and B. 
 
-\mytodo{Add UCRPQ queries definition}
+Let the outsourced \gls{RDF} graph be $G = (N, E)$ where $N$ is a set of nodes and $E \in N \times \Sigma \times N$ is a set of directed edges between the nodes, labeled using the alphabet $\Sigma$. Let $\sigma_N: N \to \{0,\:\cdots,\: \vert N \vert - 1\}$ and $\sigma_\Sigma : \Sigma \to \{0,\;\cdots,\; \vert \Sigma \vert - 1\}$ be two random bijections, respectively, for the edges and nodes, and let $\sigma^{-1}$ represent the inverse of $\sigma$. The hidden set of edges from $E$ is defined as $\hat{E} = \{(\sigma_N(s), \sigma_\Sigma(p), \sigma_N(o)) \;\vert\; (s, p, o) \in E\}$.
+
+Consider $\Sigma^+= \{a, a^- \;\vert\; a \in \Sigma \}$, $a^-$ denotes the inverse of the edge label $a$. Let $V = \{?v_0,...,?v_ n\}$, with $n \in \mathbb{Z}^{+}$, be a set of variables. A \emph{query rule} is an expression of the form \emph{head} $\leftarrow$ \emph{body} defined as $(\overline{?v}) \leftarrow (?v_0, r_0, ?v_1),\cdots,(?v_{n+1}, r_n, ?v_{n+2} )$, where, for every $i \in \mathbb{Z}_0^{+}$, $r_i$ is a regular expression over $\Sigma^+$ using $\{\cdot, + , \ast\}$ and $\overline{?v}$ is a vector composed by a subset of the variables from the \emph{body}. The length of this vector is the \emph{arity} of the rule. 
+
+A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with the same \emph{arity}. The answer of a query $q$ evaluated against a graph $G$, using standard \gls{SPARQL} semantics, is denoted as $ans(G, q)$.
 
 \paragraph{Graph outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. It then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
 
@@ -742,12 +746,6 @@ Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} 
     \item Let $q$ be a query submitted by a user and $ans(G, q)$ the answer of the query on the graph $G$. No cloud node can learn simultaneously $q$ and $ans(G, q)$.
     \item An external observer cannot learn $G$, any query $q$ nor answer $ans(G, q)$ by analyzing the network messages.
 \end{enumerate}
-
-\subsubsection{$HDT_{crypt}$}
-
-The $HDT_{crypt}$ \autocite{Fernandez2020-fc} solution combines RDF compression with encryption. It is capable of efficient storage, but can only perform simple triple pattern search (joins and other complex operations need to be performed by the client).
-
-\mytodo{Describe successintly hdt tables, how to encrypt}
 
 \subsubsection{Discussion}
 \label{ch2:sec:semantic-data:discussion}
