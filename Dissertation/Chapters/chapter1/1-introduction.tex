@@ -58,7 +58,7 @@ Recent developments do not require pre-computation of all query answers. The \em
 
 Another work, focused on access control for RDF datasets, did also implement a solution for retrieving simple triple patterns over an encrypted dataset, but, due to performance needs, hashes were used for indexing the encrypted triples. This leaks the structure of the dataset, which they tried to mitigate by creating dummy triples \cite{Fernandez2017-bh}.
 
-The \gls{GOOSE} \cite{Ciucanu2020-lx} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic encryption is used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries.
+The \gls{GOOSE} \cite{Ciucanu2020-lx} framework, demonstrates how to use multiparty computation techniques to answer \gls{UCRPQ} over encrypted graphs, only relying on a standard SPARQL engine. But deterministic data obfuscation techniques are used, and therefore the structure of the graph is also leaked. This framework only focuses on SPARQL read queries.
 
 Although, a lot of progress has been made in this field of research there are still various open questions. In this thesis, we will focus on answering the following questions:
 
@@ -85,13 +85,13 @@ In this thesis we aim to develop a practical and secure solution for the collabo
 
 
 \begin{description}
-    \item [SEnTri - A Searchable Encrypted Triplestore] 
+    \item [\gls{SEnTri}] 
     
-    SEnTri is a searchable encrypted triplestore that can evaluate secure SPARQL read and write queries, possesses reasoning capabilities and supports role based access control.
+    \gls{SEnTri} is a searchable encrypted triplestore that can evaluate secure SPARQL read and write queries, possesses reasoning capabilities and supports role based access control.
     
     \item [P1, P2 - Two secure SPARQL evaluation protocols]
     
-    We developed two secure \gls{SSE} protocols for the evaluation of \gls{SPARQL} queries, in a dynamic and multi-user setting. The main distinction between the two protocols is in the equality function used in join operations. The first protocol relies on deterministic encryption whereas the second protocol uses additive homomorphic encryption.
+    We developed two secure \gls{SSE} protocols for the evaluation of \gls{SPARQL} queries, in a dynamic and multi-user setting. The main distinction between the two protocols is in the equality function used in join operations. The first protocol relies on deterministic encryption whereas the second protocol uses additive homomorphic encryption. The use of non-deterministic encryption mitigates information leakage.
     
     \item [A secure equality join over non-deterministic values]
     For the second protocol we developed a novel equality join, which operates over non-deterministic values, which we denominate $Eq_{Tags}$. These values are encrypted using the DGK cryptosystem, an additive homomorphic scheme developed for secure integer comparison. 

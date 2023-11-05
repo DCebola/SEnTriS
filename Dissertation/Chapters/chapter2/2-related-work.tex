@@ -19,17 +19,17 @@ In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and
     \item Usage of ontologies to model semantics within a domain.
 \end{enumerate}
 
-Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
-
-Briefly describing this layered architecture, at the root level, we have the \gls{IRI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\textwidth]{semantic-web-stack.png}
+    \includegraphics[width=0.4\textwidth]{semantic-web-stack.png}
     \caption{The \emph{Semantic Web} stack \protect\autocite{Wikipedia_contributors_undated-bj}.}
     \label{fig:semantic-web-stack}
 \end{figure}
 
+
+Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
+
+Briefly describing this layered architecture, at the root level, we have the \gls{IRI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
 
 At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
@@ -79,8 +79,6 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
 In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with an \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
-\pagebreak
-
 \begin{lstlisting}[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
 # FCT is located in Almada
 <http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/ontology/location> <http://www.my-custom-domain/resource/Almada> .
@@ -91,7 +89,7 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
 
-\subsection{RDFS: RDF Schema}
+\subsection{\gls{RDFS}: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
 %Describe structure, give example extending on the RDF example, enumerate terms and possible syntaxes
 
@@ -101,7 +99,14 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 \gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under the \url{http://www.w3.org/2000/01/rdf-schema#}{}.
 
-\subsubsection{RDFS primitives}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rdfs-example.png}
+    \caption{A simple RDFS graphical example.}
+    \label{fig:rdfs-grafical-example}
+\end{figure}
+
+\subsubsection{\gls{RDFS} primitives}
 
 \emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
@@ -112,15 +117,6 @@ The \emph{rdfs:subClassOf} is used to define that all the instances of a class a
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
 In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
-
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{rdfs-example.png}
-    \caption{A simple RDFS graphical example.}
-    \label{fig:rdfs-grafical-example}
-\end{figure}
-
 
 \begin{table}[h]
     \begin{center}
@@ -180,9 +176,7 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
     \label{tbl:rdfs-properties}
 \end{table}
 
-\pagebreak
-
-\subsection{OWL2: Web Ontology Language}
+\subsection{\gls{OWL2}: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}
 
 \subsubsection{Overview}
@@ -208,11 +202,7 @@ Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \e
 
 In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \emph{assertion} is a statement about a resource. \emph{Expressions} are a combination of classes, properties and instances. An \emph{axiom} relates such expressions to classes\footnote{For an overview of the language we recommend the reader to consult the reference guide \autocite{W3c_undated-ls}.}. Listing \ref{listing-owl2-example} provides a simple \gls{OWL2} example.
 
-\subsubsection*{Individual Assertions}
-
-In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{IRI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
-
-\pagebreak
+\paragraph{Individual Assertions} In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{IRI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
 
 \begin{lstlisting}[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
@@ -241,13 +231,9 @@ _:x rdf:type owl:Class ;
 
 \end{lstlisting}
 
- \subsubsection*{Classes}
+\paragraph{Classes} In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
 
-In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
-
-\paragraph{Class Axioms}
-
-In \gls{OWL2} we can relate \emph{expressions} to classes using \emph{axioms}. These can define:
+\paragraph{Class Axioms} In \gls{OWL2} we can relate \emph{expressions} to classes using \emph{axioms}. These can define:
 
 \begin{itemize}
     \item\emph{Subclass Relations}, with equivalent usage like in \gls{RDFS};
@@ -261,51 +247,45 @@ In \gls{OWL2} we can relate \emph{expressions} to classes using \emph{axioms}. T
 \end{itemize}
 
 
-\subsubsection*{Properties}
-
-\gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations. 
+\paragraph{Properties} \gls{OWL2} has three types of properties: \emph{object} properties, which relate individuals to other individuals; \emph{datatype} properties, which relate individuals to literals; and \emph{annotation} properties; which are used to specify human-readable labels, comments and explanations. 
 
 
 The \emph{top} and \emph{bottom} properties specify, respectively, properties that relate to all and no individuals: owl:topObjectProperty is the superproperty of all owl:ObjectProperties and owl:bottomObjectProperty relates to no individual; owl:topDataProperty is the superproperty of all owl:DatatypeProperties, relating an individual to any possible literal value, and owl:bottomDataProperty relates no individual to any literal value.
 
 Properties can have different characteristics:
 \begin{itemize}
-    \item \emph{Transitive Properties}, if $a$ relates to $b$ via property $p$ and $c$ relates to $a$ via property $p$, then $c$ relates to  $b$ via property $p$;
-    \item \emph{Symmetric Properties}, if $a$ relates to $b$ via property $p$, then inverse is true;
-    \item \emph{Asymmetric Properties}, if $a$ relates to $b$ via property $p$, then the inverse is $\bot$;
-    \item \emph{Functional Properties}, if for each instance the property can only have one unique value;
-    \item \emph{Inverse-functional Properties} if the object of a property statement relates to a single subject;
-    \item \emph{Reflexive Properties}, if every individual relates to itself via the property;
-    \item \emph{Irreflexive Properties}, if no individual relates to itself via the property.
+    \item \emph{Transitive Properties}: if $a$ relates to $b$ via property $p$ and $c$ relates to $a$ via property $p$, then $c$ relates to  $b$ via property $p$;
+    \item \emph{Symmetric Properties}: if $a$ relates to $b$ via property $p$, then inverse is true;
+    \item \emph{Asymmetric Properties}: if $a$ relates to $b$ via property $p$, then the inverse is $\bot$;
+    \item \emph{Functional Properties}: if for each instance the property can only have one unique value;
+    \item \emph{Inverse-functional Properties}: if the object of a property statement relates to a single subject;
+    \item \emph{Reflexive Properties}: if every individual relates to itself via the property;
+    \item \emph{Irreflexive Properties}: if no individual relates to itself via the property.
 \end{itemize}
 
-\paragraph{Property Axioms}
-
-Just like class axioms, we can specify \emph{property axioms} to describe the way properties relate to classes and other properties. These allow us to define:
+\paragraph{Property Axioms} Just like class axioms, we can specify \emph{property axioms} to describe the way properties relate to classes and other properties. These allow us to define:
 
 \begin{itemize}
-    \item \emph{Domain and Range}, used to determine class membership of individuals;
-    \item \emph{Inverse Relationship}, used to specify the inverse of the property;
-    \item \emph{Equivalence}, used to specify equivalent properties. Individuals related by one property will always relate by all equivalent properties;
-    \item \emph{Disjointness}, used to specify disjoint properties, where individuals related by one property can never be related by the other;
-    \item \emph{Property Chains}, used to aggregate connected properties under another property.
+    \item \emph{Domain and Range}: used to determine class membership of individuals;
+    \item \emph{Inverse Relationship}: used to specify the inverse of the property;
+    \item \emph{Equivalence}: used to specify equivalent properties. Individuals related by one property will always relate by all equivalent properties;
+    \item \emph{Disjointness}: used to specify disjoint properties, where individuals related by one property can never be related by the other;
+    \item \emph{Property Chains}: used to aggregate connected properties under another property.
 \end{itemize}
  
 
-\subsubsection*{More Granular Class Axioms}
-
-We can write more granular class definitions in \gls{OWL2} than by simply defining class axioms. This is achieved by combining class and property axioms. It is done by defining a class axiom that relates to an anonymous class (owl:Restriction) which contains axioms on its properties. The anonymous class definition captures all individuals that satisfy such restrictions. As such we can define:
+\paragraph{More Granular Class Axioms} We can write more granular class definitions in \gls{OWL2} than by simply defining class axioms. This is achieved by combining class and property axioms. It is done by defining a class axiom that relates to an anonymous class (owl:Restriction) which contains axioms on its properties. The anonymous class definition captures all individuals that satisfy such restrictions. As such we can define:
 \begin{itemize}
-    \item \emph{Universal and Existential Restrictions} which the members of the class must satisfy. The class is defined as a subclass of an anonymous class with property restrictions on, respectively, owl:allValuesFrom and owl:someValuesFrom;      
-    \item \emph{Necessary and Sufficient Conditions}, relating a class to a property, using rdfs:subClass\-Of, does not provide sufficient information to conclude whether an individual belongs to the class membership or not (it only states necessary, not sufficient, conditions for class membership). With owl:equivalentClass, it becomes clear that an individual belongs to the class membership, if it satisfies the restriction (the conditions are necessary and sufficient).
-    \item \emph{Value, Cardinality, Data Range and Datatype Restrictions} on the anonymous class, limiting the value, cardinality of the value, range of possible values and the datatype of the property value relating to members of the superclass; 
-    \item \emph{Self Restrictions} on the individuals captured by the anonymous class.
+    \item \emph{Universal and Existential Restrictions}: which the members of the class must satisfy. The class is defined as a subclass of an anonymous class with property restrictions on, respectively, owl:allValuesFrom and owl:someValuesFrom;      
+    \item \emph{Necessary and Sufficient Conditions}: relating a class to a property, using rdfs:subClass\-Of, does not provide sufficient information to conclude whether an individual belongs to the class membership or not (it only states necessary, not sufficient, conditions for class membership). With owl:equivalentClass, it becomes clear that an individual belongs to the class membership, if it satisfies the restriction (the conditions are necessary and sufficient).
+    \item \emph{Value, Cardinality, Data Range and Datatype Restrictions} on the anonymous class: limiting the value, cardinality of the value, range of possible values and the datatype of the property value relating to members of the superclass; 
+    \item \emph{Self Restrictions}: on the individuals captured by the anonymous class.
 
 \end{itemize}
 
 \subsubsection{OWL2 DL}
 
-Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. In this Section, we specify the restrictions imposed by \emph{OWL2 DL} \autocite{Antoniou2012-nj}: 
+Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \emph{decidability}. This is achieved by imposition of various restrictions \autocite{Antoniou2012-nj}: 
 
 \begin{itemize}
     \item The application of \gls{OWL2} primitives to each other is not allowed; only classes and non-literals resources may be defined, with all classes being individuals of owl:Class;
@@ -392,9 +372,7 @@ The semantic evaluation of $P$ over a dataset $D$ is a set of mappings $\llbrack
     \end{split}
 \end{equation}
 
-\paragraph{Syntax}
-
-\emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the \emph{graph pattern}, enclosed in brackets, and, optionally, some modifiers of the result (i.e. \emph{ORDER BY} to sort results and \emph{DISTINCT} to remove duplicates). Additionally, we may also specify the \gls{RDF} graph to consider for the query evaluation with the keywords \emph{FROM} or \emph{FROM NAMED}. Furthermore, the \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can specify prefixes for namespaces. 
+\paragraph{Syntax} \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the \emph{graph pattern}, enclosed in brackets, and, optionally, some modifiers of the result (i.e. \emph{ORDER BY} to sort results and \emph{DISTINCT} to remove duplicates). Additionally, we may also specify the \gls{RDF} graph to consider for the query evaluation with the keywords \emph{FROM} or \emph{FROM NAMED}. Furthermore, the \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can specify prefixes for namespaces. 
 The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query types: 
 
 \begin{itemize}
@@ -464,18 +442,38 @@ Besides read operations, \emph{\gls{SPARQL} Update} \autocite{W3c_undated-tw}, p
     \item \emph{CLEAR}: this operation removes all the triples in the specified graphs. 
 \end{itemize}
 
+\subsubsection{Preserving reasoning}
 
-\subsection{Tools \& Development Software for Ontologies}
+In a \emph{knowledge base} we can distinguish two sets of statements: the \emph{TBox} and the \emph{ABox}. The \emph{TBox} set contains terminology data (e.g. ontologies) which we can define using \gls{RDFS} or \gls{OWL2}. The \emph{ABox} set refers to assertions.
+
+\gls{SPARQL} was not designed for vocabularies like \gls{RDFS} or \gls{OWL2}. By default, a \gls{SPARQL} engine solely considers explicit data, as if it were at the \gls{RDF} layer. Query evaluations interpret all data as assertions, completely ignoring the reasoning capabilities of \gls{RDFS} or \gls{OWL2}. This results in answers that might be incomplete, not containing inferred statements (only derivable from the \emph{ABox} set, using the \emph{TBox} data).
+
+Two popular techniques form preserving reasoning capabilities are \emph{materialization} and \emph{query rewriting}.
+
+\paragraph{Materialization} In this approach, we derive all the implicit information, from the original data, and persist it. This solution insures fast query evaluation that requires no inference, but suffers from high storage costs. Additionally, write operations are more complex, due to the problem of \emph{truth maintenance}. After each update, we need to maintain the materialized data in a consistent state. 
+
+Insertions are fairly simple, we just need to compute new implicit triples from the data already saved in the system.
+
+Deletions, however, are more complex. We need to compute the set of triples to be removed and assure that no triple in it is entailed without the removed assertions. We usually find three types of implementations for this operation: to always recompute the materialization after a deletion; removing the inferred triples and recomputing the closure of the remaining; maintaining a data-structure with the state of deletions. Neither of these options is perfect, the first two are not efficient for databases with high volume of write operations and the last one incurs in increased costs (associated with maintaining an additional structure).
+
+\paragraph{Query Rewriting} This technique consists in deriving a complete answer set at query time. Before evaluating a query, the system modifies it according to the statements in the \emph{TBox}. Query evaluation is slower: rewriting the queries requires communication with a reasoner and the reformulated queries tend to be larger.
+
+Contrary to the first solution, there is no problem with \emph{truth maintenance}. Writes operations can be processed without any additional computations. 
+
+
+\subsection{Industry solutions}
 \label{ch2:sec:semantic-web:tools}
 
-To developed and maintain ontologies, professionals use advanced semantic editors. \emph{Protégé} \autocite{Musen2015-kh} is a free, open-source, and the usual choice. It provides a rich ontology editing environment with full support for \gls{OWL2}, available in a desktop version or on the web \autocite{Tudorache2009-ja}. Many of its functionalities are based on plugins: automatic verification of errors and consistency in the design using reasoners like \emph{Pellet} \autocite{Sirin2007-lo}; debugging tools; query answering; collaborative development \autocite{Tudorache2008-tu}; graphic visualization of data and knowledge.
+\subsubsection{Development Software \& Tools} 
+To developed and maintain ontologies, professionals use advanced semantic editors. \emph{Protégé} \autocite{Musen2015-kh} is a free, open-source, and the usual choice. It provides a rich ontology editing environment with full support for \gls{OWL2}, available in a desktop version or on the web \autocite{Tudorache2009-ja}. Many of its functionalities are based on plugins: automatic verification of errors and consistency in the design using reasoners like \emph{Pellet} \autocite{Sirin2007-lo}; debugging tools; query answering; collaborative development \autocite{Tudorache2008-tu}; graphic visualization of data and knowledge. Additionally, for developers, many \gls{API}s \autocite{Owlcs_undated-im} or full framework solutions, such as \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}, are available for building \emph{Semantic Web} applications.
 
-To store RDF data, popular storage solutions are: \emph{MarkLogic} \autocite{MarkLogic2020-pb}, \emph{Virtuoso} \autocite{OpenLink_Software_undated-km}, \emph{Amazon Neptune} \autocite{Amazon_Web_Services_Inc_or_its_affiliates_undated-fj}, \emph{GraphDB} \autocite{Ontotext_undated-mj}, \emph{Apache Jena - TDB} \autocite{The_Apache_Software_Foundation_undated-mg}. While \emph{Apache Jena - TDB} is primarily a \gls{RDF} store, the rest are \emph{multi-model} database systems. To test their capability to handle \gls{SPARQL} queries, the \gls{BSBM} is a standard benchmark \autocite{Chris_undated-hq}. The \gls{LUBM} is another benchmark, which is tailored for \gls{OWL2} data \autocite{Guo2005-ja}. It provided synthetic data generation for a single realistic ontology.
+\subsubsection{Triplestores} 
 
-Finally, for developers, many \gls{API}s \autocite{Owlcs_undated-im} or full framework solutions, such as \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}, are available for building \emph{Semantic Web} applications.
+To store \gls{RDF} data, popular solutions are: \emph{MarkLogic} \autocite{MarkLogic2020-pb}, \emph{Virtuoso} \autocite{OpenLink_Software_undated-km}, \emph{Amazon Neptune} \autocite{Amazon_Web_Services_Inc_or_its_affiliates_undated-fj}, \emph{GraphDB} \autocite{Ontotext_undated-mj}, \emph{Apache Jena - TDB} \autocite{The_Apache_Software_Foundation_undated-mg}. While \emph{Apache Jena - TDB} is primarily a \gls{RDF} triplestore, the rest are \emph{multi-model} database systems. 
 
+To test their capability to handle \gls{SPARQL} queries, the \gls{BSBM} is a standard benchmark \autocite{Chris_undated-hq}. The \gls{LUBM} is another benchmark, which is tailored for \gls{OWL2} data \autocite{Guo2005-ja}. It provides synthetic data generation for a single realistic ontology.
 
-
+\mytodo{Add queries in annex, explain evaluation metrics in experimental evaluation chapter}
 
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
@@ -493,6 +491,8 @@ When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} s
 \subsection{Homomorphic Encryption}
 \label{ch2:sec:homomorphic-encryption}
 
+\subsubsection{Overview}
+
 The term homomorphism, in security, was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
 
@@ -502,25 +502,32 @@ From \autocite{Acar2018-mp}, we define an encryption scheme to be homomorphic ov
     E(m_{1}) \, \bullet \, E(m_{2}) = E(m_{1} \bullet m_{2}), \forall m_{1}, m_{2} \in M
 \end{equation}
 
+\subsubsection{Types of \gls{HE} schemes}
 
 Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, others maintain multiplicative properties \autocite{Rivest1978-mu, Elgamal1985-rk}, and some conserve both additive and multiplicative properties \autocite{Gentry2009-zv}. The \gls{HE} schemes that preserve both properties allow for any arbitrary operation, because boolean circuits can be represented using only \emph{XOR} (addition) and \emph{AND} (multiplication) gates \autocite{Acar2018-mp}. 
 
 \gls{HE} is classified in four main types: 
 \begin{itemize}
-    \item \glsxtrlong{FHE}, which supports any number of operations with no restriction on the number of operations; 
-    \item \glsxtrlong{SHE}, which permits some types of operations, a limited number of times;
-    \item \glsxtrlong{PHE}, that allows for one type of operation with no restriction on the number of times;
-    \item \glsxtrlong{LFHE} \autocite{Brakerski2014-nm}, which supports any type of operations for a limited, and expected, number of $L$ times (referred to as depth-$L$).
+    \item \emph{\glsxtrlong{FHE}}: which supports any number of operations with no restriction on the number of operations; 
+    \item \emph{\glsxtrlong{SHE}}: which permits some types of operations, a limited number of times;
+    \item \emph{\glsxtrlong{PHE}}: that allows for one type of operation with no restriction on the number of times;
+    \item \emph{\glsxtrlong{LFHE}} \autocite{Brakerski2014-nm}: which supports any type of operations for a limited, and expected, number of $L$ times (referred to as depth-$L$).
 \end{itemize}
 
 \subsection{Property-preserving Encryption}
 \label{ch2:sec:property-preserving-encryption}
 
-Homomorphic encryption allows arbitrary computations to be executed on encrypted data while not leaking any information about the original plaintext. For operations such as equality joins, where we require equality checks, we do need to preserve (leak) certain properties from the original plaintexts. This type of encryption is known as property-preserving encryption.
+\subsubsection{Overview}
 
-\paragraph{Deterministic Encryption} Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
+\glsxtrlong{HE} allows arbitrary computations to be executed on encrypted data while not leaking any information about the original plaintext. For operations such as equality joins, where we require equality checks, we do need to preserve (leak) certain properties from the original plaintexts. This type of encryption is known as property-preserving encryption.
 
-\paragraph{\gls{OPE}} These type of encryption schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
+\subsubsection{Deterministic Encryption} 
+
+Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
+
+\subsubsection{\glsxtrlong{OPE}} 
+
+\gls{OPE} schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
@@ -531,13 +538,13 @@ Homomorphic encryption allows arbitrary computations to be executed on encrypted
 
 %Generic model
 
-\subsubsection{\gls{SE} General Index-Based Model}
+\subsubsection{General Index-Based Model}
 
 A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generates an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
 
 \begin{equation}
     \begin{array}{l}
-    I = BuildIndex_{K}(\, DB=(M_{1},...,M_{n}), W=(w_{1},...,w_{m}))\\
+    I = \textrm{BuildIndex}_{K}(\, DB=(M_{1},...,M_{n}), W=(w_{1},...,w_{m}))\\
     C = Enc_{K'}(DB) 
     \end{array}
 \end{equation}
@@ -553,14 +560,7 @@ To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{
 
 \subsubsection{Client/Server Model}
 
-In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data in a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures:
-
-\begin{itemize}
-    \item \gls{S/S};
-    \item \gls{S/M};
-    \item \gls{M/S};
-    \item \gls{M/M}.
-\end{itemize}
+In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data in a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures: \gls{S/S}; \gls{S/M}; \gls{M/S}; \gls{M/M}.
 
 The \gls{S/S} architecture is usually used for \emph{data outsourcing} and \gls{M/S}, \gls{S/M} and \gls{M/M} employed in \emph{data sharing} scenarios \autocite{Bosch2014-eb}. Symmetric key schemes are typically \gls{S/S}, while public key schemes \gls{M/S} (multiple users can write using a \emph{public key}, but only the owner of the \emph{private} key can generate trapdoors).
 Extension of the single reader schemes to multiple reader schemes can be done with \emph{key sharing} or with the usage of \emph{proxy re-encryption}. 
@@ -569,21 +569,23 @@ In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext,
 
 \subsubsection{Information Leakage}
 
-% Explain more about each type of leakage
 Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This leakage can be \emph{index} information, the \emph{search pattern}, or \emph{access pattern} during execution:
 
 \begin{itemize}
-    \item \emph{Index Information} refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
-    \item \emph{Search Pattern} includes the information about keywords, and predicates, that is inferred by correlating equal results from different searches. The search pattern can be targeted using statistical analysis;
-    \item \emph{Access Pattern} includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total of documents retrieved; or if some files are more accessed than others). 
+    \item \emph{Index Information}: refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
+    \item \emph{Search Pattern}: includes the information about keywords, and predicates, that is inferred by correlating equal results from different searches. The search pattern can be targeted using statistical analysis;
+    \item \emph{Access Pattern}: includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total of documents retrieved; or if some files are more accessed than others). 
 \end{itemize}
+
+
+
 
 \subsection{Symmetric Searchable Encryption}
 \label{ch2:sec:symmetric-searchable-encryption}
 
 \subsubsection{Overview}
 
-\gls{SSE} is a type of \gls{SSE} based on symmetric key cryptography. We will first review the standard security definitions for \gls{SSE} and then focus on describing a few reference schemes.
+\gls{SSE} is a type of \gls{SE} based on symmetric key cryptography. We will start by specifying the security definitions used to evaluate such schemes and then describe a few reference schemes.
 
 \subsubsection{Security Definitions}
 
@@ -596,8 +598,8 @@ In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security defin
 Both require that only the outcome of search patterns may be leaked. Additionally, they guarantee that trapdoors do not leak information about the keywords, apart from what can be inferred from the search and access pattern. Their main difference is whether the adversary can produce an adaptive or non-adaptive attack.
 
 \begin{itemize}
-    \item \gls{IND-CKA1} guarantees security if the client generates all queries at once;
-    \item \gls{IND-CKA2} guarantees security even if the client  chooses the queries based on previously obtained trapdoors and search outcomes.
+    \item \emph{\gls{IND-CKA1}}: guarantees security if the client generates all queries at once;
+    \item \emph{\gls{IND-CKA2}}: guarantees security even if the client chooses the queries based on previously obtained trapdoors and search outcomes.
 \end{itemize}
 
 \subsubsection{\gls{SSE} Schemes}
@@ -639,14 +641,12 @@ Others, proposed a \gls{SSE} scheme that supports \emph{subgraph isomorphism que
 
 Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with a bucketization algorithm. By doing so, queries do not leak information about the structure of the graph. Although the authors state that their approach works with any kind of query, they only focused on neighbor and adjacency ones. 
 
-\subsection{Secure Semantic Data Sharing}
-\label{ch2:sec:semantic-data}
-
-Secure collaborative solutions for semantic data development require secure sharing, access control and the execution of secure read and write operations over the encrypted data. If the dataset is an ontology the reasoning capabilities of the underlying system should not be impaired. 
+\section{Secure Semantic Data Solutions}
+\label{ch2:secure-semantic-data}
 
 One of the simplest works in the field focuses solely on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, uniquely encrypting their values and leaving the rest of the data in plaintext. This approach aimed at retaining functionality but leaks too much information. The following solutions try to achieve more robust security guaranties.
 
-\subsubsection{Self-Enforcing Access Control for Encrypted RDF}
+\subsection{Self-Enforcing Access Control for Encrypted RDF}
 
 This work researched the implementation of access control in RDF datasets \autocite{Fernandez2017-bh} through the use of functional encryption \autocite{Boneh2010-bw}.
 
@@ -670,7 +670,7 @@ The second strategy is \emph{vertical partitioning}. Instead of indexing the per
 
 \mytodo{Add image with both index schemes}
 
-\subsubsection{CryptGraphDB}
+\subsection{CryptGraphDB}
 
 \emph{CryptGraphDB} \autocite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \autocite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guaranties, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
 
@@ -693,13 +693,13 @@ Besides confidentiality, \emph{CryptDB} does not ensure integrity, freshness, or
 We now present the different encryption schemes supported by \emph{CryptDB}:
 
 \begin{itemize}
-    \item \textbf{Random (RND)} A probabilistic encryption scheme that provides the most security but does not allow any computations on the ciphertexts.
-    \item \textbf{Deterministic (DET)}  A deterministic encryption scheme which allows equality checks to be executed over ciphertexts.
-    \item \textbf{Order-Preserving (OPE)} An encryption scheme that preserves order between the ciphertexts in a column. This allows the server to execute range queries.
-    \item \textbf{Homomorphic encryption (HOM)} The Paillier cryptosystem \autocite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
-    \item \textbf{Join (equi-JOIN)} In \emph{CryptDB} columns are encrypted with a different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
-    \item \textbf{OPE-JOIN} \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
-    \item \textbf{Word search (SEARCH)} This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \autocite{Song2000-hu}. The information leakage is similar to that of the RND layer.
+    \item \emph{Random (RND)}: A probabilistic encryption scheme that provides the most security but does not allow any computations on the ciphertexts.
+    \item \emph{Deterministic (DET)}  A deterministic encryption scheme which allows equality checks to be executed over ciphertexts.
+    \item \emph{Order-Preserving (OPE)} An encryption scheme that preserves order between the ciphertexts in a column. This allows the server to execute range queries.
+    \item \emph{Homomorphic encryption (HOM)} The Paillier cryptosystem \autocite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
+    \item \emph{Join (equi-JOIN)} In \emph{CryptDB} columns are encrypted with a different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
+    \item \emph{OPE-JOIN} \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
+    \item \emph{Word search (SEARCH)} This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \autocite{Song2000-hu}. The information leakage is similar to that of the RND layer.
 \end{itemize}
 
 The following images provide, respectively, an overview of the different onions types in \emph{CryptDB} and an example a query execution where layer adjustments are needed.
@@ -709,7 +709,7 @@ The following images provide, respectively, an overview of the different onions 
 
 \emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
-\subsubsection{\gls{GOOSE}}
+\subsection{\gls{GOOSE}}
 
 \gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution relies on secure multiparty computation techniques, encryption schemes and a standard SPARQL engine. 
 
@@ -747,22 +747,25 @@ A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with t
     \item An external observer cannot learn $G$, any query $q$ nor answer $ans(G, q)$ by analyzing the network messages.
 \end{enumerate}
 
-\subsubsection{Discussion}
+\subsection{Discussion}
 \label{ch2:sec:semantic-data:discussion}
 
-\mytodo{Discuss trade-offs, remove from previous subsections. Do not forget to mention leakage that can arise from joins... Create resume table for solutions}
-\mytodo{1 - hashes for indexes, leaked structure. Only search over simple patterns, no complex operations, no updates, only upload}
-\mytodo{2 - Not for SPARQL, same leakage as CryptDB, can do updates}
-\mytodo{3 - Leaks structure. Can answer complex queries, no updates}
-\mytodo{4 - Leaks structure. Can store large dataset. Only simple pattern search, no updates}
- 
-For mitigating information leakage, \emph{hybrid} \gls{SE} schemes, that require \emph{trusted hardware}, have been proposed \autocite{Ferreira2020-ze}, but solutions based on special hardware are not on the scope of this thesis.
+\paragraph{Current solutions limitations} In this section we covered a few solutions for secure outsourcing of semantic data.
 
-Finally, there exists related research in specific security fields regarding \gls{RDF} graphs. 
+The \emph{CryptGraphDB} \autocite{Aburawi2018-pq} was not designed to support the \emph{SPARQL} query language and suffers from the same security leakage problems inherent to \emph{CryptDB}. Some authors argue that the usage of deterministic encryption to support join operations leaks too much information (e.g. frequency information about the encrypted items) and is vulnerable to \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}.
 
-One of those fields is ensuring \emph{integrity} and \emph{authenticity} of data. This has been widely studied with various signage schemes \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and one service-oriented approach \autocite{Mana2011-bm} having been proposed. 
+The solution from J. D. Fernández et al. \autocite{Fernandez2017-bh} uses hashes as indexes and this leaks the structure of the \gls{RDF} graph. Furthermore, it only supports search operations over simple \emph{triple patterns}.
 
-The other field is \emph{access control}. Various schemes have been studied and most try to embed the data with the policies, using annotations. This allows for high-granularity in the access control, which can be inferred, but requires conflict resolution \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. A more simple approach is token-based \autocite{Khaled2010-yg}. As they are not the main focus of this thesis, being only complementary work on the areas of security and ontology-engineering, we will not elaborate further on these.
+The \gls{GOOSE} \autocite{Ciucanu2020-lx} solution can answer \gls{SPARQL} queries with complex \emph{graph patterns}, but the data obfuscation methods used are deterministic and still leak the topology of the \gls{RDF} graphs and frequency information of the encrypted keywords.
+
+Furthermore, none of these solutions offer reasoning capabilities, and it is not clear whether they support write operations besides a single initial upload of the data.
+
+\paragraph{Orthogonal security research} Like the previous solutions, the main focus of our thesis will be on data \emph{confidentiality}. Nonetheless, we will briefly mention the research that is being done in other security fields regarding \gls{RDF} graphs.  
+
+One of those fields is ensuring \emph{integrity} and \emph{authenticity} of \gls{RDF} data. Various signage schemes \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and even one service-oriented solution \autocite{Mana2011-bm} have been proposed. 
+
+The other field is \emph{access control}. Most solutions try to embed the policies within the data, using annotations. This allows for high-granularity in the \emph{access control}, which can be inferred, but requires conflict resolution \autocite{Jain2006-zy, Abel2007-sf, Flouris2010-bf, Papakonstantinou2012-cu, Costabello2012-ow,Kirrane2013-ef, Costabello2013-tb}. 
+
 
 \section{Summary}
 \label{ch2:sec:summary}
@@ -771,23 +774,16 @@ In Section \ref{ch2:sec:semantic-web}, we described the layered architecture of 
 
 Additionally, we specified the structure of \gls{OWL2}, focusing on the mechanism it provides to write ontologies. We also discussed the restriction imposed by \emph{OWL DL} to remain decidable. 
 
-Furthermore, we wrote about \gls{SPARQL}, discussing its mathematical basis, describing its syntax and enumerating its various types of queries. In an additional note, \gls{SPARQL} has been widely studied in the literature. Research has been conducted on its semantics and complexity \autocite{Perez2009-xx}, on efficient processing of its queries \autocite{Letelier2013-rs} and on its patterns of use \autocite{Bonifati2017-hf, Picalausa2011-ca}. As far as we know, no work has yet been done on its usage with encrypted \gls{RDF} data.
+Furthermore, we explained \gls{SPARQL}, providing mathematical definitions, defining its semantics, describing the syntax, enumerating a few examples of queries and reasoning preservation techniques.
 
-We finished Section \ref{ch2:sec:semantic-web} by explaining tools and software that is used in this field of research.
+We finished Section \ref{ch2:sec:semantic-web} by listing a few of the tools, software, storage solutions and evaluation benchmarks used in this field of research.
 
 In Section \ref{ch2:sec:secure-computations}, we discussed various solutions to execute secure computations in untrusted servers. We started by describing the \emph{honest-but-curious}, or \emph{passive}, adversary model and explained why \emph{Encryption at Rest} and \gls{ORAM} are not practical approaches. 
 
-We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathematical basis of \gls{HE} and enumerating the type of schemes available.
+We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathematical basis of \gls{HE} and enumerating the type of schemes available, and property-preserving encryption schemes.
 
-In Section \ref{ch2:sec:searchable-encryption}, we explained the difference between \gls{SSE} and \gls{PEKS}. We then described the general model for index-based \gls{SE}, as well as the \emph{Client/Server} architecture of \gls{SE} systems. We continued by discussing how to extend \gls{S/S} architectures, and covered the types of privacy leakage that schemes typically have.
+In Section \ref{ch2:sec:searchable-encryption}, we explained the difference between \gls{SSE} and \gls{PEKS}. We then described the general model for index-based \gls{SE}, as well as the \emph{Client/Server} architecture of \gls{SE} systems. We continued by discussing how to extend \gls{S/S} architectures, covered the types of privacy leakage.
 
 In Section \ref{ch2:sec:symmetric-searchable-encryption} we specified the standard security definitions in use, and gave an in depth explanation of reference \gls{SSE} schemes. We finished the \gls{SSE} Section by showing recent generalizations, focusing on dynamic solutions and schemes that support structured data.
 
-In Section \ref{ch2:sec:semantic-data}, we mentioned related research on the topic of secure semantic data sharing, discussing the trade-off of each approach. Additionally, we briefly covered parallel work on security and ontologies in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}.
-
-\mytodo{re-contextualize based on new works}
-To conclude, we state that there still needs to be conducted more research in the field of \gls{SSE} for graph-structured data. To justify our statement, we argue that approaches are either too generic \autocite{Cao2011-is}, lack schema protection \autocite{Nejjahi2019-ig}, have been implemented considering types of queries not used by \gls{SPARQL} \autocite{Suntaxi2021-sj}, or require pre-computation of all possible query answers beforehand \autocite{Poh2012-qs}.
-
-
-
- 
+In Section \ref{ch2:secure-semantic-data}, we mentioned related research on the topic of secure semantic data sharing, discussing the trade-off of each approach. Additionally, we briefly covered parallel work in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}. 

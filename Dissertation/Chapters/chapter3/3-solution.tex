@@ -1,0 +1,46 @@
+%%!TEX root = ../../template.tex
+\typeout{NT FILE chapter3}
+
+\chapter{Solution}
+\label{cha:solution}
+
+\prependtographicspath{{Figures/}}
+
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution; in Section \ref{ch3:sec:sentri:system-model} we define the system and adversary model; in Section \ref{ch3:sec:sentri:architecture} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries.
+
+\mytodo{Decide if formal definitions of the SSE protocols are in this chapt}
+
+\section{\glsxtrshort{SEnTri}:A Searchable Encrypted Triplestore}
+\label{ch3:sec:sentri}
+
+Current \emph{state-of-the-art} solutions have been developed for the problem of secure \gls{RDF} data outsourcing and not for the problem of secure development (and sharing) of semantic data. Furthermore, these systems do not have reasoning capabilities, suffer from leakage problems and, mostly, solely provide search over simple \emph{triple patterns}.
+
+Considering all these limitations we developed \gls{SEnTri}, a solution for secure and cooperative development of semantic data. 
+
+\gls{SEnTri} is \gls{IND-CKA2} secure, supports role-based \emph{access control} and the execution of secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating \gls{SPARQL} queries.
+
+\gls{SEnTri} has been designed for a multi-user setting. It is \emph{transparent} (working with encrypted ontologies must not affect a user's workflow in any significant way) and \emph{efficient} (heavy computation are outsourced to external servers). Furthermore, it remains \emph{flexible} and is fully \emph{modular}, so that it supports future improvements or modifications if needed.
+
+
+\subsection{System Model}
+\label{ch3:sec:sentri:system-model}
+
+\gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{key sharing} between trusted users.
+
+We will assume that communication channels are secure and reliable (e.g. \gls{TLS} \autocite{noauthor_undated-kt}, \gls{HTTPS} \autocite{noauthor_undated-yf} and \gls{TCP})
+
+We will consider an \emph{honest-but-curious} adversary with access to the servers where the data and execution logs are stored. In Section \ref{ch3:sec:sentri:architecture:threats} we define the system threats in more detail.
+
+\subsection{Architecture}
+\label{ch3:sec:sentri:architecture}
+
+\subsection{Threats}
+\label{ch3:sec:sentri:architecture:threats}
+
+\section{Evaluation of encrypted \gls{SPARQL} queries}
+\label{ch3:sec:sentri:encrypted-sparql-queries}
+
+\subsection{Query Plan Generation}
+\subsection{Retrieving basic triple patterns}
+\subsection{Evaluating complex graph patterns}
+\subsection{Secure Query Rewriting}
