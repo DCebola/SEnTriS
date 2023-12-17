@@ -118,14 +118,12 @@ public class UsersController implements UsersAPI {
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            } else if (!issuerRole.equals(ADMIN) && role.equals(ADMIN)) {
-                IAMStorage.saveRoleRequest(username, role);
-                return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
+            } else {
+                String lockID = LocksClient.acquireUserLock(username);
+                IAMStorage.setRole(username, role);
+                LocksClient.releaseUserLock(username, lockID);
+                return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
             }
-            String lockID = LocksClient.acquireUserLock(username);
-            IAMStorage.setRole(username, role);
-            LocksClient.releaseUserLock(username, lockID);
-            return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         } catch (TooManyLockRetriesException e) {

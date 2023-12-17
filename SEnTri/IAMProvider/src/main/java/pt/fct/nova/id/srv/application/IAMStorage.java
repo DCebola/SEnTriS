@@ -130,7 +130,6 @@ public class IAMStorage {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String requestID = UUIDUtils.generateID();
-            ;
             t.rpush(PENDING_ROLE_REQUESTS, requestID);
             t.rpush(String.format(PENDING_ROLE_REQUEST, requestID), username, role.name());
             t.exec();
@@ -255,12 +254,12 @@ public class IAMStorage {
 
     public static Set<String> getTriplestores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
+            if (!owns && !write && !read)
+                return new HashSet<>(); //TODO: Create public & private triplestores
             Set<String> owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
             if (owns && !write && !read)
                 return owned;
             Set<String> triplestoreIDs = Redis.scan(jedis, TRIPLESTORES_PATTERN).stream().map(key -> key.split(BASIC_SEPARATOR)[1]).collect(Collectors.toSet());
-            if (!owns && !write && !read)
-                return triplestoreIDs;
             Pipeline p = jedis.pipelined();
             Set<String> filteredTriplestoreIDs = new HashSet<>();
             String accessCheckKey;

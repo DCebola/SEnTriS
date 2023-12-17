@@ -44,7 +44,7 @@ GET    IAMProvider/api/ctrl/version                                             
           
 POST   IAMProvider/api/users/auth                                               #Authenticate user.              (Basic)
 POST   IAMProvider/api/users                                                    #Register user.                  (Basic)
-DELETE IAMProvider/api/users/{username}                                         #Delete user.                    (Basic)
+DELETE IAMProvider/api/users/{issuer}                                           #Delete user.                    (Basic)
 POST   IAMProvider/api/users/{username}/role/requests                           #Grant or issue role request.    (Admin)
 GET    IAMProvider/api/users/{username}/role/requests                           #List pending role requests.     (Admin)
 PUT    IAMProvider/api/users/{username}/role/requests/{requestID}               #Process pending role request.   (Admin)
@@ -52,7 +52,7 @@ GET    IAMProvider/api/users/tokens/active                         #Check if acc
 
 POST   IAMProvider/api/triplestores                                             #Create triplestore.             (Privileged)
 GET    IAMProvider/api/triplestores/{issuer}                                    #List triplestores.              (Basic)
-DELETE IAMProvider/api/triplestores/{TriplestoreID}                             #Delete triplestore.             (Owner)
+DELETE IAMProvider/api/triplestores/{TriplestoreID}                             #Delete triplestore.          (Owner or Admin)
 PUT    IAMProvider/api/triplestores/{TriplestoreID}/owner/{target}              #Change triplestore owner.       (Owner)
 
 GET    IAMProvider/api/triplestores/{TriplestoreID}/access/users                #Get users with access.          (Owner)
