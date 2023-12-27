@@ -6,7 +6,7 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution; in Section \ref{ch3:sec:sentri:system-model} we define the system and adversary model; in Section \ref{ch3:sec:sentri:architecture} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries.
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution, define the system and adversary model; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries.
 
 \section{\glsxtrshort{SEnTri}: A Searchable Encrypted Triplestore}
 \label{ch3:sec:sentri}
@@ -15,7 +15,7 @@ The current \emph{state-of-the-art} solutions solely focus on the problem of sec
 
 Considering all these limitations we developed \gls{SEnTri}, a solution for secure and cooperative development of semantic knowledge bases.
 
-\gls{SEnTri} is \gls{IND-CKA2} secure, has role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
+\gls{SEnTri} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
 \gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware. It is also \emph{transparent} (working with encrypted ontologies does not affect a user's workflow in any significant way) and outsources storage and heavy computations to external servers. Furthermore, it remains \emph{flexible} and is fully \emph{modular}.
 
@@ -23,7 +23,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 \subsection{System Model}
 \label{ch3:sec:sentri:system-model}
 
-\paragraph{Overview} In \gls{SEnTri}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within an owned triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
+\paragraph{Overview} In \gls{SEnTri}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
 
 \gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{key sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
 
@@ -41,16 +41,16 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 
 \paragraph{Role-Based Access Control} In \emph{SEnTri} roles grant different permissions to the users, which restrict the type of operations they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} and \emph{basic} user.
 
-\emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to publically listed triplestores.
+\emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to publically available triplestores.
 
 \emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting their publically listed triplestores.
 
-\emph{Admin} users have all the permissions of a \emph{privileged} user but can process role change requests and  grant/revoke access to any triplestore.
+\emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, triplestores and process role change requests.
 
 
 \paragraph{\glsxtrlong{M/M} setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist. 
 
-These tokens ensure that the sharing of \emph{secrets} needed for the cryptographic protocols and write and read operations are only done among users that have the required permissions to do so. 
+These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so. 
 
 Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (IAM Provider, Vault, Triplestore)}
 
@@ -63,8 +63,6 @@ Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestor
 
 When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use. In Section \ref{ch3:sec:sentri:encrypted-sparql-queries}, for each implementation, we will explain and formally define their protocols and respective leakage.
 
-Due to the type of communication channels in use, \gls{SEnTri} is secure against eavesdropping and message tampering attacks. 
-
 Additionally, we will not consider the case where attacks involve \emph{revoked users}. \footnote{The role-based access controls prevent these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information.}
 
 
@@ -72,8 +70,18 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
 \paragraph{Security Properties} In conformity with these assumptions we expect \gls{SEnTri} to possess the following \emph{security properties}:
 
 \begin{enumerate}
-    \item A 
+    \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
+    \item An attacker will not be able to impersonate any component. 
+    \item An attacker will not be able to tamper with messages sent between components.
+    \item An attacker with access to the \emph{Triplestore} component will only be able to learn the size of a triplestore and its search and access patterns.
+    \item An attacker with access to the \emph{Proxy} component will be able to learn:
+    \begin{enumerate}
+        \item \emph{First Implementation}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+        \item \emph{Second Implementation} the equality of all terms present in the graph patterns of a single query. The bindings of different queries are indistinguishable.
+    \end{enumerate}
 \end{enumerate}
+
+Due to the type of communication channels in use, \gls{SEnTri} is secure against eavesdropping and message tampering attacks. 
 
 
 \section{Secure evaluation of encrypted \gls{SPARQL} queries}
