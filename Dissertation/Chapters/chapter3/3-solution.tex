@@ -45,7 +45,7 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 
 \emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting their publically listed triplestores.
 
-\emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, triplestores and process role change requests.
+\emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, any triplestore and process role change requests.
 
 
 \paragraph{\glsxtrlong{M/M} setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist. 
@@ -59,7 +59,7 @@ Correctness of concurrent write and read operations is achieved with a \emph{loc
 
 \paragraph{Assumptions} We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers and, if it has access to the external servers where the semantic data and execution logs are stored, try to infer or decrypt sensitive information.
 
-Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. The other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and the security parameters of the triplestores they have created or have been given access to.
+Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. The other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
 When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use. In Section \ref{ch3:sec:sentri:encrypted-sparql-queries}, for each implementation, we will explain and formally define their protocols and respective leakage.
 
@@ -73,19 +73,21 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component. 
     \item An attacker will not be able to tamper with messages sent between components.
-    \item An attacker with access to the \emph{Triplestore} component will only be able to learn the size of a triplestore and its search and access patterns.
-    \item An attacker with access to the \emph{Proxy} component will be able to learn:
+    \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its search and access patterns.
+    \item An attacker with access to the \emph{Proxy} component will only be able to learn the query execution plans and, regarding \emph{term equality} during set operations:
     \begin{enumerate}
         \item \emph{First Implementation}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-        \item \emph{Second Implementation} the equality of all terms present in the graph patterns of a single query. The bindings of different queries are indistinguishable.
+        \item \emph{Second Implementation} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
     \end{enumerate}
 \end{enumerate}
 
-Due to the type of communication channels in use, \gls{SEnTri} is secure against eavesdropping and message tampering attacks. 
-
-
 \section{Secure evaluation of encrypted \gls{SPARQL} queries}
 \label{ch3:sec:sentri:encrypted-sparql-queries}
+
+The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, for if the system supports authentication, there is an authentication step. An authenticated user will then be able to submit a series of queries while their session is active. A submitted query is then parsed, and the system generates a series of query execution plans (sequences of logical operations such as retrieval of data, execution of an equijoin, update data) following specified heuristics. After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. The following figure depicts this pipeline \mytodo{Add figure with standard query evaluation pipeline}.
+
+\emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. Firstly, the system only works with encrypted data. Secondly, access checks, against the users' ephemeral access tokens, are performed before each step of the pipeline. In figure we show the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
+
 
 \subsection{Semantic Data Encryption}
 
