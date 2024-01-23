@@ -358,8 +358,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             DefaultQueryExecutionPlan plan = (DefaultQueryExecutionPlan) new SPARQLQueryEngine(planner).getQueryPlan(form.getQuery());
             QueryType queryType = planner.getQueryType();
 
-            boolean isUpdate = queryType == INSERT_DATA || queryType == DELETE_DATA || queryType == DELETE_WHERE || queryType == MODIFY;
-            if (isUpdate) {
+            if (queryType == INSERT_DATA || queryType == DELETE_DATA || queryType == DELETE_WHERE || queryType == MODIFY) {
                 response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 if (response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
