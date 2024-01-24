@@ -73,11 +73,12 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component. 
     \item An attacker will not be able to tamper with messages sent between components.
-    \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its search and access patterns.
-    \item An attacker with access to the \emph{Proxy} component will only be able to learn the query execution plans and, regarding \emph{term equality} during set operations:
+    \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
+    \item Given two arbitrary queries $q_1$, $q_2$ and two encrypted query plans $p_A$, $p_B$ sent to the \emph{Proxy}. An attacker with access to this component, will not be able to distinguish which query plan corresponds to a given query with a probability higher than that of random chance.
+    \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
     \begin{enumerate}
-        \item \emph{First Implementation}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-        \item \emph{Second Implementation} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+        \item \emph{First Protocol}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+        \item \emph{Second Protocol} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
     \end{enumerate}
 \end{enumerate}
 
@@ -88,11 +89,18 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 \emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. The system only works with encrypted data, which is encrypted in a manner that allows for search and set operations to be executed. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system. Figure shows the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
 
-\subsection{Semantic Data Encryption} In \gls{SEnTri} all logical operations are performed over encrypted data. The data encryption scheme retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of the encryption onions. The searchable encrypted onions are necessary for the dynamic creation of \emph{binding} tables (the results of basic triple patterns) which are then used for the evaluation of complex graph patterns.
+\subsection{Semantic Data Encryption} In \gls{SEnTri} all logical operations are performed over encrypted data. The data encryption scheme retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold the bindings of \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding} tables which are then used for the evaluation of complex \emph{graph patterns}.
 
-\subsubsection{Static Setting}
+We have implemented \gls{SEnTri} with two different security protocols. Both rely on encrypted onions with two layers of encryption, where the outer layer is a probabilistic encryption scheme. 
 
-\subsubsection{Dynamic Setting}
+In the first protocol, the inner layer is a deterministic encryption scheme, achieving equality like \emph{CryptDB}.
+
+In the second protocol, the inner layer is a homomorphic encryption scheme, that preserves additive properties.
+We will now formally specify the two protocols.
+
+\subsubsection{First Protocol}
+
+\subsubsection{Second Protocol}
 
 \subsection{Query Plan Generation}
 

@@ -447,7 +447,7 @@ In a \emph{knowledge base} we can distinguish two sets of statements: the \emph{
 
 \gls{SPARQL} was not designed for vocabularies like \gls{RDFS} or \gls{OWL2}. By default, a \gls{SPARQL} engine solely considers explicit data, as if it were at the \gls{RDF} layer. Query evaluations interpret all data as assertions, completely ignoring the reasoning capabilities of \gls{RDFS} or \gls{OWL2}. This results in answers that might be incomplete, not containing inferred statements (only derivable from the \emph{ABox} set, using the \emph{TBox} data).
 
-Two popular techniques form preserving reasoning capabilities are \emph{materialization} and \emph{query rewriting}.
+Two popular techniques for preserving reasoning capabilities are \emph{materialization} and \emph{query rewriting}.
 
 \paragraph{Materialization} In this approach, we derive all the implicit information, from the original data, and persist it. This solution insures fast query evaluation that requires no inference, but suffers from high storage costs. Additionally, write operations are more complex, due to the problem of \emph{truth maintenance}. After each update, we need to maintain the materialized data in a consistent state. 
 
