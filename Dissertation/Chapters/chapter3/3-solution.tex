@@ -82,25 +82,28 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
     \end{enumerate}
 \end{enumerate}
 
-\section{Secure evaluation of encrypted \gls{SPARQL} queries}
+\section{Secure evaluation of encrypted \glsxtrshort{SPARQL} queries}
 \label{ch3:sec:sentri:encrypted-sparql-queries}
 
-The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will then be able to submit a series of queries while their session is active. A submitted query is then parsed, and given the specified heuristics, the system generates a series of query execution plans, sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. The following figure depicts this pipeline \mytodo{Add figure with standard query evaluation pipeline}.
+The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. The following figure depicts this pipeline \mytodo{Add figure with standard query evaluation pipeline}.
 
 \emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. The system only works with encrypted data, which is encrypted in a manner that allows for search and set operations to be executed. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system. Figure shows the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
 
-\subsection{Semantic Data Encryption} In \gls{SEnTri} all logical operations are performed over encrypted data. The data encryption scheme retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold the bindings of \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding} tables which are then used for the evaluation of complex \emph{graph patterns}.
+In \gls{SEnTri}, data encryption retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold the bindings of \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding} tables which are then used for the evaluation of complex \emph{graph patterns}.
 
-We have implemented \gls{SEnTri} with two different security protocols. Both rely on encrypted onions with two layers of encryption, where the outer layer is a probabilistic encryption scheme. 
+We have implemented \gls{SEnTri} using two different approaches. Both rely on encrypted onions with two layers of encryption, where the outer layer is probabilistically encrypted. 
 
-In the first protocol, the inner layer is a deterministic encryption scheme, achieving equality like \emph{CryptDB}.
+In the first approach, the inner layer is deterministically encrypted, achieving equality like \emph{CryptDB}, whereas in the second approach, the inner layer is homomorphically encrypted, using an algorithm that preserves additive properties.
 
-In the second protocol, the inner layer is a homomorphic encryption scheme, that preserves additive properties.
-We will now formally specify the two protocols.
 
-\subsubsection{First Protocol}
+\subsection{Preliminaries}
 
-\subsubsection{Second Protocol}
+In this section we will formally define \gls{SEnTri}. Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures. 
+For ease of interpretations 
+
+\paragraph{Notation}
+
+\subsubsection{Triplestores and SPARQL queries}
 
 \subsection{Query Plan Generation}
 
