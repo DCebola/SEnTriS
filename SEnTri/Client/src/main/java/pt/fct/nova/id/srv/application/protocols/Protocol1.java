@@ -94,12 +94,11 @@ public class Protocol1 implements EncryptionProtocol {
         }
     }
 
-    private int encodeSchemaNode(String node) {
+    private void encodeSchemaNode(String node) {
         int frequency = incrementKeywordFrequency(schemaKeyword);
         byte[] st = generateDETLayer(getDerivedKey(schemaKeyword), schemaKeyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(frequency));
         byte[] ct = generateRNDLayer(node.getBytes(StandardCharsets.UTF_8));
         encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
-        return frequency;
     }
 
 
