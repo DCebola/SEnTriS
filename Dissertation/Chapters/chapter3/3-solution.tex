@@ -98,17 +98,32 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-In this section we will formally define \gls{SEnTri}. Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures. 
-For ease of interpretations 
+Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures. 
+For ease of interpretations we will all provide a brief explanation about the notation used in definitions, algorithms, code and proofs for the remainder of the document.
 
-\paragraph{Notation}
+\subsubsection{Notation}
 
-\subsubsection{Triplestores and SPARQL queries}
+\subsubsection{Data Structures}
 
-\subsection{Query Plan Generation}
+\paragraph{Triplestores}
+\paragraph{Users}
+\paragraph{\glsxtrlong{ACL}s}
+\paragraph{Ephemeral access tokens}
 
-\subsection{Retrieving basic triple patterns}
+\paragraph{\gls{SPARQL} queries}
+\paragraph{Query Execution Plans}
+\paragraph{\emph{Binding} tables}
 
-\subsection{Evaluation of complex graph patterns}
- 
-\subsection{Query Rewriting} 
+\subsubsection{Triple pattern encryption schemes}
+\paragraph{Uploads and Deletions}
+
+
+\subsubsection{Evaluation of \glsxtrshort{SPARQL} queries}
+\paragraph{Query Plan Generation}
+\paragraph{Query Rewriting} 
+\paragraph{Query Preparation Phase}
+\paragraph{Query Evaluation Phase}
+
+
+\subsection{Formal definition of \glsxtrshort{SEnTri}}
+
