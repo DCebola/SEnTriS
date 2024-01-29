@@ -114,14 +114,12 @@ public class Protocol2 implements EncryptionProtocol {
         }
     }
 
-    private int encodeSchemaNode(String node) {
+    private void encodeSchemaNode(String node) {
         int frequency = incrementKeywordFrequency(schemaKeyword);
         byte[] st = encryptDET(getDerivedKey(schemaKeyword), schemaKeyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(frequency));
         byte[] ct = encryptRND(node.getBytes(StandardCharsets.UTF_8));
         encryptedNodes.put(base64Encoder.encodeToString(st), base64Encoder.encodeToString(ct));
-        return frequency;
     }
-
 
     private void encryptTriples(Set<Triple> triples) throws InvalidNodeException {
         Node s, p, o;
@@ -248,22 +246,18 @@ public class Protocol2 implements EncryptionProtocol {
         return SymmetricEncryptionUtils.encrypt(plaintext, key, iv);
     }
 
-    public String generateKeywordsEqTagTrapdoor(String node) {
+    public String generateTrapdoor(String node) {
         return base64Encoder.encodeToString(encryptDET(getDerivedKey(node), node.getBytes(StandardCharsets.UTF_8), zeroIV));
-    }
-
-    public String generateKeywordsFrequencyTrapdoor(String keyword) {
-        return base64Encoder.encodeToString(encryptDET(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), zeroIV));
-    }
-
-    public String generateTrapdoorAndIncrementIV(String keyword) {
-        return  base64Encoder.encodeToString(encryptDET(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8),
-                SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword))));
     }
 
     public String generateTrapdoor(String keyword, int value) {
         return base64Encoder.encodeToString(encryptDET(getDerivedKey(keyword),
                 keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(value)));
+    }
+
+    public String generateTrapdoorAndIncrementIV(String keyword) {
+        return  base64Encoder.encodeToString(encryptDET(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8),
+                SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword))));
     }
 
     private int incrementKeywordFrequency(String keyword) {

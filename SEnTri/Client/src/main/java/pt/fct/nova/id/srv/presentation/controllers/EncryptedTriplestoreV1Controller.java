@@ -172,9 +172,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
             for (int i = 0; i < numTrapdoors; i++) {
                 if (i == rndIndex)
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(schemaKeyword));
+                    trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
                 else
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
+                    trapdoors.add(protocol.generateTrapdoor(generateID()));
             }
             HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
             if (response.getStatus() != OK) {
@@ -283,9 +283,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
             for (int i = 0; i < numTrapdoors; i++) {
                 if (i == rndIndex)
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(schemaKeyword));
+                    trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
                 else
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
+                    trapdoors.add(protocol.generateTrapdoor(generateID()));
             }
             HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
             if (response.getStatus() != OK)
@@ -389,7 +389,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                                                   String accessToken) throws AEADBadTagException, IOException, ClassNotFoundException {
         List<String> trapdoors = new ArrayList<>(keywords.size());
         for (String keyword : keywords)
-            trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
+            trapdoors.add(protocol.generateTrapdoor(keyword));
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;

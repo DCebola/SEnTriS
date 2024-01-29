@@ -1,4 +1,4 @@
-# SSE-SPARQL-DET: Encryption Scheme
+# SSE-SPARQL-DGK: Encryption Scheme
 
 
 
@@ -6,24 +6,28 @@
 State:
     kMASTER ← generateKey() 
     kRND ← generateKey() 
-    kDET ← generateKey()
+    dgkKeyPair = (privDGK, pubDGK) ← generateDGKKeyPair()
     ivDET ← generateRandomIV()
-    frequencyIV ← generateZeroFilledIV()
+    zeroIV ← generateZeroFilledIV()
     schemaKeyword ← generateRandomString()
     encryptedNodes ← {}
     keywordFrequencies ← {}
     derivedKeys ← {}
+    eqTags ← {}
+    lastEqTag ← 0
     
-function loadState(master, rnd, det, iv, schema):
+function loadState(master, rnd, dgkKeyPair, iv, schema, eqTag):
     kMASTER ← master 
     kRND ← rnd
-    kDET ← det
+    dgkKeyPair = (privDGK, pubDGK) ← dgkKeyPair
     ivDET ← iv
-    frequencyIV ← newZeroFilledIV()
+    zeroIV ← newZeroFilledIV()
     schemaKeyword ← schema
     encryptedNodes ← {}
     keywordFrequencies ← {}
     derivedKeys ← {}
+    eqTags ← {}
+    lastEqTag ← eqTag
 
 function exec(T = {t0, t1, ... tn}, schema):
     if (schema == true)
@@ -60,7 +64,12 @@ function EncryptTriples(T = {t0, t1, ... tn}):
 
 function encryptKeywordInfo() {
     foreach keyword in keywordFrequencies:
-        st ← ENC(derivedKeys[keyword], keyword, frequencyIV)
+        st ← ENC(derivedKeys[keyword], keyword, zeroIV)
+        ct ← ENC(kRND, keywordFrequencies[keyword])
+        encryptedNode[st] ← ct
+        
+    foreach node in eqTag:
+        st ← ENC(derivedKeys[keyword], keyword, zeroIV)
         ct ← ENC(kRND, keywordFrequencies[keyword])
         encryptedNode[st] ← ct
 
@@ -73,12 +82,14 @@ function encodeSchemaNode(node):
 function encodeNode(node, keyword):
     f ← incrementKeywordFrequency(keyword)
     st ← ENC(derivedKey(keyword), keyword, f)
-    ct ← ENC(kRND, ENC(kDET, node, ivDET))
-    encryptedNode[st] ← ct
+    eqTag ← ENC(pubDGK, getEqTag(node))
+    ct ← ENC(kRND, node)
+    encryptedNode[st] ← eqTag
+    encryptedNode[eqTag] ← ct
 	return f
  
 function encodeTriple(keyword, frequencies): 
-    i ← 0;
+    i ← 0
     foreach f in frequencies:
         st ← ENC(getDerivedKey(keyword), keyword, i)
         encryptedNode[st] ← ENC(kRND, f)
@@ -97,15 +108,25 @@ function incrementKeywordFrequency(keyword):
 		f ← 1
 		keywords[keyword] ← f
 	else:
-		keywords[keyword] ← i + 1
+		keywords[keyword] ← f + 1
 	return f;
+	
+	
+function getEqTag(node):
+	eqTag ← eqTags[node]
+	if eqTag == ⊥:
+		eqTag ← lastEqTag + 1
+		eqTags[node] ← eqTag
+	if (eqTag > lastEqTag)
+		lastEqTag ← eqTag
+	return eqTag;
 
 function generateTrapdoor(keyword, i):
     return ENC(derivedKey(keyword), keyword, i)
     
 function generateTrapdoor(keyword):
-	return ENC(derivedKey(keyword), keyword, frequencyIV)
-	
+	return ENC(derivedKey(keyword), keyword, zeroIV)
+
 function generateTrapdoorAndIncrementIV(keyword):
 	return ENC(derivedKey(keyword), keyword, incrementKeywordFrequency(keyword))
 
@@ -142,9 +163,15 @@ function setKeywordFrequencies(values):
         f ← values[keyword]
         if (f > 0)
             keywordFrequencies[keyword] ← f
+
+function setEqTags(values):
+	eqTags ← values
             
 function getSchemaKeyword():
     return schemaKeyword
+    
+function getLastEqTag():
+    return lastEqTag
 
 function getIvDET():
     return ivDET
@@ -157,14 +184,20 @@ function getRNDKey():
 
 function getDETKey():
     return kDET
+    
+function getEqKey():
+	return eqDGK = (privDGK.p, privDGK.vp, pubDGK.n, pubDGK.u)
 
 function getEncryptedNodes():
     return encryptedNodes
-
+    
 function clearNodes():
     encryptedNodes ← {}
 
 function clearFrequencies():
     keywordFrequencies ← {}
+
+function clearEqTags():
+    eqTags ← {}
 ```
 

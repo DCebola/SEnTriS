@@ -214,18 +214,18 @@ public class Protocol1 implements EncryptionProtocol {
         return SymmetricEncryptionUtils.encrypt(plaintext, key, iv);
     }
 
-    public String generateKeywordsFrequencyTrapdoor(String keyword) {
+    public String generateTrapdoor(String keyword) {
         return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8), frequencyIV));
-    }
-
-    public String generateTrapdoorAndIncrementIV(String keyword) {
-        return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8),
-                SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword))));
     }
 
     public String generateTrapdoor(String keyword, int value) {
         return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword),
                 keyword.getBytes(StandardCharsets.UTF_8), SymmetricEncryptionUtils.ivFromInteger(value)));
+    }
+
+    public String generateTrapdoorAndIncrementIV(String keyword) {
+        return base64Encoder.encodeToString(generateDETLayer(getDerivedKey(keyword), keyword.getBytes(StandardCharsets.UTF_8),
+                SymmetricEncryptionUtils.ivFromInteger(incrementKeywordFrequency(keyword))));
     }
 
     private int incrementKeywordFrequency(String keyword) {

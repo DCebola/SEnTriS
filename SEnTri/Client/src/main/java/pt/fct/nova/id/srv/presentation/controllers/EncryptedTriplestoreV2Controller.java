@@ -188,9 +188,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
             for (int i = 0; i < numTrapdoors; i++) {
                 if (i == rndIndex)
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(schemaKeyword));
+                    trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
                 else
-                    trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
+                    trapdoors.add(protocol.generateTrapdoor(generateID()));
             }
             HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
             System.out.println("Searched contents.");
@@ -300,9 +300,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
         for (int i = 0; i < numTrapdoors; i++) {
             if (i == rndIndex)
-                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(schemaKeyword));
+                trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
             else
-                trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(generateID()));
+                trapdoors.add(protocol.generateTrapdoor(generateID()));
         }
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
@@ -400,7 +400,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                                   Map<String, Integer> keywordsFrequencyCollector, Protocol2 protocol, String accessToken) throws AEADBadTagException, IOException, ClassNotFoundException {
         List<String> trapdoors = new ArrayList<>(keywords.size());
         for (String keyword : keywords)
-            trapdoors.add(protocol.generateKeywordsFrequencyTrapdoor(keyword));
+            trapdoors.add(protocol.generateTrapdoor(keyword));
 
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
@@ -697,17 +697,17 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             o = ParsingUtils.parseNode(triple.getObject());
             if (!processed.contains(s)) {
                 nodes.add(s);
-                eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(s));
+                eqTagTrapdoors.add(protocol.generateTrapdoor(s));
                 processed.add(s);
             }
             if (!processed.contains(p)) {
                 nodes.add(p);
-                eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(p));
+                eqTagTrapdoors.add(protocol.generateTrapdoor(p));
                 processed.add(p);
             }
             if (!processed.contains(o)) {
                 nodes.add(o);
-                eqTagTrapdoors.add(protocol.generateKeywordsEqTagTrapdoor(o));
+                eqTagTrapdoors.add(protocol.generateTrapdoor(o));
                 processed.add(o);
             }
         }
