@@ -1,0 +1,160 @@
+State:
+    $k_{MASTER}$ := generateKey() 
+    $k_{RND}$ := generateKey() 
+    $k_{DET}$ := generateKey()
+    $iv_{DET}$ := generateRandomIV()
+    $iv_{ZERO}$ := generateZeroFilledIV()
+    $schemaKeyword$ := generateRandomString()
+    $encryptedNodes$ := {}
+    $keywordFrequencies$ := {}
+    $derivedKeys$ := {} 
+    
+function loadState($master$, $rnd$, $det$, $iv$, $schema$):
+    $k_{MASTER}$ := $master$ 
+    $k_{RND}$ := $rnd$
+    $k_{DET}$ := $det$
+    $iv_{DET}$ := $iv$
+    $iv_{ZERO}$ := newZeroFilledIV()
+    $schemaKeyword$ := $schema$
+    $encryptedNodes$ := {}
+    $keywordFrequencies$ := {}
+    $derivedKeys$ := {}
+
+function exec($T$ = {$t_0$, $t_1$, ... $t_n$}, $schema$):
+    if ($schema$ == true)
+        encryptSchemaTriples($T$)
+    else
+        encryptTriples($T$)
+    encryptKeywordInfo()
+
+function EncryptSchemaTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
+    foreach $t = (s,p,o)$ in $T$:
+        encryptSchemaNode(parseNode($s$))
+        encryptSchemaNode(parseNode($p$))
+        encryptSchemaNode(parseNode($o$))
+
+function EncryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
+	foreach $t = (s,p,o)$ in $T$:
+        $freq$ := {}
+        $parsed_s$ = parseNode($s$)
+        $parsed_p$ = parseNode($p$)
+        $parsed_o$ = parseNode($o$)
+        $keyword_s$ = parseKeyword($s$)
+        $keyword_p$ = parseKeyword($p$)
+        $keyword_o$ = parseKeyword($o$)
+        $freq$ := $freq$ :U {encryptNode($parsed_p$, "PO" || $keyword_s$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_o$, "PO" || $keyword_s$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_s$, "SO" || $keyword_p$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_o$, "SO" || $keyword_p$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_s$, "SP" || $keyword_o$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_p$, "SP" || $keyword_o$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$)}
+        $freq$ := $freq$ :U {encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$)}
+        encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $freq$)
+
+function encryptKeywordInfo():
+    foreach $keyword$ in $keywordFrequencies$:
+        $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
+        $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $keywordFrequencies$[$keyword$])
+
+function encryptSchemaNode($node$):
+    $freq$ := incrementKeywordFrequency($schemaKeyword$)
+    $trapdoor$ := ENC(deriveKey($schemaKeyword$), $schemaKeyword$, $freq$)
+    $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $node$)
+    
+function encryptNode($node$, $keyword$):
+    $freq$ := incrementKeywordFrequency($keyword$)
+    $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $freq$)
+    $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, ENC($k_{DET}$, $node$, $iv_{DET}$))
+    return $freq$
+ 
+function encryptTriple($keyword$, $frequencies$): 
+    $i$ := 0
+    foreach $freq$ in $frequencies$:
+        $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $i$)
+        $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $freq$)
+        $i$++
+
+function deriveKey($context$):
+    $key$ := $derivedKeys$[$context$]
+    if $key$ == :bot :
+        $key$ := generateKey($k_{MASTER}$, $context$)
+        $derivedKeys$[$context$] := $key$
+    return $key$
+
+function incrementKeywordFrequency($keyword$):
+    $freq$ := $keywordFrequencies$[$keyword$]
+    if $freq$ == :bot :
+        $freq$ := 1
+        $keywordFrequencies$[$keyword$] := $freq$
+    else:
+        $keywordFrequencies$[$keyword$] := $freq$ + 1
+    return $freq$
+
+function generateTrapdoor($keyword$, $i$):
+    return ENC(deriveKey($keyword$), $keyword$, $i$)
+    
+function generateTrapdoor($keyword$):
+    return ENC(deriveKey($keyword$), $keyword$, $iv_{ZERO}$)
+	
+function generateTrapdoorAndIncrementIV($keyword$):
+    return ENC(deriveKey($keyword$), $keyword$, incrementKeywordFrequency($keyword$))
+
+function generateTriplePatternTrapdoors($T$ = {$t_0$, $t_1$, ... $t_n$}):
+    $keywordPatternTrapdoors$ := {}
+    foreach $t = (s,p,o)$ in $T$:
+        $keywords$ := {}
+        $i$ := 0
+        $keyword_s$ = parseKeyword($s$)
+        $keyword_p$ = parseKeyword($p$)
+        $keyword_o$ = parseKeyword($o$)
+        $keyword_t$ = "SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$
+        $keywords$ := $keywords$ :U {"PO" || $keyword_s$}
+        $keywords$ := $keywords$ :U {"PO" || $keyword_s$}
+        $keywords$ := $keywords$ :U {"SO" || $keyword_p$}
+        $keywords$ := $keywords$ :U {"SO" || $keyword_p$}
+        $keywords$ := $keywords$ :U {"SP" || $keyword_o$}
+        $keywords$ := $keywords$ :U {"SP" || $keyword_o$}
+        $keywords$ := $keywords$ :U {"S" || $keyword_p$ || $keyword_o$}
+        $keywords$ := $keywords$ :U {"P" || $keyword_s$ || $keyword_o$}
+        $keywords$ := $keywords$ :U {"O" || $keyword_s$ || $keyword_p$}
+        generatePatternTrapdoors(res, $keyword_t$, $keywords$)
+        foreach $keyword$ in $keywords$:
+            $trapdoors$ := $keywordPatternTrapdoors$[keyword]
+            if ($trapdoors$ == :bot):
+                $trapdoors$ := {}
+            $trapdoors$ := $trapdoors$ :U {ENC(deriveKey($keyword_t$), $keyword_t$, $i$)}
+            $keywordPatternTrapdoors$[$keyword$] := $trapdoors$
+            $i$++
+    return $keywordPatternTrapdoors$
+
+function setKeywordFrequencies($values$):
+    foreach $keyword$ in $values$:
+        $freq$ := $values$[$keyword$]
+        if ($freq$ > 0)
+            $keywordFrequencies$[$keyword$] := $freq$
+            
+function getSchemaKeyword():
+    return $schemaKeyword$
+
+function getIvDET():
+    return $iv_{DET}$
+
+function getMasterKey():
+    return $k_{MASTER}$
+
+function getRNDKey():
+    return $k_{RND}$
+
+function getDETKey():
+    return $k_{DET}$
+
+function getEncryptedNodes():
+    return $encryptedNodes$
+
+function clearNodes():
+    $encryptedNodes$ := {}
+
+function clearFrequencies():
+    $keywordFrequencies$ := {}

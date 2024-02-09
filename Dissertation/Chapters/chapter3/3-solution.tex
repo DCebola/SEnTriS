@@ -27,7 +27,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 
 \gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{key sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
 
-\paragraph{System Architecture} \gls{SEnTri} is a multi-party system comprised of 5 components: 
+\paragraph{System Architecture} \gls{SEnTri} is a multi-party system comprised of 5 components:
 
 \begin{itemize}
     \item \emph{Client}: a public facing component where users can authenticate themselves and create, upload, share, request or revoke access to and query triplestores.
@@ -48,9 +48,9 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 \emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, any triplestore and process role change requests.
 
 
-\paragraph{\glsxtrlong{M/M} setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist. 
+\paragraph{\glsxtrlong{M/M} setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist.
 
-These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so. 
+These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
 
 Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (IAM Provider, Vault, Triplestore)}
 
@@ -71,15 +71,15 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
 
 \begin{enumerate}
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
-    \item An attacker will not be able to impersonate any component. 
+    \item An attacker will not be able to impersonate any component.
     \item An attacker will not be able to tamper with messages sent between components.
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Given two arbitrary queries $q_1$, $q_2$ and two encrypted query plans $p_A$, $p_B$ sent to the \emph{Proxy}. An attacker with access to this component, will not be able to distinguish which query plan corresponds to a given query with a probability higher than that of random chance.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
-    \begin{enumerate}
-        \item \emph{First Protocol}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-        \item \emph{Second Protocol} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
-    \end{enumerate}
+          \begin{enumerate}
+              \item \emph{First Protocol}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+              \item \emph{Second Protocol} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+          \end{enumerate}
 \end{enumerate}
 
 \section{Secure evaluation of encrypted \glsxtrshort{SPARQL} queries}
@@ -91,14 +91,14 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 In \gls{SEnTri}, data encryption retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold the bindings of \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding} tables which are then used for the evaluation of complex \emph{graph patterns}.
 
-We have implemented \gls{SEnTri} using two different approaches. Both rely on encrypted onions with two layers of encryption, where the outer layer is probabilistically encrypted. 
+We have implemented \gls{SEnTri} using two different approaches. Both rely on encrypted onions with two layers of encryption, where the outer layer is probabilistically encrypted.
 
 In the first approach, the inner layer is deterministically encrypted, achieving equality like \emph{CryptDB}, whereas in the second approach, the inner layer is homomorphically encrypted, using an algorithm that preserves additive properties.
 
 
 \subsection{Preliminaries}
 
-Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures. 
+Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures.
 For ease of interpretations we will all provide a brief explanation about the notation used in definitions, algorithms, code and proofs for the remainder of the document.
 
 \subsubsection{Notation} %The set of all binary strings of length $n$ is denoted as ${0,1}n$ ,and the set of all finite binary strings as ${0,1}∗$.$[n]$ is the set of integers ${1,...,n}$ . We write $x ← χ$ to represent an element $x$ being sampled from a distribution $χ$,and$x $← X to represent an element x being sampled uniformly at random from a set X . The output x of an algorithm A is denoted by x ←A. Given a sequence v of n elements, we refer to its ith element as v
@@ -116,12 +116,12 @@ For ease of interpretations we will all provide a brief explanation about the no
 \paragraph{\emph{Binding} tables}
 
 \subsubsection{Triple pattern encryption schemes}
-\paragraph{Uploads and Deletions}
 
+\lstinputlisting[caption={Triple Pattern Encryption, with DET layer}, label={protocol-1}]{Code/protocol-1.tex}
 
 \subsubsection{Evaluation of \glsxtrshort{SPARQL} queries}
 \paragraph{Query Plan Generation}
-\paragraph{Query Rewriting} 
+\paragraph{Query Rewriting}
 \paragraph{Query Preparation Phase}
 \paragraph{Query Evaluation Phase}
 

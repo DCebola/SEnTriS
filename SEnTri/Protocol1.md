@@ -8,7 +8,7 @@ State:
     kRND ← generateKey() 
     kDET ← generateKey()
     ivDET ← generateRandomIV()
-    frequencyIV ← generateZeroFilledIV()
+    zeroIV ← generateZeroFilledIV()
     schemaKeyword ← generateRandomString()
     encryptedNodes ← {}
     keywordFrequencies ← {}
@@ -19,7 +19,7 @@ function loadState(master, rnd, det, iv, schema):
     kRND ← rnd
     kDET ← det
     ivDET ← iv
-    frequencyIV ← newZeroFilledIV()
+    zeroIV ← newZeroFilledIV()
     schemaKeyword ← schema
     encryptedNodes ← {}
     keywordFrequencies ← {}
@@ -60,7 +60,7 @@ function EncryptTriples(T = {t0, t1, ... tn}):
 
 function encryptKeywordInfo() {
     foreach keyword in keywordFrequencies:
-        st ← ENC(derivedKeys[keyword], keyword, frequencyIV)
+        st ← ENC(derivedKeys[keyword], keyword, zeroIV)
         ct ← ENC(kRND, keywordFrequencies[keyword])
         encryptedNode[st] ← ct
 
@@ -104,7 +104,7 @@ function generateTrapdoor(keyword, i):
     return ENC(derivedKey(keyword), keyword, i)
     
 function generateTrapdoor(keyword):
-	return ENC(derivedKey(keyword), keyword, frequencyIV)
+	return ENC(derivedKey(keyword), keyword, zeroIV)
 	
 function generateTrapdoorAndIncrementIV(keyword):
 	return ENC(derivedKey(keyword), keyword, incrementKeywordFrequency(keyword))
