@@ -1,0 +1,55 @@
+State:
+    ($K_{DGK_{priv}}$, $K_{DGK_{pub}}$) := generateDGKKeyPair()
+    $iv_{DET}$ := generateRandomIV()
+    $eqTags$ := {}
+    $eq_{last}$ := 0
+
+function loadState($master$, $rnd$, $KeyPair_{DGK}$, $iv$, $schema$):
+    loadState($master$, $rnd$, $schema$)
+    ($K_{DGK_{priv}}$, $K_{DGK_{pub}}$) := $KeyPair_{DGK}$
+    $iv_{DET}$ := $iv$
+
+function encryptKeywordInfo():
+    foreach $keyword$ in $keywordFrequencies$:
+        $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
+        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$keyword$])
+
+    foreach $node$ in $eqTags$:
+        $trapdoor$ := ENC($derivedKeys$[$node$], $node$, $iv_{ZERO}$)
+        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$node$])
+
+        
+function encryptNode($node$, $keyword$):
+    $freq$ := incrementKeywordFrequency($keyword$)
+    $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $freq$)
+    $enc_{eq_{tag}}$ := ENC($K_{DGK_{pub}}$, getEqTag(node))
+    $encryptedNode$[$trapdoor$] := $enc_{eq_{tag}}$
+    $encryptedNode$[$enc_{eq_{tag}}$] := ENC($K_{RND}$, $node$)
+    return $freq$
+
+function getEqTag($node$):
+    $eq_{tag}$ := $eqTags$[$node$]
+    if $eq_{tag}$ == :bot:
+        $eq_{tag}$ := $eq_{last}$ + 1
+        $eqTags$[$node$] := $eq_{tag}$
+    if ($eq_{tag}$ > $eq_{last}$)
+        $eq_{last}$ := $eq_{tag}$
+    return $eq_{tag}$;
+
+function setEqTags($value$):
+    $eqTags$ := $value$
+
+function getDETKey():
+    return $K_{DET}$
+
+function getIvDET():
+    return $iv_{DET}$
+
+function getLastEqTag():
+    return $eq_{last}$
+
+function getEqKey():
+    return $K_{DGK_{eq}}$ = ($K_{DGK_{priv}}.p$, $K_{DGK_{priv}}.vp$, $K_{DGK_{pub}}.n$, $K_{DGK_{pub}}.u$)
+
+function clearEqTags():
+    $eqTags$ := {}

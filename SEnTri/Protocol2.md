@@ -181,9 +181,6 @@ function getKeywordsMasterKey():
 
 function getRNDKey():
     return kRND
-
-function getDETKey():
-    return kDET
     
 function getEqKey():
 	return eqDGK = (privDGK.p, privDGK.vp, pubDGK.n, pubDGK.u)

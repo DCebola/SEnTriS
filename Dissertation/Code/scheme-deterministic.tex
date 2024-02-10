@@ -1,0 +1,25 @@
+State:
+    $K_{DET}$ := generateKey()
+    $iv_{DET}$ := generateRandomIV()
+
+function loadState($master$, $rnd$, $det$, $iv$, $schema$):
+    loadState($master$, $rnd$, $schema$)
+    $K_{DET}$ := $det$
+    $iv_{DET}$ := $iv$
+
+function encryptKeywordInfo():
+    foreach $keyword$ in $keywordFrequencies$:
+        $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
+        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$keyword$])
+
+function encryptNode($node$, $keyword$):
+    $freq$ := incrementKeywordFrequency($keyword$)
+    $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $freq$)
+    $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, ENC($K_{DET}$, $node$, $iv_{DET}$))
+    return $freq$
+ 
+function getDETKey():
+    return $K_{DET}$
+
+function getIvDET():
+    return $iv_{DET}$

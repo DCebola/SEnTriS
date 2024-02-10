@@ -1,21 +1,18 @@
 State:
-    $k_{MASTER}$ := generateKey() 
-    $k_{RND}$ := generateKey() 
-    $k_{DET}$ := generateKey()
-    $iv_{DET}$ := generateRandomIV()
+    $K_{MASTER}$ := generateKey() 
+    $K_{RND}$ := generateKey() 
     $iv_{ZERO}$ := generateZeroFilledIV()
-    $schemaKeyword$ := generateRandomString()
+    $keyword_{schema}$ := generateRandomString()
     $encryptedNodes$ := {}
     $keywordFrequencies$ := {}
     $derivedKeys$ := {} 
     
-function loadState($master$, $rnd$, $det$, $iv$, $schema$):
-    $k_{MASTER}$ := $master$ 
-    $k_{RND}$ := $rnd$
-    $k_{DET}$ := $det$
-    $iv_{DET}$ := $iv$
+
+function loadState($master$, $rnd$, $schema$):
+    $K_{MASTER}$ := $master$ 
+    $K_{RND}$ := $rnd$
     $iv_{ZERO}$ := newZeroFilledIV()
-    $schemaKeyword$ := $schema$
+    $keyword_{schema}$ := $schema$
     $encryptedNodes$ := {}
     $keywordFrequencies$ := {}
     $derivedKeys$ := {}
@@ -32,6 +29,11 @@ function EncryptSchemaTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
         encryptSchemaNode(parseNode($s$))
         encryptSchemaNode(parseNode($p$))
         encryptSchemaNode(parseNode($o$))
+        
+function encryptSchemaNode($node$):
+    $freq$ := incrementKeywordFrequency($keyword_{schema}$)
+    $trapdoor$ := ENC(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
+    $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $node$)
 
 function EncryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
 	foreach $t = (s,p,o)$ in $T$:
@@ -52,34 +54,18 @@ function EncryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
         $freq$ := $freq$ :U {encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$)}
         $freq$ := $freq$ :U {encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$)}
         encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $freq$)
-
-function encryptKeywordInfo():
-    foreach $keyword$ in $keywordFrequencies$:
-        $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
-        $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $keywordFrequencies$[$keyword$])
-
-function encryptSchemaNode($node$):
-    $freq$ := incrementKeywordFrequency($schemaKeyword$)
-    $trapdoor$ := ENC(deriveKey($schemaKeyword$), $schemaKeyword$, $freq$)
-    $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $node$)
-    
-function encryptNode($node$, $keyword$):
-    $freq$ := incrementKeywordFrequency($keyword$)
-    $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $freq$)
-    $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, ENC($k_{DET}$, $node$, $iv_{DET}$))
-    return $freq$
  
 function encryptTriple($keyword$, $frequencies$): 
     $i$ := 0
     foreach $freq$ in $frequencies$:
         $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $i$)
-        $encryptedNode$[$trapdoor$] := ENC($k_{RND}$, $freq$)
+        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $freq$)
         $i$++
 
 function deriveKey($context$):
     $key$ := $derivedKeys$[$context$]
     if $key$ == :bot :
-        $key$ := generateKey($k_{MASTER}$, $context$)
+        $key$ := generateKey($K_{MASTER}$, $context$)
         $derivedKeys$[$context$] := $key$
     return $key$
 
@@ -136,19 +122,13 @@ function setKeywordFrequencies($values$):
             $keywordFrequencies$[$keyword$] := $freq$
             
 function getSchemaKeyword():
-    return $schemaKeyword$
-
-function getIvDET():
-    return $iv_{DET}$
+    return $keyword_{schema}$
 
 function getMasterKey():
-    return $k_{MASTER}$
+    return $K_{MASTER}$
 
 function getRNDKey():
-    return $k_{RND}$
-
-function getDETKey():
-    return $k_{DET}$
+    return $K_{RND}$
 
 function getEncryptedNodes():
     return $encryptedNodes$
