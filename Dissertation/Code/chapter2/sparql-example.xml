@@ -1,0 +1,11 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+
+# Operation and variables
+SELECT ?opt_course ?man_course ?popular_course
+# Query Pattern
+WHERE
+{
+    ?opt_course rdf:type fct:Optional .
+    ?man_course rdf:type fct:Mandatory
+}

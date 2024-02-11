@@ -89,7 +89,7 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 \emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. The system only works with encrypted data, which is encrypted in a manner that allows for search and set operations to be executed. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system. Figure shows the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
 
-In \gls{SEnTri}, data encryption retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold the bindings of \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding} tables which are then used for the evaluation of complex \emph{graph patterns}.
+In \gls{SEnTri}, data encryption retains elements from the \emph{CryptDB} approach \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} employing encryption onions, which are peeled when certain data properties are needed, namely \emph{equality} for set operations between \emph{bindings}. It also incorporates techniques from \emph{SSE} encryption schemes: we generate trapdoors for secure search and retrieval of encryption onions, which hold encrypted subjects, predicates and objects present in \emph{triple patterns}. The searchable encrypted onions are essential for the dynamic creation of \emph{binding tables} which are then used for the evaluation of complex \emph{graph patterns}.
 
 We have implemented \gls{SEnTri} using two different approaches. Both rely on encrypted onions with two layers of encryption, where the outer layer is probabilistically encrypted.
 
@@ -98,16 +98,14 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-Although we have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, their models within \gls{SEnTri} differ. As such we will provide a few definitions of the core elements and data structures.
-For ease of interpretations we will all provide a brief explanation about the notation used in definitions, algorithms, code and proofs for the remainder of the document.
-
-\subsubsection{Notation} %The set of all binary strings of length $n$ is denoted as ${0,1}n$ ,and the set of all finite binary strings as ${0,1}∗$.$[n]$ is the set of integers ${1,...,n}$ . We write $x ← χ$ to represent an element $x$ being sampled from a distribution $χ$,and$x $← X to represent an element x being sampled uniformly at random from a set X . The output x of an algorithm A is denoted by x ←A. Given a sequence v of n elements, we refer to its ith element as v
-%i or v[i]. If S is a set then #S refers to its cardinality. If s is a string then |s| refers to its bit length.
+We have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}, we will now specify how such elements are modeled in \gls{SEnTri}.
 
 \subsubsection{Data Structures}
 
-\paragraph{Triplestores}
-\paragraph{Users}
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a named triplestore. This data structure is a simplified version of the one defined in \ref{ch2:sec:semantic-web:sparql}. It is a single named key value store $T = (triplestore_{ID}, \{(idx_{0}, node_{0}), ... ,(idx_{n}, node_{n})\})$, where $triplestore_{ID}$ is a unique string, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, and $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to.
+
+\paragraph{Users} A user $u = (username, password, role, owned = [triplestore_{ID_{0}}, ... , triplestore_{ID_{n}}]))$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \textrm{BASIC},\textrm{PRIVILEGED}\}$.
+
 \paragraph{\glsxtrlong{ACL}s}
 \paragraph{Ephemeral access tokens}
 
@@ -117,11 +115,11 @@ For ease of interpretations we will all provide a brief explanation about the no
 
 \subsubsection{Triple pattern encryption schemes}
 
-\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/scheme-base.tex}
+%\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-\lstinputlisting[caption={Triple Pattern Encryption for Protocol I}, label={encryption-scheme-deterministic}]{Code/scheme-deterministic.tex}
+%\lstinputlisting[caption={Triple Pattern Encryption for Protocol I}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/scheme-dgk.tex}
+%\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
 \subsubsection{Evaluation of \glsxtrshort{SPARQL} queries}
 \paragraph{Query Plan Generation}

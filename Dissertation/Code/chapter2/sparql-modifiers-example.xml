@@ -1,0 +1,13 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+
+# Operation and variables
+SELECT DISTINCT ?popular_course
+# Query Pattern
+WHERE
+{
+    ?popular_course fct:hasStudentEnrolled ?num_students .
+    FILTER (?num_students > 60)
+}
+# Optional Modifiers
+LIMIT 20

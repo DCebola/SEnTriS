@@ -1,0 +1,13 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix fct: <http://www.my-custom-domain/fct.ttl>
+@prefix nova: <http://www.my-custom-domain/nova.ttl>
+
+# Operation and variables
+SELECT DISTINCT ?optional_course
+# Query Pattern
+WHERE
+{
+    {?optional_course rdf:type fct:Optional}
+    UNION
+    {?optional_course rdf:type nova:Elective}
+}

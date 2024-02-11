@@ -1,0 +1,23 @@
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# The base namespace of the FCT ontology
+@base<http://www.my-custom-domain/fct.ttl> .
+
+<http://www.my-custom-domain/fct.ttl>
+    rdf:typeowl:Ontology ;
+    rdfs:label"FCT Ontology"^^xsd:string ;
+    rdfs:comment   "An example OWL2 ontology"^^xsd:string ;
+    owl:versionIRI <http://www.my-custom-domain/fct.ttl#1.0> .
+
+# Class Expression
+_:x rdf:type owl:Class ;
+    owl:unionOf ( :Mandatory :Optional ) .
+
+# Class Axiom
+:Course owl:equivalentClass _:x .
+
+# Class Assertion
+:class101 rdf:type :Course .

@@ -1,0 +1,5 @@
+# FCT is located in Almada
+<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/ontology/location> <http://www.my-custom-domain/resource/Almada> .
+
+# FCT has 8.000 students
+<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .

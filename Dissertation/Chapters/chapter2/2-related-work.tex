@@ -79,13 +79,7 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
 In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with an \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
-\begin{lstlisting}[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]
-# FCT is located in Almada
-<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/ontology/location> <http://www.my-custom-domain/resource/Almada> .
-
-# FCT has 8.000 students
-<http://www.my-custom-domain/faculties.ttl#FCT> <http://www.my-custom-domain/faculties.ttl#asNumberOfStudents> "8000"^^<http://www.w3.org/2001/XMLSchema#integer> .
-\end{lstlisting}
+\lstinputlisting[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]{Code/chapter2/turtle-example.xml}
 
 \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
 
@@ -204,32 +198,7 @@ In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \e
 
 \paragraph{Individual Assertions} In \gls{OWL2} \emph{assertions} about individual resources can be used to define their type, class membership, properties and even provide ways to define identity and negative statements. More specifically on the identity statements, because \gls{OWL2} has an open world assumption, we can never differentiate two individuals just because they have different \gls{IRI}s. To do so we use owl:differentFrom. To explicitly state negative facts we use owl:NegativePropertyAssertion \autocite{Antoniou2012-nj}.
 
-\begin{lstlisting}[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-
-# The base namespace of the FCT ontology
-@base<http://www.my-custom-domain/fct.ttl> .
-
-<http://www.my-custom-domain/fct.ttl>
-    rdf:typeowl:Ontology ;
-    rdfs:label"FCT Ontology"^^xsd:string ;
-    rdfs:comment   "An example OWL2 ontology"^^xsd:string ;
-    owl:versionIRI <http://www.my-custom-domain/fct.ttl#1.0> .
-
-# Class Expression
-_:x rdf:type owl:Class ;
-    owl:unionOf ( :Mandatory :Optional ) .
-
-# Class Axiom
-:Course owl:equivalentClass _:x .
-
-# Class Assertion
-:class101 rdf:type :Course .
-
-\end{lstlisting}
+\lstinputlisting[language=XML, caption={Simple \gls{OWL2} example, written in \gls{TURTLE} syntax.}, label={listing-owl2-example}]{Code/chapter2/owl2-example.xml}
 
 \paragraph{Classes} In \gls{OWL2} every resource that is of type owl:Class is a class. The two classes defined by default are \emph{owl:Thing} and \emph{owl:Nothing}. Respectively, these two specify the superclass of all classes and the subclass of all classes: every individual is a member of owl:Thing and no individual can be member of owl:Nothing. This is very useful for reasoning, because inconsistency is detected when classes are equivalent to owl:Nothing (have no individuals in their membership).
 
@@ -383,54 +352,13 @@ The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides 
 
 In the following listings \ref{listing-sparql-example}, \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example} we show a few query examples.
 
-\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with a conjuntion pattern}, label={listing-sparql-example}]
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix fct: <http://www.my-custom-domain/fct.ttl>
+\lstinputlisting[language=XML, caption={\gls{SPARQL} query with a conjuntion pattern}, label={listing-sparql-example}]{Code/chapter2/sparql-example.xml}
 
-# Operation and variables
-SELECT ?opt_course ?man_course ?popular_course
-# Query Pattern
-WHERE
-{
-    ?opt_course rdf:type fct:Optional .
-    ?man_course rdf:type fct:Mandatory
-}
-
-\end{lstlisting}
-
-\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with filters and modifiers}, label={listing-sparql-modifiers-example}]
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix fct: <http://www.my-custom-domain/fct.ttl>
-
-# Operation and variables
-SELECT DISTINCT ?popular_course
-# Query Pattern
-WHERE
-{
-    ?popular_course fct:hasStudentEnrolled ?num_students .
-    FILTER (?num_students > 60)
-}
-# Optional Modifiers
-LIMIT 20
-\end{lstlisting}
+\lstinputlisting[language=XML, caption={\gls{SPARQL} query with filters and modifiers}, label={listing-sparql-modifiers-example}]{Code/chapter2/sparql-modifiers-example.xml}
 
 \pagebreak
 
-\begin{lstlisting}[language=XML, caption={\gls{SPARQL} query with a disjunction pattern}, label={listing-sparql-complex-example}]
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix fct: <http://www.my-custom-domain/fct.ttl>
-@prefix nova: <http://www.my-custom-domain/nova.ttl>
-
-# Operation and variables
-SELECT DISTINCT ?optional_course
-# Query Pattern
-WHERE
-{
-    {?optional_course rdf:type fct:Optional}
-    UNION
-    {?optional_course rdf:type nova:Elective}
-}
-\end{lstlisting}
+\lstinputlisting[language=XML, caption={\gls{SPARQL} query with a disjunction pattern}, label={listing-sparql-complex-example}]{Code/chapter2/sparql-complex-example.xml}
 
 Besides read operations, \emph{\gls{SPARQL} Update} \autocite{W3c_undated-tw}, provides additional options for inserting, publishing and deleting data in triplestores:
 
