@@ -106,7 +106,7 @@ We have mathematically defined the core \gls{SPARQL} components in section \ref{
 
 \paragraph{Users} A user $u = (username, password, role, owned = [triplestore_{ID_{0}}, ... , triplestore_{ID_{n}}]))$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \textrm{BASIC},\textrm{PRIVILEGED}\}$.
 
-\paragraph{\glsxtrlong{ACP}s} In \gls{SEnTri} we create an \glsxtrlong{ACP} for each triplestore. An 
+\paragraph{\glsxtrlong{ACP}s} In \gls{SEnTri} we create an \gls{ACP} for each triplestore. An \gls{ACP} is a collection of two \gls{ACL}s, one to manage which users have read permission and the other to manage which users have write permissions.
 
 
 \paragraph{Ephemeral access tokens}
