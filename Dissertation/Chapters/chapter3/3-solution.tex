@@ -106,14 +106,14 @@ We have mathematically defined the core \gls{SPARQL} components in section \ref{
 
 \paragraph{Users} A user $u = (username, password, role, owned = [triplestore_{ID_{0}}, ... , triplestore_{ID_{n}}]))$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \textrm{BASIC},\textrm{PRIVILEGED}\}$.
 
-\paragraph{\glsxtrlong{ACP}s} In \gls{SEnTri} we create an \gls{ACP} for each triplestore. An \gls{ACP} is a collection of two \gls{ACL}s, one to manage which users have read permission and the other to manage which users have write permissions.
+\paragraph{\glsxtrlong{ACP}s} In \gls{SEnTri} we create an \gls{ACP} for each triplestore. An \gls{ACP} is a collection of two \gls{ACL}s, one to manage which users have read permission and the other to manage which users have write permissions. A \gls{GLS} is a collection of usernames.
 
 
-\paragraph{Ephemeral access tokens}
+\paragraph{Sessions, locks and access tokens} A user is authenticated if it has an active session. A user's session is a tuple $session_{i} = (username_{i}, uuid, ttl)$, where $username_i$ belongs to a valid, registered $user_i$, $uuid$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf} and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring.
 
 \paragraph{\gls{SPARQL} queries}
 \paragraph{Query Execution Plans}
-\paragraph{\emph{Binding} tables}
+\paragraph{\emph{Binding} tables}t
 
 \subsubsection{Triple pattern encryption schemes}
 
