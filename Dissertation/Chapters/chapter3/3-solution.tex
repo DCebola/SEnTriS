@@ -98,18 +98,31 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-We have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}. We will now specify how such elements are modeled as data structures in \gls{SEnTri}.
+We have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}. We will now specify how such elements are modeled in \gls{SEnTri}.
 
-\subsubsection{Data Structures}
+\subsubsection{Core elements}
 
-\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a named triplestore. This data structure is a simplified version of the one defined in \ref{ch2:sec:semantic-web:sparql}. It is a single named key value store $T = (triplestore_{ID}, \{(idx_{0}, node_{0}), ... ,(idx_{n}, node_{n})\})$, where $triplestore_{ID}$ is a unique string, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, and $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to.
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a named triplestore. This data structure is a simplified version of the one defined in \ref{ch2:sec:semantic-web:sparql}. It is a single key value store $T = (triplestore_{ID}, \; nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\; acp = (r, w))$, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. 
 
-\paragraph{Users} A user $u = (username, password, role, owned = [triplestore_{ID_{0}}, ... , triplestore_{ID_{n}}]))$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \textrm{BASIC},\textrm{PRIVILEGED}\}$.
+\paragraph{Users} A user $u = (username, \; password, \; role, \; owned = [triplestore_{ID_0},...,triplestore_{ID_n}])$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \; \textrm{BASIC}, \; \textrm{PRIVILEGED}\}$.
 
-\paragraph{\glsxtrlong{ACP}s} In \gls{SEnTri} we create an \gls{ACP} for each triplestore. An \gls{ACP} is a collection of two \gls{ACL}s, one to manage which users have read permission and the other to manage which users have write permissions. A \gls{GLS} is a collection of usernames.
+\paragraph{Permission rules} Access control and permission is enforced using a collection of logic rules. Given $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and $T_i = (triplestore_{ID_i}, \allowbreak \; nodes_i, \; acp_i = (r_i, w_i))$:
 
+\begin{itemize}
+    \item \emph{Read Access}: if $username_{u} \in r_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, $user_u$ has permission to execute read queries against $T_i$;
+    \item \emph{Write Access}: if $username_{u} \in w_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, $user_u$ has permission to execute write queries against $T_i$;
+    \item \emph{Triplestore Creation}: if $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, $user_u$ can create new triplestores;
+    \item \emph{Triplestore Deletion}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, $user_u$ can create delete $T_i$; 
+    \item \emph{Transfer Triplestore Ownership}: $user_u$ can create transfer the ownership of $T_i$ to another \emph{privileged} or \emph{admin} user if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$;
+    \item \emph{Grant/Revoke Access}
+    \item \emph{Grant/Revoke Role}
+\end{itemize}
 
-\paragraph{Sessions, locks and access tokens} A user is authenticated if it has an active session. A user's session is a tuple $session_{i} = (username_{i}, uuid, ttl)$, where $username_i$ belongs to a valid, registered $user_i$, $uuid$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf} and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring.
+\paragraph{Sessions} A user is authenticated if it has an active session. A user's session is a tuple $session_{i} = (username_{i}, uuid, ttl)$, where $username_i$ belongs to a valid, registered $user_i$, $uuid$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf} and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
+
+\paragraph{Ephemeral Access tokens} 
+\paragraph{Locks} 
+
 
 \paragraph{\gls{SPARQL} queries}
 \paragraph{Query Execution Plans}
