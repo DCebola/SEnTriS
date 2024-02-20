@@ -109,13 +109,13 @@ We have mathematically defined the core \gls{SPARQL} components in section \ref{
 \paragraph{Permission rules} Access control and permission is enforced using a collection of logic rules. Given $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and $T_i = (triplestore_{ID_i}, \allowbreak \; nodes_i, \; acp_i = (r_i, w_i))$:
 
 \begin{itemize}
-    \item \emph{Read Access}: if $username_{u} \in r_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, $user_u$ has permission to execute read queries against $T_i$;
-    \item \emph{Write Access}: if $username_{u} \in w_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, $user_u$ has permission to execute write queries against $T_i$;
-    \item \emph{Triplestore Creation}: if $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, $user_u$ can create new triplestores;
-    \item \emph{Triplestore Deletion}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, $user_u$ can create delete $T_i$; 
+    \item \emph{Read Access}: if $username_{u} \in r_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, then $user_u$ has permission to execute read queries against $T_i$;
+    \item \emph{Write Access}: if $username_{u} \in w_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, then $user_u$ has permission to execute write queries against $T_i$;
+    \item \emph{Triplestore Creation}: if $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can create new triplestores;
+    \item \emph{Triplestore Deletion}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, then $user_u$ can delete $T_i$; 
     \item \emph{Transfer Triplestore Ownership}: $user_u$ can create transfer the ownership of $T_i$ to another \emph{privileged} or \emph{admin} user if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$;
-    \item \emph{Grant/Revoke Access}
-    \item \emph{Grant/Revoke Role}
+    \item \emph{Grant/Revoke Access}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, then $user_u$ can grant/revoke access to $T_i$
+    \item \emph{Grant/Revoke Role}: if $role_u = \textrm{ADMIN}$, then $user_u$ can grant/revoke the role of any user. If $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can exclusively downgrade $role_u$. 
 \end{itemize}
 
 \paragraph{Sessions} A user is authenticated if it has an active session. A user's session is a tuple $session_{i} = (username_{i}, uuid, ttl)$, where $username_i$ belongs to a valid, registered $user_i$, $uuid$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf} and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
