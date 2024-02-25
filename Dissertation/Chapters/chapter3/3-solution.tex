@@ -1,15 +1,17 @@
 %%!TEX root = ../../template.tex
 \typeout{NT FILE chapter3}
 
-\chapter{Solution}
+\chapter{SEnTri: A Searchable Encrypted Triplestore}
 \label{cha:solution}
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution, define the system and adversary model; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries.
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution, define the system and adversary model; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries. \mytodo{Verify all references}
 
-\section{\glsxtrshort{SEnTri}: A Searchable Encrypted Triplestore}
-\label{ch3:sec:sentri}
+\section{Solution Models}
+\label{ch3:sec:solution-models}
+
+\subsection{Overview}
 
 The current \emph{state-of-the-art} solutions solely focus on the problem of secure \gls{RDF} data outsourcing, leaving the problem of dynamic updates out of scope. Furthermore, these systems do not have reasoning capabilities, suffer from leakage problems and, frequently, solely provide search over simple \emph{triple patterns}.
 
@@ -21,7 +23,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 
 
 \subsection{System Model}
-\label{ch3:sec:sentri:system-model}
+\label{ch3:sec:solution-models:system-model}
 
 \paragraph{Overview} In \gls{SEnTri}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
 
@@ -55,7 +57,7 @@ These tokens ensure that the sharing of \emph{secrets}, needed for the cryptogra
 Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (IAM Provider, Vault, Triplestore)}
 
 \subsection{Security Model}
-\label{ch3:sec:sentri:security-model}
+\label{ch3:sec:solution-models:security-model}
 
 \paragraph{Assumptions} We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers and, if it has access to the external servers where the semantic data and execution logs are stored, try to infer or decrypt sensitive information.
 
@@ -82,8 +84,10 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
           \end{enumerate}
 \end{enumerate}
 
-\section{Secure evaluation of encrypted \glsxtrshort{SPARQL} queries}
-\label{ch3:sec:sentri:encrypted-sparql-queries}
+\section{Solution Definition}
+\label{ch3:sec:solution-definition}
+
+\subsection{Overview}
 
 The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. The following figure depicts this pipeline \mytodo{Add figure with standard query evaluation pipeline}.
 
@@ -98,15 +102,30 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-We have mathematically defined the core \gls{SPARQL} components in section \ref{ch2:sec:semantic-web:sparql}. We will now specify how such elements are modeled in \gls{SEnTri}.
+Before defining the main components of \gls{SEnTri}, we will first define it's core elements.
 
-\subsubsection{Core elements}
+\subsubsection{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore \linebreak $T = (triplestore_{ID}, \; \allowbreak nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\;  acp = (r, w))$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
-\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a named triplestore. This data structure is a simplified version of the one defined in \ref{ch2:sec:semantic-web:sparql}. It is a single key value store $T = (triplestore_{ID}, \; nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\; acp = (r, w))$, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. 
+\subsubsection{Users} A user $u = (username, \; password, \; role, \; owned = [triplestore_{ID_0},...,triplestore_{ID_n}])$ is a tuple, where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \; \textrm{BASIC}, \; \textrm{PRIVILEGED}\}$.
 
-\paragraph{Users} A user $u = (username, \; password, \; role, \; owned = [triplestore_{ID_0},...,triplestore_{ID_n}])$ is a tuple where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \; \textrm{BASIC}, \; \textrm{PRIVILEGED}\}$.
+\subsubsection{Sessions} A user's session $s = (session_{ID},\; username,\; ttl)$ is a tuple, where  $session_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
 
-\paragraph{Permission rules} Access control and permission is enforced using a collection of logic rules. Given $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and $T_i = (triplestore_{ID_i}, \allowbreak \; nodes_i, \; acp_i = (r_i, w_i))$:
+\subsubsection{Locks} A lock 
+
+\subsubsection{Ephemeral Access tokens} An ephemeral access token $at = (token_{ID}, \; username, \; ttl, \allowbreak \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})$ is a tuple, where $token_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ is the identifier of the user who holds the token, $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $session_{ID}$ is the identifier of token holder's active session, at the time of its creation, $triplestore_{ID}$ is the identifier of the triplestore whose access is being requested and $lock_{ID}$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
+
+
+\subsubsection{\gls{SPARQL} queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+
+\subsubsection{Query Execution Plans}
+
+\subsubsection{\emph{Binding} tables}
+
+\subsection{Formal definition of \glsxtrshort{SEnTri}}
+
+\subsection{Enforcing access control}
+
+\subsubsection{Permission rules} Access control and permission is enforced using a collection of logic rules. Let $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and $T_i = (triplestore_{ID_i},\; nodes_i, \allowbreak  acp_i = (r_i, w_i))$:
 
 \begin{itemize}
     \item \emph{Read Access}: if $username_{u} \in r_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, then $user_u$ has permission to execute read queries against $T_i$;
@@ -118,17 +137,12 @@ We have mathematically defined the core \gls{SPARQL} components in section \ref{
     \item \emph{Grant/Revoke Role}: if $role_u = \textrm{ADMIN}$, then $user_u$ can grant/revoke the role of any user. If $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can exclusively downgrade $role_u$. 
 \end{itemize}
 
-\paragraph{Sessions} A user is authenticated if it has an active session. A user's session is a tuple $session_{i} = (username_{i}, uuid, ttl)$, where $username_i$ belongs to a valid, registered $user_i$, $uuid$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf} and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
+\subsubsection{Authentication} Let $s_i = (session_{ID_i},\; username_i,\; ttl)$ and $user_u = (username_u, password_u, \allowbreak role_u, \; owned_u)$. If $user_u$ is authenticated, then $\exists_{s_i} (username_u = username_i \; \wedge \; ttl > 0)$.
 
-\paragraph{Ephemeral Access tokens} 
-\paragraph{Locks} 
+\subsubsection{Enforcing concurrent access}
 
 
-\paragraph{\gls{SPARQL} queries}
-\paragraph{Query Execution Plans}
-\paragraph{\emph{Binding} tables}t
-
-\subsubsection{Triple pattern encryption schemes}
+\subsection{Triple pattern encryption schemes}
 
 %\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
@@ -136,12 +150,12 @@ We have mathematically defined the core \gls{SPARQL} components in section \ref{
 
 %\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsubsection{Evaluation of \glsxtrshort{SPARQL} queries}
+\subsection{Evaluation of \glsxtrshort{SPARQL} queries}
 \paragraph{Query Plan Generation}
 \paragraph{Query Rewriting}
 \paragraph{Query Preparation Phase}
 \paragraph{Query Evaluation Phase}
 
 
-\subsection{Formal definition of \glsxtrshort{SEnTri}}
+
 
