@@ -294,8 +294,9 @@ public class TriplestoresController implements TriplestoresAPI {
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
                 return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
 
-            if (IAMStorage.checkIfOwns(target, triplestoreID) || (IAMStorage.checkIfUserHasWriteAccess(target, triplestoreID) == write &&
-                    IAMStorage.checkIfUserHasReadAccess(target, triplestoreID)))
+            if (IAMStorage.getRole(target).equals(ADMIN) ||
+                    IAMStorage.checkIfOwns(target, triplestoreID) ||
+                    (IAMStorage.checkIfUserHasWriteAccess(target, triplestoreID) == write && IAMStorage.checkIfUserHasReadAccess(target, triplestoreID)))
                 return Response.ok(ALREADY_HAS_ACCESS).status(BAD_REQUEST).build();
 
             IAMStorage.grantAccess(triplestoreID, target, write);
@@ -353,7 +354,8 @@ public class TriplestoresController implements TriplestoresAPI {
                 return Response.ok(CANNOT_REVOKE_OWNER_OR_ADMIN_ACCESS).status(BAD_REQUEST).build();
 
             LocksClient.deleteUserTriplestoreLock(target, triplestoreID);
-            IAMStorage.revokeAccess(triplestoreID, target, write);
+            if (!issuerRole.equals(ADMIN))
+                IAMStorage.revokeAccess(triplestoreID, target, write);
             return Response.ok(SUCCESSFUL_ACCESS_REVOCATION).build();
         } catch (SessionException e) {
             return handleSessionException(e);

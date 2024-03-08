@@ -131,12 +131,12 @@ Access control is enforced by the \emph{IAM Provider} component, it's scope of f
 
 
 \subsubsection{Authentication} 
-Authentication is the process where we verify the identity of a user. We do so, by checking that the provided credentials, during login, match the ones saved within our system. To avoid having to verify this condition in every request sent by the user, we use \emph{sessions}. The session is generated upon a successful login request. A valid session, will prove the identity of the user sending the requests. In \gls{SEnTri}, an authenticated user needs to be valid (has been registered within the system) and hold an active session.
+Authentication is the process where we verify the identity of a user. We do so, by checking that the provided credentials, during login, match the ones saved within our system. To avoid having to verify this condition in every request sent by the user, we use \emph{sessions}. The session is generated upon a successful login request. A valid session will prove the identity of the user sending the requests. In \gls{SEnTri}, an authenticated user needs to be valid (has been registered within the system) and hold an active session.
 
 \begin{definition}[\textbf{Authentication}] Let $IsAuth(user)$ be a predicate that evaluates to $true$ if a $user$ is authenticated, $\bot$ otherwise, $s_i = (session_{ID},\; username_s,\; ttl)$ and $user_u = (username_u, \allowbreak password_u, role_u, owned_u)$. Correctness of the authentication procedure is upheld by the following formula:
 
 \begin{equation}
-    \forall_{user} \forall_{s} \; (IsAuth(user_u) \Leftrightarrow \exists_{s} (username_u = username_s \; \wedge \; ttl > 0))
+   IsAuth(user_u) \Leftrightarrow \exists_{s} (username_u = username_s \; \wedge \; ttl > 0)
 \end{equation}
 \end{definition}
 
@@ -146,26 +146,35 @@ Permissions in \gls{SEnTri} are logical rules which dictate whether a user is al
 
 
 \begin{definition}[\textbf{Permissions}]
-Let $CanGrantAccess(user, triplestore, type)$, $HasAccess(user, \allowbreak triplestore, \; type)$, $CanRevokeAccess(user, \; triplestore, \; type)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, has, or can revoke access, of a certain $type$, to the specified $triplestore$, $\bot$ otherwise.
+Let $HasAccess(user, \; triplestore, \; type)$ be a predicate that evaluates to true if  $user$ can has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak \; type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
 
 Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanTransferTriplestoreOwnership(user, \; triplestore)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership of the specified $triplestore$, $\bot$ otherwise.
 
 Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise. 
 
-Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and $T_i = (triplestore_{ID_i},\; nodes_i, \allowbreak  acp_i = (r_i, w_i))$, correctness of the permission evaluation procedure is upheld by the following formula:
+Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, password_t, \; role_t, \allowbreak owned_t)$ correctness of the permission evaluation procedure is upheld by the following formulas ttl > 0):
 
+
+\begin{align}
+    \begin{split} 
+        Can&GrantAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \\ 
+        & \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        & \\
+        Can&RevokeAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \\ 
+        & \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        & \\
+        Has&Access(user_u, \; type, \; triplestore_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u  \\ 
+        & \vee \; (type = \textrm{READ} \; \wedge \; username_{u} \in r_{i}) \; \vee \; (type = \textrm{WRITE} \; \wedge \; $username_{u} \in w_{i})
+    \end{split}
+\end{align}
+
+\end{definition}
 \begin{itemize}
-    \item \emph{Read Access}: if $username_{u} \in r_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, then $user_u$ has permission to execute read queries against $T_i$;
-    \item \emph{Write Access}: if $username_{u} \in w_{i} \vee triplestore_{ID_i} \in owned_u \vee role_u = \textrm{ADMIN}$, then $user_u$ has permission to execute write queries against $T_i$;
     \item \emph{Triplestore Creation}: if $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can create new triplestores;
     \item \emph{Triplestore Deletion}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, then $user_u$ can delete $T_i$; 
     \item \emph{Transfer Triplestore Ownership}: $user_u$ can create transfer the ownership of $T_i$ to another \emph{privileged} or \emph{admin} user if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$;
-    \item \emph{Grant/Revoke Access}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, then $user_u$ can grant/revoke access to $T_i$
     \item \emph{Grant/Revoke Role}: if $role_u = \textrm{ADMIN}$, then $user_u$ can grant/revoke the role of any user. If $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can exclusively downgrade $role_u$. 
 \end{itemize}
-
-\end{definition}
-
 
 \subsubsection{Concurrent ccess} Let $user_u = (username_u, password_u, role_u, owned_u)$ be an authenticated user
 
