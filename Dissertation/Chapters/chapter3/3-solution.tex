@@ -105,7 +105,7 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 Before formally defining \gls{SEnTri}, we need to first define it's core elements.
 
-\subsubsection{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore \linebreak $T = (triplestore_{ID}, \; \allowbreak nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\;  acp = (r, w))$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_{i} \in I \cup B \cup L$ is uniquely identifiable by $idx_{i}$, $idx_{i}$ is a hash of the \emph{triple pattern} that $node_{i}$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
+\subsubsection{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore \linebreak $T = (triplestore_{ID}, \; \allowbreak nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\;  acp = (r, w))$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
 \subsubsection{Users} A user $u = (username, \; password, \; role, \; owned = [triplestore_{ID_0},...,triplestore_{ID_n}])$ is a tuple, where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \; \textrm{BASIC}, \; \textrm{PRIVILEGED}\}$.
 
@@ -148,7 +148,7 @@ Permissions in \gls{SEnTri} are logical rules which dictate whether a user is al
 \begin{definition}[\textbf{Permissions}]
 Let $HasAccess(user, \; triplestore, \; type)$ be a predicate that evaluates to true if  $user$ can has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak \; type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
 
-Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanTransferTriplestoreOwnership(user, \; triplestore)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership of the specified $triplestore$, $\bot$ otherwise.
+Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanChangeOwnership(user, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership, to $target$ user, of the specified $triplestore$, $\bot$ otherwise.
 
 Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise. 
 
@@ -157,26 +157,40 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
 
 \begin{align}
     \begin{split} 
-        Can&GrantAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \\ 
-        & \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        Can&GrantAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\ 
+        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
         & \\
-        Can&RevokeAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \\ 
-        & \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        Can&RevokeAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \\ 
+        & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
         & \\
         Has&Access(user_u, \; type, \; triplestore_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u  \\ 
-        & \vee \; (type = \textrm{READ} \; \wedge \; username_{u} \in r_{i}) \; \vee \; (type = \textrm{WRITE} \; \wedge \; $username_{u} \in w_{i})
+        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \textrm{WRITE} \; \wedge \; $username_u \in w_i) \\
+        & \\
+        Can&CreateTriplestore(user_u, \; triplestore_i) \Leftrightarrow IsAuth(user_u) \\ 
+        & \wedge \; role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\} \; \wedge \; \nexists\;_{triplestore} \;\; triplestore_{ID} = triplestore_{ID_i} \\
+        & \\
+        Can&DeleteTriplestore(user_u, \; triplestore_i) \Leftrightarrow IsAuth(user_u) \\ 
+        & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestore_{ID_i} \in owned_u \\
+        & \\
+        Can&ChangeOwnership(user_u, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
+        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \; \wedge \; role_t \neq \textrm{BASIC}
+    \end{split}
+\end{align}
+
+\begin{align}
+    \begin{split} 
+        Can&GrantRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u) \\
+        & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge \; role_u = \textrm{ADMIN}) \\
+        & \vee \; (user_u = user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; role = \textrm{BASIC}))) \\
+        & \\
+        Can&RevokeRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u)\\
+        & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge role_u = \textrm{ADMIN}) \; \vee \; user_u = user_t) 
     \end{split}
 \end{align}
 
 \end{definition}
-\begin{itemize}
-    \item \emph{Triplestore Creation}: if $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can create new triplestores;
-    \item \emph{Triplestore Deletion}: if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$, then $user_u$ can delete $T_i$; 
-    \item \emph{Transfer Triplestore Ownership}: $user_u$ can create transfer the ownership of $T_i$ to another \emph{privileged} or \emph{admin} user if $role_u = \textrm{ADMIN} \vee triplestore_{ID_i} \in owned_u$;
-    \item \emph{Grant/Revoke Role}: if $role_u = \textrm{ADMIN}$, then $user_u$ can grant/revoke the role of any user. If $role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\}$, then $user_u$ can exclusively downgrade $role_u$. 
-\end{itemize}
 
-\subsubsection{Concurrent ccess} Let $user_u = (username_u, password_u, role_u, owned_u)$ be an authenticated user
+\subsubsection{Concurrent Access} Let $user_u = (username_u, password_u, role_u, owned_u)$ be an authenticated user
 
 
 \subsection{Triple pattern encryption schemes}
