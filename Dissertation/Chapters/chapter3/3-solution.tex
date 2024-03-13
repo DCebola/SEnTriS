@@ -190,7 +190,24 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
 
 \end{definition}
 
-\subsubsection{Concurrent Access} Let $user_u = (username_u, password_u, role_u, owned_u)$ be an authenticated user
+
+\subsubsection{Concurrent Access} 
+
+The issuing of access tokens for concurrent write and read operations follows a \emph{lock-based} approach. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. Read operations can occur simultaneously, but write operations, on the same triplestore, are sequential.
+
+\begin{definition}[\textbf{Concurrent Access}]
+
+    % IsLocked(triplestore, lockID), 
+    % CanGenerateAccessToken(user, triplestore, type)
+    % CanExecuteOperation(user, triplestore, type)
+    % $l = (lock_{ID},\; resource_{ID},\; ttl)$
+    % $at = (token_{ID}, \; username, \; ttl, \allowbreak \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})
+    % Formulate conditions to generate tokens, per type
+    % Formulate conditions to lock triplestore
+    % Formulate execution of operations
+    Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$,
+    
+\end{definition}
 
 
 \subsection{Triple pattern encryption schemes}
