@@ -468,7 +468,7 @@ Deterministic encryption is type of property-preserving encryption scheme. Contr
 
 \subsubsection{General Index-Based Model}
 
-A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generates an encrypted index $I$, for the database $DB$, using a $BuildIndex$ function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
+A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generates an encrypted index $I$, for the database $DB$, using a \emph{BuildIndex} function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
 
 \begin{equation}
     \begin{array}{l}

@@ -194,10 +194,22 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
 
 \subsubsection{Concurrent Access} 
 
-The issuing of access tokens for concurrent write and read operations follows a \emph{lock-based} approach. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. Read operations can occur simultaneously, but write operations, on the same triplestore, are sequential.
+Concurrent operations can target users or triplestores. The correctness of concurrent write and read operations is achieved using a \emph{lock-based} approach. Resources (users and triplestores) can be in a \emph{locked} or \emph{unlocked} state. Write operations can only be requested against \emph{unlocked} resources, which remain locked while the operation is being executed. Consequently, read operations can occur simultaneously, but write operations are sequential, against the same resource.
+
+\emph{Locks} are enough for requests targeting users. Operations can only be executed by a user, against themselves, or by \emph{admin} users, and the origin of the requests is always the \emph{Client}.
+
+Operations against triplestores are more complex. The query evaluation pipeline starts in the \emph{Client} component, but subsequent steps are executed in the \emph{Triplestore}, \emph{Vault} and \emph{Secure Computation Proxy}. Furthermore, whenever the execution context changes, we must verify if the author of the request has sufficient permissions.
+
+To fulfill such requirements, every request from the \emph{Client} to other components, contains an \emph{access token}. The other components execute permission checks, by sending this token to the \emph{IAM Provider}. The \emph{IAM Provider} verifies the validity of the token, and if its associated permissions are correct. 
+
+Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The triplestore will remain in a \emph{locked} state until the \emph{access token} is deleted or the \emph{lock} expires. 
 
 \begin{definition}[\textbf{Concurrent Access}]
+    Let $IsLocked(resource_{ID}, \; lock_{ID})$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise. 
+    
+    Let $CanGenerateAccessToken(user, \; triplestore, \; type)$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise.
 
+    Finally, let $CanExecuteOperation(token_{ID}, \; triplestore, \; type)$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise.
     % IsLocked(triplestore, lockID), 
     % CanGenerateAccessToken(user, triplestore, type)
     % CanExecuteOperation(user, triplestore, type)
@@ -213,11 +225,11 @@ The issuing of access tokens for concurrent write and read operations follows a 
 
 \subsection{Triple pattern encryption schemes}
 
-%\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
+\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-%\lstinputlisting[caption={Triple Pattern Encryption for Protocol I}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for Protocol I}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-%\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
 \subsection{Evaluation of SPARQL queries}
 \paragraph{Query Plan Generation}

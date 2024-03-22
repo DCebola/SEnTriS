@@ -13,7 +13,6 @@ function encryptKeywordInfo():
     foreach $keyword$ in $keywordFrequencies$:
         $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
         $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$keyword$])
-
     foreach $node$ in $eqTags$:
         $trapdoor$ := ENC($derivedKeys$[$node$], $node$, $iv_{ZERO}$)
         $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$node$])
