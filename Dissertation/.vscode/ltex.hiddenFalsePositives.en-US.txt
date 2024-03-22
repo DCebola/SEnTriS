@@ -1,3 +1,9 @@
 {"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QThis solution needs high-network requirements and results in heavy client-side computations, hindering all the benefits of using a cloud service to store the data.\\E$"}
 {"rule":"EN_A_VS_AN","sentence":"^\\QHE is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q.\\E$"}
 {"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QBecause ontologies have a defined structure we will follow the work of Chase and Kamara on \\E(?:Dummy|Ina|Jimmy-)[0-9]+$"}
+{"rule":"EN_A_VS_AN","sentence":"^\\QAn \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, is a tuple where \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q and \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q are both collections of usernames.\\E$"}
+{"rule":"REPEATED_VERBS","sentence":"^\\Q\\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q Core Classes Class Description rdfs:Resource The class resource, everything.\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_RULE","sentence":"^\\Qrdf:Property rdf:Property Property Restriction rdfs:domain A domain of the subject property.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Qrdfs:Resource rdfs:Class rdfs:subClassOf The subject is a subclass of a class.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qrdf:Property rdfs:Class rdfs:range A range of the subject property.\\E$"}
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qrdf:Property rdf:Property Property Restriction rdfs:domain A domain of the subject property.\\E$"}

@@ -83,7 +83,7 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
 
-\subsection{\gls{RDFS}: RDF Schema}
+\subsection{RDFS: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
 %Describe structure, give example extending on the RDF example, enumerate terms and possible syntaxes
 
@@ -100,7 +100,7 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
     \label{fig:rdfs-grafical-example}
 \end{figure}
 
-\subsubsection{\gls{RDFS} primitives}
+\subsubsection{RDFS primitives}
 
 \emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
@@ -128,7 +128,7 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
             \hline
         \end{tabular}
     \end{center}
-    \caption{\gls{RDFS} Core Classes and respective description (rdfs:comment).}
+    \caption{\gls{RDFS} Core Classes and respective description.}
     \label{tbl:rdfs-classes}
 \end{table}
 
@@ -166,11 +166,11 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
             \hline
         \end{tabular}}
     \end{center}
-    \caption{\gls{RDFS} Core Properties and respective description (rdfs:comment).}
+    \caption{\gls{RDFS} Core Properties and respective description.}
     \label{tbl:rdfs-properties}
 \end{table}
 
-\subsection{\gls{OWL2}: Web Ontology Language}
+\subsection{OWL2: Web Ontology Language}
 \label{ch2:sec:semantic-web:owl}
 
 \subsubsection{Overview}
@@ -279,15 +279,15 @@ In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} 
 \subsubsection{SPARQL Queries}
 In this section we will mathematically define core components of \emph{SPARQL}, briefly discuss the basis of functioning for this type of queries, explain how they are evaluated, given the semantics of \emph{graph patterns}, and cover their syntax. 
 
-\paragraph{Defining an RDF dataset} Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
+\begin{definition}[\textbf{RDF dataset}] Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
 
 Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G, \gamma\}$, where $\gamma$ is a function which assigns a named graph $\gamma(i)$ to each $i$ in a finite set $dom(\gamma) \in I \cup B$ \autocite{Picalausa2011-ca, noauthor_undated-ev}.
+\end{definition}
 
+\begin{definition}[\textbf{SPARQL Query}] Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
+\end{definition}
 
-\paragraph{Defining a \gls{SPARQL} Query} Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
-
-
-\paragraph{Defining a graph pattern} Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
+\begin{definition}[\textbf{Graph pattern}] Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
@@ -298,15 +298,15 @@ Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edg
 
 
 Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint\footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we'll define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
+\end{definition}
 
-\paragraph{How do \gls{SPARQL} queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+\paragraph{How do SPARQL queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
 
 The basis of \gls{SPARQL} queries is finding matches with \emph{graph patterns} in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the \emph{subgraph isomorphism problem}, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. 
 
 In the context of a \gls{SPARQL} query $q$, $G_1$ is a published \gls{RDF} graph identified by $d$ and $G_2$ corresponds to a \emph{graph pattern} $P_q$. From this match we obtain a set of \emph{bindings}: a multiset of mappings between $vars(P)$ and data within $G_d$. The final result of a query will also depend on $t_q$, the \emph{query type}, and $m$, the specified \emph{solution modifiers} (i.e. aggregation, grouping, sorting, duplicate removal). 
 
-
-\paragraph{Semantics of \gls{SPARQL} graph patterns} A \emph{mapping} $\mu$ is a partial function $\mu : \; V \to \; I \cup B \cup L$ that assigns values to a finite set of variables. The domain of $\mu$, denoted by $dom(\mu)$, is the subset of $V$ where $\mu$ is defined. 
+\begin{definition}[\textbf{Semantics of SPARQL graph patterns}] A \emph{mapping} $\mu$ is a partial function $\mu : \; V \to \; I \cup B \cup L$ that assigns values to a finite set of variables. The domain of $\mu$, denoted by $dom(\mu)$, is the subset of $V$ where $\mu$ is defined. 
 
 Two \emph{mappings} $\mu_1$ and $\mu_2$ are compatible, denoted by $\mu_1 \sim \mu_2$, if $\mu_1(?v) = \mu_2(?v)$ for all common variables $?v \in dom(\mu_1) \cap dom(\mu_2)$.
 
@@ -339,8 +339,9 @@ The semantic evaluation of $P$ over a dataset $D$ is a set of mappings $\llbrack
     & \llbracket \textrm{Graph} \;?v\; P\rrbracket_D = \bigcup_{i \; \in \; dom(\gamma)} \{ ?v \to i \} \Join \llbracket P \rrbracket_{(\gamma(i), \gamma)} \\
     \end{split}
 \end{equation}
+\end{definition}
 
-\paragraph{Syntax} \emph{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the \emph{graph pattern}, enclosed in brackets, and, optionally, some modifiers of the result (i.e. \emph{ORDER BY} to sort results and \emph{DISTINCT} to remove duplicates). Additionally, we may also specify the \gls{RDF} graph to consider for the query evaluation with the keywords \emph{FROM} or \emph{FROM NAMED}. Furthermore, the \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can specify prefixes for namespaces. 
+\paragraph{Syntax} \gls{SPARQL} queries have a similar structure to the \gls{SQL} queries: we define the operation to execute using a keyword, followed by the projection of variables to be shown in the result, the keyword \emph{WHERE}, the \emph{graph pattern}, enclosed in brackets, and, optionally, some modifiers of the result (i.e. \emph{ORDER BY} to sort results and \emph{DISTINCT} to remove duplicates). Additionally, we may also specify the \gls{RDF} graph to consider for the query evaluation with the keywords \emph{FROM} or \emph{FROM NAMED}. Furthermore, the \gls{SPARQL} syntax is very similar to \gls{TURTLE}, so we can specify prefixes for namespaces. 
 The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides the following query types: 
 
 \begin{itemize}
@@ -429,7 +430,7 @@ From \autocite{Acar2018-mp}, we define an encryption scheme to be homomorphic ov
     E(m_{1}) \, \bullet \, E(m_{2}) = E(m_{1} \bullet m_{2}), \forall m_{1}, m_{2} \in M
 \end{equation}
 
-\subsubsection{Types of \gls{HE} schemes}
+\subsubsection{Types of HE schemes}
 
 Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, others maintain multiplicative properties \autocite{Rivest1978-mu, Elgamal1985-rk}, and some conserve both additive and multiplicative properties \autocite{Gentry2009-zv}. The \gls{HE} schemes that preserve both properties allow for any arbitrary operation, because boolean circuits can be represented using only \emph{XOR} (addition) and \emph{AND} (multiplication) gates \autocite{Acar2018-mp}. 
 
@@ -452,7 +453,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js}, o
 
 Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
 
-\subsubsection{\glsxtrlong{OPE}} 
+\subsubsection{Order-Preserving Encryption} 
 
 \gls{OPE} schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
 
@@ -525,11 +526,11 @@ In 2006, Curtmola et al. \autocite{Curtmola2011-hi} revisited the security defin
 Both require that only the outcome of search patterns may be leaked. Additionally, they guarantee that trapdoors do not leak information about the keywords, apart from what can be inferred from the search and access pattern. Their main difference is whether the adversary can produce an adaptive or non-adaptive attack.
 
 \begin{itemize}
-    \item \emph{\gls{IND-CKA1}}: guarantees security if the client generates all queries at once;
-    \item \emph{\gls{IND-CKA2}}: guarantees security even if the client chooses the queries based on previously obtained trapdoors and search outcomes.
+    \item \emph{IND-CKA1}: guarantees security if the client generates all queries at once;
+    \item \emph{IND-CKA2}: guarantees security even if the client chooses the queries based on previously obtained trapdoors and search outcomes.
 \end{itemize}
 
-\subsubsection{\gls{SSE} Schemes}
+\subsubsection{SSE Schemes}
 
 \paragraph{Song et al.} In 2000, the first practical \gls{SSE} scheme was proposed \autocite{Song2000-ir}. The general basis of their method is to encrypt each word of a document and embed hash values with a specific format in the ciphertext. During search, the server executes a \emph{sequential scan} of the document, extracts the hashes and checks for matches on their values. 
 
@@ -636,7 +637,7 @@ The following images provide, respectively, an overview of the different onions 
 
 \emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
-\subsection{\gls{GOOSE}}
+\subsection{GOOSE}
 
 \gls{GOOSE} \autocite{Ciucanu2020-lx} is a secure graph outsourcing framework capable of answering \gls{UCRPQ} queries. The solution relies on secure multiparty computation techniques, encryption schemes and a standard SPARQL engine. 
 

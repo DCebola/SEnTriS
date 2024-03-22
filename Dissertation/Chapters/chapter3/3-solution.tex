@@ -50,7 +50,7 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 \emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, any triplestore and process role change requests.
 
 
-\paragraph{\glsxtrlong{M/M} setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist.
+\paragraph{M/M setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write access whitelist.
 
 These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
 
@@ -105,24 +105,30 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 Before formally defining \gls{SEnTri}, we need to first define it's core elements.
 
-\subsubsection{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore \linebreak $T = (triplestore_{ID}, \; \allowbreak nodes = \{(idx_{0},\; node_{0}), ... ,(idx_{n},\; node_{n})\},\;  acp = (r, w))$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
+\begin{definition}[\textbf{Triplestores}] A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore $T = (triplestore_{ID}, \;  nodes,\;  acp)$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp = (r, w)$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
+\end{definition}
 
-\subsubsection{Users} A user $u = (username, \; password, \; role, \; owned = [triplestore_{ID_0},...,triplestore_{ID_n}])$ is a tuple, where $owned$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{ADMIN}, \; \textrm{BASIC}, \; \textrm{PRIVILEGED}\}$.
-
-\subsubsection{Sessions} A user's session $s = (session_{ID},\; username,\; ttl)$ is a tuple, where  $session_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
-
-\subsubsection{Locks} A lock is $l = (lock_{ID},\; resource_{ID},\; ttl)$ is a tuple, where  $lock_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $resource_{ID}$ is either a valid $username$ or $triplestore_{ID}$ and $ttl \in N$ specifies the maximum time (in seconds) that a lock can remain valid, before expiring.
-
-\subsubsection{Ephemeral Access tokens} An ephemeral access token $at = (token_{ID}, \; username, \; ttl, \allowbreak \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})$ is a tuple, where $token_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ is the identifier of the user who holds the token, $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $session_{ID}$ is the identifier of the token holder's active session, at the time of its creation, $triplestore_{ID}$ is the identifier of the triplestore whose access is being requested and $lock_{ID}$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
+\begin{definition}[\textbf{Users}] A user $u = (username, \; password, \; role, \; owned)$ is a tuple, where $owned = [triplestore_{ID_0},...,triplestore_{ID_n}]$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \allowbreak \textrm{ADMIN}\}$.
+\end{definition}
 
 
-\subsubsection{\gls{SPARQL} queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+\begin{definition}[\textbf{Sessions}] A user's session $s = (session_{ID},\; username,\; ttl)$ is a tuple, where  $session_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
+\end{definition}
+
+\begin{definition}[\textbf{Locks}] A lock is $l = (lock_{ID},\; resource_{ID},\; ttl)$ is a tuple, where  $lock_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $resource_{ID}$ is either a valid $username$ or $triplestore_{ID}$ and $ttl \in N$ specifies the maximum time (in seconds) that a lock can remain valid, before expiring.
+\end{definition}
+
+\begin{definition}[\textbf{Ephemeral Access tokens}] An ephemeral access token $at = (token_{ID}, \; ttl, \allowbreak username, \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})$ is a tuple, where $token_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $username$ is the identifier of the user who holds the token, $session_{ID}$ is the identifier of the token holder's active session, at the time of its creation, $triplestore_{ID}$ is the identifier of the triplestore whose access is being requested and $lock_{ID}$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
+\end{definition}
+
+
+\paragraph*{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
 
 \subsubsection{Query Execution Plans}
 
 \subsubsection{\emph{Binding} tables}
 
-\subsection{Formal definition of \glsxtrshort{SEnTri}}
+\subsection{Formal definition of SEnTri}
 \label{ch3:sec:solution-definition:formal-definition}
 
 \subsection{Enforcing access control}
@@ -146,14 +152,13 @@ Permissions in \gls{SEnTri} are logical rules which dictate whether a user is al
 
 
 \begin{definition}[\textbf{Permissions}]
-Let $HasAccess(user, \; triplestore, \; type)$ be a predicate that evaluates to true if  $user$ can has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak \; type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
+Let $HasAccess(user, \; triplestore, \; type)$ be a predicate that evaluates to true if  $user$ has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak \; type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
 
 Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanChangeOwnership(user, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership, to $target$ user, of the specified $triplestore$, $\bot$ otherwise.
 
 Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise. 
 
-Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, password_t, \; role_t, \allowbreak owned_t)$ correctness of the permission evaluation procedure is upheld by the following formulas ttl > 0):
-
+Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, password_t, \; role_t, \allowbreak owned_t)$ correctness of the permission evaluation procedure is upheld by the following formulas:
 
 \begin{align}
     \begin{split} 
@@ -164,7 +169,7 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
         & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
         & \\
         Has&Access(user_u, \; type, \; triplestore_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u  \\ 
-        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \textrm{WRITE} \; \wedge \; $username_u \in w_i) \\
+        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \textrm{WRITE} \; \wedge \; username_u \in w_i) \\
         & \\
         Can&CreateTriplestore(user_u, \; triplestore_i) \Leftrightarrow IsAuth(user_u) \\ 
         & \wedge \; role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\} \; \wedge \; \nexists\;_{triplestore} \;\; triplestore_{ID} = triplestore_{ID_i} \\
@@ -173,12 +178,8 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
         & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestore_{ID_i} \in owned_u \\
         & \\
         Can&ChangeOwnership(user_u, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
-        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \; \wedge \; role_t \neq \textrm{BASIC}
-    \end{split}
-\end{align}
-
-\begin{align}
-    \begin{split} 
+        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \; \wedge \; role_t \neq \textrm{BASIC} \\
+        & \\
         Can&GrantRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u) \\
         & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge \; role_u = \textrm{ADMIN}) \\
         & \vee \; (user_u = user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; role = \textrm{BASIC}))) \\
@@ -205,7 +206,7 @@ The issuing of access tokens for concurrent write and read operations follows a 
     % Formulate conditions to generate tokens, per type
     % Formulate conditions to lock triplestore
     % Formulate execution of operations
-    Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$,
+    %Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$,
     
 \end{definition}
 
@@ -218,7 +219,7 @@ The issuing of access tokens for concurrent write and read operations follows a 
 
 %\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsection{Evaluation of \glsxtrshort{SPARQL} queries}
+\subsection{Evaluation of SPARQL queries}
 \paragraph{Query Plan Generation}
 \paragraph{Query Rewriting}
 \paragraph{Query Preparation Phase}
