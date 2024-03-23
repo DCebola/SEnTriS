@@ -124,9 +124,11 @@ Before formally defining \gls{SEnTri}, we need to first define it's core element
 
 \paragraph*{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
 
-\subsubsection{Query Execution Plans}
+\begin{definition}[\textbf{Query Execution Plans}]
+\end{definition}
 
-\subsubsection{\emph{Binding} tables}
+\begin{definition}[\textbf{\emph{Binding} tables}]
+\end{definition}
 
 \subsection{Formal definition of SEnTri}
 \label{ch3:sec:solution-definition:formal-definition}
@@ -158,27 +160,28 @@ Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, tr
 
 Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise. 
 
-Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, password_t, \; role_t, \allowbreak owned_t)$ correctness of the permission evaluation procedure is upheld by the following formulas:
+Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \; acp_i = (r_i, w_i))$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, \; role_t, \allowbreak password_t, \; owned_t)$ correctness of the permission evaluation procedure is upheld by the following formulas:
 
 \begin{align}
     \begin{split} 
         Can&GrantAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\ 
-        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u ) \\
         & \\
         Can&RevokeAccess(user_u, \; type, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \\ 
-        & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \\
+        & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u ) \\
         & \\
-        Has&Access(user_u, \; type, \; triplestore_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u  \\ 
-        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \textrm{WRITE} \; \wedge \; username_u \in w_i) \\
+        Has&Access(user_u, \; type, \; triplestore_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u  \\ 
+        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \{\textrm{READ}, \; \textrm{WRITE}\} \; \wedge \; username_u \in w_i) \\
+        & \vee \; (type = \textrm{OWNER} \; \wedge \; triplestore_{ID_i} \in \; owned_u) \\
         & \\
         Can&CreateTriplestore(user_u, \; triplestore_i) \Leftrightarrow IsAuth(user_u) \\ 
         & \wedge \; role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\} \; \wedge \; \nexists\;_{triplestore} \;\; triplestore_{ID} = triplestore_{ID_i} \\
         & \\
         Can&DeleteTriplestore(user_u, \; triplestore_i) \Leftrightarrow IsAuth(user_u) \\ 
-        & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestore_{ID_i} \in owned_u \\
+        & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestore_{ID_i} \in \; owned_u \\
         & \\
         Can&ChangeOwnership(user_u, \; triplestore_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
-        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in owned_u ) \; \wedge \; role_t \neq \textrm{BASIC} \\
+        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u ) \; \wedge \; role_t \neq \textrm{BASIC} \\
         & \\
         Can&GrantRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u) \\
         & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge \; role_u = \textrm{ADMIN}) \\
@@ -196,7 +199,7 @@ Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplesto
 
 Concurrent operations can target users or triplestores. The correctness of concurrent write and read operations is achieved using a \emph{lock-based} approach. Resources (users and triplestores) can be in a \emph{locked} or \emph{unlocked} state. Write operations can only be requested against \emph{unlocked} resources, which remain locked while the operation is being executed. Consequently, read operations can occur simultaneously, but write operations are sequential, against the same resource.
 
-\emph{Locks} are enough for requests targeting users. Operations can only be executed by a user, against themselves, or by \emph{admin} users, and the origin of the requests is always the \emph{Client}.
+\emph{Locks} are enough for requests targeting users. Operations can only be executed by users, against themselves, or by \emph{admin} users, and the origin of the requests is always the \emph{Client} (the execution context is constant).
 
 Operations against triplestores are more complex. The query evaluation pipeline starts in the \emph{Client} component, but subsequent steps are executed in the \emph{Triplestore}, \emph{Vault} and \emph{Secure Computation Proxy}. Furthermore, whenever the execution context changes, we must verify if the author of the request has sufficient permissions.
 
@@ -205,24 +208,29 @@ To fulfill such requirements, every request from the \emph{Client} to other comp
 Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The triplestore will remain in a \emph{locked} state until the \emph{access token} is deleted or the \emph{lock} expires. 
 
 \begin{definition}[\textbf{Concurrent Access}]
-    Let $IsLocked(resource_{ID}, \; lock_{ID})$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise. 
+    Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \allowbreak at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, via lock $l$ associated with access token $at$, $\bot$ otherwise. 
     
-    Let $CanGenerateAccessToken(user, \; triplestore, \; type)$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise.
+    Let $CanExecuteOperations(triplestore, \; at, \; type)$ be a predicate that evaluates to $true$ if the access token $at$ grants sufficient permissions, against the target $triplestore$, to allow operations, of the specified access $type$, to be executed in the current context of execution, $\bot$ otherwise.
 
-    Finally, let $CanExecuteOperation(token_{ID}, \; triplestore, \; type)$ be a predicate that evaluate to $true$, if the resource identified by $resource_{ID}$ is in a $locked$ state associated with the lock identifiable by $lock_{ID}$, $\bot$ otherwise.
-    % IsLocked(triplestore, lockID), 
-    % CanGenerateAccessToken(user, triplestore, type)
-    % CanExecuteOperation(user, triplestore, type)
-    % $l = (lock_{ID},\; resource_{ID},\; ttl)$
-    % $at = (token_{ID}, \; username, \; ttl, \allowbreak \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})
-    % Formulate conditions to generate tokens, per type
-    % Formulate conditions to lock triplestore
-    % Formulate execution of operations
-    %Given $type \in \{\textrm{READ},\textrm{WRITE}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, \linebreak $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$,
+    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestore_{ID_i},\; nodes_i, \;  acp_i = (r_i, w_i))$, lock $l_a = (lock_{ID_a},\; resource_{ID_a},\; ttl_a)$, lock $l_b = (lock_{ID_b},\; resource_{ID_b},\; ttl_b)$ and access token $at_k = (token_{ID_k}, \; username_k,\allowbreak ttl_k, \; session_{ID_k}, \; triplestore_{ID_k}, \; lock_{ID_k})$, let the resources $resource_a$ and $resource_b$ be identified by, respectively, $resource_{ID_a}$ and $resource_{ID_b}$. The correctness of concurrent access is upheld by the following formulas:
+
+    \begin{align}
+        \begin{split} 
+           IsL&ocked(resource_a, \; l_a) \Rightarrow \nexists_{l_b}(IsLocked(resource_a, \; l_b) \; \wedge \; lock_{ID_a} \neq \; lock_{ID_b}) \\
+           & \wedge \; \nexists_{resource_b}(IsLocked(resource_b, \; l_a) \; \wedge \; resource_{ID_a} \neq \; resource_{ID_b}) \\
+            & \\
+            Ca&nLock(triplestore, \; at) \Leftrightarrow IsAuth(user_u) \\ 
+            & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u ) \\
+            & \\
+            Ca&nExecuteOperations(triplestore, \; at, \; type) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestore_{ID_i} \in \; owned_u  \\ 
+            & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \{\textrm{READ}, \; \textrm{WRITE}\} \; \wedge \; username_u \in w_i) \\
+            & \vee \; (type = \textrm{OWNER} \; \wedge \; triplestore_{ID_i} \in \; owned_u)
+        \end{split}
+    \end{align}
     
 \end{definition}
 
-
+\subsection{Secret sharing}
 \subsection{Triple pattern encryption schemes}
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
