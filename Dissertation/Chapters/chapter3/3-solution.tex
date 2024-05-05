@@ -35,7 +35,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
     \item \emph{Client}: a public facing component where users can authenticate themselves and create, upload, share, request or revoke access to and query triplestores.
     \item \emph{Triplestore}: a storage component where all encrypted data is saved;
     \item \emph{Secure Computation Proxy}: this component executes secure query plans and set operations between encrypted \emph{bindings};
-    \item \emph{IAM Provider}: a component that handles authentication and validates access policies.
+    \item \emph{\gls{IAM} Provider}: a component that handles authentication and validates access policies.
     \item \emph{Vault}: a component to store confidential data required by the cryptographic protocols (e.g. cryptographic keys);
 \end{itemize}
 
@@ -54,7 +54,7 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 
 These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
 
-Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (IAM Provider, Vault, Triplestore)}
+Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (\gls{IAM} Provider, Vault, Triplestore)}
 
 \subsection{Security Model}
 \label{ch3:sec:solution-models:security-model}
@@ -103,43 +103,68 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-Before formally defining \gls{SEnTri}, we need to first define it's core elements.
+Before formally defining \gls{SEnTri}, we need to first specify it's core elements.
 
-\begin{definition}[\textbf{Triplestores}] A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore $T = (triplestore_{ID}, \;  nodes,\;  acp)$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp = (r, w)$ is the triplestore's \gls{ACP}. An \gls{ACP}, is a tuple where $r$ and $w$ are both collections of usernames. This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
-\end{definition}
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore $T = (triplestore_{ID}, \;  nodes, \; acp)$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp$ is the triplestore's \gls{ACP}.
 
-\begin{definition}[\textbf{Users}] A user $u = (username, \; password, \; role, \; owned)$ is a tuple, where $owned = [triplestore_{ID_0},...,triplestore_{ID_n}]$ is a collection of user's owned triplestores identifiers, $username$ and $password$ are unique strings and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \allowbreak \textrm{ADMIN}\}$.
-\end{definition}
+This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
+\paragraph{Triplestore Access Control Policy} A triplestore's \gls{ACP} $acp = (r,\; w,\; acrl)$, is a tuple where $r$ and $w$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An \emph{access change request} $access_{req} = (request_{ID}, \; username, \; write)$ is a tuple where $request_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
 
-\begin{definition}[\textbf{Sessions}] A user's session $s = (session_{ID},\; username,\; ttl)$ is a tuple, where  $session_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
-\end{definition}
-
-\begin{definition}[\textbf{Locks}] A lock is $l = (lock_{ID},\; resource_{ID},\; ttl)$ is a tuple, where  $lock_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $resource_{ID}$ is either a valid $username$ or $triplestore_{ID}$ and $ttl \in N$ specifies the maximum time (in seconds) that a lock can remain valid, before expiring.
-\end{definition}
-
-\begin{definition}[\textbf{Ephemeral Access tokens}] An ephemeral access token $at = (token_{ID}, \; ttl, \allowbreak username, \; session_{ID}, \; triplestore_{ID}, \; lock_{ID})$ is a tuple, where $token_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $username$ is the identifier of the user who holds the token, $session_{ID}$ is the identifier of the token holder's active session, at the time of its creation, $triplestore_{ID}$ is the identifier of the triplestore whose access is being requested and $lock_{ID}$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
-\end{definition}
+\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestore_{ID_0},...,triplestore_{ID_n}]$ is a collection of user's owned triplestores identifiers and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$.
 
 
-\paragraph*{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+\paragraph{Role Change Request} A role change request $role_{req} = (request_{ID}, username, role)$ is a tuple where $request_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$ specifies the desired new role.
 
-\begin{definition}[\textbf{Query Execution Plans}]
-\end{definition}
 
-\begin{definition}[\textbf{\emph{Binding} tables}]
-\end{definition}
+\paragraph{Sessions} A user's session $s = (session_{ID},\; username,\; ttl)$ is a tuple, where  $session_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
+
+
+\paragraph{Locks} A lock is $l = (lock_{ID},\; resource_{ID},\; ttl)$ is a tuple, where  $lock_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $resource_{ID}$ is either a valid $username$ or $triplestore_{ID}$ and $ttl \in N$ specifies the maximum time (in seconds) that a lock can remain valid, before expiring.
+
+
+\paragraph{Ephemeral Access tokens} An ephemeral access token $at = (token_{ID}, \; ttl, \; username, \allowbreak session_{ID}, \; triplestore_{ID}, \; lock_{ID})$ is a tuple, where $token_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $username$ is the identifier of the user who holds the token, $session_{ID}$ is the identifier of the token holder's active session, at the time of its creation, $triplestore_{ID}$ is the identifier of the triplestore whose access is being requested and $lock_{ID}$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
+
+
+\paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+
+\paragraph{Secret Maps} A secret map $smap = (triplestore_{ID}, \; secrets)$ is a tuple where $triplestore_{ID}$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
+
+
+\paragraph{Query Execution Plans}
+
+
+\paragraph{\emph{Binding} tables}
+
 
 \subsection{Formal definition of SEnTri}
 \label{ch3:sec:solution-definition:formal-definition}
 
+\begin{definition}[\textbf{SEnTri}]\label{ch3:definition:sentri}
+\gls{SEnTri} is a collection of 5 protocols $(\textrm{IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
+
+\begin{itemize}
+    \item \gls{IAM} is a tuple $()$ of 24 polynomial time algorithms:
+    \begin{itemize}
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow auth(username, password)$: takes as input two strings and outputs $\textrm{SUCCESS}$ if a new session, for the user whose credentials where supplied, was generated, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow registerUser(username, password)$: takes as input two strings and outputs $\textrm{SUCCESS}$ if a new user is registered in the system, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow deleteUser(cookie, username)$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  issueGrantRoleRequest(cookie, username, issuer, role)$
+        \item $[role_{req_0},...,role_{req_1}] \leftarrow  getPendinRoleRequests(cookie, username, issuer, role)$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow processRoleRequest(cookie, username, requestID, target, decision);$
+
+    \end{itemize}
+\end{itemize}
+
+\end{definition}
+
 \subsection{Enforcing access control}
 
-The \emph{IAM Provider} component is responsible for enforcing access control. This functionality is achieved using the combination of algorithms scoped to this component. These algorithms are specified in Section \ref{ch3:sec:solution-definition:formal-definition} and defined in the component's pseudocode, available in appendix \mytodo{Add IAM Provider pseudocode as appendix}.
+The \emph{\gls{IAM} Provider} component is responsible for enforcing access control. This functionality is achieved using the combination of algorithms scoped to this component. These algorithms are specified in Section \ref{ch3:sec:solution-definition:formal-definition} and defined in the component's pseudocode, available in appendix \mytodo{Add \gls{IAM} Provider pseudocode as appendix}.
 
 To prove the correctness of \gls{SEnTri}'s access control, we will prove the correctness of the enforcement of authentication, permissions and lock-based access to resources.
 
-These procedures can be reduced to the evaluation of logical checks against the state of resources saved in the \emph{IAM Provider} component. Such logical checks can be expressed using first-order logic.
+These procedures can be reduced to the evaluation of logical checks against the state of resources saved in the \emph{\gls{IAM} Provider} component. Such logical checks can be expressed using first-order logic.
 
 In Chapter \ref{cha:experimental-evaluation} we will prove that the pseudocode upholds the formulas from the definitions \ref{ch3:definition:authentication}, \ref{ch3:definition:permissions} and \ref{ch3:definition:concurrent-access}, consequently proving correctness of the proposed access control solution.
 
@@ -210,12 +235,12 @@ Concurrent operations can target users or triplestores. The correctness of concu
 
 Operations against triplestores are more complex. The query evaluation pipeline starts in the \emph{Client} component, but subsequent steps are executed in the \emph{Triplestore}, \emph{Vault} and \emph{Secure Computation Proxy}. Furthermore, whenever the execution context changes, we must verify if the author of the request has sufficient permissions.
 
-To fulfill such requirements, every request from the \emph{Client} to other components, contains an \emph{access token}. The other components execute permission checks, by sending this token to the \emph{IAM Provider}. The \emph{IAM Provider} verifies the validity of the token, and if its associated permissions are correct. 
+To fulfill such requirements, every request from the \emph{Client} to other components, contains an \emph{access token}. The other components execute permission checks, by sending this token to the \emph{\gls{IAM} Provider}. The \emph{\gls{IAM} Provider} verifies the validity of the token, and if its associated permissions are correct. 
 
 Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The triplestore will remain in a \emph{locked} state until the \emph{access token} is deleted or the \emph{lock} expires. 
 
 \begin{definition}[\textbf{Concurrent Lock-based Access Correctness}]\label{ch3:definition:concurrent-access}
-    Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \; at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, and associate the generated lock associated with access token $at$, $\bot$ otherwise. 
+    Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \; at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, and associate the generated lock with access token $at$, $\bot$ otherwise. 
     
     Let $CanExecuteOperations(triplestore, \; at, \; type)$ be a predicate that evaluates to $true$ if the access token $at$ grants sufficient permissions, against the target $triplestore$, to allow operations, of the specified access $type$, to be executed in the current context of execution, $\bot$ otherwise.
 
