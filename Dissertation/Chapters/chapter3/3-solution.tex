@@ -143,18 +143,62 @@ This data structure is a simplified version of the one defined in section \ref{c
 \begin{definition}[\textbf{SEnTri}]\label{ch3:definition:sentri}
 \gls{SEnTri} is a collection of 5 protocols $(\textrm{IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
 
+%$
 \begin{itemize}
-    \item \gls{IAM} is a tuple $()$ of 24 polynomial time algorithms:
+    \item \gls{IAM} is a tuple $(auth, \; registerUser, \; deleteUser, \; issueGrantRoleRequest, \; getPend{\text-}\linebreak ingRoleRequests, \; processRoleRequest, \; createTriplestoreAccessPolicy, \;listTriple{\text-}\linebreak stores, \; listUsersWithAccess, \; changeTriplestoreOwner, \; deleteTriplestoreAccess{\text-}\linebreak Policy, \; grantAccess, \; revokeAccess, \; issueAccessRequest, \; getPendingAccessRequests,\linebreak processAccessRequest, \; createAccessToken, \; deleteAccessToken, \; checkReadAccess, \linebreak checkWriteAccess, \; checkOwnerAccess, \; checkIfActive, \; acquireTriplestoreLock, \linebreak releaseTriplestoreLock)$ of 24 polynomial time algorithms. These algorithms are responsible for session validation, user data and role management, triplestore access policies management and granting or revoking access to triplestores:
     \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow auth(username, password)$: takes as input two strings and outputs $\textrm{SUCCESS}$ if a new session, for the user whose credentials where supplied, was generated, $\bot$ otherwise.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow registerUser(username, password)$: takes as input two strings and outputs $\textrm{SUCCESS}$ if a new user is registered in the system, $\bot$ otherwise.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow deleteUser(cookie, username)$
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  issueGrantRoleRequest(cookie, username, issuer, role)$
-        \item $[role_{req_0},...,role_{req_1}] \leftarrow  getPendinRoleRequests(cookie, username, issuer, role)$
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow processRoleRequest(cookie, username, requestID, target, decision);$
-
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new session was generated, $\bot$ otherwise.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered in the system, $\bot$ otherwise.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted from the system, $\bot$ otherwise.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie and the username the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted in the system, $\bot$ otherwise.
+        
+        \item $[role_{req_0},...,role_{req_n}] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; username)}$: takes as input a cookie, and the request issuer username. Outputs a list with the pending role changing requests.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; request_{ID}, \; target,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie and the username the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted in the system, $\bot$ otherwise.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer,\; triplestore_{ID})}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, \;read, \; owns)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \; triplestore_{ID}, \; write, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestore_{ID}, \; target, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestore_{ID}, \; target,\; write)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, \; triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestore_{ID}, \; request_{ID}, \; decision, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createAccessToken(cookie, \; triplestore_{ID}, \; target)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestore_{ID}, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at);}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$
+        
     \end{itemize}
 \end{itemize}
+
+
 
 \end{definition}
 
@@ -167,7 +211,6 @@ To prove the correctness of \gls{SEnTri}'s access control, we will prove the cor
 These procedures can be reduced to the evaluation of logical checks against the state of resources saved in the \emph{\gls{IAM} Provider} component. Such logical checks can be expressed using first-order logic.
 
 In Chapter \ref{cha:experimental-evaluation} we will prove that the pseudocode upholds the formulas from the definitions \ref{ch3:definition:authentication}, \ref{ch3:definition:permissions} and \ref{ch3:definition:concurrent-access}, consequently proving correctness of the proposed access control solution.
-
 
 
 \subsubsection{Authentication} 
