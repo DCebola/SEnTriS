@@ -149,17 +149,17 @@ This data structure is a simplified version of the one defined in section \ref{c
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new session was generated, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered in the system, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted from the system, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie and the username the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted in the system, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
         
         \item $[role_{req_0},...,role_{req_n}] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; username)}$: takes as input a cookie, and the request issuer username. Outputs a list with the pending role changing requests.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; request_{ID}, \; target,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie and the username the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted in the system, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; request_{ID}, \; target,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the request identifier, the username of the role changing target and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer,\; triplestore_{ID})}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{re_{ID})}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, \;read, \; owns)}$
         
