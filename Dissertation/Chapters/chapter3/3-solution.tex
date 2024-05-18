@@ -143,9 +143,8 @@ This data structure is a simplified version of the one defined in section \ref{c
 \begin{definition}[\textbf{SEnTri}]\label{ch3:definition:sentri}
 \gls{SEnTri} is a collection of 5 protocols $(\textrm{IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
 
-%$
 \begin{itemize}
-    \item \gls{IAM} is a tuple $(auth, \; registerUser, \; deleteUser, \; issueGrantRoleRequest, \; getPend{\text-}\linebreak ingRoleRequests, \; processRoleRequest, \; createTriplestoreAccessPolicy, \;listTriple{\text-}\linebreak stores, \; listUsersWithAccess, \; changeTriplestoreOwner, \; deleteTriplestoreAccess{\text-}\linebreak Policy, \; grantAccess, \; revokeAccess, \; issueAccessRequest, \; getPendingAccessRequests,\linebreak processAccessRequest, \; createAccessToken, \; deleteAccessToken, \; checkReadAccess, \linebreak checkWriteAccess, \; checkOwnerAccess, \; checkIfActive, \; acquireTriplestoreLock, \linebreak releaseTriplestoreLock)$ of 24 polynomial time algorithms. These algorithms are responsible for session validation, user data and role management, triplestore access policies management and granting or revoking access to triplestores:
+    \item IAM is a tuple $(auth, \; registerUser, \; deleteUser, \; issueGrantRoleRequest, \; getPend{\text-}\linebreak ingRoleRequests, \; processRoleRequest, \; createTriplestoreAccessPolicy, \;listTriple{\text-}\linebreak stores, \; listUsersWithAccess, \; changeTriplestoreOwner, \; deleteTriplestoreAccess{\text-}\linebreak Policy, \; grantAccess, \; revokeAccess, \; issueAccessRequest, \; getPendingAccessRequests,\linebreak processAccessRequest, \; createAccessToken, \; deleteAccessToken, \; checkReadAccess, \linebreak checkWriteAccess, \; checkOwnerAccess, \; checkIfActive, \; acquireTriplestoreLock, \linebreak releaseTriplestoreLock)$ of 24 polynomial time algorithms. These algorithms are responsible for session validation, user data and role management, triplestore access policies management and granting or revoking access to triplestores:
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new session was generated, $\bot$ otherwise.
         
@@ -197,15 +196,28 @@ This data structure is a simplified version of the one defined in section \ref{c
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
 
     \end{itemize}
+    \item CLIENT is a tuple $()$ of 25 polynomial time algorithms. These algorithms are responsible for ...:
+    \begin{itemize}
+        \item 
+    \end{itemize}
+    \item VAULT is a tuple $()$ of 3 polynomial time algorithms. These algorithms are responsible for ...:
+    \begin{itemize}
+        \item
+    \end{itemize}
+    \item TRIPLESTORE is a tuple $()$ of 11 polynomial time algorithms. These algorithms are responsible for ...:
+    \begin{itemize}
+        \item
+    \end{itemize}
+    \item PROXY is a tuple $()$ of 2 polynomial time algorithms. These algorithms are responsible for ...:
+    \begin{itemize}
+        \item
+    \end{itemize}
 \end{itemize}
-
-
-
 \end{definition}
 
 \subsection{Enforcing access control}
 
-The \emph{\gls{IAM} Provider} component is responsible for enforcing access control. This functionality is achieved using the combination of algorithms scoped to this component. These algorithms are specified in Section \ref{ch3:sec:solution-definition:formal-definition} and defined in the component's pseudocode, available in appendix \mytodo{Add \gls{IAM} Provider pseudocode as appendix}.
+The \emph{\gls{IAM} Provider} component is responsible for enforcing access control. This functionality is achieved using the combination of algorithms scoped to the IAM protocol, specified in Definition \ref{ch3:definition:sentri}. The component's pseudocode is available in appendix \mytodo{Add \gls{IAM} Provider pseudocode as appendix}.
 
 To prove the correctness of \gls{SEnTri}'s access control, we will prove the correctness of the enforcement of authentication, permissions and lock-based access to resources.
 
