@@ -71,6 +71,7 @@ public class UsersController implements UsersAPI {
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordUtils.hash(credentials.getPassword()));
             IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
+            //TODO: Error messages should be equal... difference leak info about usernames/pass, triplestores
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();

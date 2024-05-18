@@ -255,7 +255,7 @@ public class IAMStorage {
     public static Set<String> getTriplestores(String username, boolean write, boolean read, boolean owns) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             if (!owns && !write && !read)
-                return new HashSet<>(); //TODO: Create public & private triplestores
+                return new HashSet<>();
             Set<String> owned = jedis.smembers(String.format(USER_OWNED_TRIPLESTORES, username));
             if (owns && !write && !read)
                 return owned;

@@ -43,9 +43,9 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 
 \paragraph{Role-Based Access Control} In \emph{SEnTri} roles grant different permissions to the users, which restrict the type of operations they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} and \emph{basic} user.
 
-\emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to publically available triplestores.
+\emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to existing triplestores.
 
-\emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting their publically listed triplestores.
+\emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting triplestores they own.
 
 \emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, any triplestore and process role change requests.
 
@@ -109,9 +109,9 @@ Before formally defining \gls{SEnTri}, we need to first specify it's core elemen
 
 This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
-\paragraph{Triplestore Access Control Policy} A triplestore's \gls{ACP} $acp = (r,\; w,\; acrl)$, is a tuple where $r$ and $w$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An \emph{access change request} $access_{req} = (request_{ID}, \; username, \; write)$ is a tuple where $request_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
+\paragraph{Triplestore Access Control Policy} A triplestore's \gls{ACP} $acp = (r,\; w,\; acrl)$, is a tuple where $r$ and $w$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $access_{req} = (request_{ID}, \; username, \; write)$ is a tuple where $request_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
 
-\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestore_{ID_0},...,triplestore_{ID_n}]$ is a collection of user's owned triplestores identifiers and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$.
+\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestore_{ID_0},...,triplestore_{ID_n}]$ is a collection of user's owned triplestores identifiers and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED},\; \textrm{ADMIN}\}$.
 
 
 \paragraph{Role Change Request} A role change request $role_{req} = (request_{ID}, username, role)$ is a tuple where $request_{ID}$ is a freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$ specifies the desired new role.
@@ -155,46 +155,47 @@ This data structure is a simplified version of the one defined in section \ref{c
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
         
-        \item $[role_{req_0},...,role_{req_n}] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; username)}$: takes as input a cookie, and the request issuer username. Outputs a list with the pending role changing requests.
+        \item $[role_{req_0},...,role_{req_n}] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; username)}$: takes as input a cookie, and the request issuer username. Outputs the collection of pending role changing requests.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; request_{ID}, \; target,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the request identifier, the username of the role changing target and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{re_{ID})}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, \;read, \; owns)}$
+        \item $[triplestore_{ID_0},...,triplestore_{ID_n}]  \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access; 
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \; triplestore_{ID}, \; write, \; at)}$
+        \item $\{msg, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, triplestore_{ID}, \; write, \; at)}$: takes as input a cookie, a triplestore identifier, a boolean filter parameter and an access token. If the access token has sufficient permissions, outputs a message with the specified triplestore's \emph{owner} username and the collection of \emph{read} and \emph{write} access (if the $write$ parameter is \emph{true}) users' usernames, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestore_{ID}, \; target, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestore_{ID}, \; target, \; at)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestore_{ID}, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestore_{ID}, \; at)}$: \linebreak takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise. 
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestore_{ID}, \; target,\; write, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestore_{ID}, \; target,\; write)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestore_{ID}, \; target,\; write)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, \; triplestore_{ID}, \; at)}$
+        \item $\{[access_{req_0}, ..., access_{req_n}], \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, \; triple{\text -}}$\linebreak $\mathbf{store_{ID}, \; at)}$: takes as input a cookie, a triplestore indentifier and an access token. Outputs the collection of the triplestore's pending access change requests, if the specified access token has sufficient permissions, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestore_{ID}, \; request_{ID}, \; decision, \; at)}$
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createAccessToken(cookie, \; triplestore_{ID}, \; target)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestore_{ID}, \; request_{ID},}$\linebreak$\mathbf{decision, \; at)}$: takes as input a cookie, a triplestore identifier, an access change request identifier, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the specified request is successfully processed according to the provided $decision$ parameter, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestore_{ID}, \; at)}$
+        \item $\{token_{ID}, \bot\} \leftarrow \mathbf{createAccessToken(cookie, \; triplestore_{ID}, \; target)}$: takes as input a cookie, a triplestore identifier, and a username. Outputs the newly generated token identifier, if the $target$ user has sufficient permissions against the specified triplestore, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestore_{ID}, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestore_{ID}, \; at)}$: takes as input a cookie, a triplestore identifier, and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully deleted, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestore_{ID}, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestore_{ID}, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{read} access to the specified triplestore, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestore_{ID}, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestore_{ID}, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{write} access to the specified triplestore, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at);}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestore_{ID}, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the oken has not expired), $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
         
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
+
     \end{itemize}
 \end{itemize}
 

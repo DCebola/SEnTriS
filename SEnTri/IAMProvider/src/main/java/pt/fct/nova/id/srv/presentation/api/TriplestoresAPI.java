@@ -26,7 +26,7 @@ public interface TriplestoresAPI {
     Response listTriplestores(@CookieParam(COOKIE_PARAM) Cookie cookie,
                               @PathParam("issuer") String issuer,
                               @DefaultValue("false") @QueryParam("write") boolean write,
-                              @DefaultValue("false") @QueryParam("read") boolean read,
+                              @DefaultValue("true") @QueryParam("read") boolean read,
                               @DefaultValue("false") @QueryParam("owns") boolean owns);
 
     @GET
