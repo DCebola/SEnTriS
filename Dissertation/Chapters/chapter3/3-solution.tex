@@ -103,7 +103,18 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-Before formally defining \gls{SEnTri}, we need to first specify it's core elements.
+Before formally defining \gls{SEnTri}, we need to first specify cryptographic tools, and it's core elements.
+
+\subsubsection{Cryptographic Tools}
+
+\paragraph{Notation} The function $ENC(K_{encryption\_scheme}, \; m, \; iv)$ denotes an encryption operation of message $m$, using the initialization vector $iv$ and key $K_{encryption\_scheme}$. The function $DEC(K_{encryption\_scheme}, \; ct)$ to denote a decryption operation of ciphertext $ct$, using key $K_{encryption\_scheme}$.
+
+\paragraph{Encryption Schemes} $RND$ and $DET$ will denote, respectively, a non-deterministic and deterministic encryption schemes. $DGK$ will identify the \gls{DGK} cryptosystem, an additive homomorphic encryption scheme with interesting properties that can be leveraged to execute secure integer comparison \autocite{Damgard2007-km, Damgard2009-my}. 
+
+\begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk}
+\end{definition}
+
+\subsubsection{Core elements}
 
 \paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore $T = (triplestore_{ID}, \;  nodes, \; acp)$ is a key value store, where $triplestore_{ID}$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map, $node_i \in I \cup B \cup L$ is uniquely identifiable by $idx_i$, $idx_i$ is a hash of the \emph{triple pattern} that $node_i$ belongs to, and $acp$ is the triplestore's \gls{ACP}.
 
@@ -210,7 +221,8 @@ This data structure is a simplified version of the one defined in section \ref{c
     \end{itemize}
     \item PROXY is a tuple $()$ of 2 polynomial time algorithms. These algorithms are responsible for ...:
     \begin{itemize}
-        \item
+        \item $\{search_{ID}, \bot\} \leftarrow \mathbf{prepareSearch(ENC(nodes), \; at)}$
+        \item $\{search_{ID}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(nodes, \; at)}$
     \end{itemize}
 \end{itemize}
 \end{definition}
@@ -322,6 +334,7 @@ Queries that contain write predicates, will require that their target remains \e
 
 \subsection{Secret sharing}
 \subsection{Triple pattern encryption schemes}
+\subsubsection{Base encryption schemes}
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
