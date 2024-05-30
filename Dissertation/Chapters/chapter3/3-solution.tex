@@ -84,6 +84,8 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
           \end{enumerate}
 \end{enumerate}
 
+\pagebreak
+
 \section{Solution Definition}
 \label{ch3:sec:solution-definition}
 
@@ -97,7 +99,8 @@ In \gls{SEnTri}, data encryption retains elements from the \emph{CryptDB} approa
 
 We have implemented \gls{SEnTri} using two different approaches. Both rely on encrypted onions with two layers of encryption, where the outer layer is probabilistically encrypted.
 
-In the first approach, the inner layer is deterministically encrypted, achieving equality like \emph{CryptDB}, whereas in the second approach, the inner layer is homomorphically encrypted, using an algorithm that preserves additive properties.
+In the first approach, the inner layer is deterministically encrypted, achieving equality like \emph{CryptDB}, whereas in the second approach, the inner layer is homomorphically encrypted, using an algorithm that preserves additive properties. In the rest of the document we will refer to the two approaches, respectively, as V1 and V2.
+
 
 \mytodo{Add figure with two implementation overview scheme... interaction of components like for a poster}
 
@@ -107,11 +110,38 @@ Before formally defining \gls{SEnTri}, we need to first specify cryptographic to
 
 \subsubsection{Cryptographic Tools}
 
-\paragraph{Notation} The function $ENC(K_{encryption\_scheme}, \; m, \; iv)$ denotes an encryption operation of message $m$, using the initialization vector $iv$ and key $K_{encryption\_scheme}$. The function $DEC(K_{encryption\_scheme}, \; ct)$ to denote a decryption operation of ciphertext $ct$, using key $K_{encryption\_scheme}$.
+\paragraph{Notation} The function $ENC(K_{encryption\_scheme}, \; m, \; iv)$ denotes an encryption operation of message $m$, using the initialization vector $iv$ and key $K_{encryption\_scheme}$. The function $DEC(K_{encryption\_scheme}, \; ct)$ denotes a decryption operation of ciphertext $ct$, using key $K_{encryption\_scheme}$.
 
-\paragraph{Encryption Schemes} $RND$ and $DET$ will denote, respectively, a non-deterministic and deterministic encryption schemes. $DGK$ will identify the \gls{DGK} cryptosystem, an additive homomorphic encryption scheme with interesting properties that can be leveraged to execute secure integer comparison \autocite{Damgard2007-km, Damgard2009-my}. 
+\paragraph{Encryption Schemes} $RND$ and $DET$ will denote, respectively, a non-deterministic and deterministic encryption schemes. $DGK$ will identify the \gls{DGK} cryptosystem, an additive homomorphic encryption scheme with interesting properties that can be leveraged to execute secure integer comparison \autocite{Damgard2007-km, Damgard2009-my}. The $RND$ and $DET$ are used in protocol V1 and \gls{DGK} is used in protocol V2
 
 \begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk}
+
+Let $k$, $t$, and $l$ be public parameters. Parameter $k$ determines the size of a \gls{RSA} modulus, $l$ is the bit length of the messages to encrypt and $t$ should be large enough so that exhaustive search is infeasible.
+
+\textbf{Key Generation}    Let $p$, $q$ be two primes, generated such that $n = pq$ is a $k$-bit \gls{RSA} modulus and that the $u$, $v_p$ and $v_q$ also exist and possess the following properties:
+
+\begin{changemargin}{1cm}{1cm}
+    \begin{enumerate}
+        \item $u$ is the smallest prime greater than $l + 2$
+        \item $u$ is a divisor of both $p - 1$ and $q -1$
+        \item $v_p$ is $t$-bit prime numbers that divides $p - 1$
+        \item $v_q$ is $t$-bit prime numbers that divides $q - 1$
+    \end{enumerate}
+\end{changemargin}
+
+
+Choose random values $g, h \in \mathbb{Z}^*_n$, so that:
+
+\begin{changemargin}{1cm}{1cm}
+    \begin{enumerate}
+    \item the multiplicative order of $h$ is $v_pv_q$
+    \item $g$ is an element of order $uv_pv_q \in \mathbb{Z}^*_n$
+    \end{enumerate}
+\end{changemargin}
+
+The message space is $M = \mathbb{Z}_u$ and the ciphertext space is $C = \{g^mh^r \; \textrm{mod} \; n \; | \; m \in \mathbb{Z}_u, \;  r \in \mathbb{Z}_{v_pv_q}\} \subseteq \mathbb{Z}^*_n$. The public and private keys are, respectively, $K_{DGK_{pub}} = (n,\;g,\;h,\;u)$ and $K_{DGK_{priv}} = (p,\;q,\;v_p,\;v_q)$.
+
+
 \end{definition}
 
 \subsubsection{Core elements}
