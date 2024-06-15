@@ -9,13 +9,13 @@ function loadState($master$, $rnd$, $det$, $iv$, $schema$):
 
 function encryptKeywordInfo():
     foreach $keyword$ in $keywordFrequencies$:
-        $trapdoor$ := ENC($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
-        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $keywordFrequencies$[$keyword$])
+        $trapdoor$ := E($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
+        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$keyword$])
 
 function encryptNode($node$, $keyword$):
     $freq$ := incrementKeywordFrequency($keyword$)
-    $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $freq$)
-    $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, ENC($K_{DET}$, $node$, $iv_{DET}$))
+    $trapdoor$ := E(deriveKey($keyword$), $keyword$, $freq$)
+    $encryptedNode$[$trapdoor$] := E($K_{RND}$, E($K_{DET}$, $node$, $iv_{DET}$))
     return $freq$
  
 function getDETKey():

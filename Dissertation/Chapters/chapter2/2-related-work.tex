@@ -424,11 +424,14 @@ When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} s
 The term homomorphism, in security, was used for the first time by Rivest et al. in 1978 \autocite{Rivest1978-vt}.
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
 
-From \autocite{Acar2018-mp}, we define an encryption scheme to be homomorphic over an operation $\bullet$ if it satisfies the following equation, where $E$ is the encryption algorithm and $M$ the set of all possible messages: 
+\begin{definition}[\textbf{Homomorphic Encryption}]\label{ch2:definition:he}
+    An encryption scheme is homomorphic over operation $\bullet_1$ if it satisfies the following equation, where $E$ is the encryption algorithm, $\bullet_1$ and $\bullet_2$ arbitrary operations and $M$ the set of all possible messages \autocite{Acar2018-mp, Franz2011-sm}: 
 
-\begin{equation}
-    E(m_{1}) \, \bullet \, E(m_{2}) = E(m_{1} \bullet m_{2}), \forall m_{1}, m_{2} \in M
+\begin{equation}\label{chapter2:sec:homomorphic-encryptio:def-eq}
+    E(m_{1}) \, \bullet_2 \, E(m_{2}) = E(m_{1} \bullet_1 m_{2}), \forall m_{1}, m_{2} \in M
 \end{equation}
+
+\end{definition}
 
 \subsubsection{Types of HE schemes}
 

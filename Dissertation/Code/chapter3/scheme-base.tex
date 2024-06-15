@@ -32,8 +32,8 @@ function EncryptSchemaTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
         
 function encryptSchemaNode($node$):
     $freq$ := incrementKeywordFrequency($keyword_{schema}$)
-    $trapdoor$ := ENC(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
-    $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $node$)
+    $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
+    $encryptedNode$[$trapdoor$] := E($K_{RND}$, $node$)
 
 function EncryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
 	foreach $t = (s,p,o)$ in $T$:
@@ -58,8 +58,8 @@ function EncryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
 function encryptTriple($keyword$, $frequencies$): 
     $i$ := 0
     foreach $freq$ in $frequencies$:
-        $trapdoor$ := ENC(deriveKey($keyword$), $keyword$, $i$)
-        $encryptedNode$[$trapdoor$] := ENC($K_{RND}$, $freq$)
+        $trapdoor$ := E(deriveKey($keyword$), $keyword$, $i$)
+        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $freq$)
         $i$++
 
 function deriveKey($context$):
@@ -79,13 +79,13 @@ function incrementKeywordFrequency($keyword$):
     return $freq$
 
 function generateTrapdoor($keyword$, $i$):
-    return ENC(deriveKey($keyword$), $keyword$, $i$)
+    return E(deriveKey($keyword$), $keyword$, $i$)
     
 function generateTrapdoor($keyword$):
-    return ENC(deriveKey($keyword$), $keyword$, $iv_{ZERO}$)
+    return E(deriveKey($keyword$), $keyword$, $iv_{ZERO}$)
 	
 function generateTrapdoorAndIncrementIV($keyword$):
-    return ENC(deriveKey($keyword$), $keyword$, incrementKeywordFrequency($keyword$))
+    return E(deriveKey($keyword$), $keyword$, incrementKeywordFrequency($keyword$))
 
 function generateTriplePatternTrapdoors($T$ = {$t_0$, $t_1$, ... $t_n$}):
     $keywordPatternTrapdoors$ := {}
@@ -110,7 +110,7 @@ function generateTriplePatternTrapdoors($T$ = {$t_0$, $t_1$, ... $t_n$}):
             $trapdoors$ := $keywordPatternTrapdoors$[keyword]
             if ($trapdoors$ == :bot):
                 $trapdoors$ := {}
-            $trapdoors$ := $trapdoors$ :U {ENC(deriveKey($keyword_t$), $keyword_t$, $i$)}
+            $trapdoors$ := $trapdoors$ :U {E(deriveKey($keyword_t$), $keyword_t$, $i$)}
             $keywordPatternTrapdoors$[$keyword$] := $trapdoors$
             $i$++
     return $keywordPatternTrapdoors$
