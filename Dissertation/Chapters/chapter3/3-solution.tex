@@ -6,7 +6,7 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:sentri}, we introduce the proposed solution, define the system and adversary model; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we specify the solution architecture; in Section \ref{ch3:sec:sentri:encrypted-sparql-queries} we present the supported \gls{SPARQL} operations, reasoning preservation techniques, high level execution pipelines and protocols that support the evaluation of encrypted \gls{SPARQL} queries. \mytodo{Verify all references}
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTri} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we formally define the proposed solution, specify its enforcement of security guaranties and present the \gls{SPARQL} query evaluation pipeline: triple pattern encryption schemes,  high level execution pipelines and protocols, reasoning preservation techniques and list the supported query types.
 
 \section{Solution Models}
 \label{ch3:sec:solution-models}
@@ -63,7 +63,7 @@ Correctness of concurrent write and read operations is achieved with a \emph{loc
 
 Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. The other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
-When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use. In Section \ref{ch3:sec:sentri:encrypted-sparql-queries}, for each implementation, we will explain and formally define their protocols and respective leakage.
+When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use.
 
 Additionally, we will not consider the case where attacks involve \emph{revoked users}. \footnote{The role-based access controls prevent these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information.}
 
@@ -162,14 +162,14 @@ The value $r \in \mathbb{Z}_{v_pv_q}$ is only possible to calculate if we have a
 
 \paragraph{Decryption} The decryption of a ciphertext $ct$ is done by calculating:
 
-\begin{equation}
-    \begin{align*}
+\begin{align}
+    \begin{split}
     c^{v_pv_q} \; \textrm{mod} \; n &= (g^mh^r)^{v_pv_q} \; \textrm{mod} \; n \\
         &= (g^m)^{v_pv_q}(h^r)^{v_pv_q} \; \textrm{mod} \; n \\ 
-        &= (g^m)^{v_pv_q}*1 \; \textrm{mod} \; n && \text{because order of h is $v_pv_q$}\\
+        &= (g^m)^{v_pv_q}*1 \; \textrm{mod} \; n \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{because order of h is $v_pv_q$}\\
         &= (g^{v_pv_q})^m \; \textrm{mod} \; n
-    \end{align*}
-\end{equation} 
+    \end{split}
+\end{align} 
 
 Due to the value of $u$ being small, it is feasible to search for the calculated value in a look-up table with tuples of type $((g^{v_pv_q})^i \; \textrm{mod} \; n, \; i)$, for $0 < i < u$. Even without the look-up table, one can quickly determine if $ct$ is an encryption of 0, because $D(0) = 1$:
 
@@ -177,7 +177,7 @@ Due to the value of $u$ being small, it is feasible to search for the calculated
     c^{v_pv_q} \; \textrm{mod} \; n = (g^{v_pv_q})^m \; \textrm{mod} \; n    \stackrel{\text{m = 0}}{=} (g^{v_pv_q})^0 \; \textrm{mod} \; n = 1 \; \textrm{mod} \; n = 1
 \end{equation}
 
-\paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and equation \ref{chapter2:sec:homomorphic-encryptio:def-eq} holds:
+\paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and equation \ref{ch2:sec:homomorphic-encryptio:def-eq} holds:
 
 \begin{equation}
     \begin{split}
@@ -247,7 +247,7 @@ This data structure is a simplified version of the one defined in section \ref{c
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{re_{ID})}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
         
-        \item $[triplestore_{ID_0},...,triplestore_{ID_n}]  \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access; 
+        \item $[triplestore_{ID_0}, ..., triplestore_{ID_n}]  \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access; 
         
         \item $\{msg, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, triplestore_{ID}, \; write, \; at)}$: takes as input a cookie, a triplestore identifier, a boolean filter parameter and an access token. If the access token has sufficient permissions, outputs a message with the specified triplestore's \emph{owner} username and the collection of \emph{read} and \emph{write} access (if the $write$ parameter is \emph{true}) users' usernames, $\bot$ otherwise.
         

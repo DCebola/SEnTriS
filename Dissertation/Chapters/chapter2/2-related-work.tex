@@ -425,9 +425,9 @@ The term homomorphism, in security, was used for the first time by Rivest et al.
 \glsxtrlong{HE} is a cryptographic method based on the concept of algebra homomorphism, where both decryption and encryption are seen as homomorphisms of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. With \gls{HE}, computations done over encrypted data, are preserved after decryption of the ciphertext. 
 
 \begin{definition}[\textbf{Homomorphic Encryption}]\label{ch2:definition:he}
-    An encryption scheme is homomorphic over operation $\bullet_1$ if it satisfies the following equation, where $E$ is the encryption algorithm, $\bullet_1$ and $\bullet_2$ arbitrary operations and $M$ the set of all possible messages \autocite{Acar2018-mp, Franz2011-sm}: 
+    An encryption scheme is homomorphic over operation $\bullet_1$ if it satisfies the following equation, where $E$ is the encryption algorithm, $\bullet_1$ and $\bullet_2$ are arbitrary operations and $M$ is the set of all possible messages \autocite{Acar2018-mp, Franz2011-sm}: 
 
-\begin{equation}\label{chapter2:sec:homomorphic-encryptio:def-eq}
+\begin{equation}\label{ch2:sec:homomorphic-encryptio:def-eq}
     E(m_{1}) \, \bullet_2 \, E(m_{2}) = E(m_{1} \bullet_1 m_{2}), \forall m_{1}, m_{2} \in M
 \end{equation}
 
@@ -507,9 +507,6 @@ Almost all \gls{SE} techniques have privacy issues because they leak some inform
     \item \emph{Search Pattern}: includes the information about keywords, and predicates, that is inferred by correlating equal results from different searches. The search pattern can be targeted using statistical analysis;
     \item \emph{Access Pattern}: includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total of documents retrieved; or if some files are more accessed than others). 
 \end{itemize}
-
-
-
 
 \subsection{Symmetric Searchable Encryption}
 \label{ch2:sec:symmetric-searchable-encryption}

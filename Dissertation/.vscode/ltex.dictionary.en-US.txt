@@ -11,3 +11,4 @@ subPropertyOf
 rdf
 rdfs
 subproperty
+cryptosystem
