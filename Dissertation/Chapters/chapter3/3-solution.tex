@@ -106,7 +106,7 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-Before formally defining \gls{SEnTri}, we need to first specify cryptographic tools, and it's core elements.
+Prior to formally defining the solution, we will specify the cryptographic tools and core elements of \gls{SEnTri}.
 
 \subsubsection{Cryptographic Tools}
 
@@ -218,8 +218,33 @@ This data structure is a simplified version of the one defined in section \ref{c
 \paragraph{Secret Maps} A secret map $smap = (triplestore_{ID}, \; secrets)$ is a tuple where $triplestore_{ID}$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
 
-\paragraph{Query Execution Plans}
+\paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(job_{ID_0}, \;, job_0),...,(job_{ID_n}, \;, job_n)\}$ is a map that maps query $job$, an operation that is executed against the intermediate \gls{SPARQL} query's \emph{bindings}, to their respective identifiers, freshly generated \gls{UUID} (version 4) \autocite{Leach2005-rf}, and $execOrder$ is a sequence of job identifiers.
 
+\paragraph{Query Jobs} Query jobs can be of three type: \emph{basic}, \emph{unary} and \emph{binary} jobs. Unary and binary jobs execute against the results of, respectively, one and two other jobs, whereas basic jobs are independent of other jobs' results.
+
+There exist two basic jobs, the search operation $job_{SEARCH}$ and the operation that returns empty \emph{bindings}:
+\begin{itemize}
+    \item \emph{Search Job}: a tuple $job_{SEARCH} = (job_{ID}, \; vars, \; searches)$, where $vars = [var_0, ..., var_n]$ is a collection of variables and $searches = \{(var_0, \; search_{ID_0}), ...,  (var_n, \; search_{ID_n})\}$ is a map that maps variables to the identifiers of search results. These identifiers $search_{ID}$ are freshly generated \gls{UUID}s (version 4) \autocite{Leach2005-rf}, created after the successful upload of search results to the \emph{Proxy} component.
+    \item \emph{Empty Result Job}: a tuple $job_{EMPTY} = (job_{ID}, \; vars)$, where $vars = [var_0, ..., var_n]$ is a collection of variables.
+\end{itemize}
+
+There exist four unary jobs, the operations that apply result modifiers. These consist in:
+
+\begin{itemize}
+    \item \emph{Project Job}:
+    \item \emph{OrderBy Job}:
+    \item \emph{Slice Job}:
+    \item \emph{Distinct Job}:
+\end{itemize}
+
+Finally, there are four binary jobs, which represent set operations between \emph{binding} tables:
+
+\begin{itemize}
+    \item \emph{Join Job}:
+    \item \emph{Union Job}:
+    \item \emph{Optional Job}:
+    \item \emph{Minus Job}:
+\end{itemize}
 
 \paragraph{\emph{Binding} tables}
 
