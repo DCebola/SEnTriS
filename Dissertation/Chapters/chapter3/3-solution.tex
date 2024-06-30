@@ -242,7 +242,7 @@ Finally, there are four binary jobs, which represent set operations between \emp
 \gls{SEnTri} is a collection of 5 protocols $(\textrm{IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
 
 \begin{itemize}
-    \item IAM is a tuple of 24 polynomial time algorithms. These algorithms are responsible for session validation, user data and role management, triplestore access policies management and granting or revoking access to triplestores:
+    \item IAM is a tuple of 24 polynomial time algorithms. These algorithms are responsible for session validation and management of user data, roles and triplestore access policies:
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new session was generated, $\bot$ otherwise.
         
@@ -419,22 +419,31 @@ Queries that contain write predicates, will require that their target remains \e
     \end{align}  
 \end{definition}
 
-\subsection{Secret sharing}
-\subsection{Triple pattern encryption schemes}
-\subsubsection{Base encryption schemes}
+\subsection{Secret Sharing}
+\subsection{Management of Triplestores}
+%Give overview of creation,full deletion & sharing. Upload/Deletions using queries. Schema upload.
+%Create pipelines schemes
+
+\subsection{Triple Pattern Encryption}
+\subsubsection{Base Encryption Scheme}
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-\lstinputlisting[caption={Triple Pattern Encryption for Protocol I}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
+\subsubsection{SEnTri V1 Encryption Scheme}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTri V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-\lstinputlisting[caption={Triple Pattern Encryption for Protocol II}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
+
+\subsubsection{SEnTri V2 Encryption Scheme}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
 \subsection{Evaluation of SPARQL queries}
-\paragraph{Query Plan Generation}
-\paragraph{Query Rewriting}
-\paragraph{Query Preparation Phase}
-\paragraph{Query Evaluation Phase}
+\subsubsection{Query Plan Generation}
+\subsubsection{Query Rewriting}
+\subsubsection{Query Preparation Phase}
+\subsubsection{Query Evaluation Phase}
 
+\subsection{Component to Protocol Mappings}
 
+\section{Summary}
 
 
