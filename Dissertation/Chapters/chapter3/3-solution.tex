@@ -213,18 +213,20 @@ This data structure is a simplified version of the one defined in section \ref{c
 \paragraph{Ephemeral Access tokens} An ephemeral access token $at = (tokenID, \; ttl, \; username, \allowbreak sessionID, \; triplestoreID, \; lockID)$ is a tuple, where $tokenID$ is a \gls{UUID} (version 4), $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $username$ is the identifier of the user who holds the token, $sessionID$ is the identifier of the token holder's active session, at the time of its creation, $triplestoreID$ is the identifier of the triplestore whose access is being requested and $lockID$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
 
 
-\paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
-
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
 
+\paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+
+
 \paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $execOrder$ is a sequence of job identifiers. 
+
 
 \paragraph{Query Jobs} A query job is an internal operation that is executed during the evaluation of a \gls{SPARQL} query. Query jobs can be of three types: \emph{basic}, \emph{unary} and \emph{binary} jobs. Unary and binary jobs represent operations that are executed against the \emph{bindings} of, respectively, one and two other jobs, whereas basic jobs are independent of other jobs' results. The execution of a job will always generate \emph{bindings}, even if it is an empty collection. These \emph{bindings} will be associated to the respective $jobID$.
 
 There exist two basic jobs, $job_{SEARCH}$ and $job_{EMPTY}$. 
 
-The search job is a tuple $job_{SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [var_0, ..., \allowbreak var_n]$ is a collection of variables and $searches = \{(var_0, \; search_ID_0), ...,  (var_n, \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4), created after the successful upload of search results to the \emph{Proxy} component.
+The search job is a tuple $job_{SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [var_0, ..., \allowbreak var_n]$ is a collection of variables and $searches = \{(var_0, \; searchID_0), ...,  (var_n, \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4), created after the successful upload of search results to the \emph{Proxy} component.
 
 The empty result job is a tuple $job_{EMPTY} = (jobID, \; vars)$, where $vars = [var_0, ..., var_n]$ is a collection of variables.
 
@@ -232,7 +234,20 @@ There exist four unary jobs, which represent the operations that apply result mo
 
 Finally, there are four binary jobs, which represent set operations between \emph{binding}. These are tuples of type $job_{II} = ( jobID, \; jobID_l,  \; jobID_r )$, where $II \in \{ \textrm{JOIN}, \; \textrm{UNION}, \allowbreak \textrm{OPTIONAL},  \; \textrm{MINUS} \}$ and specifies which set operation will be executed between the \emph{bindings} of $jobID_l$ and $jobID_r$.
 
-\paragraph{\emph{Binding} tables}
+
+\paragraph{\emph{Bindings} tables} The output of a query job is a \emph{bindings} table. This data structure is a tuple $bindingsTable = (bindings, \; patterns)$ where $bindings = \{ (var_0, \; bindingsMap_0), ..., \allowbreak (var_n, \; bindingsMap_n)\}$ and $patterns = \{ (var_0, \; patternsMap_0), ...,  (var_n, \; patternsMap_n)\}$ are maps that map query variables, respectively, to \emph{bindings} and \emph{triple patterns} maps. 
+
+A \emph{bindings} map, $bindingsMap = \{ (encBinding_0, \; [pattternID_{0,0},...,patternID_{0,k}]),..., \allowbreak (encBinding_n, \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where encrypted \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4). 
+
+A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; encBinding_0),..., (patternID_n, \allowbreak encBinding_n)\}$, is a map where \emph{triple pattern} identifiers are mapped to encrypted \emph{bindings}.
+
+In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; node, \; iv_{DET})$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
+
+In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer, which we denominate as the \emph{equality tag} of that node.
+
+
+\paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection o \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$
+
 
 
 \subsection{Formal definition of SEnTri}
