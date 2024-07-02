@@ -246,7 +246,11 @@ In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; no
 In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer, which we denominate as the \emph{equality tag} of that node.
 
 
-\paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection o \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$
+\paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection o \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
+
+Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of triple patterns found after the evaluation of a query. A triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can either be its encrypted value, $encBinding$, or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
+
+
 
 
 
