@@ -106,13 +106,13 @@ In the first approach, the inner layer is deterministically encrypted, achieving
 
 \subsection{Preliminaries}
 
-Prior to formally defining the solution, we will specify the cryptographic tools and core elements of \gls{SEnTri}.
+Before formally defining the solution, we will specify the cryptographic tools and core elements of \gls{SEnTri}.
 
 \subsubsection{Cryptographic Tools}
 
-\paragraph{Notation} The function $E(K, \; m, \; iv)$ denotes the encryption of message $m$, using the initialization vector $iv$ and key $K$. The function $D(K, \; ct)$ denotes the decryption of ciphertext $ct$, using key $K$. The keys used as input will identity the encryption scheme (e.g. $K_{A}$ implies the usage of the symmetric encryption scheme $A$ and $K_{B_{priv}}$ implies the usage of public key encryption scheme $B$).
+\paragraph{Notation} The function $E(K, \; m, \; iv)$ denotes the encryption of message $m$, using the initialization vector $iv$ and key $K$. The function $D(K, \; ct)$ denotes the decryption of ciphertext $ct$, using key $K$. The keys used as input will identify the encryption scheme (e.g. $K_{A}$ implies the usage of the symmetric encryption scheme $A$ and $K_{B_{priv}}$ implies the usage of public key encryption scheme $B$).
 
-\paragraph{Encryption Schemes} $RND$ and $DET$ will denote, respectively, a non-deterministic and deterministic encryption schemes. $DGK$ will identify the \gls{DGK} cryptosystem, an additive homomorphic encryption scheme with interesting properties that can be leveraged to execute secure integer comparison \autocite{Damgard2007-km, Damgard2009-my}. The $RND$ and $DET$ are used in protocol V1 and \gls{DGK} is used in protocol V2. We will now provide a definition for the  \gls{DGK} scheme \autocite{Franz2011-sm, Makkes2010-qb}:
+\paragraph{Encryption Schemes} $RND$ and $DET$ will denote, respectively, a non-deterministic and deterministic encryption schemes. $DGK$ will identify the \gls{DGK} cryptosystem, an additive homomorphic encryption scheme with interesting properties that can be leveraged to execute secure integer comparison \autocite{Damgard2007-km, Damgard2009-my}. The $RND$ and $DET$ are used in protocol V1 and \gls{DGK} is used in protocol V2. We will now provide a definition for the  \gls{DGK} scheme \autocite{Damgard2009-my, Franz2011-sm, Makkes2010-qb}:
 
 \begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk} Let $k$, $t$, and $l$ be public parameters. Parameter $k$ determines the size of a \gls{RSA} modulus, $l$ is the bit length of the messages to encrypt and $t$ should be large enough so that exhaustive search is infeasible.
 
@@ -171,13 +171,15 @@ The value $r \in \mathbb{Z}_{v_pv_q}$ is only possible to calculate if we have a
     \end{split}
 \end{align} 
 
-Due to the value of $u$ being small, it is feasible to search for the calculated value in a look-up table with tuples of type $((g^{v_pv_q})^i \; \textrm{mod} \; n, \; i)$, for $0 < i < u$. Even without the look-up table, one can quickly determine if $ct$ is an encryption of 0, because $D(0) = 1$:
+Due to the value of $u$ being small, it is feasible to search for the calculated value in a look-up table with tuples of type $((g^{v_pv_q})^i \; \textrm{mod} \; n, \; i)$, for $0 < i < u$. Even without the look-up table, one can quickly determine if $ct$ is an encryption of 0, because $D(E(0)) = 1$:
 
 \begin{equation}\label{chapter3:definition:dgk:equation:zero-dec}
-    c^{v_pv_q} \; \textrm{mod} \; n = (g^{v_pv_q})^m \; \textrm{mod} \; n    \stackrel{\text{m = 0}}{=} (g^{v_pv_q})^0 \; \textrm{mod} \; n = 1 \; \textrm{mod} \; n = 1
+    c^{v_pv_q} \; \textrm{mod} \; n = (g^{v_pv_q})^m \; \textrm{mod} \; n \stackrel{\text{m = 0}}{=} (g^{v_pv_q})^0 \; \textrm{mod} \; n = 1 \; \textrm{mod} \; n = 1
 \end{equation}
 
-\paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and equation \ref{ch2:sec:homomorphic-encryptio:def-eq} holds:
+So far we have presented the decryption equations using all $p, q, v_p, v_q$ values, but we can utilize a faster decryption method. This method only requires the computation of modulo $p$ or $q$, because $m$ is uniquely determined from $c^{v_p} \; \textrm{mod} \; p$ or $c^{v_q} \; \textrm{mod} \; q$. For the remaining of the document we will only be considering this decryption method.
+
+\paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive} holds:
 
 \begin{equation}
     \begin{split}
@@ -186,6 +188,20 @@ Due to the value of $u$ being small, it is feasible to search for the calculated
         &= g^{(m_1 + m_2)}h^{(r_1 + r_2)} \; \textrm{mod} \; n \\ 
         &= E(m_1 + m_2)
     \end{split}
+\end{equation}
+
+\paragraph{Additional operations} Multiplication of an encrypted value by a positive constant $k$ is supported, just like in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-positive}, by raising it to the power of $k$.
+
+Multiplication by a negative constant $c$ is done similarly to what is specified in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-negative}, but instead of considering a plaintext space $\mathbb{Z}_n$, we consider $M = \mathbb{Z}_u$. As such, this operation requires raising the encrypted value to the power of $u - c$:
+
+\begin{equation}\label{chapter3:definition:dgk:equation:mul-negative}
+    E(m)^{(u - c)} = E(-c*m)
+\end{equation}
+
+Given Equations \ref{ch2:sec:homomorphic-encryption:def-eq-additive-subtraciton} and \ref{chapter3:definition:dgk:equation:mul-negative}, subtraction of two ciphertexts is achieved by computing:
+
+\begin{equation}
+    E(m_1 - m_2) = E(m_1 + (-1) * m_2) = E(m_1) + E(m_2)^{(u - 1)}
 \end{equation}
 
 \end{definition}
@@ -249,9 +265,6 @@ In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}},
 \paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection o \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
 
 Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of triple patterns found after the evaluation of a query. A triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can either be its encrypted value, $encBinding$, or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
-
-
-
 
 
 \subsection{Formal definition of SEnTri}
@@ -328,7 +341,7 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
     \item PROXY is a tuple $()$ of 2 polynomial time algorithms. These algorithms are responsible for ...:
     \begin{itemize}
         \item $\{searchID, \bot\} \leftarrow \mathbf{prepareSearch(E(nodes), \; at)}$
-        \item $\{searchID, \bot\} \leftarrow \mathbf{answerSPARQLQuery(nodes, \; at)}$
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K, \; at)}$
     \end{itemize}
 \end{itemize}
 \end{definition}
@@ -460,6 +473,12 @@ Queries that contain write predicates, will require that their target remains \e
 \subsubsection{Query Rewriting}
 \subsubsection{Query Preparation Phase}
 \subsubsection{Query Evaluation Phase}
+
+Finally, to perform an equality check, between two plaintext messages, $m_1, m_2$, we compute the difference of their respective ciphertexts, $ct_1, ct_2$, and check if the result is 1 ($m_1 = m_2 \Leftrightarrow m_1 - m_2 = 0$):
+    
+\begin{equation}
+    D(E(m_1) - E(m_2)) =  D(E(0)) = 1
+\end{equation}
 
 \subsection{Component to Protocol Mappings}
 
