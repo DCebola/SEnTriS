@@ -338,10 +338,11 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
     \begin{itemize}
         \item
     \end{itemize}
-    \item PROXY is a tuple $()$ of 2 polynomial time algorithms. These algorithms are responsible for ...:
+    \item PROXY is a tuple of 2 polynomial time algorithms. These algorithms are responsible for saving the outputs of TRIPLESTORE.$search(...)$ operations, preparing this data for query evaluation, executing \gls{SPARQL} query plans and outputting valid query results.
     \begin{itemize}
-        \item $\{searchID, \bot\} \leftarrow \mathbf{prepareSearch(E(nodes), \; at)}$
-        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K, \; at)}$
+        \item $\{searchID, \bot\} \leftarrow \mathbf{prepareSearch(encBindings, \; at)}$: takes as input a collection of encrypted bindings and an access token. If the token is valid, and grants sufficient permissions, saves the bindings in memory, generates a unique identifier $searchID$, a \gls{UUID} (version 4). In case of success, outputs the identifier, $\bot$ otherwise.
+        
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
     \end{itemize}
 \end{itemize}
 \end{definition}
