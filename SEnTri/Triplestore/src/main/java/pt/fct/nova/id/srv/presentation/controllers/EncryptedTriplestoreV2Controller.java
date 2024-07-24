@@ -37,7 +37,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
     }
 
     @Override
-    public Response prepareSearch(String triplestoreID, PrepareSearchV2Form form, List<String> authorizationHeaders) {
+    public Response prepareMaskedSearch(String triplestoreID, PrepareSearchV2Form form, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();

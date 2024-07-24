@@ -15,7 +15,7 @@ public interface EncryptedTriplestoreV2API extends EncryptedTriplestoreAPI {
     @Path("proxy/{triplestoreID}/search")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response prepareSearch(@PathParam("triplestoreID") String triplestoreID,
-                           @MultipartForm PrepareSearchV2Form search,
-                           @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
+    Response prepareMaskedSearch(@PathParam("triplestoreID") String triplestoreID,
+                                 @MultipartForm PrepareSearchV2Form search,
+                                 @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 }
