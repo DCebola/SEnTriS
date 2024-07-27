@@ -322,14 +322,14 @@ We will first formally define \gls{SEnTri} V1 and then define its second version
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
         
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the oken has not expired), $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the token has not expired), $\bot$ otherwise.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
 
     \end{itemize}
-    \item CLIENT is a tuple of 25 polynomial time algorithms. These algorithms are responsible for ...:
+    \item CLIENT is a tuple of 20 polynomial time algorithms. These algorithms are responsible for ...:
     \begin{itemize}
         
         \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.auth(username, \; password)$ and outputs the result of the algorithm.
@@ -345,6 +345,33 @@ We will first formally define \gls{SEnTri} V1 and then define its second version
         \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{listPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Executes $\textrm{IAM}.getPendingRoleRequests(cookie, \; username)$ and outputs the result of the algorithm.
         
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Executes $\textrm{IAM}.processRoleRequest(cookie, \; username, \; target, \allowbreak requestID, \;  decision)$ and outputs the result of the algorithm.
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, \; schema, \; syntax, \; content)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, \; query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
+
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, \; read, \; owns)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, \; target)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \;  triplestoreID, \; issuer, \; write)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listPendingAccessRequests(cookie, \;  triplestoreID, \; issuer)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \;  triplestoreID, \; issuer, \; requestID, \; decision)}$:
+        
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$:
+           
     \end{itemize}
     \item VAULT is a tuple of 3 polynomial time algorithms. These algorithms are responsible for ...:
     \begin{itemize}
@@ -377,6 +404,8 @@ We will first formally define \gls{SEnTri} V1 and then define its second version
         \item $\{searchID, \bot\} \leftarrow \mathbf{prepareMaskedSearch(triplestoreID, \; trapdoors, \; mask, \; at)}$:
     \end{itemize}
     \end{definition}
+
+\subsection{Component to Protocol Mappings}
 
 \subsection{Enforcing access control}
 
@@ -445,7 +474,6 @@ Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T
 
 \end{definition}
 
-
 \subsubsection{Concurrent Access} 
 
 Concurrent operations can target users or triplestores. The correctness of concurrent write and read operations is achieved using a \emph{lock-based} approach. Resources (users and triplestores) can be in a \emph{locked} or \emph{unlocked} state. Write operations can only be requested against \emph{unlocked} resources, which remain locked while the operation is being executed. Consequently, read operations can occur simultaneously, but write operations are sequential, against the same resource.
@@ -483,6 +511,8 @@ Queries that contain write predicates, will require that their target remains \e
     \end{align}  
 \end{definition}
 
+\subsubsection{Correctness Proof}
+
 \subsection{Secret Sharing}
 \subsection{Management of Triplestores}
 %Give overview of creation,full deletion & sharing. Upload/Deletions using queries. Schema upload.
@@ -512,7 +542,40 @@ Finally, to perform an equality check, between two plaintext messages, $m_1, m_2
     D(E(m_1) - E(m_2)) =  D(E(0)) = 1
 \end{equation}
 
-\subsection{Component to Protocol Mappings}
+\section{Leakage Analysis \& Security Proofs}
+%Only evaluate leakage in Triplestore and Proxy
+\subsection{Setup Leakage: Triplestore Create \& Content Upload Phases}
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+\subsection{Query Leakage: Query Preparation \& Evaluation Phases}
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+
+\subsection{RDF Encryption Schemes Security Proofs}
+%Refer original proofs apply for both schemes w/ simple explanation for both cases
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+
+\subsection{SPARQL Query Evaluation Protocols Proofs}
+%from search to joins, given leakage in both 
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+
+\subsection{Discussion}
+%Corolary: sentry v2 leakage is reduced
+
+\section{Complexity Analysis}
+\subsection{Storage Complexity}
+%Space complexity in terms of RDF terms
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+
+\subsection{Query Evaluation Complexity}
+%Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
+\subsubsection{SEnTri V1}
+\subsubsection{SEnTri V2}
+
+\subsection{Discussion}
 
 \section{Summary}
 

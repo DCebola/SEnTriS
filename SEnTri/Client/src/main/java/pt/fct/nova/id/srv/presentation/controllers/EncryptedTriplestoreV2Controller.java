@@ -132,10 +132,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
-            if (form.getContents() == null) {
+            if (form.getContent() == null) {
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
             }
-            Set<Triple> triples = parseTriples(form.getContents(), parseRDFLanguage(form.getSyntax()));
+            Set<Triple> triples = parseTriples(form.getContent(), parseRDFLanguage(form.getSyntax()));
             if (triples.isEmpty()) {
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
             }

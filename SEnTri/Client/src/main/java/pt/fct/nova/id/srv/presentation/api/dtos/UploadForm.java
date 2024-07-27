@@ -9,19 +9,19 @@ import java.io.InputStream;
 public class UploadForm extends SchemaForm {
     @FormParam("contents")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
-    private final InputStream contents;
+    private final InputStream content;
 
-    public UploadForm(String issuer, String storeID, String syntax, InputStream contents) {
-        super(issuer, storeID, syntax);
-        this.contents = contents;
+    public UploadForm(String issuer, String triplestoreID, String syntax, InputStream content) {
+        super(issuer, triplestoreID, syntax);
+        this.content = content;
     }
     public UploadForm() {
         super();
-        this.contents = null;
+        this.content = null;
     }
 
-    public InputStream getContents() {
-        return contents;
+    public InputStream getContent() {
+        return content;
     }
 
 }

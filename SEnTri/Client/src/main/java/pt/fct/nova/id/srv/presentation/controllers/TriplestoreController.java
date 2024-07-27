@@ -138,7 +138,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
-            InputStream contents = form.getContents();
+            InputStream contents = form.getContent();
             if (contents == null)
                 return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             Set<Triple> triples = new HashSet<>(parseTriples(contents, parseRDFLanguage(form.getSyntax())));
