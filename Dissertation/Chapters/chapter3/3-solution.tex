@@ -76,7 +76,7 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 \emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. The system only works with encrypted data, which is encrypted in a manner that allows for search and set operations to be executed. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system. Figure shows the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
 
-In \gls{SEnTri} we employ \emph{SSE} techniques during query evaluation: we generate trapdoors for secure search and retrieval of encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are then used for the evaluation of complex \emph{graph patterns}
+In \gls{SEnTri} we employ \emph{SSE} techniques during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are used for the evaluation of complex \emph{graph patterns}
 
 We have implemented \gls{SEnTri} using three different approaches:
 
@@ -154,7 +154,7 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
 
 \subsubsection{SEnTri V1 and V2 specific}
 
-We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$ to a random value.
+We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
 
 \paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acp$ is the triplestore's \gls{ACP}. $E(nodes)$ will be defined in Subsection \ref{chapter3:definition:triple-pattern-encryption-schemes}
 
@@ -291,8 +291,17 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
     D(E(m_1) - E(m_2)) =  D(E(0)) = 1
 \end{equation}
 
-\subsection{Triple Pattern Encryption}
+\subsection{Encryption of triple patterns \& preservation of SPARQL semantics}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
+
+While encrypting \emph{triple patterns} we need to ensure that we do not lose any semantics, our encryption schemes will mimic the techniques used for indexation of subject, predicates and objects.
+
+\subsubsection{Indexing triple patterns} 
+The indexing technique in \gls{SEnTri} V0 is very simple: we index a triple, $t = (s, p, o)$ based on all possible patterns that can appear in a \gls{SPARQL} query for that specific triple:
+
+\subsubsection{Trapdoor generation}
+\subsubsection{Formal definition}
+
 
 In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; node, \; iv_{DET})$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
 
