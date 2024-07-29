@@ -8,6 +8,7 @@
 
 \section{General Considerations}
 \subsection{Apache JENA Limitations}
+%Higly coupled components
 \subsection{Memory Constraints}
 \subsection{Design \& Architecture Choices}
 
@@ -18,24 +19,27 @@
 \subsubsection{Implementation Details}
 \paragraph*{Batching}
 \paragraph*{SPARQL Query Parsing}
+\paragraph*{Minimizing number of searches}
 \paragraph*{Plan Generator}
 
 \subsection{Triplestore}
 \subsubsection{Exposed API}
 \subsubsection{Architecture}
 \subsubsection{Implementation Details}
+\paragraph*{Redis (Key Structure \& Lua Scripts)}
 \paragraph*{Atomicity}
 
 \subsection{IAM Provider}
 \subsubsection{Exposed API}
 \subsubsection{Architecture}
 \subsubsection{Implementation Details}
-\paragraph*{Lock client}
+\paragraph*{Redis (Key Structure \& Lua Scripts)}
 
 \subsection{Proxy}
 \subsubsection{Exposed API}
 \subsubsection{Architecture}
 \subsubsection{Implementation Details}
+\paragraph*{Redis (Key Structure)}
 \paragraph*{SPARQL Query Worker}
 \paragraph*{SPARQL Execution}
 \paragraph*{Encrypted Bindings' Bucketization (SEnTri V2)}
@@ -44,6 +48,7 @@
 \subsubsection{Exposed API}
 \subsubsection{Architecture}
 \subsubsection{Implementation Details}
+\paragraph*{Redis (Key Structure)}
 
 \subsection{Discussion}
 
