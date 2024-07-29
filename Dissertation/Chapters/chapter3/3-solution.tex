@@ -152,7 +152,7 @@ A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; binding_0),...
 Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of triple patterns found after the evaluation of a query. A triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
 
 
-\subsection{Core elements: SEnTri V1 and V2 specific}
+\subsubsection{SEnTri V1 and V2 specific}
 
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$ to a random value.
 
@@ -162,7 +162,7 @@ We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
 
-\paragraph{Randomized Query Execution Plan} A secure query execution plan is a tuple $plan=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
+\paragraph{Randomized Query Execution Plans} A randomized query execution plan is a tuple $plan=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
 
 
 \paragraph{Secure Query Jobs} The only difference between jobs in \gls{SEnTri} V1 and V2, to jobs in \gls{SEnTri} V0, is that they operate over obfuscated variables and output encrypted \emph{bindings} tables.
