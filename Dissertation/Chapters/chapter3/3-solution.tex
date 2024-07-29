@@ -291,15 +291,41 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
     D(E(m_1) - E(m_2)) =  D(E(0)) = 1
 \end{equation}
 
-\subsection{Encryption of triple patterns \& preservation of SPARQL semantics}
+\subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-While encrypting \emph{triple patterns} we need to ensure that we do not lose any semantics, our encryption schemes will mimic the techniques used for indexation of subject, predicates and objects.
+While encrypting \emph{triple patterns} we need to ensure that we do not lose any semantics, our encryption schemes will mimic the techniques used for indexing subject, predicates and objects.
 
 \subsubsection{Indexing triple patterns} 
-The indexing technique in \gls{SEnTri} V0 is very simple: we index a triple, $t = (s, p, o)$ based on all possible patterns that can appear in a \gls{SPARQL} query for that specific triple:
+The indexing technique in \gls{SEnTri} V0 is very simple. We index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} queries (e.g. to answer a simple query where we need to search for $(?s, p, o)$ we need an index $p,o \leftarrow [s_0, ..., s_k]$, where all subjects are referenced by the predicate and object pairs in the triplestore). This indexing scheme does not support query types where the subject, predicate and object are all variables.
 
+\lstinputlisting[caption={Indexing Scheme for SEnTri V0}, label={indexing-scheme}]{Code/chapter3/indexing.tex}
+ 
 \subsubsection{Trapdoor generation}
+
+Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the frequency of the index keyword. 
+
+Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency. 
+
+Each trapdoor, is encrypted using a derived key. This key is built from a master key, for the context of the index keyword.
+
+
+\begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
+
+Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
+
+\begin{equation}
+    trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
+\end{equation}
+
+The trapdoor that references the frequency value of $keyword_n$ is a special case where $i=0$:
+
+\begin{equation}
+    trapdoor_{n, 0} = E(K_{keyword_n}, \; keyword_n, \; 0)
+\end{equation}
+
+\end{definition}
+
 \subsubsection{Formal definition}
 
 

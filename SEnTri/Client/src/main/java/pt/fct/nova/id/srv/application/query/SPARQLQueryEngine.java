@@ -24,7 +24,6 @@ public class SPARQLQueryEngine implements QueryEngine {
     public QueryExecutionPlan getQueryPlan(String queryString) throws NotImplemented {
         try {
             Query query = QueryFactory.create(queryString);
-
             planner.setQueryType(QueryUtils.convertQueryType(query.queryType()));
             if (planner.getQueryType() == CONSTRUCT)
                 planner.setConstructTemplate(query.getConstructTemplate().getTriples());

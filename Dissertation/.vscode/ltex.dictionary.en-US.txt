@@ -12,3 +12,4 @@ rdf
 rdfs
 subproperty
 cryptosystem
+generateIndex
