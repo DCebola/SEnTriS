@@ -294,10 +294,23 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-While encrypting \emph{triple patterns} we need to ensure that we do not lose any semantics, our encryption schemes will mimic the techniques used for indexing subject, predicates and objects.
+When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic a technique used for indexing subject, predicates and objects and that facilitates retrieval of simple patterns found in \gls{SPARQL} queries. In the remainder of this section we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
 \subsubsection{Indexing triple patterns} 
-The indexing technique in \gls{SEnTri} V0 is very simple. We index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} queries (e.g. to answer a simple query where we need to search for $(?s, p, o)$ we need an index $p,o \leftarrow [s_0, ..., s_k]$, where all subjects are referenced by the predicate and object pairs in the triplestore). This indexing scheme does not support query types where the subject, predicate and object are all variables.
+In \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. 
+
+For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_k]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. This indexing scheme does not support queries where the subject, predicate and object are all variables, but supports all other variants:
+
+\begin{align}
+    \begin{split}
+        &(p,o) \leftarrow [s_0, ..., s_n] \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(?v, p, o)$} \\
+        &(s,o) \leftarrow [p_0, ..., p_n] \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(s, ?v, o)$} \\
+        &(s,p) \leftarrow [o_0, ..., o_n] \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(?v, p, o)$} \\
+        &s \leftarrow [(p,o)_0, ..., (p,o)_n] \;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(s, ?v_1, ?v_2)$} \\
+        &p \leftarrow [(s,o)_0, ..., (s,o)_n] \,\;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(?v_1, p, ?v_2)$} \\
+        &o \leftarrow [(p,s)_0, ..., (p,s)_n] \,\;\;\;\;\;\;\;\;\;\;\;\; \text{answers $(?v_1, ?v_2, o)$}
+    \end{split}
+\end{align}
 
 \lstinputlisting[caption={Indexing Scheme for SEnTri V0}, label={indexing-scheme}]{Code/chapter3/indexing.tex}
  
@@ -307,12 +320,10 @@ Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference 
 
 Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency. 
 
-Each trapdoor, is encrypted using a derived key. This key is built from a master key, for the context of the index keyword.
-
 
 \begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
 
-Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
+Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{DET_{TRAPDOORS}}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
 
 \begin{equation}
     trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
@@ -326,23 +337,33 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
 
 \end{definition}
 
-\subsubsection{Formal definition}
+\subsubsection{Base Encryption Scheme: Supporting deletions \& Preserving reasoning}
 
+To be compatible with all of \gls{SEnTri} functionalities, the encryption scheme must respect various requirements:
 
-In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; node, \; iv_{DET})$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
+\begin{itemize}
+    \item Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
+    \item For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
+    \item To support the query \emph{rewriting techniques} that we use to preserve reasoning, it needs to allow quick access to nodes belonging to the \emph{TBox};
+\end{itemize}
 
-In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer, which we denominate as the \emph{equality tag} of that node.
+Given these requirements, even without mentioning the specific details of the encryption of nodes belonging to the \emph{ABox} (which is where SEn), we can still design a \emph{base encryption scheme}. 
 
-\subsubsection{Base Encryption Scheme}
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
 %key generation
 
 \subsubsection{SEnTri V1 Encryption Scheme}
+
+In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; node, \; iv_{DET})$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
+
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
 \subsubsection{SEnTri V2 Encryption Scheme}
+
+In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer, which we denominate as the \emph{equality tag} of that node.
+
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
 \subsubsection{Evaluation of SPARQL queries}
@@ -350,7 +371,7 @@ In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}},
 \paragraph*{Query Rewriting}
 \paragraph*{Query Preparation Phase}
 \paragraph*{Query Evaluation Phase}
-
+\paragraph*{Supported Queries}
 \subsection{The M/M setting}
 
 We've specified the building blocks for secure evaluation of \gls{SPARQL} queries. We will now explain how we do so in a multi-user setting where shared access to triplestores exists. It all starts with authentication of users, followed by a structured way of sharing triplestores, with different degrees of access, and allowing concurrent execution of queries.

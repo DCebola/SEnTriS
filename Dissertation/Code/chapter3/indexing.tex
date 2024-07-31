@@ -1,24 +1,6 @@
 State:
     T := (triplestoreID, nodes := {}, acl)
 
-function parseNode($n$):
-    if $n \in I$:            
-        return "S" || $n.value$   
-    elif $n \in L$:
-        return "L" || $n.value$ || $n.datatype$
-    elif $n \in B$:
-        return "B" || $n.id$
-    return $\bot$
-
-function parseKeyword($n$):
-    if $n \in I$:            
-        return "S" || $n.value$   
-    elif $n \in L$:
-        return "L" || $n.value$ || $n.datatype$
-    elif $n \in B$:
-        return "BLANK"
-    return $\bot$
-
 function indexTriple($t = (s, p, o)$):
     $parsed_s$ = parseNode($s$)
     $parsed_p$ = parseNode($p$)
@@ -33,3 +15,20 @@ function indexTriple($t = (s, p, o)$):
     $T.nodes$["P" || $keyword_s$ || $keyword_o$] := $T.nodes$["P" || $keyword_s$ || $keyword_o$] :U {$parsed_p$}
     $T.nodes$["O" || $keyword_s$ || $keyword_p$] := $T.nodes$["O" || $keyword_s$ || $keyword_p$] :U {$parsed_o$}
 
+function parseNode($n$):
+    if $n \in I$:            
+        return "S" || $n.value$  // IRI
+    elif $n \in L$:
+        return "L" || $n.value$ || $n.value\_datatype$
+    elif $n \in B$:
+        return "B" || $n.value$    // identifier of the blank node
+    return $\bot$
+
+function parseKeyword($n$):
+    if $n \in I$:            
+        return "S" || $n.value$   
+    elif $n \in L$:
+        return "L" || $n.value$ || $n.datatype$
+    elif $n \in B$:
+        return "BLANK"
+    return $\bot$
