@@ -19,8 +19,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 
 \gls{SEnTri} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
-\gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware. It is also \emph{transparent} (working with encrypted ontologies does not affect a user's workflow in any significant way) and outsources storage and heavy computations to external servers. Furthermore, it remains \emph{flexible} and is fully \emph{modular}.
-
+\gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware. It remains \emph{transparent} (working with encrypted ontologies does not affect a user's workflow in any significant way) and outsources storage and heavy computations to external servers.
 
 \subsection{System Model}
 \label{ch3:sec:solution-models:system-model}
@@ -318,12 +317,14 @@ For example, to answer a query where we need to search for $(?v, p, o)$ (the sub
 
 Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the frequency of the index keyword. 
 
-Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency. 
+Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency.
+
+For each index, its respective trapdoors are encrypted using a unique key. This key is build from a master key, for the context of the index keyword.
 
 
 \begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
 
-Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{DET_{TRAPDOORS}}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
+Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
 
 \begin{equation}
     trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
@@ -339,15 +340,15 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
 
 \subsubsection{Base Encryption Scheme: Supporting deletions \& Preserving reasoning}
 
-To be compatible with all of \gls{SEnTri} functionalities, the encryption scheme must respect various requirements:
+\gls{SEnTri} offers various functionalities, and to support all of them, the encryption schemes must respect a set of requirements:
 
 \begin{itemize}
-    \item Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
-    \item For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
-    \item To support the query \emph{rewriting techniques} that we use to preserve reasoning, it needs to allow quick access to nodes belonging to the \emph{TBox};
+    \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
+    \item \emph{Be adaptive}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
+    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox};
 \end{itemize}
 
-Given these requirements, even without mentioning the specific details of the encryption of nodes belonging to the \emph{ABox} (which is where SEn), we can still design a \emph{base encryption scheme}. 
+\gls{SEnTri} V1 and V2 differ on the encryption of the nodes belonging to the \emph{ABox}, but are identical in all other aspects. Consequently, taking into account the previous requirements, even without mentioning the specific details of the encryption of teh \emph{ABox} nodes, we can still design a \emph{base encryption scheme}. 
 
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
