@@ -1,7 +1,7 @@
-package pt.fct.nova.id.srv.application.protocols;
+package pt.fct.nova.id.srv.application.schemes;
 
 import org.apache.jena.graph.Triple;
-import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,12 +13,12 @@ import java.util.Set;
 
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.BASIC_SEPARATOR;
 
-public interface EncryptionProtocol {
+public interface EncryptionScheme {
 
     String TRIPLE_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
     String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s");
 
-    void exec(Set<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    void encrypt(Set<Triple> triples, boolean schema) throws InvalidNodeException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
 }

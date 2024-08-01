@@ -340,7 +340,7 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
 
 \subsubsection{Base Encryption Scheme: Supporting deletions \& Preserving reasoning}
 
-\gls{SEnTri} offers various functionalities, and to support all of them, the encryption schemes must respect a set of requirements:
+\paragraph*{Requirements} \gls{SEnTri} offers various functionalities, and to support all of them, the encryption schemes must respect a set of requirements:
 
 \begin{itemize}
     \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
@@ -348,7 +348,19 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
     \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox};
 \end{itemize}
 
-\gls{SEnTri} V1 and V2 differ on the encryption of the nodes belonging to the \emph{ABox}, but are identical in all other aspects. Consequently, taking into account the previous requirements, even without mentioning the specific details of the encryption of teh \emph{ABox} nodes, we can still design a \emph{base encryption scheme}. 
+\gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. Considering the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.
+
+\begin{definition}[\textbf{Triple Pattern Encryption Scheme}]\label{ch3:definition:triple-pattern-encryption-scheme}
+    
+\end{definition}
+
+\paragraph*{Initial setup} During initialization, we generate all the data keys and security parameters of the scheme. We also create the data structures, where we will keep track of the state of keyword frequencies, and derived keys.
+
+
+\paragraph*{Re-initialization}adasd
+
+\paragraph*{Schema triple encryption}adsdasdasd
+
 
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}

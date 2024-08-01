@@ -1,12 +1,9 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.*;
 import org.apache.jena.riot.Lang;
@@ -17,14 +14,12 @@ import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKUtils;
-import pt.fct.nova.id.srv.application.protocols.EncryptionProtocol;
-import pt.fct.nova.id.srv.application.protocols.Protocol1;
-import pt.fct.nova.id.srv.application.protocols.Protocol2;
-import pt.fct.nova.id.srv.application.protocols.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
+import pt.fct.nova.id.srv.application.schemes.*;
+import pt.fct.nova.id.srv.application.schemes.exceptions.*;
 import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.api.dtos.Role;
@@ -33,15 +28,13 @@ import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.*;
 
-import static pt.fct.nova.id.srv.application.protocols.EncryptionProtocol.*;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
+import static pt.fct.nova.id.srv.application.schemes.EncryptionScheme.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
-import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_KEY_PAIR;
-import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.SECRETS_LAST_EQ_TAG;
+import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.*;
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
@@ -188,16 +181,16 @@ public class ParsingUtils {
         }
     }
 
-    public static Protocol1 getProtocol1(Map<String, String> secrets) {
+    public static EncryptionSchemeV1 getProtocol1(Map<String, String> secrets) {
         SecretKey k1 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
         SecretKey k2 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         SecretKey k3 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 3))));
         byte[] iv = base64Decoder.decode(secrets.get(SECRETS_IV));
         String schemaKeyword = secrets.get(SECRETS_SCHEMA_KEYWORD);
-        return new Protocol1(k1, k2, k3, iv, schemaKeyword);
+        return new EncryptionSchemeV1(k1, k2, k3, iv, schemaKeyword);
     }
 
-    public static Protocol2 getProtocol2(Map<String, String> secrets) throws IOException, ClassNotFoundException {
+    public static EncryptionSchemeV2 getProtocol2(Map<String, String> secrets) throws IOException, ClassNotFoundException {
         SecretKey k1 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 1))));
         SecretKey k2 = SymmetricEncryptionUtils.parseKey(base64Decoder.decode(secrets.get(String.format(SECRETS_KEY, 2))));
         KeyPair keyPair = DGKUtils.parseKeyPair(base64Decoder.decode(secrets.get(SECRETS_KEY_PAIR)));
@@ -205,18 +198,18 @@ public class ParsingUtils {
         String schemaKeyword = secrets.get(SECRETS_SCHEMA_KEYWORD);
         long lastEqTag = byteArrayToInteger(base64Decoder.decode(secrets.get(SECRETS_LAST_EQ_TAG)));
         System.out.println("Retrieved protocol 2.");
-        return new Protocol2(k1, k2, keyPair, iv, schemaKeyword, lastEqTag);
+        return new EncryptionSchemeV2(k1, k2, keyPair, iv, schemaKeyword, lastEqTag);
     }
 
-    public static Map<String, String> generateSecretsMap(EncryptionProtocol p) throws IOException {
+    public static Map<String, String> generateSecretsMap(EncryptionScheme p) throws IOException {
         Map<String, String> secrets = new HashMap<>();
-        if (p instanceof Protocol1 p1) {
+        if (p instanceof EncryptionSchemeV1 p1) {
             secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p1.getKeywordsMasterKey().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p1.getRNDKey().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 3), base64Encoder.encodeToString(p1.getDETKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p1.getIvDET()));
             secrets.put(SECRETS_SCHEMA_KEYWORD, p1.getSchemaKeyword());
-        } else if (p instanceof Protocol2 p2) {
+        } else if (p instanceof EncryptionSchemeV2 p2) {
             secrets.put(String.format(SECRETS_KEY, 1), base64Encoder.encodeToString(p2.getKeywordsMasterKey().getEncoded()));
             secrets.put(String.format(SECRETS_KEY, 2), base64Encoder.encodeToString(p2.getRNDKey().getEncoded()));
             secrets.put(SECRETS_IV, base64Encoder.encodeToString(p2.getIvDET()));

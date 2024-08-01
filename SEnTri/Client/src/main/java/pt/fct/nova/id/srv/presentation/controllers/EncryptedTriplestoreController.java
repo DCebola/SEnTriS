@@ -63,7 +63,7 @@ public class EncryptedTriplestoreController {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         }
-        response = deleteProtocolSecrets(httpClient, triplestoreID, accessToken);
+        response = deleteSecrets(httpClient, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -161,8 +161,8 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse getProtocolSecrets(HttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.getProtocolSecrets(httpClient, triplestoreID, accessToken)) {
+    public HTTPResponse getSecrets(HttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.getSecrets(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
@@ -173,14 +173,14 @@ public class EncryptedTriplestoreController {
         }
     }
 
-    public HTTPResponse saveProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.saveProtocolSecrets(httpClient, triplestoreID, secrets, accessToken)) {
+    public HTTPResponse saveSecrets(CloseableHttpClient httpClient, String triplestoreID, Map<String, String> secrets, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.saveSecrets(httpClient, triplestoreID, secrets, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse deleteProtocolSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
-        try (CloseableHttpResponse response = VaultClient.deleteProtocolSecrets(httpClient, triplestoreID, accessToken)) {
+    public static HTTPResponse deleteSecrets(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+        try (CloseableHttpResponse response = VaultClient.deleteSecrets(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
