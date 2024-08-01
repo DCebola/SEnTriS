@@ -338,46 +338,53 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
 
 \end{definition}
 
-\subsubsection{Base Encryption Scheme: Supporting deletions \& Preserving reasoning}
+\subsubsection{Triple Pattern SSE Scheme}
 
 \paragraph*{Requirements} \gls{SEnTri} offers various functionalities, and to support all of them, the encryption schemes must respect a set of requirements:
 
 \begin{itemize}
     \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
-    \item \emph{Be adaptive}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
-    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox};
+    \item \emph{Be dynamic}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
+    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}. We will refer to this subset as \emph{schema} nodes.
 \end{itemize}
 
 \gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. Considering the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.
 
-\begin{definition}[\textbf{Triple Pattern Encryption Scheme}]\label{ch3:definition:triple-pattern-encryption-scheme}
+\begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:triple-pattern-sse-scheme}
     
 \end{definition}
 
-\paragraph*{Initial setup} During initialization, we generate all the data keys and security parameters of the scheme. We also create the data structures, where we will keep track of the state of keyword frequencies, and derived keys.
+Let $\Pi$ be a triple pattern SSE scheme, capable of evaluating \emph{SPARQL} queries. It is defined as a tuple $\Pi = (Setup, \; ReInitialize, \; Trapdoor, \; Encrypt, \; Decrypt, \; Equals, \; Query)$ of 7 algorithms:
 
 
-\paragraph*{Re-initialization}adasd
 
-\paragraph*{Schema triple encryption}adsdasdasd
+\paragraph*{Initial setup} During initialization, we generate all the encryption keys and security parameters of the scheme. We also create the data structures, where we keep track of the state of keyword frequencies, and derived keys.
 
+\mytodo{Enumerate/specify algorithms}
 
+\paragraph*{Re-initialization} ...
+
+\paragraph*{Schema triple encryption} ...
+
+\paragraph*{Supporting Dynamism} ...
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
 %key generation
 
-\subsubsection{SEnTri V1 Encryption Scheme}
+\subsubsection{ABox Node Encryption}
 
-In \gls{SEnTri} V1, an encrypted \emph{binding} corresponds to $E(K_{DET}, \; node, \; iv_{DET})$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
+\paragraph*{SEnTri V1} In \gls{SEnTri} V1, an encrypted \emph{ABox} node corresponds to $E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-\subsubsection{SEnTri V2 Encryption Scheme}
+\paragraph*{SEnTri V2} In \gls{SEnTri} V2, an encrypted \emph{ABox} node corresponds to $E(K_{RND}, \; node )$. Its encrypted \emph{equality tag} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer.
 
-In \gls{SEnTri} V2, an encrypted \emph{binding} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer, which we denominate as the \emph{equality tag} of that node.
+We index the encrypted the node by the \emph{encrypted equality tag}. The equality tag is referenced by the trapdoor that would index the node in \gls{SEnTri} V1.
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
+
+\subsubsection{Encrypted ABox Node equality}
 
 \subsubsection{Evaluation of SPARQL queries}
 \paragraph*{Query Plan Generation}

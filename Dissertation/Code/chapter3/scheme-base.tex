@@ -19,7 +19,7 @@ function loadState($master$, $rnd$, $schema$):
     $keywordFrequencies$ := {}
     $derivedKeys$ := {}
 
-// $E(T)$ := $\Pi.Enc(T)$
+// $E(T)$ := $\Pi.Encrypt(T, schema)$
 function encrypt($T$ = {$t_0$, $t_1$, ... $t_n$}, $schema$):
     if ($schema$ == true)
         encryptSchemaTriples($T$)
@@ -38,9 +38,14 @@ function encryptSchemaNode($node$):
     $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
     $encryptedNode$[$trapdoor$] := E($K_{RND}$, $node$)
 
-function decryptSchemaNode($ct$):
-    return D($K_{RND}$, $ct$)
 
+// $E(T)$ := $\Pi.Decrypt(T, schemz)$
+function decrypt($ct$, schema):
+    if ($schema$ == true)
+        return D($K_{RND}$, $ct$)
+    else
+        return decryptNode($ct$)
+    
 function decryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
 	foreach $t = (s,p,o)$ in $T$:
         $freq$ := {}
