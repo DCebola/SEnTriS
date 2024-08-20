@@ -1,13 +1,11 @@
 State:
     ($K_{DGK_{priv}}$, $K_{DGK_{pub}}$) := generateDGKKeyPair()
-    $iv_{DET}$ := generateRandomIV()
     $eqTags$ := {}
     $eq_{last}$ := 0
 
 function loadState($master$, $rnd$, $KeyPair_{DGK}$, $iv$, $schema$):
-    loadState($master$, $rnd$, $schema$)
+    loadState($master$, $rnd$, $iv$, $schema$)
     ($K_{DGK_{priv}}$, $K_{DGK_{pub}}$) := $KeyPair_{DGK}$
-    $iv_{DET}$ := $iv$
 
 function encryptKeywordInfo():
     foreach $keyword$ in $keywordFrequencies$:

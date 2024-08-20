@@ -1,53 +1,55 @@
 
-// $(K_{MASTER}, \; K_{RND}, \; keyword_{schema})$ := $\Pi.Setup()$
+// $(K_{MASTER}, \; K_{RND}, \; iv_{DET}, \; keyword_{schema})$ := $\Pi.Setup()$
 State:   
     $K_{MASTER}$ := generateKey() 
     $K_{RND}$ := generateKey() 
-    $iv_{ZERO}$ := generateZeroFilledIV()
+    $iv_{DET}$ := generateRandomIV()
     $keyword_{schema}$ := generateRandomString()
+    $iv_{ZERO}$ := generateZeroFilledIV()
     $encryptedNodes$ := {}
     $keywordFrequencies$ := {}
     $derivedKeys$ := {} 
     
 // $E(T)$ := $\Pi.ReInitialize(K_{MASTER}, \; K_{RND}, \; keyword_{schema})$
-function loadState($master$, $rnd$, $schema$):  
+function loadState($master$, $rnd$, $iv$, $schema$):  
     $K_{MASTER}$ := $master$ 
     $K_{RND}$ := $rnd$
-    $iv_{ZERO}$ := newZeroFilledIV()
+    $iv_{ZERO}$ := $iv$
     $keyword_{schema}$ := $schema$
+    $iv_{ZERO}$ := newZeroFilledIV()
     $encryptedNodes$ := {}
     $keywordFrequencies$ := {}
     $derivedKeys$ := {}
 
-// $E(T)$ := $\Pi.Encrypt(T, schema)$
-function encrypt($T$ = {$t_0$, $t_1$, ... $t_n$}, $schema$):
+// $E(T)$ := $\Pi.Encrypt(T, \; schema)$
+function encrypt({$t_0$, $t_1$, ... $t_n$}, $schema$):
     if ($schema$ == true)
-        encryptSchemaTriples($T$)
+        encryptSchemaTriples({$t_0$, $t_1$, ... $t_n$})
     else
-        encryptTriples($T$)
+        encryptTriples({$t_0$, $t_1$, ... $t_n$})
     encryptKeywordInfo()
 
-function EncryptSchemaTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
-    foreach $t = (s,p,o)$ in $T$:
-        encryptSchemaNode(parseNode($s$))
-        encryptSchemaNode(parseNode($p$))
-        encryptSchemaNode(parseNode($o$))
+function EncryptSchemaTriples({$t_0$, $t_1$, ... $t_n$}):
+    foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
+        encryptTBoxNode(parseNode($s$))
+        encryptTBoxNode(parseNode($p$))
+        encryptTBoxNode(parseNode($o$))
         
-function encryptSchemaNode($node$):
+function encryptTBoxNode($node$):
     $freq$ := incrementKeywordFrequency($keyword_{schema}$)
     $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
     $encryptedNode$[$trapdoor$] := E($K_{RND}$, $node$)
 
 
-// $E(T)$ := $\Pi.Decrypt(T, schemz)$
+// $E(T)$ := $\Pi.Decrypt(T, \; schema)$
 function decrypt($ct$, schema):
     if ($schema$ == true)
         return D($K_{RND}$, $ct$)
     else
         return decryptNode($ct$)
     
-function decryptTriples($T$ = {$t_0$, $t_1$, ... $t_n$}):
-	foreach $t = (s,p,o)$ in $T$:
+function decryptTriples({$t_0$, $t_1$, ... $t_n$}):
+	foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
         $freq$ := {}
         $parsed_s$ = parseNode($s$)
         $parsed_p$ = parseNode($p$)
@@ -99,9 +101,9 @@ function generateTrapdoor($keyword$):
 function generateTrapdoorAndIncrementIV($keyword$):
     return E(deriveKey($keyword$), $keyword$, incrementKeywordFrequency($keyword$))
 
-function generateTriplePatternTrapdoors($T$ = {$t_0$, $t_1$, ... $t_n$}):
+function generateTriplePatternTrapdoors({$t_0$, $t_1$, ... $t_n$}):
     $keywordPatternTrapdoors$ := {}
-    foreach $t = (s,p,o)$ in $T$:
+    foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
         $keywords$ := {}
         $i$ := 0
         $keyword_s$ = parseKeyword($s$)

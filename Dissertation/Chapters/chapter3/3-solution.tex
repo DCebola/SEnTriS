@@ -81,21 +81,13 @@ We have implemented \gls{SEnTri} using three different approaches:
 
 \begin{itemize}
     \item \emph{\gls{SEnTri} V0}: Uses the same query evaluation techniques as the other two, but operates over plaintext data.
-    
-    \item \emph{\gls{SEnTri} V1}: In this implementation, data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values. 
-    
+
+    \item \emph{\gls{SEnTri} V1}: In this implementation, data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
+
     \item \emph{\gls{SEnTri} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by employing \emph{additive blinding} techniques\footnote{\emph{Additive blinding} is a technique where we sum a random value to the ciphertext.} and using additive homomorphic encryption schemes. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support additive blinding. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{binding tables} are built with the \emph{blinded equality tags}. When doing equality checks, we decrypt the \emph{blinded equality tags}. These remain deterministic, but different for every query evaluation.
 \end{itemize}
 
-All implementations come with a trade-off between data confidentiality, query evaluation leakage and performance. 
-
-\gls{SEnTri} V0 only provides access control, trading data confidentiality for performance. 
-
-\gls{SEnTri} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
-
-In \gls{SEnTri} V2 provides both data confidentiality, access control and reduced leakage, but this comes at the cost of an extra round of communication where we have to reverse the blinding applied to the \emph{equality tags} and need to fetch the values being referenced from these. Only after this step, can we decrypt the actual query results.
-
-In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools used; 2) specify the encryption schemes designed for \gls{RDF} data, capable of supporting \gls{SPARQL} query evaluation; 3) explain how we adapt these schemes for a \gls{M/M} setting; 4) specify the algorithms used for generating secure query execution plans, query evaluation and query rewriting; 5) formally define the protocols on all implementations; 5) provide a mapping between the protocols and the system components.
+In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we can expand the \gls{SPARQL} query evaluation protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTri}; 5) provide a mapping between the protocols and the system components; 6) define the security properties of \gls{SEnTri} and analize the security and performance trade-offs of the various implementations.
 
 \subsection{Core elements}
 
@@ -111,7 +103,7 @@ This data structure is a simplified version of the one defined in section \ref{c
 \paragraph{Role Change Request} A role change request $roleRequest = (requestID, username, role)$ is a tuple where $requestID$ is a \gls{UUID} (version 4), $username$ identifies the user that this request affects and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$ specifies the desired new role.
 
 
-\paragraph{Sessions} A user's session $s = (sessionID,\; username,\; ttl)$ is a tuple, where  $sessionID$ is a \gls{UUID} (version 4), $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring. 
+\paragraph{Sessions} A user's session $s = (sessionID,\; username,\; ttl)$ is a tuple, where  $sessionID$ is a \gls{UUID} (version 4), $username$ belongs to a valid registered $user$ and $ttl \in N$ specifies the maximum time (in seconds) that a session can remain active, before expiring.
 
 
 \paragraph{Locks} A lock is $l = (lockID,\; resourceID,\; ttl)$ is a tuple, where  $lockID$ is a \gls{UUID} (version 4), $resourceID$ is either a valid $username$ or $triplestoreID$ and $ttl \in N$ specifies the maximum time (in seconds) that a lock can remain valid, before expiring.
@@ -123,25 +115,25 @@ This data structure is a simplified version of the one defined in section \ref{c
 \paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
 
 
-\paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $execOrder$ is a sequence of job identifiers. 
+\paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $execOrder$ is a sequence of job identifiers.
 
 
 \paragraph{Query Jobs} A query job is an internal operation that is executed during the evaluation of a \gls{SPARQL} query. Query jobs can be of three types: \emph{basic}, \emph{unary} and \emph{binary} jobs. Unary and binary jobs represent operations that are executed against the \emph{bindings} of, respectively, one and two other jobs, whereas basic jobs are independent of other jobs' results. The execution of a job will always generate \emph{bindings}, even if it is an empty collection. These \emph{bindings} will be associated to the respective $jobID$.
 
-There exist two basic jobs, $job_{SEARCH}$ and $job_{EMPTY}$. 
+There exist two basic jobs, $job_{SEARCH}$ and $job_{EMPTY}$.
 
 The search job is a tuple $job_{SEARCH} = (jobID, \; varPattern, \; s, \; p, \; o)$, where $varPattern \in \{ \textrm{S}, \; \textrm{P}, \; \textrm{O}, \; \textrm{SP}, \; \textrm{SO}, \; \textrm{PO}, \; \textrm{SPO} \}$ and $s$, $p$, $o$ are $\bot$ or have the value of, respectively a subject, predicate or object of the \emph{triple pattern} being searched.
 
 The empty result job is a tuple $job_{EMPTY} = (jobID, \; vars)$, where $vars = [var_0, ..., var_n]$ is a collection of variables.
 
-There exist four unary jobs, which represent the operations that apply result modifiers. These jobs are tuples of type $job_{I} = ( jobID, \; jobID_{prev} )$, where $I \in \{ \textrm{PROJECT}, \; \textrm{ORDERBY}, \allowbreak \textrm{SLICE}, \; \textrm{DISTINCT} \}$ and dictates which solution modifier will be applied to the \emph{bindings} associated with $jobID_{prev}$. 
+There exist four unary jobs, which represent the operations that apply result modifiers. These jobs are tuples of type $job_{I} = ( jobID, \; jobID_{prev} )$, where $I \in \{ \textrm{PROJECT}, \; \textrm{ORDERBY}, \allowbreak \textrm{SLICE}, \; \textrm{DISTINCT} \}$ and dictates which solution modifier will be applied to the \emph{bindings} associated with $jobID_{prev}$.
 
 Finally, there are four binary jobs, which represent set operations between \emph{binding}. These are tuples of type $job_{II} = ( jobID, \; jobID_l,  \; jobID_r )$, where $II \in \{ \textrm{JOIN}, \; \textrm{UNION}, \allowbreak \textrm{OPTIONAL},  \; \textrm{MINUS} \}$ and specifies which set operation will be executed between the \emph{bindings} of $jobID_l$ and $jobID_r$.
 
 
-\paragraph{\emph{Bindings} tables} The output of a query job is a \emph{bindings} table. This data structure is a tuple $bindingsTable = (bindings, \; patterns)$ where $bindings = \{ (var_0, \; bindingsMap_0), ..., \allowbreak (var_n, \; bindingsMap_n)\}$ and $patterns = \{ (var_0, \; patternsMap_0), ...,  (var_n, \; patternsMap_n)\}$ are maps that map query variables, respectively, to \emph{bindings} and \emph{triple patterns} maps. 
+\paragraph{\emph{Bindings} tables} The output of a query job is a \emph{bindings} table. This data structure is a tuple $bindingsTable = (bindings, \; patterns)$ where $bindings = \{ (var_0, \; bindingsMap_0), ..., \allowbreak (var_n, \; bindingsMap_n)\}$ and $patterns = \{ (var_0, \; patternsMap_0), ...,  (var_n, \; patternsMap_n)\}$ are maps that map query variables, respectively, to \emph{bindings} and \emph{triple patterns} maps.
 
-A \emph{bindings} map, $bindingsMap = \{ (binding_0, \; [pattternID_{0,0},...,patternID_{0,k}]),...,\linebreak(binding_n, \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4). 
+A \emph{bindings} map, $bindingsMap = \{ (binding_0, \; [pattternID_{0,0},...,patternID_{0,k}]),...,\linebreak(binding_n, \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4).
 
 A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; binding_0),..., (patternID_n, \linebreak binding_n)\}$, is a map where \emph{triple pattern} identifiers are mapped to \emph{bindings}.
 
@@ -160,25 +152,24 @@ We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$
 
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
-
-\paragraph{Randomized Query Execution Plans} A randomized query execution plan is a tuple $plan=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
-
-
 \paragraph{Secure Query Jobs} The only difference between jobs in \gls{SEnTri} V1 and V2, to jobs in \gls{SEnTri} V0, is that they operate over obfuscated variables and output encrypted \emph{bindings} tables.
 
-Only the \emph{secure search job} is structurally different. It is a tuple $job_{SEC\_SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [O(var_0), ..., \allowbreak O(var_n)]$ is a collection of obfuscated variables and $searches = \{(O(var_0), \; searchID_0), ...,  (O(var_n), \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4).
+Only the \emph{secure search job} is structurally different. It is a tuple $job_{SEC\_SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [O(var_0), ..., \allowbreak O(var_n)]$ is a collection of obfuscated variables. During the query preparation phase, $searches = \{(O(var_0), \; keyword_0), ..., $\linebreak$ (O(var_n), \; keyword_n)\}$ is a map that maps variables to the keywords to be searched, whereas, in the query evaluation phase, $searches = \{(O(var_0), \; searchID_0), ...,  (O(var_n), \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4).
 
+\paragraph{Randomized Query Execution Plans} A randomized query execution plan is a tuple $plan_{rnd}=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
+
+\paragraph{Randomized Prepared Query Execution Plans} After the query preparation phase, the $searches$ maps, in the secure search jobs, have been updated to map obfuscated variables to search identifiers. A plan where all search jobs have been updated like this is said to be \textit{prepared}.
 
 \paragraph{Encrypted \emph{Bindings} tables} Similar to a \emph{bindings} table, an encrypted \emph{bindings} table is a tuple $E(BindingsTable) = (E(bindings), \; E(patterns))$ where $E(bindings) = \{ (O(var_0), \allowbreak E(bindingsMap_0)), ..., (O(var_n), \; E(bindingsMap_n))\}$ and $E(patterns) = \{ (O(var_0), \linebreak E(patternsMap_0)), ..., (O(var_0), \; E(patternsMap_n))\}$ are maps that map \emph{obfuscated} query variables, respectively, to encrypted \emph{bindings} and \emph{triple patterns} maps.
 
-An encrypted \emph{bindings} map, $E(bindingsMap) = \{ (E(binding_0), \; [pattternID_{0,0},...,\linebreak patternID_{0,k}]),..., (E(binding_n), \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where encrypt-\linebreak\text{ed}  \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4). 
+An encrypted \emph{bindings} map, $E(bindingsMap) = \{ (E(binding_0), \; [pattternID_{0,0},...,\linebreak patternID_{0,k}]),..., (E(binding_n), \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where encrypt-\linebreak\text{ed}  \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4).
 
 An encrypted \emph{triple patterns} map, $E(patternsMap) = \{ (pattternID_0, \; E(binding_0)),..., \allowbreak (patternID_n, \; E(binding_n))\}$, is a map where \emph{triple pattern} identifiers are mapped to encrypted \emph{bindings}.
 
 We will define $E(binding)$ in Subsection \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTri} V1 and \gls{SEnTri} V2.
 
 
-\paragraph{Encrypted SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (E(bindings), \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $E(bindings) = [E(pattern_0), ..., \allowbreak E(pattern_n)]$ is a collection of encrypted \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \allowbreak dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
+\paragraph{Encrypted SPARQL Query Result} An encrypted \gls{SPARQL} query result is a tuple \linebreak $E(sparqlResult) = (E(bindings), \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $E(bindings) = [E(pattern_0), ..., \allowbreak E(pattern_n)]$ is a collection of encrypted \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \allowbreak dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
 
 Let $n \in \mathbb{Z}^{+}$ be the number of variables (obfuscated) in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of encrypted triple patterns found after the evaluation of a query. An encrypted triple pattern $E(pattern_i) = \{(O(var_0), \; E(binding_{i,0})),...,(O(var_n), \; E(binding_{i,n}))\}$ is a map where each obfuscated variable is mapped to an encrypted $binding$. An encrypted $binding$ can either have a value or be $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
 
@@ -186,117 +177,121 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables (obfuscated) in a \gls{SPA
 
 \subsubsection{Notation}
 
-For the remainder of the document, function $E(K, \; m, \; iv)$ denotes the encryption of message $m$, using the initialization vector $iv$ and key $K$. The function $D(K, \; ct)$ denotes the decryption of ciphertext $ct$, using key $K$. The keys used as input will identify the encryption scheme (e.g. $K_{A}$ implies the usage of the symmetric encryption scheme $A$ and $K_{B_{priv}}$ implies the usage of public key encryption scheme $B$). 
+For the remainder of the document, the function $E(K, \; m, \; iv)$ denotes the encryption of message $m$, using the initialization vector $iv$ and key $K$. The notation $E(data)$ will represent uniquely that $data$ is encrypted. The function $D(K, \; ct)$ denotes the decryption of ciphertext $ct$, using key $K$. The keys used as input will identify the encryption scheme (e.g. $K_{A}$ implies the usage of the symmetric encryption scheme $A$ and $K_{B_{priv}}$ implies the usage of public key encryption scheme $B$).
 
-\subsubsection{DGK Encryption} 
+\subsubsection{DGK Encryption}
 
-\gls{SEnTri} V2 can be implemented with any additive homomorphic encryption scheme, but we have chosen to use the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}l. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains. It also permits us to employ more efficient equality checks, which is a very common operation when evaluating \gls{SPARQL} queries.
+\gls{SEnTri} V2 can be implemented with any additive homomorphic encryption scheme, but we have chosen to use the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains. It also permits us to employ more efficient equality checks, which is a very common operation when evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk} Let $k$, $t$, and $l$ be public parameters. Parameter $k$ determines the size of a \gls{RSA} modulus, $l$ is the bit length of the messages to encrypt and $t$ should be large enough so that exhaustive search is infeasible.
 
-\paragraph{Key Generation} Let $p$, $q$ be two primes, generated such that $n = pq$ is a $k$-bit \gls{RSA} modulus and that the $u$, $v_p$ and $v_q$ also exist and possess the following properties:
+    \paragraph{Key Generation} Let $p$, $q$ be two primes, generated such that $n = pq$ is a $k$-bit \gls{RSA} modulus and that the $u$, $v_p$ and $v_q$ also exist and possess the following properties:
 
-\begin{changemargin}{1cm}{1cm}
-    \begin{enumerate}
-        \item $u$ is the smallest prime greater than $l + 2$
-        \item $u$ is a divisor of both $p - 1$ and $q -1$
-        \item $v_p$ is $t$-bit prime numbers that divides $p - 1$
-        \item $v_q$ is $t$-bit prime numbers that divides $q - 1$
-    \end{enumerate}
-\end{changemargin}
+    \begin{changemargin}{1cm}{1cm}
+        \begin{enumerate}
+            \item $u$ is the smallest prime greater than $l + 2$
+            \item $u$ is a divisor of both $p - 1$ and $q -1$
+            \item $v_p$ is $t$-bit prime numbers that divides $p - 1$
+            \item $v_q$ is $t$-bit prime numbers that divides $q - 1$
+        \end{enumerate}
+    \end{changemargin}
 
 
-Choose random values $g, h \in \mathbb{Z}^*_n$, so that:
+    Choose random values $g, h \in \mathbb{Z}^*_n$, so that:
 
-\begin{changemargin}{1cm}{1cm}
-    \begin{enumerate}
-    \item the multiplicative order of $h$ is $v_pv_q$
-    \item $g$ is an element of order $uv_pv_q \in \mathbb{Z}^*_n$
-    \end{enumerate}
-\end{changemargin}
+    \begin{changemargin}{1cm}{1cm}
+        \begin{enumerate}
+            \item the multiplicative order of $h$ is $v_pv_q$
+            \item $g$ is an element of order $uv_pv_q \in \mathbb{Z}^*_n$
+        \end{enumerate}
+    \end{changemargin}
 
-The message space is $M = \mathbb{Z}_u$ and the ciphertext space is $C = \{g^mh^r \; \textrm{mod} \; n \; | \; m \in \mathbb{Z}_u, \;  r \in \mathbb{Z}_{v_pv_q}\} \subseteq \mathbb{Z}^*_n$. The public and private keys are, respectively, $K_{DGK_{pub}} = (n,\;g,\;h,\;u)$ and $K_{DGK_{priv}} = (p,\;q,\;v_p,\;v_q)$.
+    The message space is $M = \mathbb{Z}_u$ and the ciphertext space is $C = \{g^mh^r \; \textrm{mod} \; n \; | \; m \in \mathbb{Z}_u, \;  r \in \mathbb{Z}_{v_pv_q}\} \subseteq \mathbb{Z}^*_n$. The public and private keys are, respectively, $K_{DGK_{pub}} = (n,\;g,\;h,\;u)$ and $K_{DGK_{priv}} = (p,\;q,\;v_p,\;v_q)$.
 
-\paragraph{Probabilistic Encryption} An encryption $ct$ of $m$ is calculated as:
-\begin{equation}\label{chapter3:definition:dgk:equation:rnd-enc}
-    ct = g^mh^r  \; \textrm{mod} \; n
-\end{equation}
+    \paragraph{Probabilistic Encryption} An encryption $ct$ of $m$ is calculated as:
+    \begin{equation}\label{chapter3:definition:dgk:equation:rnd-enc}
+        ct = g^mh^r  \; \textrm{mod} \; n
+    \end{equation}
 
-The value $r \in \mathbb{Z}_{v_pv_q}$ is only possible to calculate if we have access to private key. Knowing the public key, we instead determine the value of $r$ as a random $2.5t$-bit integer, so that $h^r$ is indistinguishable from a uniformly random element from the subgroup generated by $h$.
+    The value $r \in \mathbb{Z}_{v_pv_q}$ is only possible to calculate if we have access to private key. Knowing the public key, we instead determine the value of $r$ as a random $2.5t$-bit integer, so that $h^r$ is indistinguishable from a uniformly random element from the subgroup generated by $h$.
 
-\paragraph{Deterministic Encryption} To compute a deterministic encryption of $m$ we remove the randomization part, $h^r \; \textrm{mod} \; n$, from the calculations:
-\begin{equation}\label{chapter3:definition:dgk:equation:det-enc}
-    ct = g^m \; \textrm{mod} \; n
-\end{equation}
+    \paragraph{Deterministic Encryption} To compute a deterministic encryption of $m$ we remove the randomization part, $h^r \; \textrm{mod} \; n$, from the calculations:
+    \begin{equation}\label{chapter3:definition:dgk:equation:det-enc}
+        ct = g^m \; \textrm{mod} \; n
+    \end{equation}
 
-\paragraph{Re-encryption} To re-encrypt a probabilistic encryption of $m$ we sample a new random $2.5t$-bit integer $r_2$ and compute:
-\begin{align}\label{chapter3:definition:dgk:equation:re-enc}
-    \begin{split} 
-    ct_2 &= ct \cdot h^{r_2} \; \textrm{mod} \; n \\
-    &= g^mh^rh^{r_2} \; \textrm{mod} \; n \\
-    &= g^mh^{r + r_2} \; \textrm{mod} \; n \\
-    \end{split}
-\end{align}
+    \paragraph{Re-encryption} To re-encrypt a probabilistic encryption of $m$ we sample a new random $2.5t$-bit integer $r_2$ and compute:
+    \begin{align}\label{chapter3:definition:dgk:equation:re-enc}
+        \begin{split}
+            ct_2 &= ct \cdot h^{r_2} \; \textrm{mod} \; n \\
+            &= g^mh^rh^{r_2} \; \textrm{mod} \; n \\
+            &= g^mh^{r + r_2} \; \textrm{mod} \; n \\
+        \end{split}
+    \end{align}
 
-\paragraph{Decryption} The decryption of a ciphertext $ct$ is done by calculating:
+    \paragraph{Decryption} The decryption of a ciphertext $ct$ is done by calculating:
 
-\begin{align}
-    \begin{split}
-    c^{v_pv_q} \; \textrm{mod} \; n &= (g^mh^r)^{v_pv_q} \; \textrm{mod} \; n \\
-        &= (g^m)^{v_pv_q}(h^r)^{v_pv_q} \; \textrm{mod} \; n \\ 
-        &= (g^m)^{v_pv_q}*1 \; \textrm{mod} \; n \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{because order of h is $v_pv_q$}\\
-        &= (g^{v_pv_q})^m \; \textrm{mod} \; n
-    \end{split}
-\end{align} 
+    \begin{align}
+        \begin{split}
+            c^{v_pv_q} \; \textrm{mod} \; n &= (g^mh^r)^{v_pv_q} \; \textrm{mod} \; n \\
+            &= (g^m)^{v_pv_q}(h^r)^{v_pv_q} \; \textrm{mod} \; n \\
+            &= (g^m)^{v_pv_q}*1 \; \textrm{mod} \; n \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; \text{because order of h is $v_pv_q$}\\
+            &= (g^{v_pv_q})^m \; \textrm{mod} \; n
+        \end{split}
+    \end{align}
 
-Due to the value of $u$ being small, it is feasible to search for the calculated value in a look-up table with tuples of type $((g^{v_pv_q})^i \; \textrm{mod} \; n, \; i)$, for $0 < i < u$. Even without the look-up table, one can quickly determine if $ct$ is an encryption of 0, because $D(E(0)) = 1$:
+    Due to the value of $u$ being small, it is feasible to search for the calculated value in a look-up table with tuples of type $((g^{v_pv_q})^i \; \textrm{mod} \; n, \; i)$, for $0 < i < u$. Even without the look-up table, one can quickly determine if $ct$ is an encryption of 0, because $D(E(0)) = 1$:
 
-\begin{equation}\label{chapter3:definition:dgk:equation:zero-dec}
-    c^{v_pv_q} \; \textrm{mod} \; n = (g^{v_pv_q})^m \; \textrm{mod} \; n \stackrel{\text{m = 0}}{=} (g^{v_pv_q})^0 \; \textrm{mod} \; n = 1 \; \textrm{mod} \; n = 1
-\end{equation}
+    \begin{equation}\label{chapter3:definition:dgk:equation:zero-dec}
+        c^{v_pv_q} \; \textrm{mod} \; n = (g^{v_pv_q})^m \; \textrm{mod} \; n \stackrel{\text{m = 0}}{=} (g^{v_pv_q})^0 \; \textrm{mod} \; n = 1 \; \textrm{mod} \; n = 1
+    \end{equation}
 
-So far we have presented the decryption equations using all $p, q, v_p, v_q$ values, but we can utilize a faster decryption method. This method only requires the computation of modulo $p$ or $q$, because $m$ is uniquely determined from $c^{v_p} \; \textrm{mod} \; p$ or $c^{v_q} \; \textrm{mod} \; q$. For the remaining of the document we will only be considering this decryption method.
+    So far we have presented the decryption equations using all $p, q, v_p, v_q$ values, but we can utilize a faster decryption method. This method only requires the computation of modulo $p$ or $q$, because $m$ is uniquely determined from $c^{v_p} \; \textrm{mod} \; p$ or $c^{v_q} \; \textrm{mod} \; q$. For the remaining of the document we will only be considering this decryption method.
 
-\paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive} holds:
+    \paragraph{Homomorphic property} The \gls{DGK} cryptosystem is homomorphic with respect to the addition operation ($+$). For $ct_1, ct_2 \in C$, there exists $m_1, m_2 \in M$ and $r_1, r_2 \in \mathbb{Z}_{v_pv_q}$, where $ct_1 = g^{m_1}h^{r_1}  \; \textrm{mod} \; n$ and $ct_2 = g^{m_2}h^{r_2}  \; \textrm{mod} \; n$ and Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive} holds:
 
-\begin{equation}
-    \begin{split}
-    E(m_1) * E(m_2) &= (g^{m_1}h^{r_1} \; \textrm{mod} \; n) * (g^{m_2}h^{r_2} \; \textrm{mod} \; n) \\ 
-        &= ( g^{m_1}h^{r_1}  \; * g^{m_2}h^{r_2} ) \; \textrm{mod} \; n \\ 
-        &= g^{(m_1 + m_2)}h^{(r_1 + r_2)} \; \textrm{mod} \; n \\ 
-        &= E(m_1 + m_2)
-    \end{split}
-\end{equation}
+    \begin{equation}
+        \begin{split}
+            E(m_1) * E(m_2) &= (g^{m_1}h^{r_1} \; \textrm{mod} \; n) * (g^{m_2}h^{r_2} \; \textrm{mod} \; n) \\
+            &= ( g^{m_1}h^{r_1}  \; * g^{m_2}h^{r_2} ) \; \textrm{mod} \; n \\
+            &= g^{(m_1 + m_2)}h^{(r_1 + r_2)} \; \textrm{mod} \; n \\
+            &= E(m_1 + m_2)
+        \end{split}
+    \end{equation}
 
-\paragraph{Additional operations} Multiplication of an encrypted value by a positive constant $k$ is supported, just like in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-positive}, by raising it to the power of $k$.
+    \paragraph{Additional operations} Multiplication of an encrypted value by a positive constant $k$ is supported, just like in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-positive}, by raising it to the power of $k$.
 
-Multiplication by a negative constant $c$ is done similarly to what is specified in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-negative}, but instead of considering a plaintext space $\mathbb{Z}_n$, we consider $M = \mathbb{Z}_u$. As such, this operation requires raising the encrypted value to the power of $u - c$:
+    Multiplication by a negative constant $c$ is done similarly to what is specified in Equation \ref{ch2:sec:homomorphic-encryption:def-eq-additive-mul-negative}, but instead of considering a plaintext space $\mathbb{Z}_n$, we consider $M = \mathbb{Z}_u$. As such, this operation requires raising the encrypted value to the power of $u - c$:
 
-\begin{equation}\label{chapter3:definition:dgk:equation:mul-negative}
-    E(m)^{(u - c)} = E(-c*m)
-\end{equation}
+    \begin{equation}\label{chapter3:definition:dgk:equation:mul-negative}
+        E(m)^{(u - c)} = E(-c*m)
+    \end{equation}
 
-Given Equations \ref{ch2:sec:homomorphic-encryption:def-eq-additive-subtraciton} and \ref{chapter3:definition:dgk:equation:mul-negative}, subtraction of two ciphertexts is achieved by computing:
+    Given Equations \ref{ch2:sec:homomorphic-encryption:def-eq-additive-subtraciton} and \ref{chapter3:definition:dgk:equation:mul-negative}, subtraction of two ciphertexts is achieved by computing:
 
-\begin{equation}
-    E(m_1 - m_2) = E(m_1 + (-1) * m_2) = E(m_1) + E(m_2)^{(u - 1)}
-\end{equation}
+    \begin{equation}
+        E(m_1 - m_2) = E(m_1 + (-1) * m_2) = E(m_1) + E(m_2)^{(u - 1)}
+    \end{equation}
 
 \end{definition}
 
 To perform an equality check, between two plaintext messages, $m_1, m_2$, we compute the difference of their respective ciphertexts, $ct_1, ct_2$, and check if the result is 1 ($m_1 = m_2 \Leftrightarrow m_1 - m_2 = 0$):
-    
+
 \begin{equation}
     D(E(m_1) - E(m_2)) =  D(E(0)) = 1
 \end{equation}
 
-\subsection{Encryption of triple patterns}
-\label{chapter3:definition:triple-pattern-encryption-schemes}
+\subsection{Evaluation of SPARQL queries}
 
-When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic a technique used for indexing subject, predicates and objects and that facilitates retrieval of simple patterns found in \gls{SPARQL} queries. In the remainder of this section we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
+Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we are going to explain how we evaluate \gls{SPARQL} queries.  We will start by explaining the protocol for doing so over plaintext data, as in \gls{SEnTri} V0. At this phase, we will not take into consideration role based access control and permissions, for simplicity, as it does not alter in any way the protocol logic.
 
-\subsubsection{Indexing triple patterns} 
-In \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. 
+\subsubsection{Indexing triple patterns}
+
+The first step when designing a solution that supports \gls{SPARQL}, is to define the storage strategy for saving \emph{triple patterns}. This strategy must preserve semantics and ensure fast access during query evaluation.
+
+In \gls{SEnTri}, we index the data in a manner that does not break the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
+
+More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query.
 
 For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_k]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. This indexing scheme does not support queries where the subject, predicate and object are all variables, but supports all other variants:
 
@@ -312,10 +307,31 @@ For example, to answer a query where we need to search for $(?v, p, o)$ (the sub
 \end{align}
 
 \lstinputlisting[caption={Indexing Scheme for SEnTri V0}, label={indexing-scheme}]{Code/chapter3/indexing.tex}
- 
+
+
+
+\begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
+    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with triplestores encrypted using $\Pi$. It is defined as a tuple $\Omega = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
+    \begin{itemize}
+        \item $plan \leftarrow \mathbf{PlanQuery(query, )}$:
+        \item $sparqlResult \leftarrow \mathbf{EvaluateQuery(plan)}$:
+    \end{itemize}
+\end{definition}
+
+\subsubsection{Query Plan Generation}
+\subsubsection{Query Rewriting}
+\subsubsection{Query Preparation Phase}
+\subsubsection{Query Evaluation Phase}
+\subsubsection{Supported Queries}
+
+\subsection{Encryption of triple patterns}
+\label{chapter3:definition:triple-pattern-encryption-schemes}
+
+When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic a technique used for indexing subject, predicates and objects and that facilitates retrieval of simple patterns found in \gls{SPARQL} queries.
+
 \subsubsection{Trapdoor generation}
 
-Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the frequency of the index keyword. 
+Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the frequency of the index keyword.
 
 Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency.
 
@@ -324,17 +340,17 @@ For each index, its respective trapdoors are encrypted using a unique key. This 
 
 \begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
 
-Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
+    Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
 
-\begin{equation}
-    trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
-\end{equation}
+    \begin{equation}
+        trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
+    \end{equation}
 
-The trapdoor that references the frequency value of $keyword_n$ is a special case where $i=0$:
+    The trapdoor that references the frequency value of $keyword_n$ is a special case where $i=0$:
 
-\begin{equation}
-    trapdoor_{n, 0} = E(K_{keyword_n}, \; keyword_n, \; 0)
-\end{equation}
+    \begin{equation}
+        trapdoor_{n, 0} = E(K_{keyword_n}, \; keyword_n, \; 0)
+    \end{equation}
 
 \end{definition}
 
@@ -345,34 +361,32 @@ The trapdoor that references the frequency value of $keyword_n$ is a special cas
 \begin{itemize}
     \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
     \item \emph{Be dynamic}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
-    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}. We will refer to this subset as \emph{schema} nodes.
+    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}. We will refer to the subset of triple patterns containing these nodes as \emph{schema triples}.
 \end{itemize}
 
-\gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. Considering the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.
+\gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. If we consider the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.
 
-\begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:triple-pattern-sse-scheme}
-    
+\begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:triple-pattern-sse-scheme-base}
+    Let $\Pi$ be a triple pattern SSE scheme that supports the evaluation of \emph{SPARQL} queries. It is defined as a tuple $\Pi = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
+    \begin{itemize}
+        \item $\lambda \leftarrow \mathbf{Setup()}$:
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$:
+        \item $E(nodes) \leftarrow \mathbf{Encrypt(\{ t_0, t_1, ..., t_n\}, \; schema)}$:
+        \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$:
+        \item $E(binding_{n}) \leftarrow \mathbf{Search(trapdoor_{n,i})}$:
+        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$:
+        \item $\{true, false\} \leftarrow \mathbf{Equals(E(node_1), \; E(node_2))}$:
+    \end{itemize}
 \end{definition}
 
-Let $\Pi$ be a triple pattern SSE scheme, capable of evaluating \emph{SPARQL} queries. It is defined as a tuple $\Pi = (Setup, \; ReInitialize, \; Trapdoor, \; Encrypt, \; Decrypt, \; Equals, \; Query)$ of 7 algorithms:
 
+\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. We also create the data structures, where we keep track of the state of keyword frequencies, and derived keys.
 
-
-\paragraph*{Initial setup} During initialization, we generate all the encryption keys and security parameters of the scheme. We also create the data structures, where we keep track of the state of keyword frequencies, and derived keys.
-
-\mytodo{Enumerate/specify algorithms}
-
-\paragraph*{Re-initialization} ...
-
-\paragraph*{Schema triple encryption} ...
-
-\paragraph*{Supporting Dynamism} ...
+\subsubsection{Schema triple encryption (TBox statements)} ...
 
 \lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-%key generation
-
-\subsubsection{ABox Node Encryption}
+\subsubsection{Triple Encryption (ABox statements)}
 
 \paragraph*{SEnTri V1} In \gls{SEnTri} V1, an encrypted \emph{ABox} node corresponds to $E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
 
@@ -386,71 +400,81 @@ We index the encrypted the node by the \emph{encrypted equality tag}. The equali
 
 \subsubsection{Encrypted ABox Node equality}
 
-\subsubsection{Evaluation of SPARQL queries}
-\paragraph*{Query Plan Generation}
-\paragraph*{Query Rewriting}
-\paragraph*{Query Preparation Phase}
-\paragraph*{Query Evaluation Phase}
-\paragraph*{Supported Queries}
+\subsubsection{Supporting Dynamism} ...
+
+\subsubsection{Evaluation of SPARQL queries over encrypted data} ...
+
+\begin{definition}[\textbf{Secure SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
+    Let SEC-SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with triplestores encrypted using $\Pi$. It is defined as a tuple $\Omega = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
+    \begin{itemize}
+        \item $plan_{rnd} \leftarrow \mathbf{PlanQuery(query)}$:
+        \item $preparedPlan_{rnd} \leftarrow \mathbf{PrepareQuery(plan_{rnd}, triplestoreID)}$:
+        \item $E(sparqlResult) \leftarrow \mathbf{EvaluateQuery(preparedPlan_{rnd})}$:
+    \end{itemize}
+\end{definition}
+
+\paragraph*{Decryption of SPARQL query results}
+
+
 \subsection{The M/M setting}
 
 We've specified the building blocks for secure evaluation of \gls{SPARQL} queries. We will now explain how we do so in a multi-user setting where shared access to triplestores exists. It all starts with authentication of users, followed by a structured way of sharing triplestores, with different degrees of access, and allowing concurrent execution of queries.
 
 Authentication is validated with \emph{sessions}, management of access to triplestores is realized with the definition of triplestore \gls{ACL}s and strict \emph{permission rules}. Finally, we rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access, when executing unsafe operations (writes), is done in a controlled and safe manner.
 
-\subsubsection{Session Validation} 
+\subsubsection{Session Validation}
 
 Authentication is the process where we verify the identity of a user. We do so, by checking that the provided credentials, during login, match the ones saved within our system. To avoid having to verify this condition in every request sent by the user, we use \emph{sessions}. The session is generated upon a successful login request. A valid session will prove the identity of the user sending the requests. In \gls{SEnTri}, an authenticated user needs to be valid (has been registered within the system) and hold an active session.
 
 \begin{definition}[\textbf{Authentication Check}]\label{ch3:definition:authentication} Let $IsAuth(user)$ be a predicate that evaluates to $true$ if a $user$ is authenticated, $\bot$ otherwise. Given $s_i = (sessionID,\; username_s,\; ttl)$ and $user_u = (username_u, \; password_u,\; role_u,\; owned_u)$ be valid, correctness of the authentication procedure will be upheld by always checking if the user has an active session:
 
-\begin{equation}
-   IsAuth(user_u) \Leftrightarrow \exists_{s} (username_u = username_s \; \wedge \; ttl > 0)
-\end{equation}
+    \begin{equation}
+        IsAuth(user_u) \Leftrightarrow \exists_{s} (username_u = username_s \; \wedge \; ttl > 0)
+    \end{equation}
 \end{definition}
 
-\subsubsection{Enforcing Access Permissions} 
+\subsubsection{Enforcing Access Permissions}
 
-Permissions in \gls{SEnTri} are logical rules which dictate whether a user is allowed to execute a certain operation, or not. 
+Permissions in \gls{SEnTri} are logical rules which dictate whether a user is allowed to execute a certain operation, or not. These rules are continuously checked during execution.
 
 \begin{definition}[\textbf{Permission Rules}]\label{ch3:definition:permissions}
-Let $HasAccess(user, \; triplestore, \allowbreak type)$ be a predicate that evaluates to true if  $user$ has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
+    Let $HasAccess(user, \; triplestore, \allowbreak type)$ be a predicate that evaluates to true if  $user$ has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
 
-Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanChangeOwnership(user, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership, to $target$ user, of the specified $triplestore$, $\bot$ otherwise.
+    Let $CanCreateTriplestore(user, \; triplestore)$, $CanDeleteTriplestore(user, triplestore)$, $CanChangeOwnership(user, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can create, delete, or transfer ownership, to $target$ user, of the specified $triplestore$, $\bot$ otherwise.
 
-Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise. 
+    Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise.
 
-Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \; acp_i = (r_i, w_i))$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, \; role_t, \allowbreak password_t, \; owned_t)$ \gls{SEnTri} can verify, when requested, the following permissions:
+    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \; acp_i = (r_i, w_i))$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, \; role_t, \allowbreak password_t, \; owned_t)$ \gls{SEnTri} can verify, when requested, the following permissions:
 
-\begin{align}
-    \begin{split} 
-        Can&GrantAccess(user_u, \; type, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\ 
-        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \\
-        & \\
-        Can&RevokeAccess(user_u, \; type, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \\ 
-        & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \\
-        & \\
-        Has&Access(user_u, \; type, \; T_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u  \\ 
-        & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \{\textrm{READ}, \; \textrm{WRITE}\} \; \wedge \; username_u \in w_i) \\
-        & \vee \; (type = \textrm{OWNER} \; \wedge \; triplestoreID_i \in \; owned_u) \\
-        & \\
-        Can&CreateTriplestore(user_u, \; T_i) \Leftrightarrow IsAuth(user_u) \\ 
-        & \wedge \; role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\} \; \wedge \; \nexists\;_{triplestore} \;\; triplestoreID = triplestoreID_i \\
-        & \\
-        Can&DeleteTriplestore(user_u, \; T_i) \Leftrightarrow IsAuth(user_u) \\ 
-        & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestoreID_i \in \; owned_u \\
-        & \\
-        Can&ChangeOwnership(user_u, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
-        & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \; \wedge \; role_t \neq \textrm{BASIC} \\
-        & \\
-        Can&GrantRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u) \\
-        & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge \; role_u = \textrm{ADMIN}) \\
-        & \vee \; (user_u = user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; role = \textrm{BASIC}))) \\
-        & \\
-        Can&RevokeRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u)\\
-        & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge role_u = \textrm{ADMIN}) \; \vee \; user_u = user_t) 
-    \end{split}
-\end{align}
+    \begin{align}
+        \begin{split}
+            Can&GrantAccess(user_u, \; type, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
+            & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \\
+            & \\
+            Can&RevokeAccess(user_u, \; type, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \\
+            & \wedge \; \exists_{user_t} \; user_u \neq user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \\
+            & \\
+            Has&Access(user_u, \; type, \; T_i) \Leftrightarrow role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u  \\
+            & \vee \; (type = \textrm{READ} \; \wedge \; username_u \in r_i) \; \vee \; (type = \{\textrm{READ}, \; \textrm{WRITE}\} \; \wedge \; username_u \in w_i) \\
+            & \vee \; (type = \textrm{OWNER} \; \wedge \; triplestoreID_i \in \; owned_u) \\
+            & \\
+            Can&CreateTriplestore(user_u, \; T_i) \Leftrightarrow IsAuth(user_u) \\
+            & \wedge \; role_u \in \{\textrm{ADMIN}, \; \textrm{PRIVILEGED}\} \; \wedge \; \nexists\;_{triplestore} \;\; triplestoreID = triplestoreID_i \\
+            & \\
+            Can&DeleteTriplestore(user_u, \; T_i) \Leftrightarrow IsAuth(user_u) \\
+            & \wedge \; role_u = \textrm{ADMIN} \; \wedge \; triplestoreID_i \in \; owned_u \\
+            & \\
+            Can&ChangeOwnership(user_u, \; T_i, \; user_t) \Leftrightarrow IsAuth(user_u) \; \wedge \; \exists_{user_t} \; user_u \neq user_t \\
+            & \wedge \; (role_u = \textrm{ADMIN} \; \vee \; triplestoreID_i \in \; owned_u ) \; \wedge \; role_t \neq \textrm{BASIC} \\
+            & \\
+            Can&GrantRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u) \\
+            & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge \; role_u = \textrm{ADMIN}) \\
+            & \vee \; (user_u = user_t \; \wedge \; (role_u = \textrm{ADMIN} \; \vee \; role = \textrm{BASIC}))) \\
+            & \\
+            Can&RevokeRole(user_u, \; role, \; user_t) \Leftrightarrow IsAuth(user_u)\\
+            & \wedge \; role \neq role_t \; \wedge \; ((\exists_{user_t} \; user_u \neq user_t \; \wedge role_u = \textrm{ADMIN}) \; \vee \; user_u = user_t)
+        \end{split}
+    \end{align}
 
 \end{definition}
 
@@ -462,22 +486,22 @@ Concurrent operations can target users or triplestores. The correctness of concu
 
 Operations against triplestores are more complex. The query evaluation pipeline starts in the \emph{Client} component, but subsequent steps are executed in the \emph{Triplestore}, \emph{Vault} and \emph{Secure Computation Proxy}. Furthermore, whenever the execution context changes, we must verify if the author of the request has sufficient permissions.
 
-To fulfill such requirements, every request from the \emph{Client} to other components, contains an \emph{access token}. The other components execute permission checks, by sending this token to the \emph{\gls{IAM} Provider}. The \emph{\gls{IAM} Provider} verifies the validity of the token, and if its associated permissions are correct. 
+To fulfill such requirements, every request from the \emph{Client} to other components, contains an \emph{access token}. The other components execute permission checks, by sending this token to the \emph{\gls{IAM} Provider}. The \emph{\gls{IAM} Provider} verifies the validity of the token, and if its associated permissions are correct.
 
-Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The triplestore will remain in a \emph{locked} state until the \emph{access token} is deleted or the \emph{lock} expires. 
+Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The triplestore will remain in a \emph{locked} state until the \emph{access token} is deleted or the \emph{lock} expires.
 
 \begin{definition}[\textbf{Concurrent Lock-based Access Checks}]\label{ch3:definition:concurrent-access}
-    Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \; at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, and associate the generated lock with access token $at$, $\bot$ otherwise. 
-    
+    Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \; at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, and associate the generated lock with access token $at$, $\bot$ otherwise.
+
     Let $CanExecuteOperations(triplestore, \; at, \; type)$ be a predicate that evaluates to $true$ if the access token $at$ grants sufficient permissions, against the target $triplestore$, to allow operations, of the specified access $type$, to be executed in the current context of execution, $\bot$ otherwise.
 
-    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \;  acp_i = (r_i, w_i))$, lock $l_a = (lockID_a,\; resourceID_a,\; ttl_a)$, lock $l_b = (lockID_b,\; resourceID_b,\; ttl_b)$, access token $at_k = (tokenID_k, \; username_k,\; ttl_k, \; sessionID_k, \; triplestoreID_k, \; lockID_k)$, user $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and session $s_j = (session_{ID_j}, \; username_j, \allowbreak ttl_j)$, let the resources $resource_a$ and $resource_b$ be identified by, respectively, $resourceID_a$ and $resourceID_b$. Concurrent access correctness is achieved by checking, when required, if a resource is locked, can be locked and if the access token is associated with a valid authenticated user, with enough permissions to execute the desired operation: 
+    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \;  acp_i = (r_i, w_i))$, lock $l_a = (lockID_a,\; resourceID_a,\; ttl_a)$, lock $l_b = (lockID_b,\; resourceID_b,\; ttl_b)$, access token $at_k = (tokenID_k, \; username_k,\; ttl_k, \; sessionID_k, \; triplestoreID_k, \; lockID_k)$, user $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$ and session $s_j = (session_{ID_j}, \; username_j, \allowbreak ttl_j)$, let the resources $resource_a$ and $resource_b$ be identified by, respectively, $resourceID_a$ and $resourceID_b$. Concurrent access correctness is achieved by checking, when required, if a resource is locked, can be locked and if the access token is associated with a valid authenticated user, with enough permissions to execute the desired operation:
 
     \begin{align}
-        \begin{split} 
-           IsL&ocked(resource_a, \; l_a) \Rightarrow \exists_{l_a}\exists_{resource_a}(ttl_a \; > \; 0) \\
-           & \wedge \; \nexists_{l_b}(resourceID_b \; = \; resourceID_a \; \wedge \; lockID_a \neq \; lockID_b \; \wedge \; ttl_b \; > \; 0) \\
-           & \wedge \; \nexists_{l_b}(resourceID_b \; \neq \; resourceID_a \; \wedge \; lockID_a = \; lockID_b \; \wedge \; ttl_b \; > \; 0) \\
+        \begin{split}
+            IsL&ocked(resource_a, \; l_a) \Rightarrow \exists_{l_a}\exists_{resource_a}(ttl_a \; > \; 0) \\
+            & \wedge \; \nexists_{l_b}(resourceID_b \; = \; resourceID_a \; \wedge \; lockID_a \neq \; lockID_b \; \wedge \; ttl_b \; > \; 0) \\
+            & \wedge \; \nexists_{l_b}(resourceID_b \; \neq \; resourceID_a \; \wedge \; lockID_a = \; lockID_b \; \wedge \; ttl_b \; > \; 0) \\
             & \\
             Ca&nLock(T_i, \; at_k) \Leftrightarrow \nexists_l(IsLocked(T_i, \; l)) \; \wedge \; triplestoreID_i \; = \; triplestoreID_k \\
             & \wedge \; username_k \; = \; username_u \; \wedge \; username_j \; = \; username_u \; \wedge \; ttl_j \; > \; 0 \\
@@ -488,168 +512,243 @@ Queries that contain write predicates, will require that their target remains \e
             & \wedge \; ttl_k \; > \; 0 \; \wedge \; HasAccess(user_u, \; type, \; T_i) \; \wedge \; ( type \; = \; \textrm{READ} \\
             & \vee \; (type \in \{\textrm{WRITE}, \; \textrm{OWNER}\} \; \wedge \; IsLocked(T_i, \; l_a) \; \wedge \; lockID_a \; = \; lockID_k))
         \end{split}
-    \end{align}  
+    \end{align}
 \end{definition}
 
 
-\subsection{Formal definition of SEnTri}
+\subsection{Definition of SEnTri}
 \label{ch3:sec:solution-definition:formal-definition}
-We will first formally define \gls{SEnTri} V1 and then define its second version, \gls{SEnTri} V2.
+We will now formally define all versions of \gls{SEnTri}.
 %Mention secret sharing, access control, triplestore management, as well as sse-sparql
 
+\begin{definition}[\textbf{SEnTri V0}]\label{ch3:definition:sentri-v0}
+    \gls{SEnTri} V0 is a collection of 3 protocols $(\textrm{IAM}, \; \textrm{TRIPLESTORE}, \allowbreak \textrm{CLIENT})$ where:
+
+    \begin{itemize}
+        \item IAM is a tuple of 24 polynomial time algorithms. These algorithms are responsible for management of user data, roles and triplestore access policies. They are also responsible for session and permissions enforcement:
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{init()}$: initializes the protocol by registering the default admin user. Outputs $\textrm{SUCCESS}$ if the user is created and registered, $\bot$ otherwise.
+
+                  \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. In case of valid credentials, creates a new session and outputs a $cookie$, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
+
+                  \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Outputs the collection of pending role changing requests.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{reID)}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
+
+                  \item $[triplestoreID_0, ..., triplestoreID_n]  \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access;
+
+                  \item $\{msg, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, triplestoreID, \; write, \; at)}$: takes as input a cookie, a triplestore identifier, a boolean filter parameter and an access token. If the access token has sufficient permissions, outputs a message with the specified triplestore's \emph{owner} username and the collection of \emph{read} and \emph{write} access (if the $write$ parameter is \emph{true}) users' usernames, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestoreID, \; target, \; at)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: \linebreak takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestoreID, \; target,\; write)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
+
+                  \item $\{[accessRequest_0, ..., accessRequest_n], \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, }$\linebreak$\mathbf{ triplestoreID, \; at)}$: takes as input a cookie, a triplestore indentifier and an access token. Outputs the collection of the triplestore's pending access change requests, if the specified access token has sufficient permissions, $\bot$ otherwise.
+
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestoreID, \; requestID,}$\linebreak$\mathbf{decision, \; at)}$: takes as input a cookie, a triplestore identifier, an access change request identifier, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the specified request is successfully processed according to the provided $decision$ parameter, $\bot$ otherwise.
+
+                  \item $\{tokenID, \bot\} \leftarrow \mathbf{createAccessToken(cookie, \; triplestoreID, \; target)}$: takes as input a cookie, a triplestore identifier, and a username. Outputs the newly generated token identifier, if the $target$ user has sufficient permissions against the specified triplestore, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestoreID, \; at)}$: takes as input a cookie, a triplestore identifier, and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully deleted, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{read} access to the specified triplestore, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{write} access to the specified triplestore, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the token has not expired), $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
+
+              \end{itemize}
+
+        \item CLIENT is a tuple of 20 polynomial time algorithms. This protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It is responsible for: 1) session validation; 2) user creation and role management; 3) triplestore creation, deletion, sharing (access management) and querying. We will consider this as the public facing protocol, whereas the others are internal. These 20 algorithms are:
+              \begin{itemize}
+
+                  \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.auth(username, \; password)$ and outputs the result of the algorithm.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.registerUser(username, \; password)$ and outputs the result of the algorithm.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \linebreak username)}$: takes as input a cookie and the username of the user to delete, executes $\textrm{IAM}.deleteUser(cookie, \; username)$ and outputs the result of the algorithm.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueUpgradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{PRIVILEGED})$ and outputs the result of the algorithm.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueDowngradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{BASIC})$ and outputs the result of the algorithm.
+
+                  \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{listPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Executes $\textrm{IAM}.getPendingRoleRequests(cookie, \; username)$ and outputs the result of the algorithm.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Executes $\textrm{IAM}.processRoleRequest(cookie, \; username, \; target, \allowbreak requestID, \;  decision)$ and outputs the result of the algorithm.
+
+                  \item $\{[triplestoreID_0, ..., triplestoreID_n], \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, }$\linebreak$\mathbf{ write, \; read, \; owns)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Executes $\textrm{IAM}.listTriplestores(cookie, \allowbreak issuer, \; write, \; read, \; owns)$ and outputs the result of the algorithm, or $\bot$ in case of error.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ target)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Creates an access token by executing ... . In case of success, tries to lock the triplestore with ... . If it fails to lock the resource, deletes the access token by executing ... . If the lock is successfully acquired, executes ... and retrieves the response of the algorithm. Finally, releases the lock and deletes the access token, with ... followed by ... , and outputs the retrieved response.
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \;  triplestoreID, \; issuer, \; write)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listPendingAccessRequests(cookie, \;  triplestoreID, \; issuer)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ requestID, \; decision)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
+
+              \end{itemize}
+
+        \item TRIPLESTORE is a tuple of 5 polynomial time algorithms. These algorithms are responsible for ...:
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{upload(triplestoreID, \; nodes, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; indexes, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{update(triplestoreID, \; deletions, \; uploads, \; at)}$:
+                  \item $\{sparqlResult, \bot\} \leftarrow \mathbf{query(triplestoreID, \; plan, \; at)}$:
+              \end{itemize}
+    \end{itemize}
+\end{definition}
+
 \begin{definition}[\textbf{SEnTri V1}]\label{ch3:definition:sentri-v1}
-\gls{SEnTri} V1 is a collection of 5 protocols $(\textrm{IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
+    \gls{SEnTri} V1 extends functionalities of \gls{SEnTri} V0 to work with encrypted data. It is a collection of 5 protocols $(\textrm{SEnTri-V0.IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
 
-\begin{itemize}
-    \item IAM is a tuple of 24 polynomial time algorithms. These algorithms are responsible for management of user data, roles and triplestore access policies. They are also responsible for session validation:
     \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{init()}$: initializes the protocol by registering the default admin user. Outputs $\textrm{SUCCESS}$ if the user is created and registered, $\bot$ otherwise.
+        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in version V0, this protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V0, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
 
-        \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials. In case of valid credentials, creates a new session and outputs a $cookie$, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
-        
-        \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Outputs the collection of pending role changing requests.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{reID)}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
-        
-        \item $[triplestoreID_0, ..., triplestoreID_n]  \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access; 
-        
-        \item $\{msg, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, triplestoreID, \; write, \; at)}$: takes as input a cookie, a triplestore identifier, a boolean filter parameter and an access token. If the access token has sufficient permissions, outputs a message with the specified triplestore's \emph{owner} username and the collection of \emph{read} and \emph{write} access (if the $write$ parameter is \emph{true}) users' usernames, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestoreID, \; target, \; at)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: \linebreak takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise. 
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestoreID, \; target,\; write)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
-        
-        \item $\{[accessRequest_0, ..., accessRequest_n], \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, }$\linebreak$\mathbf{ triplestoreID, \; at)}$: takes as input a cookie, a triplestore indentifier and an access token. Outputs the collection of the triplestore's pending access change requests, if the specified access token has sufficient permissions, $\bot$ otherwise.
-        
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestoreID, \; requestID,}$\linebreak$\mathbf{decision, \; at)}$: takes as input a cookie, a triplestore identifier, an access change request identifier, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the specified request is successfully processed according to the provided $decision$ parameter, $\bot$ otherwise.
-        
-        \item $\{tokenID, \bot\} \leftarrow \mathbf{createAccessToken(cookie, \; triplestoreID, \; target)}$: takes as input a cookie, a triplestore identifier, and a username. Outputs the newly generated token identifier, if the $target$ user has sufficient permissions against the specified triplestore, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestoreID, \; at)}$: takes as input a cookie, a triplestore identifier, and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully deleted, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{read} access to the specified triplestore, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{write} access to the specified triplestore, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the token has not expired), $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
 
-    \end{itemize}
-    \item CLIENT is a tuple of 20 polynomial time algorithms. This protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It is responsible for: 1) session validation; 2) user creation and role management; 3) triplestore creation, deletion, sharing (access management) and querying. We will consider this as the public facing protocol, whereas the others are internal. These 20 algorithms are:
-    \begin{itemize}
-        
-        \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.auth(username, \; password)$ and outputs the result of the algorithm.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.registerUser(username, \; password)$ and outputs the result of the algorithm.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \linebreak username)}$: takes as input a cookie and the username of the user to delete, executes $\textrm{IAM}.deleteUser(cookie, \; username)$ and outputs the result of the algorithm.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueUpgradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{PRIVILEGED})$ and outputs the result of the algorithm.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueDowngradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{BASIC})$ and outputs the result of the algorithm.
-        
-        \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{listPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Executes $\textrm{IAM}.getPendingRoleRequests(cookie, \; username)$ and outputs the result of the algorithm.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Executes $\textrm{IAM}.processRoleRequest(cookie, \; username, \; target, \allowbreak requestID, \;  decision)$ and outputs the result of the algorithm.
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
 
-        \item $\{[triplestoreID_0, ..., triplestoreID_n], \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, \; read, \; owns)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Executes $\textrm{IAM}.listTriplestores(cookie, \; issuer, \; write, \; read, \; owns)$ and outputs the result of the algorithm, or $\bot$ in case of error.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ target)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Creates an access token by executing ... . In case of success, tries to lock the triplestore with ... . If it fails to lock the resource, deletes the access token by executing ... . If the lock is successfully acquired, executes ... and retrieves the response of the algorithm. Finally, releases the lock and deletes the access token, with ... followed by ... , and outputs the retrieved response.
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \;  triplestoreID, \; issuer, \; write)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listPendingAccessRequests(cookie, \;  triplestoreID, \; issuer)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ requestID, \; decision)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
-        
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
-           
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
+
+              \end{itemize}
+
+        \item VAULT is a tuple of 3 polynomial time algorithms. These algorithms are responsible for ...:
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{create(triplestoreID, \; secrets, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{get(triplestoreID, \; at)}$:
+              \end{itemize}
+
+        \item TRIPLESTORE is a tuple of 6 polynomial time algorithms. These algorithms are responsible for ...:
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{upload(triplestoreID, \; encNodes, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; trapdoors, \; at)}$:
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{update(triplestoreID, \; deletions, \; uploads, \; at)}$:
+                  \item $\{encBindings, \bot\} \leftarrow \mathbf{search(triplestoreID, \; trapdoors, \; at)}$:
+                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareQuery(triplestoreID, \; trapdoors, \; at)}$:
+              \end{itemize}
+
+        \item PROXY is a tuple of 2 polynomial time algorithms. These algorithms are responsible for saving the outputs of TRIPLESTORE.$search(...)$ operations, preparing this data for query evaluation, executing \gls{SPARQL} query plans and outputting valid query results:
+              \begin{itemize}
+                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareQuery(encBindings, \; at)}$: takes as input a collection of encrypted bindings and an access token. If the token is valid, and grants sufficient permissions, saves the bindings in memory and associates the data with a newly generated $searchID$, a \gls{UUID} (version 4). In case of success, outputs the identifier, $\bot$ otherwise.
+
+                  \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{RND}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
+              \end{itemize}
     \end{itemize}
-    \item VAULT is a tuple of 3 polynomial time algorithms. These algorithms are responsible for ...:
-    \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{create(triplestoreID, \; secrets, \; at)}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{get(triplestoreID, \; at)}$:
-    \end{itemize}
-    \item TRIPLESTORE is a tuple of 6 polynomial time algorithms. These algorithms are responsible for ...:
-    \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{upload(triplestoreID, \; encNodes, \; at)}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; trapdoors, \; at)}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{update(triplestoreID, \; deletions, \; uploads, \; at)}$:
-        \item $\{encBindings, \bot\} \leftarrow \mathbf{search(triplestoreID, \; trapdoors, \; at)}$:
-        \item $\{searchID, \bot\} \leftarrow \mathbf{prepareSearch(triplestoreID, \; trapdoors, \; at)}$:
-    \end{itemize}
-    \item PROXY is a tuple of 2 polynomial time algorithms. These algorithms are responsible for saving the outputs of TRIPLESTORE.$search(...)$ operations, preparing this data for query evaluation, executing \gls{SPARQL} query plans and outputting valid query results.
-    \begin{itemize}
-        \item $\{searchID, \bot\} \leftarrow \mathbf{prepareSearch(encBindings, \; at)}$: takes as input a collection of encrypted bindings and an access token. If the token is valid, and grants sufficient permissions, saves the bindings in memory and associates the data with a newly generated $searchID$, a \gls{UUID} (version 4). In case of success, outputs the identifier, $\bot$ otherwise.
-        
-        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{RND}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
-    \end{itemize}
-\end{itemize}
 \end{definition}
 
 \begin{definition}[\textbf{SEnTri V2}]\label{ch3:definition:sentri-v2}
-    \gls{SEnTri} V2 is a collection of 5 protocols $(\textrm{TRIPLESTORE}, \allowbreak \textrm{SEnTri-V1.IAM}, \textrm{SEnTri-V1.CLIENT}, \; \textrm{SEnTri-V1.VAULT}, \; \textrm{SEnTri-V1.PROXY})$. The new version of the $\textrm{TRIPLESTORE}$ protocol is a tuple with all \textrm{SEnTri-V1.TRIPLESTORE} algorithms, apart from the $\textrm{TRIPLESTORE}.prepareSearch$. In this version of \gls{SEnTri}, this algorithm also masks the bindings from a search:
-    
-    \begin{itemize}        
-        \item $\{searchID, \bot\} \leftarrow \mathbf{prepareMaskedSearch(triplestoreID, \; trapdoors, \; mask, \; at)}$:
+    \gls{SEnTri} V2 is a collection of 5 protocols $(\textrm{TRIPLESTORE}, \allowbreak \textrm{SEnTri-V0.IAM}, \textrm{CLIENT}, \; \textrm{SEnTri-V1.VAULT}, \; \textrm{PROXY})$:
+
+    \begin{itemize}
+        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in previous versions, the protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V1, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
+
+              \begin{itemize}
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$: %same as in V1
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
+
+                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
+
+              \end{itemize}
+
+        \item TRIPLESTORE protocol is a tuple with all \textrm{SEnTri-V1.TRIPLESTORE} algorithms, apart from the $\textrm{TRIPLESTORE}.prepareSearch$. In this version the algorithm, we mask the bindings of a search. We will only define this algorithm, and assume the others to be equal as their previous definition:
+              \begin{itemize}
+                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareMaskedSearch(triplestoreID, \; trapdoors, \; mask, \; at)}$:
+              \end{itemize}
+
+        \item PROXY is a tuple of 2 polynomial time algorithms. Like in \gls{SEnTri} V1 it will prepare and evaluate queries. It differs from the previous version, on query evaluation algorithm. We will only define this algorithms, and assume the others to be equal as their previous definition:
+              \begin{itemize}
+                  \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{DGK_{eq}}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
+              \end{itemize}
     \end{itemize}
-    \end{definition}
+\end{definition}
 
 \subsection{Component to Protocol Mappings}
 
 \section{Security Analysis}
-%Only evaluate leakage in Triplestore and Proxy
+
 \subsection{SEnTri Security Properties}
-In conformity with the assumptions explained in ..., and based on its definition, we expect \gls{SEnTri} to possess the following \emph{security properties}:
+In conformity with the assumptions explained in ..., and based on its definition, we expect all implementations of \gls{SEnTri} to possess the following \emph{security properties}:
 
 \begin{enumerate}
+    \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
+    \item A user will be able to interact with a triplestore, if and only if they have a valid access token.
+    \item A user will not be able to query triplestores which they have not been given access to.
+    \item A user will only be able to execute operations according to its role.
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component.
     \item An attacker will not be able to tamper with messages sent between components.
-    \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
-    \item Given two arbitrary queries $q_1$, $q_2$ and two encrypted query plans $p_A$, $p_B$ sent to the \emph{Proxy}. An attacker with access to this component, will not be able to distinguish which query plan corresponds to a given query with a probability higher than that of random chance.
-    \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
-          \begin{enumerate}
-              \item \emph{SEnTri V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-              \item \emph{SEnTri V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
-          \end{enumerate}
 \end{enumerate}
+
+In conformity with the lack of data confidentiality, present in \gls{SEnTri}-V0, the following security properties are exclusive for the other two implementations:
+\begin{enumerate}
+    \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
+    \item Given an arbitrary query $q$ and a query plan $p$, sent to the \emph{Proxy}. An attacker with access to this component, will not be able to distinguish if $p$ was generated from $q$ with a probability higher than that of random chance.
+    \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
+        \begin{enumerate}
+            \item \emph{SEnTri V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+            \item \emph{SEnTri V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+        \end{enumerate}
+\end{enumerate}
+
+\subsection{Security \& Performance trade-offs}
+
+All implementations come with a trade-off between data confidentiality, query evaluation leakage and performance.
+
+\gls{SEnTri} V0 only provides access control, trading data confidentiality for performance.
+
+\gls{SEnTri} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
+
+In \gls{SEnTri} V2 provides both data confidentiality, access control and reduced leakage, but this comes at the cost of an extra round of communication where we have to reverse the blinding applied to the \emph{equality tags} and need to fetch the values being referenced from these. Only after this step, can we decrypt the actual query results.
 
 \subsection{Leakage Analysis}
 \subsubsection{SEnTri V1}

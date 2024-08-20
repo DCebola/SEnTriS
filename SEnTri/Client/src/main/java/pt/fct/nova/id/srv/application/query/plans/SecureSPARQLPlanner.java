@@ -26,6 +26,7 @@ import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.jobs.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
+import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.util.*;

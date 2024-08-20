@@ -1,11 +1,9 @@
 State:
     $K_{DET}$ := generateKey()
-    $iv_{DET}$ := generateRandomIV()
 
 function loadState($master$, $rnd$, $det$, $iv$, $schema$):
-    loadState($master$, $rnd$, $schema$)
+    loadState($master$, $rnd$, $iv$, $schema$)
     $K_{DET}$ := $det$
-    $iv_{DET}$ := $iv$
 
 function encryptKeywordInfo():
     foreach $keyword$ in $keywordFrequencies$:
