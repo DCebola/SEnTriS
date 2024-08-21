@@ -283,7 +283,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we are going to explain how we evaluate \gls{SPARQL} queries.  We will start by explaining the protocol for doing so over plaintext data, as in \gls{SEnTri} V0. At this phase, we will not take into consideration role based access control and permissions, for simplicity, as it does not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we are going to explain how we evaluate \gls{SPARQL} queries.  We will start by explaining the protocol for doing so over plaintext data, as in \gls{SEnTri} V0. For simplicity, we will not take into consideration role based access control and permissions, as it does not alter in any way the protocol logic.
 
 \subsubsection{Indexing triple patterns}
 
@@ -291,9 +291,7 @@ The first step when designing a solution that supports \gls{SPARQL}, is to defin
 
 In \gls{SEnTri}, we index the data in a manner that does not break the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
-More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query.
-
-For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_k]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. This indexing scheme does not support queries where the subject, predicate and object are all variables, but supports all other variants:
+More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
 
 \begin{align}
     \begin{split}
@@ -306,36 +304,72 @@ For example, to answer a query where we need to search for $(?v, p, o)$ (the sub
     \end{split}
 \end{align}
 
+We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTri} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either. 
+
+As specified in Listing \ref{indexing-scheme}, an index can either reference a single node, or a pair of nodes. 
+
+For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO\" for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
+
+For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
+
 \lstinputlisting[caption={Indexing Scheme for SEnTri V0}, label={indexing-scheme}]{Code/chapter3/indexing.tex}
 
+\subsubsection{SPARQL Query Evaluation Protocol}
 
+Having defined data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
 
-\begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
-    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with triplestores encrypted using $\Pi$. It is defined as a tuple $\Omega = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
+\begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:sparql-protocol}
+    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery)$ of 2 algorithms:
     \begin{itemize}
-        \item $plan \leftarrow \mathbf{PlanQuery(query, )}$:
-        \item $sparqlResult \leftarrow \mathbf{EvaluateQuery(plan)}$:
+        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
+
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
     \end{itemize}
 \end{definition}
 
-\subsubsection{Query Plan Generation}
-\subsubsection{Query Rewriting}
-\subsubsection{Query Preparation Phase}
-\subsubsection{Query Evaluation Phase}
+\paragraph{Query Plan Generation} The generation of a query plan is a two-step pipeline. We parse the query and generate the necessary query jobs. Finally, we create the execution order for the jobs.
+
+Optimization of the query execution plan is out of the scope of this thesis, so our strategy for ordering equijoins is to randomly sample a valid order. Only a basic graph pattern can generate a set of joins. When we parse a pattern, we generate a graph where compatible joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. To generate the order of the pattern's joins, we explore the graph and try to find a path that contains each job once. To generate the random order, we randomly sample the origin of the path.
+
+
+\paragraph{Query Evaluation} Following the dispatcher pattern, in \gls{SEnTri} we have created two abstractions: a \emph{query execution}, and a \emph{query worker}. The query execution is the dispatcher of work, and the query worker processes pieces of work.
+
+In the specific case of our \gls{SPARQL} query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The current version of \gls{SEnTri} only supports sequential dispatching of jobs. 
+
+The dispatching of jobs continuous until all pending jobs are executed. After the last job is executed, the query results are generated and sent as output. 
+
+Listings ... and ... specify, respectively, the functioning of the query execution and query worker.
+
+\mytodo{Create query execution and worker listings}
+
+\subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
+
+We will now explain how to modify the protocol for evaluating \gls{SPARQL} queries to use \emph{query rewriting} and retain reasoning capabilities. These modifications only need to be applied to the query plan generation phase.
+
+\begin{definition}[\textbf{SPARQL Query Evaluation Protocol with Reasoning}]\label{ch3:definition:sparql-protocol-reasoning}
+    Let \linebreak SPARQL-EVAL-II be a \emph{SPARQL} query evaluation protocol that supports reasoning. It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery)$ of 2 algorithms:
+    \begin{itemize}
+        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query, inference, expansionDepth, transitivityDepth)}$: \linebreak takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
+
+    \end{itemize}
+\end{definition}
+
+\paragraph{Query Rewriting} 
+
 \subsubsection{Supported Queries}
 
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic a technique used for indexing subject, predicates and objects and that facilitates retrieval of simple patterns found in \gls{SPARQL} queries.
+When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic the indexing strategy of \gls{SEnTri} V0.
 
 \subsubsection{Trapdoor generation}
 
-Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the frequency of the index keyword.
+Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the observed frequency of the index keyword.
 
 Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency.
 
-For each index, its respective trapdoors are encrypted using a unique key. This key is build from a master key, for the context of the index keyword.
+For each index, the respective trapdoors are encrypted using a unique key. This key is build from a master key, for the context of the index keyword.
 
 
 \begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
@@ -413,6 +447,8 @@ We index the encrypted the node by the \emph{encrypted equality tag}. The equali
     \end{itemize}
 \end{definition}
 
+\paragraph*{Query Preparation Phase}
+\paragraph*{Query Evaluation Phase}
 \paragraph*{Decryption of SPARQL query results}
 
 
@@ -732,7 +768,6 @@ In conformity with the assumptions explained in ..., and based on its definition
 In conformity with the lack of data confidentiality, present in \gls{SEnTri}-V0, the following security properties are exclusive for the other two implementations:
 \begin{enumerate}
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
-    \item Given an arbitrary query $q$ and a query plan $p$, sent to the \emph{Proxy}. An attacker with access to this component, will not be able to distinguish if $p$ was generated from $q$ with a probability higher than that of random chance.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
         \begin{enumerate}
             \item \emph{SEnTri V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.

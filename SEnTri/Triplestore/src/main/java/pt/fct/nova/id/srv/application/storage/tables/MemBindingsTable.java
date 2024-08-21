@@ -136,13 +136,13 @@ public class MemBindingsTable implements BindingsTable {
     private Set<String> getIncompatiblePatterns(BindingsTable left, BindingsTable right, Set<Var> vars) {
         Set<String> res = new HashSet<>();
         Map<String, Set<String>> l_bindings, r_bindings;
-        for (Var v : vars) {
+        for (Var v : vars) { // TODO: Do I really need to do for each of the vars?
             l_bindings = left.getBindings(v);
             r_bindings = right.getBindings(v);
             for (Map.Entry<String, Set<String>> entry : l_bindings.entrySet()) {
                 if (r_bindings.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
-            for (Map.Entry<String, Set<String>> entry : r_bindings.entrySet()) {
+            for (Map.Entry<String, Set<String>> entry : r_bindings.entrySet()) { // TODO: Could do r_bindings / {l_bindings}
                 if (l_bindings.get(entry.getKey()) == null) res.addAll(entry.getValue());
             }
         }

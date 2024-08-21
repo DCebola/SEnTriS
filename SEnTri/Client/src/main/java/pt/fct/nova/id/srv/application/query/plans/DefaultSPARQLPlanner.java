@@ -30,6 +30,7 @@ import pt.fct.nova.id.srv.application.query.jobs.jobs1.OrderByJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.ProjectJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.SliceJob;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
+import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.util.*;
