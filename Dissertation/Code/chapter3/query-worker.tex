@@ -1,0 +1,106 @@
+State:
+    $triplestoreID$ := :bot
+    $storageEngine$ := :bot
+    $sparqlResult$ := :bot 
+
+function init($target$, $storage$):
+    $triplestoreID$ := $target$
+    $storageEngine$ := $storage$
+    $sparqlResult$ := ({}, false, false, false, :bot, :bot)
+
+function exec($job$):
+    if $job$ is SEARCH:
+        return execSearch($job$)
+    elif $job$ is EMPTY:
+        return generateBindingsTable($job$.vars)
+    throw JobInstanceException()
+
+function exec($job$, $prevJobResults$):
+    if $job$ is PROJECT:
+        return execProject($job$, $prevJobResults$)
+    elif $job$ is ORDERBY:
+        return execOrderBy($job$, $prevJobResults$)
+    elif $job$ is DISTINCT:
+        return execDistinct($prevJobResults$)
+    elif $job$ is SLICE:
+        return execSlice($job$, $prevJobResults$)
+    throw JobInstanceException()
+
+function exec($job$, $left$, $right$):
+    if $job$ is JOIN:
+        return execJoin($left$, $right$)
+    elif $job$ is UNION:
+        return execUnion($left$, $right$)
+    elif $job$ is OPTIONAL:
+        return execOptional($left$, $right$)
+    elif $job$ is MINUS:
+        return execMinus($left$, $right$)
+    throw JobInstanceException()
+
+private execSearch($job_{SEARCH} = (jobID, \; varPattern, \; s, \; p, \; o)$):
+    if $varPattern$ :neq "SPO"
+        return $storageEngine$.search($triplestoreID$, $varPattern$, $s$, $p$, $o$)
+    else
+        throw NotImplementedException()
+
+function execProject($job_{PROJECT} = (jobID, \; vars)$, $prevJobResults$):
+    $prevJobResults$.project(vars)
+    return $prevJobResults$
+
+function execOrderBy($job_{ORDERBY} = (jobID, \; jobID_{prev}, \; sortCondititions)$, $prevJobResults$):
+    $sparqlResult$.$ordered$ := true
+    $sparqlResult$.$sortConditions$ := $sortCondititions$
+    return $prevJobResults$
+
+function execSlice($job_{SLICE} = (jobID, \; jobID_{prev}, \; \textrm{\textit{offset}}, \; length)$, $prevJobResults$):
+    $sparqlResult$.$sliced$ := true
+    $sparqlResult$.$length$ := length
+    $sparqlResult$.$\textrm{\textit{offset}}$ := offset
+    return $prevJobResults$
+
+function execDistinct($prevJobResults$):
+    $sparqlResult$.$distinct$ := true
+    return $prevJobResults$
+
+function execJoin($left$, $right$):
+    return $left$.join($right$)
+
+function execUnion($left$, $right$):
+    return $left$.union($right$)
+
+function execOptional($left$, $right$):
+    return $left$.leftOuterJoin($right$)
+
+function execMinus($left$, $right$):
+    return $left$.minus($right$)
+
+function generateResults($jobResults$):
+    $bindings$ := :bot
+    if $sparqlResult$.$ordered$ == true:
+        if $sparqlResult$.$distinct$ == true:
+            $bindings$ := generateBindings(createTreeSet($sparqlResult$.$sortConditions$), $jobResults$)
+        else:
+            $bindings$ := generateBindings(createLinkedList(), $jobResults$)
+            sort($bindings$, $sortConditions$)
+    else:
+        if $sparqlResult$.$distinct$ == true:
+            $bindings$ = generateBindings(createHashSet(), $jobResults$)
+        else
+            $bindings$ = generateBindings(createLinkedList(), $jobResults$)
+    if $sparqlResult$.$sliced$ == true:
+        $bindings$ = slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$ , $sparqlResult$.$length$)
+    $sparqlResult$.$bindigns$ := $bindings$
+    return $sparqlResult$.$bindigns$
+
+function generateBindings($collector$, $jobResults$):
+    vars = $jobResults$.$bindings$.getKeys()
+    values := {}
+    foreach $patterns$ in $jobResults$.getPatterns():
+        $binding$ = {}
+        i = 0
+        foreach $parsedValue$ in $patterns$:
+            if $parsedValue$ :neq :bot:
+                $binding$[vars[i]] := storageEngine.generateNode($parsedValue$)
+            i++
+        $collector$.add($binding$)
+    return $collector$

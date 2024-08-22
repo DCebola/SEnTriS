@@ -306,13 +306,13 @@ More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$
 
 We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTri} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either. 
 
-As specified in Listing \ref{indexing-scheme}, an index can either reference a single node, or a pair of nodes. 
+As specified in Listing \ref{storage-engine-v0}, an index can either reference a single node, or a pair of nodes. 
 
-For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO\" for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
+For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO"\space for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
 
-For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
+For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" \space for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
 
-\lstinputlisting[caption={Indexing Scheme for SEnTri V0}, label={indexing-scheme}]{Code/chapter3/indexing.tex}
+\lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
@@ -332,15 +332,21 @@ Having defined data is stored, we will now explain the protocol for evaluating \
 Optimization of the query execution plan is out of the scope of this thesis, so our strategy for ordering equijoins is to randomly sample a valid order. Only a basic graph pattern can generate a set of joins. When we parse a pattern, we generate a graph where compatible joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. To generate the order of the pattern's joins, we explore the graph and try to find a path that contains each job once. To generate the random order, we randomly sample the origin of the path.
 
 
-\paragraph{Query Evaluation} Following the dispatcher pattern, in \gls{SEnTri} we have created two abstractions: a \emph{query execution}, and a \emph{query worker}. The query execution is the dispatcher of work, and the query worker processes pieces of work.
+\paragraph{Query Evaluation} Following the dispatcher pattern, we have created two abstractions in \gls{SEnTri}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
 
-In the specific case of our \gls{SPARQL} query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The current version of \gls{SEnTri} only supports sequential dispatching of jobs. 
+In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The current version of \gls{SEnTri} only supports sequential dispatching of jobs to a single worker.
 
-The dispatching of jobs continuous until all pending jobs are executed. After the last job is executed, the query results are generated and sent as output. 
+The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and sent as output. 
 
-Listings ... and ... specify, respectively, the functioning of the query execution and query worker.
+Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker.
 
-\mytodo{Create query execution and worker listings}
+\lstinputlisting[caption={\gls{SEnTri} Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
+
+\lstinputlisting[caption={\gls{SEnTri} Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+
+\paragraph{Storage Engine and Bindings Tables}
+
+\mytodo{Create bindings tables listings}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 

@@ -49,14 +49,15 @@
     postbreak=\mbox{\textcolor{blue}{$\hookrightarrow$}\space},
     extendedchars=true,
     mathescape=true,
-    morekeywords={if, then, else, return, function, state, foreach, in, do
-    enc, generateKey, generateRandomIv, generateZeroFilledIV, generateRandomString, loadState, exec, encryptSchemaTriples, encryptTriples, encryptNode, encryptKeywordInfo, encryptSchemaNode, deriveKey, incrementKeywordFrequency, generateTrapdoor, generateTrapdoorAndIncrementIV, generateTriplePatternTrapdoors, setKeywordFrequencies, getSchemaKeyword, getIvDET, getKeywordsMasterKey, getRNDKey, getDETKey, getEncryptedNodes, clearNodes, clearFrequencies, enc, state, parseNode, parseKeyword, encryptTriple, indexTriple, decryptNode, decrypt},
+    morekeywords={if, then, else, return, function, state, foreach, in, do, while, not,
+    enc, generateKey, generateRandomIv, generateZeroFilledIV, generateRandomString, loadState, exec, encryptSchemaTriples, encryptTriples, encryptNode, encryptKeywordInfo, encryptSchemaNode, deriveKey, incrementKeywordFrequency, generateTrapdoor, generateTrapdoorAndIncrementIV, generateTriplePatternTrapdoors, setKeywordFrequencies, getSchemaKeyword, getIvDET, getKeywordsMasterKey, getRNDKey, getDETKey, getEncryptedNodes, clearNodes, clearFrequencies, enc, state, parseNode, parseKeyword, encryptTriple, indexTriple, decryptNode, decrypt, delegateJob, exec, generateSPARQLResult, peek, poll, getFinishedJobs, isFinished, getPendingJobs, getCurrentJob, getSPARQLResult},
     sensitive=false,
     morecomment=[l]{//},
     literate=
         {:=}{$\leftarrow{}$}{1}
         {:U}{$\cup{}\:\:$}{1}
         {:bot}{$\bot{}$}{1}
+        {:neq}{$\neq{}\:\:$}{1}
 }
 
 \newcommand*\lsin{\lstinline[columns=fixed]}

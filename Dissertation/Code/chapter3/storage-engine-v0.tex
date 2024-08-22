@@ -1,0 +1,57 @@
+State:
+    T := (triplestoreID, nodes := {}, acl)
+
+function saveTriple($t = (s, p, o)$):
+    $parsed_s$ := parseNode($s$)
+    $parsed_p$ := parseNode($p$)
+    $parsed_o$ := parseNode($o$)
+    $keyword_s$ := parseKeyword($s$)
+    $keyword_p$ := parseKeyword($p$)
+    $keyword_o$ := parseKeyword($o$)
+    $T.nodes$["PO" || $keyword_s$] := $T.nodes$["PO" || $keyword_s$] :U {$parsed_p$ || $parsed_o$}
+    $T.nodes$["SO" || $keyword_p$] := $T.nodes$["SO" || $keyword_p$] :U {$parsed_s$ || $parsed_o$}
+    $T.nodes$["SP" || $keyword_o$] := $T.nodes$["SP" || $keyword_o$] :U {$parsed_s$ || $parsed_p$}
+    $T.nodes$["S" || $keyword_p$ || $keyword_o$] := $T.nodes$["S" || $keyword_p$ || $keyword_o$] :U {$parsed_s$}
+    $T.nodes$["P" || $keyword_s$ || $keyword_o$] := $T.nodes$["P" || $keyword_s$ || $keyword_o$] :U {$parsed_p$}
+    $T.nodes$["O" || $keyword_s$ || $keyword_p$] := $T.nodes$["O" || $keyword_s$ || $keyword_p$] :U {$parsed_o$}
+
+function deleteTriple($t = (s, p, o)$):
+    $parsed_s$ := parseNode($s$)
+    $parsed_p$ := parseNode($p$)
+    $parsed_o$ := parseNode($o$)
+    $keyword_s$ := parseKeyword($s$)
+    $keyword_p$ := parseKeyword($p$)
+    $keyword_o$ := parseKeyword($o$)
+    $T.nodes$["PO" || $keyword_s$] := $T.nodes$["PO" || $keyword_s$] / {$parsed_p$ || $parsed_o$}
+    $T.nodes$["SO" || $keyword_p$] := $T.nodes$["SO" || $keyword_p$] / {$parsed_s$ || $parsed_o$}
+    $T.nodes$["SP" || $keyword_o$] := $T.nodes$["SP" || $keyword_o$] / {$parsed_s$ || $parsed_p$}
+    $T.nodes$["S" || $keyword_p$ || $keyword_o$] := $T.nodes$["S" || $keyword_p$ || $keyword_o$] / {$parsed_s$}
+    $T.nodes$["P" || $keyword_s$ || $keyword_o$] := $T.nodes$["P" || $keyword_s$ || $keyword_o$] / {$parsed_p$}
+    $T.nodes$["O" || $keyword_s$ || $keyword_p$] := $T.nodes$["O" || $keyword_s$ || $keyword_p$] / {$parsed_o$}
+
+function parseNode($n$):
+    if $n \in I$:            
+        return "S" || $n.value$  // IRI
+    elif $n \in L$:
+        return "L" || $n.value$ || $n.value\_datatype$
+    elif $n \in B$:
+        return "B" || $n.value$    // identifier of the blank node
+    return $\bot$
+
+function parseKeyword($n$):
+    if $n \in I$:            
+        return "S" || $n.value$   
+    elif $n \in L$:
+        return "L" || $n.value$ || $n.datatype$
+    elif $n \in B$:
+        return "BLANK"
+    return $\bot$
+
+function generateNode($value$):
+    if $n \in I$:            
+        return "S" || $n.value$   
+    elif $n \in L$:
+        return "L" || $n.value$ || $n.datatype$
+    elif $n \in B$:
+        return "BLANK"
+    return $\bot$

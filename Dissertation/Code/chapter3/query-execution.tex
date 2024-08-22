@@ -1,0 +1,44 @@
+State:
+    $pending$ := {}
+    $finished$ := {}
+    $results$ := {}
+    $current$ := :bot
+    $sparqlResult$ := :bot
+
+function exec($plan = (jobs, \; execOrder)$, $worker$):
+    $pending$ := $execOrder$
+    while not isFinished():
+        $current$ = $execOrder$.peek()
+        $results$[$current$] := delegateJob($worker$, $jobs$[$current$])
+        $finished$ := $finished$ :U {$pending$.poll()};
+    $sparqlResult$ := $worker$.generateSPARQLResult($results$[$current$]);
+
+function delegateJob($worker$, $job$):
+    $res$ := $results$[$job$.$jobID$]
+    if $res$ == :bot:
+        if $job$ is UNARY:
+            return worker.exec($job$, $results$[$job$.$jobID_{prev}$])
+        elif $job$ is BINARY:
+            return worker.exec($job$, $results$[$job$.$jobID_l$], $results$[$job$.$jobID_r$])
+        else:
+            return worker.exec($job$);
+    else
+        return $res$;
+
+function getFinishedJobs():
+    return $finished$
+
+function getPendingJobs():
+    return $pending$
+
+function getCurrentJob():
+    return $current$
+
+function isFinished():
+    return $\#pending > 0$
+
+function isFinished($jobID$):
+    return $results$[$jobID$] :neq :bot
+
+function getSPARQLResult():
+    return $sparqlResult$

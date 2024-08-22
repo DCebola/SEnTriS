@@ -51,12 +51,12 @@ function decrypt($ct$, schema):
 function decryptTriples({$t_0$, $t_1$, ... $t_n$}):
 	foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
         $freq$ := {}
-        $parsed_s$ = parseNode($s$)
-        $parsed_p$ = parseNode($p$)
-        $parsed_o$ = parseNode($o$)
-        $keyword_s$ = parseKeyword($s$)
-        $keyword_p$ = parseKeyword($p$)
-        $keyword_o$ = parseKeyword($o$)
+        $parsed_s$ := parseNode($s$)
+        $parsed_p$ := parseNode($p$)
+        $parsed_o$ := parseNode($o$)
+        $keyword_s$ := parseKeyword($s$)
+        $keyword_p$ := parseKeyword($p$)
+        $keyword_o$ := parseKeyword($o$)
         $freq$ := $freq$ :U {encryptNode($parsed_p$, "PO" || $keyword_s$)}
         $freq$ := $freq$ :U {encryptNode($parsed_o$, "PO" || $keyword_s$)}
         $freq$ := $freq$ :U {encryptNode($parsed_s$, "SO" || $keyword_p$)}
