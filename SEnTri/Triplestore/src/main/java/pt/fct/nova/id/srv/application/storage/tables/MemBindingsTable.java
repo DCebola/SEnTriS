@@ -40,7 +40,7 @@ public class MemBindingsTable implements BindingsTable {
 
     @Override
     public void add(String patternIdx, Var var, String binding) {
-        addIRI(binding, var, patternIdx);
+        addBinding(binding, var, patternIdx);
         addPattern(binding, var, patternIdx);
     }
 
@@ -53,20 +53,20 @@ public class MemBindingsTable implements BindingsTable {
         } else v_p_idxs.put(patternIdx, binding);
     }
 
-    private void addIRI(String binding, Var var, String patternIdx) {
+    private void addBinding(String binding, Var var, String patternIdx) {
         Map<String, Set<String>> v_bindings = bindings.get(var);
         if (v_bindings == null) {
             v_bindings = new HashMap<>();
-            savePatternIdxs(v_bindings, binding, patternIdx);
+            savePatternIdx(v_bindings, binding, patternIdx);
             bindings.put(var, v_bindings);
         } else {
             Set<String> p_idxs = v_bindings.get(binding);
-            if (p_idxs == null) savePatternIdxs(v_bindings, binding, patternIdx);
+            if (p_idxs == null) savePatternIdx(v_bindings, binding, patternIdx);
             else p_idxs.add(patternIdx);
         }
     }
 
-    private void savePatternIdxs(Map<String, Set<String>> varBindings, String binding, String patternIdx) {
+    private void savePatternIdx(Map<String, Set<String>> varBindings, String binding, String patternIdx) {
         Set<String> p_idxs = new HashSet<>();
         p_idxs.add(patternIdx);
         varBindings.put(binding, p_idxs);
@@ -236,12 +236,12 @@ public class MemBindingsTable implements BindingsTable {
 
         BindingsTable res = new MemBindingsTable(vars);
 
-        copyAllIRIs(l_vars, this, res);
-        copyAllIRIs(r_vars, other, res);
+        copyAllBindings(l_vars, this, res);
+        copyAllBindings(r_vars, other, res);
         return res;
     }
 
-    private void copyAllIRIs(Set<Var> vars, BindingsTable source, BindingsTable target) {
+    private void copyAllBindings(Set<Var> vars, BindingsTable source, BindingsTable target) {
         for (Var v : vars) {
             for (Map.Entry<String, Set<String>> entry : source.getBindings(v).entrySet()) {
                 for (String p : entry.getValue())
@@ -262,7 +262,16 @@ public class MemBindingsTable implements BindingsTable {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
-        Set<String> diff = getIncompatiblePatterns(this, other, mutual_vars);
+        //Set<String> diff = getIncompatiblePatterns(this, other, mutual_vars);
+        Set<String> diff = new HashSet<>();
+        Map<String, Set<String>> l_bindings, r_bindings;
+
+        for (Var v : mutual_vars) {
+            l_bindings = this.getBindings(v);
+            r_bindings = other.getBindings(v);
+            for (Map.Entry<String, Set<String>> entry : l_bindings.entrySet())
+                if (r_bindings.get(entry.getKey()) == null) diff.addAll(entry.getValue());
+        }
 
         BindingsTable res = new MemBindingsTable(mutual_vars);
         Map<String, Set<String>> bindings;
@@ -277,7 +286,7 @@ public class MemBindingsTable implements BindingsTable {
             break;
         }
         return res;
-    }
 
+    }
 
 }

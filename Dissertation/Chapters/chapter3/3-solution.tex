@@ -312,9 +312,13 @@ For patterns with a single variable, the index is the concatenation of the patte
 
 Finally, to support multiple triplestores, the indexes will be prepended with the identifier of the triplestore they belong to.
 
-In Listing \ref{storage-engine-v0}, we define the logic of \gls{SEnTri}'s storage engine. Notice that a search produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing ..., we show the underlying logic of these operations.
+In Listing \ref{storage-engine-v0}, we define the logic of \gls{SEnTri}'s storage engine.
 
 \lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
+
+Notice that a search operation always produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing \ref{bindings-table-v0}, we show the underlying logic of a \emph{bindings table}.
+
+\lstinputlisting[caption={Bindings Table in SEnTri V0}, label={bindings-table-v0}]{Code/chapter3/bindings-table-v0.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
@@ -325,7 +329,7 @@ Having defined how data is stored, we will now explain the protocol for evaluati
     \begin{itemize}
         \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
 
-        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
     \end{itemize}
 \end{definition}
 

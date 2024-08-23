@@ -10,7 +10,7 @@ function exec($plan = (jobs, \; execOrder)$, $worker$):
     while not isFinished():
         $current$ = $execOrder$.peek()
         $results$[$current$] := delegateJob($worker$, $jobs$[$current$])
-        $finished$ := $finished$ :U {$pending$.poll()};
+        $finished$ := $finished$ :U { $pending$.poll() };
     $sparqlResult$ := $worker$.generateSPARQLResult($results$[$current$]);
 
 function delegateJob($worker$, $job$):

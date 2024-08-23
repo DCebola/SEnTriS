@@ -3,7 +3,7 @@ State:
     $storageEngine$ := :bot
     $sparqlResult$ := :bot 
 
-function init($target$, $storage$):
+function create($target$, $storage$):
     $triplestoreID$ := $target$
     $storageEngine$ := $storage$
     $sparqlResult$ := ({}, false, false, false, :bot, :bot)
@@ -93,7 +93,7 @@ function generateResults($jobResults$):
     return $sparqlResult$.$bindigns$
 
 function generateBindings($collector$, $jobResults$):
-    vars = $jobResults$.$bindings$.getKeys()
+    vars = $jobResults$.getVariables()
     values := {}
     foreach $patterns$ in $jobResults$.getPatterns():
         $binding$ = {}

@@ -57,15 +57,15 @@ function decryptTriples({$t_0$, $t_1$, ... $t_n$}):
         $keyword_s$ := parseKeyword($s$)
         $keyword_p$ := parseKeyword($p$)
         $keyword_o$ := parseKeyword($o$)
-        $freq$ := $freq$ :U {encryptNode($parsed_p$, "PO" || $keyword_s$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_o$, "PO" || $keyword_s$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_s$, "SO" || $keyword_p$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_o$, "SO" || $keyword_p$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_s$, "SP" || $keyword_o$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_p$, "SP" || $keyword_o$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$)}
-        $freq$ := $freq$ :U {encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$)}
+        $freq$ := $freq$ :U { encryptNode($parsed_p$, "PO" || $keyword_s$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_o$, "PO" || $keyword_s$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_s$, "SO" || $keyword_p$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_o$, "SO" || $keyword_p$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_s$, "SP" || $keyword_o$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_p$, "SP" || $keyword_o$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$) }
+        $freq$ := $freq$ :U { encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$) }
         encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $freq$)
  
 function encryptTriple($keyword$, $frequencies$): 
@@ -110,21 +110,21 @@ function generateTriplePatternTrapdoors({$t_0$, $t_1$, ... $t_n$}):
         $keyword_p$ = parseKeyword($p$)
         $keyword_o$ = parseKeyword($o$)
         $keyword_t$ = "SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$
-        $keywords$ := $keywords$ :U {"PO" || $keyword_s$}
-        $keywords$ := $keywords$ :U {"PO" || $keyword_s$}
-        $keywords$ := $keywords$ :U {"SO" || $keyword_p$}
-        $keywords$ := $keywords$ :U {"SO" || $keyword_p$}
-        $keywords$ := $keywords$ :U {"SP" || $keyword_o$}
-        $keywords$ := $keywords$ :U {"SP" || $keyword_o$}
-        $keywords$ := $keywords$ :U {"S" || $keyword_p$ || $keyword_o$}
-        $keywords$ := $keywords$ :U {"P" || $keyword_s$ || $keyword_o$}
-        $keywords$ := $keywords$ :U {"O" || $keyword_s$ || $keyword_p$}
+        $keywords$ := $keywords$ :U { "PO" || $keyword_s$ }
+        $keywords$ := $keywords$ :U { "PO" || $keyword_s$ }
+        $keywords$ := $keywords$ :U { "SO" || $keyword_p$ }
+        $keywords$ := $keywords$ :U { "SO" || $keyword_p$ }
+        $keywords$ := $keywords$ :U { "SP" || $keyword_o$ }
+        $keywords$ := $keywords$ :U { "SP" || $keyword_o$ }
+        $keywords$ := $keywords$ :U { "S" || $keyword_p$ || $keyword_o$ }
+        $keywords$ := $keywords$ :U { "P" || $keyword_s$ || $keyword_o$ }
+        $keywords$ := $keywords$ :U { "O" || $keyword_s$ || $keyword_p$ }
         generatePatternTrapdoors(res, $keyword_t$, $keywords$)
         foreach $keyword$ in $keywords$:
             $trapdoors$ := $keywordPatternTrapdoors$[keyword]
             if ($trapdoors$ == :bot):
                 $trapdoors$ := {}
-            $trapdoors$ := $trapdoors$ :U {E(deriveKey($keyword_t$), $keyword_t$, $i$)}
+            $trapdoors$ := $trapdoors$ :U { E(deriveKey($keyword_t$), $keyword_t$, $i$) }
             $keywordPatternTrapdoors$[$keyword$] := $trapdoors$
             $i$++
     return $keywordPatternTrapdoors$

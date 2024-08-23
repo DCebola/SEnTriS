@@ -61,13 +61,15 @@ function search($triplestoreID$, $varPattern$, $s$, $p$, $o$):
         case "SP": return fetchBindings(generateIndex($triplestoreID$, "SP", $o$), $s$, $p$)
 
 function fetchBindings($index$, $var$):
-    $table$ := createBindingsTable({$var$})
+    $table$ := createBindingsTable()
+    $table$.setVariables({$var$})
     foreach $node$ in $triplestores$[$index$]:
         $table$.add(generateID(), $var$, $node$)
     return $table$
 
 function fetchBindings($index$, $var_1$, $var_2$):
-    $table$ := createBindingsTable({$var_1$, $var_2$})
+    $table$ := createBindingsTable()
+    $table$.setVariables({$var_1$, $var_2$})
     foreach $nodePair$ in $triplestores$[$index$]:
         $patternID$ := generateID()               
         $nodes$ = $nodePair$.split($separator_{III}$)

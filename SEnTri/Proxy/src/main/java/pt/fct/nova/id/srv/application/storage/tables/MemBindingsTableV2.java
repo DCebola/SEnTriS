@@ -46,7 +46,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
     @Override
     public void add(Bytes patternIdx, Var var, BigInteger binding) {
-        addIRI(binding, var, patternIdx);
+        addBinding(binding, var, patternIdx);
         addPattern(binding, var, patternIdx);
     }
 
@@ -59,20 +59,20 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         } else v_p_idxs.put(patternIdx, binding);
     }
 
-    private void addIRI(BigInteger binding, Var var, Bytes patternIdx) {
+    private void addBinding(BigInteger binding, Var var, Bytes patternIdx) {
         Map<BigInteger, Set<Bytes>> v_bindings = bindings.get(var);
         if (v_bindings == null) {
             v_bindings = new HashMap<>();
-            savePatternIdxs(v_bindings, binding, patternIdx);
+            savePatternIdx(v_bindings, binding, patternIdx);
             bindings.put(var, v_bindings);
         } else {
             Set<Bytes> p_idxs = v_bindings.get(binding);
-            if (p_idxs == null) savePatternIdxs(v_bindings, binding, patternIdx);
+            if (p_idxs == null) savePatternIdx(v_bindings, binding, patternIdx);
             else p_idxs.add(patternIdx);
         }
     }
 
-    private void savePatternIdxs(Map<BigInteger, Set<Bytes>> varBindings, BigInteger binding, Bytes patternIdx) {
+    private void savePatternIdx(Map<BigInteger, Set<Bytes>> varBindings, BigInteger binding, Bytes patternIdx) {
         Set<Bytes> p_idxs = new HashSet<>();
         p_idxs.add(patternIdx);
         varBindings.put(binding, p_idxs);
@@ -225,12 +225,12 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
         BindingsTableV2 res = new MemBindingsTableV2(vars);
 
-        copyAllIRIs(l_vars, this, res);
-        copyAllIRIs(r_vars, other, res);
+        copyAllBindings(l_vars, this, res);
+        copyAllBindings(r_vars, other, res);
         return res;
     }
 
-    private void copyAllIRIs(Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
+    private void copyAllBindings(Set<Var> vars, BindingsTableV2 source, BindingsTableV2 target) {
         for (Var v : vars) {
             for (Map.Entry<BigInteger, Set<Bytes>> entry : source.getBindings(v).entrySet())
                 for (Bytes p : entry.getValue())
