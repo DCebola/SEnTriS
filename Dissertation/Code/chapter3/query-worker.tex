@@ -12,7 +12,7 @@ function exec($job$):
     if $job$ is SEARCH:
         return execSearch($job$)
     elif $job$ is EMPTY:
-        return generateBindingsTable($job$.vars)
+        return createBindingsTable($job$.vars)
     throw JobInstanceException()
 
 function exec($job$, $prevJobResults$):
@@ -88,7 +88,7 @@ function generateResults($jobResults$):
         else
             $bindings$ = generateBindings(createLinkedList(), $jobResults$)
     if $sparqlResult$.$sliced$ == true:
-        $bindings$ = slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$ , $sparqlResult$.$length$)
+        $bindings$ = slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$, $sparqlResult$.$length$)
     $sparqlResult$.$bindigns$ := $bindings$
     return $sparqlResult$.$bindigns$
 

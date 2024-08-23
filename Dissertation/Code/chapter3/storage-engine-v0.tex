@@ -1,57 +1,104 @@
 State:
-    T := (triplestoreID, nodes := {}, acl)
+    triplestores := {}
 
-function saveTriple($t = (s, p, o)$):
+function saveTriple($triplestoreID$, $t = (s, p, o)$):
     $parsed_s$ := parseNode($s$)
     $parsed_p$ := parseNode($p$)
     $parsed_o$ := parseNode($o$)
     $keyword_s$ := parseKeyword($s$)
     $keyword_p$ := parseKeyword($p$)
     $keyword_o$ := parseKeyword($o$)
-    $T.nodes$["PO" || $keyword_s$] := $T.nodes$["PO" || $keyword_s$] :U {$parsed_p$ || $parsed_o$}
-    $T.nodes$["SO" || $keyword_p$] := $T.nodes$["SO" || $keyword_p$] :U {$parsed_s$ || $parsed_o$}
-    $T.nodes$["SP" || $keyword_o$] := $T.nodes$["SP" || $keyword_o$] :U {$parsed_s$ || $parsed_p$}
-    $T.nodes$["S" || $keyword_p$ || $keyword_o$] := $T.nodes$["S" || $keyword_p$ || $keyword_o$] :U {$parsed_s$}
-    $T.nodes$["P" || $keyword_s$ || $keyword_o$] := $T.nodes$["P" || $keyword_s$ || $keyword_o$] :U {$parsed_p$}
-    $T.nodes$["O" || $keyword_s$ || $keyword_p$] := $T.nodes$["O" || $keyword_s$ || $keyword_p$] :U {$parsed_o$}
+    save($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
+    save($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
+    save($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
+    save($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
+    save($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
+    save($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
 
-function deleteTriple($t = (s, p, o)$):
+function deleteTriple($triplestoreID$, $t = (s, p, o)$):
     $parsed_s$ := parseNode($s$)
     $parsed_p$ := parseNode($p$)
     $parsed_o$ := parseNode($o$)
     $keyword_s$ := parseKeyword($s$)
     $keyword_p$ := parseKeyword($p$)
     $keyword_o$ := parseKeyword($o$)
-    $T.nodes$["PO" || $keyword_s$] := $T.nodes$["PO" || $keyword_s$] / {$parsed_p$ || $parsed_o$}
-    $T.nodes$["SO" || $keyword_p$] := $T.nodes$["SO" || $keyword_p$] / {$parsed_s$ || $parsed_o$}
-    $T.nodes$["SP" || $keyword_o$] := $T.nodes$["SP" || $keyword_o$] / {$parsed_s$ || $parsed_p$}
-    $T.nodes$["S" || $keyword_p$ || $keyword_o$] := $T.nodes$["S" || $keyword_p$ || $keyword_o$] / {$parsed_s$}
-    $T.nodes$["P" || $keyword_s$ || $keyword_o$] := $T.nodes$["P" || $keyword_s$ || $keyword_o$] / {$parsed_p$}
-    $T.nodes$["O" || $keyword_s$ || $keyword_p$] := $T.nodes$["O" || $keyword_s$ || $keyword_p$] / {$parsed_o$}
+    delete($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
+    delete($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
+    delete($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
+    delete($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
+    delete($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
+    delete($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
+
+function save($triplestoreID$, $varPattern$, $keyword$, $node_1$, $node_2$):
+    $index$ := generateIndex($triplestoreID$, $varPattern$, $keyword$)
+    $triplestores$[$index$] := $triplestores$[$index$] :U { $node_1$ || $separator_{III}$ || $node_2$ }
+
+function save($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$, $node$):
+    $index$ := generateIndex($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$)
+    $triplestores$[$index$] := $triplestores$[$index$] :U { $node$ }
+
+function delete($triplestoreID$, $varPattern$, $keyword$, $node_1$, $node_2$):
+    $index$ := generateIndex($triplestoreID$, $varPattern$, $keyword$)
+    $triplestores$[$index$] := $triplestores$[$index$] / { $node_1$ || $separator_{III}$ || $node_2$ }
+
+function delete($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$, $node$):
+    $index$ := generateIndex($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$)
+    $triplestores$[$index$] := $triplestores$[$index$] / { $node$ }
+
+function generateIndex($triplestoreID$, $varPattern$, $keyword$):
+    return $triplestoreID$ || $separator_{II}$ || $varPattern$ || $separator_{II}$ || $keyword$ 
+
+function generateIndex($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$):
+    return $triplestoreID$ || $separator_{II}$ || $varPattern$ || $separator_{II}$ || $node_1$ || $separator_{II}$ || $node_2$
+
+function search($triplestoreID$, $varPattern$, $s$, $p$, $o$):
+    switch($varPattern$):
+        case "S": return fetchBindings(generateIndex($triplestoreID$, "S", $p$, $o$), $s$)
+        case "P": return fetchBindings(generateIndex($triplestoreID$, "P", $s$, $o$), $p$)
+        case "O": return fetchBindings(generateIndex($triplestoreID$, "P", $s$, $p$), $o$)
+        case "PO": return fetchBindings(generateIndex($triplestoreID$, "PO", $s$), $p$, $o$)
+        case "SO": return fetchBindings(generateIndex($triplestoreID$, "SO", $p$), $s$, $o$)
+        case "SP": return fetchBindings(generateIndex($triplestoreID$, "SP", $o$), $s$, $p$)
+
+function fetchBindings($index$, $var$):
+    $table$ := createBindingsTable({$var$})
+    foreach $node$ in $triplestores$[$index$]:
+        $table$.add(generateID(), $var$, $node$)
+    return $table$
+
+function fetchBindings($index$, $var_1$, $var_2$):
+    $table$ := createBindingsTable({$var_1$, $var_2$})
+    foreach $nodePair$ in $triplestores$[$index$]:
+        $patternID$ := generateID()               
+        $nodes$ = $nodePair$.split($separator_{III}$)
+        $table$.add($patternID$, $var_1$, $nodes$[0])
+        $table$.add($patternID$, $var_2$, $nodes$[1])
+    return $table$
 
 function parseNode($n$):
     if $n \in I$:            
-        return "S" || $n.value$  // IRI
+        return "S" || $separator_{I}$ || $n.value$  // IRI
     elif $n \in L$:
-        return "L" || $n.value$ || $n.value\_datatype$
+        return "L" || $separator_{I}$ || $n.value$ || $separator_{I}$ || $n.datatype$
     elif $n \in B$:
-        return "B" || $n.value$    // identifier of the blank node
+        return "B" || $separator_{I}$ || $n.value$    // identifier of the blank node
     return $\bot$
 
 function parseKeyword($n$):
     if $n \in I$:            
-        return "S" || $n.value$   
+        return "S" || $separator_{I}$ || $n.value$   
     elif $n \in L$:
-        return "L" || $n.value$ || $n.datatype$
+        return "L" || $separator_{I}$ || $n.value$ || $separator_{I}$ || $n.datatype$
     elif $n \in B$:
         return "BLANK"
     return $\bot$
 
-function generateNode($value$):
-    if $n \in I$:            
-        return "S" || $n.value$   
-    elif $n \in L$:
-        return "L" || $n.value$ || $n.datatype$
-    elif $n \in B$:
-        return "BLANK"
-    return $\bot$
+function generateNode($parsedValue$):
+    $(prefix, \; value, \; datatype)$ := $parsedValue$.split($separator_{I}$);
+    if prefix == "BLANK":
+        return createBlankNode($value$)
+    elif prefix == "S":
+        return createIRINode($value$);
+    else
+        return createLiteralNode($value$, $datatype$);
+    

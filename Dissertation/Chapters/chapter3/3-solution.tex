@@ -285,13 +285,13 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we are going to explain how we evaluate \gls{SPARQL} queries.  We will start by explaining the protocol for doing so over plaintext data, as in \gls{SEnTri} V0. For simplicity, we will not take into consideration role based access control and permissions, as it does not alter in any way the protocol logic.
 
-\subsubsection{Indexing triple patterns}
+\subsubsection{Storage of triple patterns}
 
-The first step when designing a solution that supports \gls{SPARQL}, is to define the storage strategy for saving \emph{triple patterns}. This strategy must preserve semantics and ensure fast access during query evaluation.
+The first step when designing a solution that supports \gls{SPARQL}, is to define how we will store \emph{triple patterns}. The storage strategy must preserve semantics and ensure fast access during query evaluation.
 
-In \gls{SEnTri}, we index the data in a manner that does not break the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
+To achieve this, when we index data, our goal is to preserve the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
-More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
+In \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
 
 \begin{align}
     \begin{split}
@@ -306,17 +306,19 @@ More specifically, in \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$
 
 We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTri} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either. 
 
-As specified in Listing \ref{storage-engine-v0}, an index can either reference a single node, or a pair of nodes. 
-
 For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO"\space for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
 
 For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" \space for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
+
+Finally, to support multiple triplestores, the indexes will be prepended with the identifier of the triplestore they belong to.
+
+In Listing \ref{storage-engine-v0}, we define the logic of \gls{SEnTri}'s storage engine. Notice that a search produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing ..., we show the underlying logic of these operations.
 
 \lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
-Having defined data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
+Having defined how data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:sparql-protocol}
     Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery)$ of 2 algorithms:
@@ -343,10 +345,6 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 \lstinputlisting[caption={\gls{SEnTri} Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
 
 \lstinputlisting[caption={\gls{SEnTri} Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
-
-\paragraph{Storage Engine and Bindings Tables}
-
-\mytodo{Create bindings tables listings}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
