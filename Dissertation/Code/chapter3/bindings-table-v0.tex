@@ -145,7 +145,6 @@ function join($vars_{mutual}$, $table_l$, $table_r$, $type$)
             joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$, $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$)
     return $table_{join}$
 
-
 function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
                             $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$) 
     foreach $patternID_l$ : $patternIDs_l$:
@@ -158,19 +157,18 @@ function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
                     copyBindings($patternID$, $patternID_l$, $vars_{mutual}$, $table_l$, $table_{join}$)
                     copyBindings($patternID$, $patternID_l$, $vars_l$, $table_l$, $table_{join}$)
                     copyBindings($patternID$, $patternID_r$, $vars_r$, $table_r$, $table_{join}$)
-        if $match$ == false and type == "LEFT": 
+        if $match$ == false $\:\:$ and type == "LEFT": 
             copyBindings($patternID_l$, $patternID_l$, $vars_{mutual}$, $table_l$, $table_{join}$)
             copyBindings($patternID_l$, $patternID_l$, $vars_l$, $table_l$, $table_{join}$)
-
 
 function equalPatterns($vars_{mutual}$, $table_l$, $patternID_l$, $table_r$, $patternID_r$) 
     foreach $var$ in $vars_{mutual}$: 
         $binding_l$ = $table_l$.getPatternIDs(var)[$patternID_l$]
          $binding_r$ = $table_r$.getPatternIDs(v)[$patternID_r$]
-        if $binding_l$ == :bot and $binding_r$ :neq :bot
+        if $binding_l$ == :bot $\:\:$ and $binding_r$ :neq :bot
             return false
-        elif $binding_l$ :neq :bot and $binding_r$ == :bot
+        elif $binding_l$ :neq :bot $\:\:$ and $binding_r$ == :bot
             return false
-        elif $binding_l$ :neq :bot && $binding_l$ :neq $binding_r$
+        elif $binding_l$ :neq :bot $\:\:$ and $binding_l$ :neq $binding_r$
             return false
     return true

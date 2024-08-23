@@ -283,7 +283,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we are going to explain how we evaluate \gls{SPARQL} queries.  We will start by explaining the protocol for doing so over plaintext data, as in \gls{SEnTri} V0. For simplicity, we will not take into consideration role based access control and permissions, as it does not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we will proceed to explain how we evaluate \gls{SPARQL} queries, before specifying any encryption scheme. This will facilitate their design, as it needs to be compliant with the \gls{SPARQL} query evaluation protocols. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0.  For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
 
 \subsubsection{Storage of triple patterns}
 
@@ -291,7 +291,7 @@ The first step when designing a solution that supports \gls{SPARQL}, is to defin
 
 To achieve this, when we index data, our goal is to preserve the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
-In \gls{SEnTri} V0 we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
+In \gls{SEnTri} V0, we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
 
 \begin{align}
     \begin{split}
@@ -312,7 +312,7 @@ For patterns with a single variable, the index is the concatenation of the patte
 
 Finally, to support multiple triplestores, the indexes will be prepended with the identifier of the triplestore they belong to.
 
-In Listing \ref{storage-engine-v0}, we define the logic of \gls{SEnTri}'s storage engine.
+In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTri} V0 storage engine.
 
 \lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
 
@@ -333,22 +333,25 @@ Having defined how data is stored, we will now explain the protocol for evaluati
     \end{itemize}
 \end{definition}
 
-\paragraph{Query Plan Generation} The generation of a query plan is a two-step pipeline. We parse the query and generate the necessary query jobs. Finally, we create the execution order for the jobs.
+\paragraph{Query Plan Generation} During the generation of a query plan we parse the query, create the necessary query jobs, and respective execution order. 
 
-Optimization of the query execution plan is out of the scope of this thesis, so our strategy for ordering equijoins is to randomly sample a valid order. Only a basic graph pattern can generate a set of joins. When we parse a pattern, we generate a graph where compatible joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. To generate the order of the pattern's joins, we explore the graph and try to find a path that contains each job once. To generate the random order, we randomly sample the origin of the path.
+The parsing of a \gls{SPARQL} query and optimization of its execution plan is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}, this will be covered in Chapter \ref{cha:implementation}.
 
+The only major difference of our solution, apart from its compatibility with \gls{SEnTri} specific data structures, is in the strategy for ordering equi-joins. Where we randomly sample a valid execution order.
+
+Only \gls{BGP}s can generate equi-joins. When we parse a \gls{BGP}, we generate an auxiliary graph where compatible equi-joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. To generate the execution order of the \gls{BGP}'s equi-joins, we explore the graph and compute a path that contains each $job_{JOIN}$ once. To generate the random order, we randomly sample the origin of the path.
 
 \paragraph{Query Evaluation} Following the dispatcher pattern, we have created two abstractions in \gls{SEnTri}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
 
-In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The current version of \gls{SEnTri} only supports sequential dispatching of jobs to a single worker.
+In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The currently \gls{SEnTri} only supports sequential dispatching of jobs to a single worker.
 
 The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and sent as output. 
 
-Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker.
+Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTri} V0.
 
-\lstinputlisting[caption={\gls{SEnTri} Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
+\lstinputlisting[caption={\gls{SEnTri} V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
 
-\lstinputlisting[caption={\gls{SEnTri} Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+\lstinputlisting[caption={\gls{SEnTri} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
