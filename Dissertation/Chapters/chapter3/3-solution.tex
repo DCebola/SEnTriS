@@ -144,8 +144,11 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
 
 \paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type: 
 \begin{itemize}
-    \item \textit{SELECT}: $sparqlFinalResult = sparqlJSONResult$ will be a query result in JSON format.
-    \item \textit{ASK}: $sparqlFinalResult = \{true, false\}$ will be a boolean result in JSON format.
+    \item \textit{SELECT}: it will be a query result in JSON format;
+    \item \textit{ASK}: it will be a boolean;
+    \item \textit{CONSTRUCT}: it will be a set of triples;
+    \item \textit{DESCRIBE}: it will be a frequency table of the query variables;
+    \item \textit{SPARQL UPDATE}: it will be either $\textrm{SUCCESS}$, or $\bot$ in case of failure;
 \end{itemize}
 
 
@@ -332,21 +335,23 @@ Notice that a search operation always produces a \emph{bindings table}. This dat
 Having defined how data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:sparql-protocol}
-    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery, \; GenerateFinalResult)$ of 3 algorithms:
+    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery, \allowbreak GenerateFinalResult)$ of 3 algorithms:
     \begin{itemize}
-        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used in the query result post-processing phase: the $construct$, $upload$ and $delete$ collections. In case of any error, it will $\bot$.
+        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
 
         \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
         
-        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
+        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ sparqlResult, \; construct, \; upload, \; delete)}$: takes as input a triplestore identifier, the query type, the $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $CONSTRUCT$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
     \end{itemize}
 \end{definition}
 
 \paragraph{Query Plan Generation} In \gls{SEnTri} we have created two abstractions to separate the logic for parsing a query, and generating the query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
-The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing ... .
+The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
 
-One can argue that the collection of \emph{Apache Jena} operations, created after parsing a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of \gls{SEnTri} V0 query planner is shown in Listing ... .
+\lstinputlisting[caption={\gls{SEnTri} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-engine.tex}
+
+One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of \gls{SEnTri} V0 query planner is shown in Listing ... .
 
 Notice that the query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
 
@@ -363,6 +368,8 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 \lstinputlisting[caption={\gls{SEnTri} V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
 
 \lstinputlisting[caption={\gls{SEnTri} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+
+\paragraph{Generating Final Result \& Applying modifications}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
