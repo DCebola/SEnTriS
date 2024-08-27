@@ -142,6 +142,13 @@ A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; binding_0),...
 
 Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of triple patterns found after the evaluation of a query. A triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
 
+\paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type: 
+\begin{itemize}
+    \item \textit{SELECT}: $sparqlFinalResult = sparqlJSONResult$ will be a query result in JSON format.
+    \item \textit{ASK}: $sparqlFinalResult = \{true, false\}$ will be a boolean result in JSON format.
+\end{itemize}
+
+
 
 \subsubsection{SEnTri V1 and V2 specific}
 
@@ -283,7 +290,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools that will be required by the various implementations of \gls{SEnTri}, we will proceed to explain how we evaluate \gls{SPARQL} queries, before specifying any encryption scheme. This will facilitate their design, as it needs to be compliant with the \gls{SPARQL} query evaluation protocols. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0.  For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0.  For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
 
 \subsubsection{Storage of triple patterns}
 
@@ -325,21 +332,25 @@ Notice that a search operation always produces a \emph{bindings table}. This dat
 Having defined how data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:sparql-protocol}
-    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery)$ of 2 algorithms:
+    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery, \; GenerateFinalResult)$ of 3 algorithms:
     \begin{itemize}
-        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
+        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used in the query result post-processing phase: the $construct$, $upload$ and $delete$ collections. In case of any error, it will $\bot$.
 
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
+        
         \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
     \end{itemize}
 \end{definition}
 
-\paragraph{Query Plan Generation} During the generation of a query plan we parse the query, create the necessary query jobs, and respective execution order. 
+\paragraph{Query Plan Generation} In \gls{SEnTri} we have created two abstractions to separate the logic for parsing a query, and generating the query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
-The parsing of a \gls{SPARQL} query and optimization of its execution plan is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}, this will be covered in Chapter \ref{cha:implementation}.
+The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing ... .
 
-The only major difference of our solution, apart from its compatibility with \gls{SEnTri} specific data structures, is in the strategy for ordering equi-joins. Where we randomly sample a valid execution order.
+One can argue that the collection of \emph{Apache Jena} operations, created after parsing a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of \gls{SEnTri} V0 query planner is shown in Listing ... .
 
-Only \gls{BGP}s can generate equi-joins. When we parse a \gls{BGP}, we generate an auxiliary graph where compatible equi-joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. To generate the execution order of the \gls{BGP}'s equi-joins, we explore the graph and compute a path that contains each $job_{JOIN}$ once. To generate the random order, we randomly sample the origin of the path.
+Notice that the query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
+
+We generate a random ordering of the equi-joins, by randomly sampling one of the valid execution orders. \gls{BGP}s are the only elements from a query that generate equi-joins. When we have visited all \gls{BGP} operations, we create an auxiliary graph where compatible equi-joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. We generate the execution order of the equi-joins, by exploring the graph and computing a path that contains each $job_{JOIN}$ once. To generate the random ordering, we randomly sample the origin of the path. After generating the execution order we add the query jobs to the execution plan.
 
 \paragraph{Query Evaluation} Following the dispatcher pattern, we have created two abstractions in \gls{SEnTri}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
 
@@ -355,12 +366,12 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
-We will now explain how to modify the protocol for evaluating \gls{SPARQL} queries to use \emph{query rewriting} and retain reasoning capabilities. These modifications only need to be applied to the query plan generation phase.
+We will now explain how to modify the protocol for evaluating \gls{SPARQL} queries to use \emph{query rewriting} and retain reasoning capabilities. These modifications only need to be applied to the query plan generation phase. 
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol with Reasoning}]\label{ch3:definition:sparql-protocol-reasoning}
     Let \linebreak SPARQL-EVAL-II be a \emph{SPARQL} query evaluation protocol that supports reasoning. It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery)$ of 2 algorithms:
     \begin{itemize}
-        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query, inference, expansionDepth, transitivityDepth)}$: \linebreak takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
+        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query, \; inference, \; expansionDepth, \; transitivityDepth)}$: \linebreak takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
 
     \end{itemize}
 \end{definition}
@@ -785,6 +796,8 @@ In conformity with the lack of data confidentiality, present in \gls{SEnTri}-V0,
             \item \emph{SEnTri V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
         \end{enumerate}
 \end{enumerate}
+
+% Plan V0 [[search_0,0, ... search0,n]->[random join_pipeline]^K -> [UNION|OPTIONAL|MINUS|JOIN search0,0, join_0,n, join,k,n]-> DISTINCT | PROJECT | ORDERBY  | SLICE]
 
 \subsection{Security \& Performance trade-offs}
 

@@ -147,7 +147,7 @@ function join($vars_{mutual}$, $table_l$, $table_r$, $type$)
 
 function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
                             $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$) 
-    foreach $patternID_l$ : $patternIDs_l$:
+    foreach $patternID_l$ in $patternIDs_l$:
         $match$ := false
         if $patternIDs_r$ :neq :bot:
             foreach $patternID_r$ in $patternIDs_r$:
@@ -164,7 +164,7 @@ function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
 function equalPatterns($vars_{mutual}$, $table_l$, $patternID_l$, $table_r$, $patternID_r$) 
     foreach $var$ in $vars_{mutual}$: 
         $binding_l$ = $table_l$.getPatternIDs(var)[$patternID_l$]
-         $binding_r$ = $table_r$.getPatternIDs(v)[$patternID_r$]
+        $binding_r$ = $table_r$.getPatternIDs(var)[$patternID_r$]
         if $binding_l$ == :bot $\:\:$ and $binding_r$ :neq :bot
             return false
         elif $binding_l$ :neq :bot $\:\:$ and $binding_r$ == :bot

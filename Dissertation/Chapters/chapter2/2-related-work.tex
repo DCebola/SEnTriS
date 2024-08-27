@@ -457,7 +457,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js, Da
     E(m)^k = \underbrace{E(m) \; * \; ... \; *  \; E(m)}_{k \text{ times}} = E(\underbrace{m \; + \; ... \; + \; m}_{k \text{ times}}) = E(k * m)
 \end{equation}
 
-Considering that the plaintext space is $M \in \mathbb{Z}_n$ and that messages are small in comparison to the modulus $n$ (so that reductions modulo $n$ never occur), we can represent a negative constant $c$ as $n - c$. Multiplication by a negative is achieved by raising the encrypted value to the power of $n - c$ (an overflow of module $n$ will occur)\autocite{Franz2011-sm}:
+Considering that the plaintext space is $M \in \mathbb{Z}_n$ and that messages are small in comparison to the modulus $n$ (so that reductions modulo $n$ never occur), we can represent a negative constant $c$ as $n - c$. Multiplication by a negative value is achieved by raising the encrypted value to the power of $n - c$ (an overflow of module $n$ will occur)\autocite{Franz2011-sm}:
 
 \begin{equation}\label{ch2:sec:homomorphic-encryption:def-eq-additive-mul-negative}
     \begin{split}
