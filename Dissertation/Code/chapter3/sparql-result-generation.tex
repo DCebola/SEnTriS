@@ -1,0 +1,111 @@
+State:
+    $sparqlResult$
+    $construct_template$
+    $upload_template$
+    $delete_template$
+
+
+function executeSPARQLQuery(triplestoreID, query)  
+    if $queryType \in \{ \textrm{SELECT}, \; \textrm{CONSTRUCT}, \; \textrm{ASK}, \; \textrm{DESCRIBE}, \; \textrm{MODIFY}, \; \textrm{DELETE_WHERE} \}$:
+        sparqlResult = Triplestore.evaluateQuery(triplestoreID, plan)
+    return generateFinalResult(triplestoreID, queryType, sparqlResult, construct, upload, delete)
+
+
+
+
+function generateFinalResult(triplestoreID, queryType, sparqlResult, construct, upload, delete)
+    if (queryType == SELECT) sparqlResult = generateSELECTResults(plan.getVars(), sparqlResult)
+    elif (queryType == CONSTRUCT) sparqlResult = generateCONSTRUCTResults(planner.getConstructTemplate(), sparqlResult)
+    elif (queryType == ASK) sparqlResult = generateASKResults(sparqlResult)
+    elif (queryType == DESCRIBE) sparqlResult = generateDESCRIBEResults(plan.getVars(), sparqlResult)
+    else:
+        generateFinalResult
+    
+
+private Response executeSPARQLUpdateQuery(triplestoreID, query) 
+    Set<Triple> triplesToUpload = new HashSet<>()
+    Set<Triple> triplesToDelete = new HashSet<>()
+    
+        
+        
+    
+        if (queryType == MODIFY)
+            triplesToUpload = generate(planner.getUploadTemplate(), sparqlResult.getBindings())
+        triplesToDelete = QueryUtils.generateTriplesFromSerializableBindings(planner.getDeleteTemplate(), sparqlResult.getBindings())
+        else if (queryType == INSERT_DATA)
+        triplesToUpload = planner.getUploadTemplate()
+    else if (queryType == DELETE_DATA)
+        triplesToDelete = planner.getDeleteTemplate()
+    return updateTriplestore(httpClient, cookie, triplestoreID, triplesToUpload, triplesToDelete, accessToken)
+
+
+private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
+                                    Set<Triple> triplesToUpload, Set<Triple> triplesToDelete, String accessToken) throws IOException, URISyntaxException 
+    HTTPResponse response
+    if (!triplesToDelete.isEmpty()) 
+        response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken)
+        if (response.getStatus() != OK) 
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)
+            return response.build()
+        
+    
+    if (!triplesToUpload.isEmpty()) 
+        response = upload(httpClient, triplestoreID, triplesToUpload, false, accessToken)
+        if (response.getStatus() != OK) 
+            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)
+            deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)
+            return response.build()
+        
+    
+    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)
+    deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)
+    return Response.ok(SUCCESSFUL_UPDATE).build()
+
+
+public static Response generateASKResults(SPARQLResult<String> sparqlResult) throws IOException 
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) 
+        ResultSetFormatter.outputAsJSON(out, !sparqlResult.getBindings().isEmpty())
+        return Response.ok(out.toByteArray()).build()
+    
+
+
+private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult<String> sparqlResult) throws IOException 
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) 
+        Graph g = QueryUtils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings())
+        RDFWriter.create(g).lang(Lang.JSONLD11).output(out)
+        return Response.ok(out.toByteArray()).build()
+    
+
+
+private Response generateSELECTResults(List<Var> vars, SPARQLResult<String> sparqlResult) throws IOException 
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) 
+        Collection<Binding> bindings = new LinkedList<>()
+        BindingBuilder builder = Binding.builder()
+        for (SerializableBinding<String> binding : sparqlResult.getBindings()) 
+            for (Iterator<Var> it = binding.vars() it.hasNext() ) 
+                Var var = it.next()
+                builder.add(var, ParsingUtils.generateNode(binding.get(var)))
+            
+            bindings.add(builder.build())
+            builder.reset()
+        
+        ResultSetFormatter.outputAsJSON(out, ResultSetStream.create(vars, bindings.iterator()))
+        return Response.ok(out.toByteArray()).build()
+    
+
+
+private Response generateDESCRIBEResults(List<Var> vars, SPARQLResult<String> sparqlResult) 
+    Map<Var, Integer> frequencies = new HashMap<>()
+    for (Var v : vars)
+        frequencies.put(v, 0)
+    for (SerializableBinding<String> binding : sparqlResult.getBindings()) 
+        for (Iterator<Var> it = binding.vars() it.hasNext() ) 
+            Var v = it.next()
+            frequencies.put(v, frequencies.get(v) + 1)
+        
+    
+    JSONObject responseBody = new JSONObject()
+    for (Var v : vars)
+        responseBody = responseBody.put(v.getVarName(), frequencies.get(v))
+    return Response.ok(responseBody.toString()).build()

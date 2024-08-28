@@ -371,7 +371,8 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 \lstinputlisting[caption={\gls{SEnTri} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
 
-\paragraph{Generating Final Result \& Applying modifications}
+\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a querie's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. In this phase we generate the correct final query answer, which matches the query type, and apply all modifications to the triplestore, in case of an update query. Listings ... and ... provide all the logic of the SPARQL-EVAL protocol. It is a distributed protocol, the query plan generation and final result generation are executed by the \emph{Client} component, whereas the query evaluation is executed in the \emph{Triplestore} component.
+
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
