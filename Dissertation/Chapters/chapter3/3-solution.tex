@@ -341,7 +341,7 @@ Having defined how data is stored, we will now explain the protocol for evaluati
 
         \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
         
-        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ sparqlResult, \; construct, \; upload, \; delete)}$: takes as input a triplestore identifier, the query type, the $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $\textrm{CONSTRUCT}$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
+        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ variables, \; sparqlResult, \; construct, \; upload, \; delete)}$: takes as input a triplestore identifier, the query type and variables, the $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $\textrm{CONSTRUCT}$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
     \end{itemize}
 \end{definition}
 

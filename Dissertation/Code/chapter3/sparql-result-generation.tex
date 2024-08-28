@@ -12,30 +12,30 @@ function executeSPARQLQuery($triplestoreID$, $query$):
     catch Exception:
         return :bot
 
-#SPARQL-EVAL.planQuery(query)
+# SPARQL-EVAL.planQuery(query)
 function planQuery(query):
     $planner$ := createSPARQLQueryPlanner()
     return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$))
 
 
-#SPARQL-EVAL.generateFinalResult(triplestoreID, queryType, sparqlResult, construct, upload, delete)
-function generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+# SPARQL-EVAL.generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$):
+function generateFinalResult($triplestoreID$, $queryType$, $variables$, $sparqlResult$, $construct_{template}$, $upload_{template}$, $delete_{template}$)
     if $queryType$ == "SELECT":
-        return generateSELECTResults(plan.getVars(), sparqlResult)
+        return generateSELECTResults($variables$, $sparqlResult$)
     elif $queryType$ == "CONSTRUCT":
-        return generateCONSTRUCTResults(planner.getConstructTemplate(), sparqlResult)
+        return generateCONSTRUCTResults($construct_{template}$, $sparqlResult$)
     elif $queryType$ == "ASK":
-        return generateASKResults(sparqlResult)
+        return generateASKResults($sparqlResult$)
     elif $queryType$ == "DESCRIBE":
-        return generateDESCRIBEResults(plan.getVars(), sparqlResult)
+        return generateDESCRIBEResults($variables$, $sparqlResult$)
     else:
-        return applyModifications(triplestoreID, sparqlResult.bindings)
+        return applyModifications($triplestoreID$, $sparqlResult$.$bindings$)
     
 
-function applyModifications(triplestoreID, bindings) 
-    triplesToUpload = {}
-    triplesToDelete = {}
-    if (queryType == MODIFY)
+function applyModifications($triplestoreID$, $bindings$) 
+    $triplesToUpload$ = {}
+    $triplesToDelete$ = {}
+    if ($queryType$ == MODIFY)
         triplesToUpload = generateTriplesFromBindings(planner.getUploadTemplate(), sparqlResult.getBindings())
     triplesToDelete = generateTriplesFromBindings(planner.getDeleteTemplate(), sparqlResult.getBindings())
     else if (queryType == INSERT_DATA)
