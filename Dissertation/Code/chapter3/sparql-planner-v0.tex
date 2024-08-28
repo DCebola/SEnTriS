@@ -1,14 +1,13 @@
-
 State:
     $operations_{parsed}$ := {}
     $upload_{template}$ := {}
     $delete_{template}$ := {}
     $construct_{template}$ := {}
     $queryType$ := $:bot$
-    $plan$ := $(jobs = \{\}, \; execOrder = \textrm{createLinkedList()}, \; vars = \{\})$
+    $plan$ := ($jobs$ = {}, $execOrder$ = createLinkedList(), $vars$ = {})
     $variables$ := {}
 
-function getQueryType:
+function getQueryType():
     return $queryType$
 
 function setQueryType($type$):
@@ -52,7 +51,7 @@ function generatePlan($op$, JENA$_{algebraGenerator}$):
         $plan.vars$ := $variables$
     return $plan$
 
-public void visit(op) 
+function visit(op) 
     if $op$ is OpBGP:
         generateSearchJobs($op$)
     elif $op$ is OpTriple:
@@ -81,29 +80,29 @@ public void visit(op)
 
 function visitUpdate($op_{UpdateDataInsert}$) 
     setQueryType("INSERT_DATA")
-    foreach $quad = (graph, triple)$ in $op_{UpdateDataInsert}$.getQuads(): # we only support a single default graph, hence quads can be converted to triples
+    foreach $quad = (graph, \; triple)$ in $op_{UpdateDataInsert}$.getQuads(): # we only support a single default graph, hence quads can be converted to triples
         $upload_{template}$ := $upload_{template}$ :U { triple }
 
 function visitUpdate($op_{UpdateDataDelete}$) 
     setQueryType("DELETE_DATA")
-    foreach $quad = (graph, triple)$ in $op_{UpdateDataDelete}$.getQuads():
+    foreach $quad = (graph, \; triple)$ in $op_{UpdateDataDelete}$.getQuads():
         $delete_{template}$ := $delete_{template}$ :U { triple }
 
 function visitUpdate($op_{UpdateDeleteWhere}$):
     setQueryType("MODIFY")
     $bgp$ := {}
-    foreach $quad = (graph, triple)$ in $op_{UpdateDeleteWhere}$.getQuads():
+    foreach $quad = (graph, \; triple)$ in $op_{UpdateDeleteWhere}$.getQuads():
         $bgp$ := $bgp$ :U {$triple$}
         $delete_{template}$ := $delete_{template}$ :U { triple }
     JENA.$_{OpWalker}$.walk(JENA.createOpBGP($bgp$), $this$)
 
-public void visitUpdate($op_{UpdateModify}$, JENA$_{algebraGenerator}$) 
+function visitUpdate($op_{UpdateModify}$, JENA$_{algebraGenerator}$) 
     setQueryType("MODIFY")
     if $op_{UpdateModify}$.hasInsertClause():
-        foreach $quad = (graph, triple)$ in $op_{UpdateDataInsert}$.getInsertQuads():
+        foreach $quad = (graph, \; triple)$ in $op_{UpdateDataInsert}$.getInsertQuads():
             $upload_{template}$ := $upload_{template}$ :U { triple }
     if $op_{UpdateModify}$.hasDeleteClause():
-        foreach $quad = (graph, triple)$ in $op_{UpdateDeleteWhere}$.getDeleteQuads():
+        foreach $quad = (graph, \; triple)$ in $op_{UpdateDeleteWhere}$.getDeleteQuads():
             $delete_{template}$ := $delete_{template}$ :U { triple }
         JENA.$_{OpWalker}$.walk(JENA$_{algebraGenerator}$.compile($op_{UpdateModify}$.getWherePattern()), $this$)
             
@@ -111,17 +110,15 @@ function generateSearchJobs($op_{OpBGP}$):
     $patterns$ = $op_{OpBGP}$.getPattern()
     $jobIDs$ = {}
     $jobs$ = {}
-    $bgp$ = {}
-  
+    $jobVars$ = {}
     foreach $t = (s, p, o)$ in $patterns$:
         $jobID$ = pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$)
         $job$ = $jobs$.get($jobID$)
         $vars_{job}$ = extractVars($job$)
-        $variables$.addAll($vars_{job}$)
-        $bgp$[$jobID$] := $vars_{job}$
-           
+        $variables$ := $variables$ :U { $vars_{job}$ }
+        $jobVars$[$jobID$] := $vars_{job}$
     if $\#patterns$ > 1:
-        generateRandomJoinPipeline($op_{OpBGP}$, $bgp$)
+        generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$)
     else
         $operations_{parsed}$.put($op_{OpBGP}$, $jobID$)
     
@@ -136,161 +133,114 @@ function pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$):
         pushJob($job$)
     return $jobID$
 
-
-private void generateRandomJoinPipeline(OpBGP op, Map<String, Set<Var>> bgp) 
-    int numJobs = bgp.size()
-    Map<String, List<String>> graph = new HashMap<>(numJobs)
-    List<String> jobs = new ArrayList<>(numJobs)
-    Set<Var> allVars = new HashSet<>()
-    generateAdjacencyMatrix(bgp, numJobs, graph, jobs, allVars)
-
-    List<String> path = new ArrayList<>(numJobs)
-    Set<String> sampled = new HashSet<>()
-    String next
-    boolean stop = false
-    System.out.println("Total jobs:" + numJobs)
-    while (sampled.size() < numJobs && !stop) 
-        next = rndSample(jobs, sampled)
-        sampled.add(next)
-        bfsSearch(next, graph, path, numJobs)
-        if (path.size() == numJobs)
-            stop = true
+function generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$) 
+    ($graph$, $vars$, $jobs$) := generateAdjacencyMatrix($jobVars$)
+    $path$ := createArrayList($numJobs$)
+    $sampled$ := {}
+    $stop$ := $false$
+    $numJobs$ := $\#jobVars$.getKeys()
+    while $\#sampled$ < $numJobs$ and $stop$ == $false$:
+        $next$ := sample($jobs$ / $sampled$)
+        $sampled$ := $sampled$ :U { $next$ }
+        bfsSearch($next$, $graph$, $path$, $numJobs$)
+        if $\#path$ == $numJobs$:
+            $stop$ := $true$
+    if $\#path$ == $numJobs$: 
+        $joins$ = createLinkedList()
+        for $i$ in range($\#path$):
+            $jobID_1$ = $path$.get($i$)
+            $jobID_2$ = $path$.get($i$ + 1)
+            $joinID$ = generateID()
+            $path$.get($i$ + 1) := $joinID$
+            $joins$.add(createJoinJob($joinID$, $jobID_1$, $jobID_2$))
+        foreach $job_{JOIN}$ in $join$:
+            pushJob($job_{JOIN}$)
+        $operations_{parsed}$[$op_{BGP}$] := $joins$.getLast().getID()
+    else :
+        $jobID$ = generateID()
+        pushJob(createEmptyResultJob($jobID$, $vars$))
+        $operations_{parsed}$[$op_{BGP}$] := $jobID$
     
-    System.out.println(Arrays.toString(path.toArray()))
-    if (path.size() == numJobs) 
-        LinkedList<JoinJob> joins = new LinkedList<>()
-        String jobID1, jobID2
-        String joinID
-        for (int i = 0 i < path.size() - 1 i += 1) 
-            jobID1 = path.get(i)
-            jobID2 = path.get(i + 1)
-            joinID = generateID()
-            path.set(i + 1, joinID)
-            joins.add(new JoinJob(joinID, jobID1, jobID2))
-            System.out.println("[" + joinID + "] - (" + jobID1 + "," + jobID2 + ")")
-        
-        joins.forEach(plan::pushJob)
-        $operations_{parsed}$.put(op, joins.get(joins.size() - 1).getID())
-        else 
-        String jobID = generateID()
-        pushJob(new EmptyResJob(jobID, allVars))
-        $operations_{parsed}$.put(op, jobID)
-    
-
-
-
-private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<
-        String, List<String>> graph, List<String> jobs, Set<Var> allVars) 
-    List<String> edges
-    Set<Var> v2, v1
-    for (String jobID : bgp.keySet()) 
-        jobs.add(jobID)
-        v1 = bgp.get(jobID)
-        allVars.addAll(v1)
-        System.out.println("[" + jobID + "] - " + Arrays.toString(v1.toArray()))
-        edges = new ArrayList<>(numJobs)
-        for (String jobID2 : bgp.keySet()) 
-            v2 = bgp.get(jobID2)
-            if (!jobID == (jobID2)) 
-                for (Var v : v1) 
-                    if (v2.contains(v)) 
-                        edges.add(jobID2)
+function generateAdjacencyMatrix($jobVars$) 
+    $graph$ := {}
+    $jobs$ := {}
+    $vars$ := {}
+    foreach $jobID_1$ in $jobVars$.getKeys(): 
+        $jobs$.add($jobID_1$)
+        $v_1$ := $jobVars$[$jobID_1$]
+        $vars$ := $vars$ :U $\;v_1$
+        $edges$ := {}
+        foreach $jobID_2$ in $jobVars$.getKeys():
+            $v_2$ := $jobVars$[$jobID_2$]
+            if $jobID_1$ :neq $jobID_2$
+                foreach $var$ \; in \; $v_1$:
+                    if $v \in v_2$:
+                        $edges$ := $edges$ :U { $JobID_2$ }
                         break
-                    
-                
-            
-        
-        graph.put(jobID, edges)
-    
-    graph.forEach((job, l) -> System.out.println("[" + job + "] - " + Arrays.toString(l.toArray())))
+        $graph$[$jobID_1$] := $edges$
+    return ($graph$, $jobs$, $vars$)
 
 
-private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path,
-                        int depth) 
-    Queue<String> queue = new LinkedList<>()
-    path.add(root)
-    queue.add(root)
-    String next
-    while (path.size() < depth) 
-        next = queue.poll()
-        for (String neighbour : adjacencyMatrix.get(next)) 
-            if (!path.contains(neighbour)) 
-                path.add(neighbour)
-                queue.add(neighbour)
-            
-        
-        if (queue.isEmpty())
-            return
-    
+function bfsSearch($root$, $graph$, $path$, $depth$) 
+    $queue$ = createQueue()
+    $path$.add($root$)
+    $queue$.push($root$)
+    while $\#path$ < $depth$: 
+        $next$ := $queue$.poll()
+        foreach $neighbour$ in $graph$[$next$]:
+            if $neighbour \; \notin \; path$:
+                $path$.add($neighbour$)
+                $queue$.push($neighbour$)
+        if $\#queue$ == 0:
+            return  
 
-
-private String rndSample(List<String> values, Set<String> exclude) 
-    String jobID
-    do 
-        jobID = values.get(rnd.nextInt(values.size()))
-        while (exclude.contains(jobID))
-    return jobID
-
-
-private String getPrevJobID(Op subOp) 
-    String prevJobID = $operations_{parsed}$.get(subOp)
-    if (prevJobID == null)
+function getJobID($op$) 
+    $jobID$ = $operations_{parsed}$[$op$]
+    if $jobID$ == :bot:
         throw QueryBuildException()
-    return prevJobID
+    return $jobID$
 
+function generateProjectJob($op_{OpProject}$) 
+    $jobID$ := generateID()
+    $variables$ := $op$.getVars()
+    $plan$.$vars$ := $variables$
+    pushJob(createProjectJob($jobID$, getJobID($op$.getSubOp()), $variables$))
+    $operations_{parsed}$[$op$] := $jobID$
 
-private void generateProjectJob(OpProject op) 
-    String jobID = generateID()
-    List<Var> $variables$ = op.getVars()
-    plan.setVars($variables$)
-    pushJob(new ProjectJob(jobID, getPrevJobID(op.getSubOp()), $variables$))
-    $operations_{parsed}$.put(op, jobID)
+function generateDistinctJob($op_{OpDistinctReduced}$) 
+    $jobID$ := generateID()
+    pushJob(createDistinctJob($jobID$, getJobID(op.getSubOp())))
+    $operations_{parsed}$[$op$] := $jobID$
 
+function generateOrderByJob($op_{OpOrder}$) 
+    $jobID$ := generateID()
+    pushJob(createOrderByJob($jobID$, getJobID($op$.getSubOp()), $op$.getConditions()))
+    $operations_{parsed}$[$op$] := $jobID$
 
-private void generateDistinctJob(OpDistinctReduced op) 
-    String jobID = generateID()
-    pushJob(new DistinctJob(jobID, getPrevJobID(op.getSubOp())))
-    $operations_{parsed}$.put(op, jobID)
+function generateSliceJob($op_{OpSlice}$) 
+    $jobID$ := generateID()
+    pushJob(createSliceJob($jobID$,getJobID($op$.getSubOp()), $op$.getStart(), $op$.getLength()))
+    $operations_{parsed}$[$op$] := $jobID$
 
+function generateJoinJob($op_{OpJoin}$) 
+    $jobID$ := generateID()
+    pushJob(createJoinJob($jobID$, getJobID($op$.getLeft()), getJobID($op$.getRight())))
+    $operations_{parsed}$[$op$] := $jobID$
 
-private void generateOrderByJob(OpOrder op) 
-    String jobID = generateID()
-    List<SortCondition> conditions = op.getConditions()
-    List<SerializableSortCondition> serializableSortConditions = new ArrayList<>(conditions.size())
-    for (SortCondition sortCondition : conditions)
-        serializableSortConditions.add(new SerializableSortCondition(sortCondition.getExpression().asVar(), sortCondition.getDirection()))
-    pushJob(new OrderByJob(jobID, getPrevJobID(op.getSubOp()), serializableSortConditions))
-    $operations_{parsed}$.put(op, jobID)
+function generateOptionalJob($op_{OpLeftJoin}$) 
+    $jobID$ := generateID()
+    pushJob(new OptionalJob(jobID, getJobID(op.getLeft()), getJobID(op.getRight())))
+    $operations_{parsed}$[$op$] := $jobID$
 
+function generateMinusJob($op_{OpMinus}$) 
+    $jobID$ := generateID()
+    pushJob(createMinusJob($jobID$, getJobID($op$.getLeft()), getJobID($op$.getRight())))
+    $operations_{parsed}$[$op$] := $jobID$
 
-private void generateSliceJob(OpSlice op) 
-    String jobID = generateID()
-    pushJob(new SliceJob(jobID, getPrevJobID(op.getSubOp()), op.getStart(), op.getLength()))
-    $operations_{parsed}$.put(op, jobID)
-
-
-private void generateJoinJob(OpJoin op) 
-    String jobID = generateID()
-    pushJob(new JoinJob(jobID, getPrevJobID(op.getLeft()), getPrevJobID(op.getRight())))
-    $operations_{parsed}$.put(op, jobID)
-
-
-private void generateOptionalJob(OpLeftJoin op) 
-    String jobID = generateID()
-    pushJob(new OptionalJob(jobID, getPrevJobID(op.getLeft()), getPrevJobID(op.getRight())))
-    $operations_{parsed}$.put(op, jobID)
-
-
-private void generateMinusJob(OpMinus op) 
-    String jobID = generateID()
-    pushJob(new MinusJob(jobID, getPrevJobID(op.getLeft()), getPrevJobID(op.getRight())))
-    $operations_{parsed}$.put(op, jobID)
-
-
-private void generateUnionJob(OpUnion op) 
-    String jobID = generateID()
-    pushJob(new UnionJob(jobID, getPrevJobID(op.getLeft()), getPrevJobID(op.getRight())))
-    $operations_{parsed}$.put(op, jobID)
+function generateUnionJob($op_{OpUnion}$) 
+    $jobID$ := generateID()
+    pushJob(createUnionJob($jobID$, getJobID($op$.getLeft()), getJobID($op$.getRight())))
+    $operations_{parsed}$[$op$] := $jobID$
 
 
 

@@ -366,10 +366,10 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
 
     private void generateRandomJoinPipeline(OpBGP op, Map<String, Set<Var>> bgp) {
         int numJobs = bgp.size();
-        Map<String, List<String>> graph = new HashMap<>(numJobs);
+        Map<String, Set<String>> graph = new HashMap<>(numJobs);
         List<String> jobs = new ArrayList<>(numJobs);
         Set<Var> allVars = new HashSet<>();
-        generateAdjacencyMatrix(bgp, numJobs, graph, jobs, allVars);
+        generateAdjacencyMatrix(bgp, graph, jobs, allVars);
 
         List<String> path = new ArrayList<>(numJobs);
         Set<String> sampled = new HashSet<>();
@@ -406,16 +406,16 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
 
-    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, int numJobs, Map<
-            String, List<String>> graph, List<String> jobs, Set<Var> allVars) {
-        List<String> edges;
+    private static void generateAdjacencyMatrix(Map<String, Set<Var>> bgp, Map<
+            String, Set<String>> graph, List<String> jobs, Set<Var> allVars) {
+        Set<String> edges;
         Set<Var> v2, v1;
         for (String jobID : bgp.keySet()) {
             jobs.add(jobID);
             v1 = bgp.get(jobID);
             allVars.addAll(v1);
             System.out.println("[" + jobID + "] - " + Arrays.toString(v1.toArray()));
-            edges = new ArrayList<>(numJobs);
+            edges = new HashSet<>();
             for (String jobID2 : bgp.keySet()) {
                 v2 = bgp.get(jobID2);
                 if (!jobID.equals(jobID2)) {
@@ -432,7 +432,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         graph.forEach((job, l) -> System.out.println("[" + job + "] - " + Arrays.toString(l.toArray())));
     }
 
-    private void bfsSearch(String root, Map<String, List<String>> adjacencyMatrix, List<String> path,
+    private void bfsSearch(String root, Map<String, Set<String>> graph, List<String> path,
                            int depth) {
         Queue<String> queue = new LinkedList<>();
         path.add(root);
@@ -440,7 +440,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         String next;
         while (path.size() < depth) {
             next = queue.poll();
-            for (String neighbour : adjacencyMatrix.get(next)) {
+            for (String neighbour : graph.get(next)) {
                 if (!path.contains(neighbour)) {
                     path.add(neighbour);
                     queue.add(neighbour);

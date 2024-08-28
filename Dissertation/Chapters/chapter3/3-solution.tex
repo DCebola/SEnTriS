@@ -351,7 +351,9 @@ The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've ba
 
 \lstinputlisting[caption={\gls{SEnTri} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-engine.tex}
 
-One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of \gls{SEnTri} V0 query planner is shown in Listing ... .
+One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of \gls{SEnTri} V0 query planner is shown in Listing \ref{sparql-query-planner-pseudocode}.
+
+\lstinputlisting[caption={\gls{SEnTri} V0 SPARQL Query Planner}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-planner-v0.tex}
 
 Notice that the query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
 
