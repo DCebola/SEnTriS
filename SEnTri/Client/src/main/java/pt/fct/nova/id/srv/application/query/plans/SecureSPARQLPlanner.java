@@ -481,7 +481,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                 System.out.println("[" + joinID + "] - (" + jobID1 + "," + jobID2 + ")");
             }
             joins.forEach(plan::pushJob);
-            parsed_op.put(op, joins.get(joins.size() - 1).getID());
+            parsed_op.put(op, joins.getLast().getID());
         } else {
             String jobID = generateID();
             plan.pushJob(new EmptyResJob(jobID, allVars));
