@@ -151,8 +151,6 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
     \item \textit{SPARQL UPDATE}: it will be either $\textrm{SUCCESS}$, or $\bot$ in case of failure;
 \end{itemize}
 
-
-
 \subsubsection{SEnTri V1 and V2 specific}
 
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
@@ -293,7 +291,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0.  For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0. For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
 
 \subsubsection{Storage of triple patterns}
 
@@ -320,8 +318,6 @@ For patterns with 2 variables, the index consists in the concatenation of the pa
 
 For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" \space for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
 
-Finally, to support multiple triplestores, the indexes will be prepended with the identifier of the triplestore they belong to.
-
 In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTri} V0 storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
 
 \lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
@@ -346,7 +342,7 @@ Having defined how data is stored, we will now explain the protocol for evaluati
     SPARQL-EVAL is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Query Plan Generation} In \gls{SEnTri} we have created two abstractions to separate the logic for parsing a query, and generating the query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
+\paragraph{Query Plan Generation} In \gls{SEnTri} we created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
 The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
 
@@ -364,7 +360,7 @@ We generate a random ordering of the equi-joins, by randomly sampling one of the
 
 In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The currently \gls{SEnTri} only supports sequential dispatching of jobs to a single worker.
 
-The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and sent as output. 
+The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and stays available to be retrieved as output. 
 
 Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTri} V0.
 
@@ -372,26 +368,29 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 \lstinputlisting[caption={\gls{SEnTri} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
 
-\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. In this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, in case of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components:
+\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTri} components.
 
 \lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval-client.tex}
 
 \lstinputlisting[caption={SPARQL-EVAL triplestore}, label={sparql-eval-triplestore-pseudocode}]{Code/chapter3/sparql-eval-triplestore.tex}
-
-These two components are the base from where we developed the fully functional \gls{SEnTri} components. In the case of \gls{SEnTri} V0, they are missing the \emph{access control} and \emph{concurrency} logic, as well as, the algorithms for supporting reasoning. 
-
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
 We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{query rewriting} techniques, during the generation of query execution plans, to retain reasoning capabilities. 
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol with Reasoning}]\label{ch3:definition:sparql-protocol-reasoning}
-    Let \linebreak SPARQL-EVAL-II be a \emph{SPARQL} query evaluation protocol that supports reasoning. It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery, \; \textrm{SPARQL-EVAL}.GenerateFinalResult)$ of 2 algorithms:
+    Let \linebreak SPARQL-EVAL-II be a \emph{SPARQL} query evaluation protocol that supports reasoning, via the application of query rewriting techniques.
+    
+    It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery, \linebreak \textrm{SPARQL-EVAL}.GenerateFinalResult)$ of 3 algorithms:
     \begin{itemize}
-        \item $\{plan, \bot\} \leftarrow \mathbf{PlanQuery(query, \; inference, \; expansionDepth, \; transitivityDepth)}$: \linebreak takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan, $\bot$ otherwise.
-
+        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query, \; triplestoreID, }$\linebreak$\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: takes as input a \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
     \end{itemize}
+    SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
+
+\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listing \ref{storage-engine-schema-v0} we specify the extra operations of \gls{SEnTri} V0 storage engine requires to support the storage of schema triples.
+
+\lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
 
 \paragraph{Query Rewriting} 
 
@@ -434,7 +433,7 @@ For each index, the respective trapdoors are encrypted using a unique key. This 
 \begin{itemize}
     \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
     \item \emph{Be dynamic}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
-    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}. We will refer to the subset of triple patterns containing these nodes as \emph{schema triples}.
+    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}.
 \end{itemize}
 
 \gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. If we consider the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.

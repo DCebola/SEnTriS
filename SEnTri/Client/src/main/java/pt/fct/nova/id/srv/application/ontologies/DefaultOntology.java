@@ -75,10 +75,9 @@ public class DefaultOntology implements Ontology {
             this.ontology = ModelFactory.createOntologyModel(spec, tbox);
             execClassInference();
             execPropertyInference();
-        }else{
+        } else{
             this.ontology = tbox;
         }
-
     }
 
     private void execClassInference() {

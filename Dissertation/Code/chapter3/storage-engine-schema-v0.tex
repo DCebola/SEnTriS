@@ -1,0 +1,33 @@
+State:
+    $keyword_{schema}$ := generateRandomString()
+
+function save($triplestoreID$, $triples$, $schema$):
+    if $schema$ == true:
+        delete($triplestoreID$, $schema$)
+        foreach $t$ in $triples$:
+            saveSchemaTriple($t$)
+    else:
+        foreach $t$ in $triples$:
+            saveTriple($t$)
+    return "SUCCESS"
+
+function delete($triplestoreID$, $schema$):
+    if $schema$ == true:
+        $triplestores$ := $triplestores$ / { $triplestores$[$triplestoreID$][$schema$] }
+    else:
+        $triplestores$ := $triplestores$ / { $triplestores$[$triplestoreID$] }
+    return "SUCCESS"
+
+function saveSchemaTriple($triple = (s, \; p, \; o)$):
+    $parsed_s$ := parseNode($s$)
+    $parsed_p$ := parseNode($p$)
+    $parsed_o$ := parseNode($o$)
+    $triple$ := $parsed_s$ || $separator_{III}$ || $parsed_p$ || $separator_{III}$ || $parsed_o$
+    $triplestores$[$triplestoreID$][$keyword_{schema}$] := $triplestores$[$triplestoreID$][$keyword_{schema}$] :U { $triple$ }
+
+function searchSchema($triplestoreID$):
+    $triples_{schema}$ := {}
+    foreach $t$ in $triplestores$[$triplestoreID$][$keyword_{schema}$]:
+        $(parsed_s, \; parsed_p, \; parsed_o)$ := $t$.split($separator_{III}$)
+        $triples_{schema}$ := $triples_{schema}$ :U { (generateNode($parsed_s$), generateNode($parsed_p$), generateNode($parsed_o$)) }
+    return $triples_{schema}$
