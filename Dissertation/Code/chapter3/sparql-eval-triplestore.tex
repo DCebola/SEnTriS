@@ -1,0 +1,15 @@
+State:
+    $storageEngine$ := createStorageEngine()
+    
+# SPARQL-EVAL.evaluateQuery($triplestoreID$, $plan$):
+function evaluateQuery($triplestoreID$, $plan$):
+    $worker$ := createQueryWorker($triplestoreID$, $storageEngine$)
+    $execution$ := createQueryExecution()
+    $execution$.exec($plan$, $worker$)
+    return $execution$.getSPARQLResult()
+
+function saveTriples($triplestoreID$, $triples$):
+    return $storageEngine$.save($triplestoreID$, $triples$)
+
+function deleteTriples($triplestoreID$, $triples$):
+    return $storageEngine$.delete($triplestoreID$, $triples$)

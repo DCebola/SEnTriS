@@ -1,33 +1,37 @@
 State:
     triplestores := {}
 
-function saveTriple($triplestoreID$, $t = (s, p, o)$):
-    $parsed_s$ := parseNode($s$)
-    $parsed_p$ := parseNode($p$)
-    $parsed_o$ := parseNode($o$)
-    $keyword_s$ := parseKeyword($s$)
-    $keyword_p$ := parseKeyword($p$)
-    $keyword_o$ := parseKeyword($o$)
-    save($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
-    save($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
-    save($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
-    save($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
-    save($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
-    save($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
+function save($triplestoreID$, $triples$):
+    foreach $t = (s, p, o)$ in $triples$:
+        $parsed_s$ := parseNode($s$)
+        $parsed_p$ := parseNode($p$)
+        $parsed_o$ := parseNode($o$)
+        $keyword_s$ := parseKeyword($s$)
+        $keyword_p$ := parseKeyword($p$)
+        $keyword_o$ := parseKeyword($o$)
+        save($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
+        save($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
+        save($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
+        save($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
+        save($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
+        save($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
+    return "SUCCESS"
 
-function deleteTriple($triplestoreID$, $t = (s, p, o)$):
-    $parsed_s$ := parseNode($s$)
-    $parsed_p$ := parseNode($p$)
-    $parsed_o$ := parseNode($o$)
-    $keyword_s$ := parseKeyword($s$)
-    $keyword_p$ := parseKeyword($p$)
-    $keyword_o$ := parseKeyword($o$)
-    delete($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
-    delete($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
-    delete($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
-    delete($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
-    delete($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
-    delete($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
+function delete($triplestoreID$, $triples$):
+    foreach $t = (s, p, o)$ in $triples$:
+        $parsed_s$ := parseNode($s$)
+        $parsed_p$ := parseNode($p$)
+        $parsed_o$ := parseNode($o$)
+        $keyword_s$ := parseKeyword($s$)
+        $keyword_p$ := parseKeyword($p$)
+        $keyword_o$ := parseKeyword($o$)
+        delete($triplestoreID$, "PO", $keyword_s$, $parsed_p$, $parsed_o$)
+        delete($triplestoreID$, "SO", $keyword_p$, $parsed_s$, $parsed_o$)
+        delete($triplestoreID$, "SP", $keyword_o$, $parsed_s$, $parsed_p$)
+        delete($triplestoreID$, "S", $keyword_p$, $keyword_o$, $parsed_s$)
+        delete($triplestoreID$, "P", $keyword_s$, $keyword_o$, $parsed_p$)
+        delete($triplestoreID$, "O", $keyword_s$, $keyword_p$, $parsed_o$)
+    return "SUCCESS"
 
 function save($triplestoreID$, $varPattern$, $keyword$, $node_1$, $node_2$):
     $index$ := generateIndex($triplestoreID$, $varPattern$, $keyword$)
