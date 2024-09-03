@@ -388,11 +388,11 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
     SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listing \ref{storage-engine-schema-v0} we specify the extra operations of \gls{SEnTri} V0 storage engine requires to support the storage of schema triples.
+\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listing \ref{storage-engine-schema-v0} we specify the modifications and extra operations of \gls{SEnTri} V0 storage engine that are required to support the storage of such triples.
 
 \lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
 
-\paragraph{Query Rewriting} 
+\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and compile the triplestore's ontology. We will only rewrite 
 
 \subsubsection{Supported Queries}
 
@@ -834,11 +834,13 @@ In \gls{SEnTri} V2 provides both data confidentiality, access control and reduce
 \section{Complexity Analysis}
 \subsection{Storage Complexity}
 %Space complexity in terms of RDF terms
+\subsubsection{SEnTri V0}
 \subsubsection{SEnTri V1}
 \subsubsection{SEnTri V2}
 
 \subsection{Query Evaluation Complexity}
 %Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
+\subsubsection{SEnTri V0}
 \subsubsection{SEnTri V1}
 \subsubsection{SEnTri V2}
 
