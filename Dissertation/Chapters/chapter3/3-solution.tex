@@ -392,7 +392,18 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
 
 \lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
 
-\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and compile the triplestore's ontology. We will only rewrite 
+\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTri}, an ontology is an abstraction where we map class and property axioms to nodes. 
+
+Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model with the schema triples. After the generation of the model, we enumerate all classes and properties and store their axioms in adequate auxiliary data structures. Listing ... provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
+
+During the query execution plan creation, when we are visiting a \gls{BGP}, we consult the ontology and search for axioms relating to the nodes present in the triple patterns. These axioms are used to expand the \gls{BGP} with new patterns. The patterns that are added to the original, are generated with the following rules: 
+
+\begin{enumerate}
+    \item 
+\end{enumerate}
+
+The modifications to the query parser are depicted in Listing ... .
+
 
 \subsubsection{Supported Queries}
 
