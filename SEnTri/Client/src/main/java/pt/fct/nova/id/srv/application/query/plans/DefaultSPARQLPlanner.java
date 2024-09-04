@@ -287,8 +287,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 right = pushSearch(s, property, var, jobs, jobsIDs);
                 left = pushSearch(var, rdfType, value, jobs, jobsIDs);
                 join = pushJoin(
-                        expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
-                        expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
+                        expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth + 1, jobs, jobsIDs, true, true),
+                        expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth + 1, jobs, jobsIDs), jobs, jobsIDs);
                 jobID = pushUnion(jobID, join, jobs, jobsIDs);
             }
         }

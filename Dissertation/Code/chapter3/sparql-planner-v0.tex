@@ -147,7 +147,7 @@ function generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$)
             $stop$ := $true$
     if $\#path$ == $numJobs$: 
         $joins$ = createLinkedList()
-        for $i$ in range($\#path$):
+        for $i$ in range(0, $\#path$):
             $jobID_1$ = $path$.get($i$)
             $jobID_2$ = $path$.get($i$ + 1)
             $joinID$ = generateID()
