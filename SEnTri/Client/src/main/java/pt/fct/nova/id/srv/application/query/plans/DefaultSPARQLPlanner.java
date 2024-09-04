@@ -252,8 +252,8 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, rdfType, o));
         jobID = expandClassDisjunction("SUBCLASS", ontology.getSubClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
         jobID = expandClassDisjunction("EQUIVALENT", ontology.getEquivalentClasses(o), jobID, s, depth, jobs, jobsIDs, rdfType);
-        jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
         jobID = expandRestriction("RESTRICTION", ontology.getRestriction(o), jobID, s, depth, jobs, jobsIDs, rdfType);
+        jobID = expandClassDisjunction("INTERSECTION-OPERAND", ontology.getIntersectionWhereClassIsOperand(o), jobID, s, depth, jobs, jobsIDs, rdfType);
         Collection<? extends OntClass> intersection = ontology.getIntersection(o);
         if (!intersection.isEmpty())
             jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType);
@@ -271,18 +271,26 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
                 var = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
                 property = restriction.getOnProperty().asNode();
                 value = restriction.asHasValueRestriction().getHasValue().asNode();
-                jobID = expandProperty(prefix.concat(" PROPERTY"), pushSearch(s, property, value, jobs, jobsIDs), s, property, value, depth + 1, jobs, jobsIDs, true, true);
+                jobID = pushUnion(
+                        pushSearch(var, rdfType, value, jobs, jobsIDs),
+                        expandProperty(prefix.concat(" PROPERTY"), pushSearch(s, property, value, jobs, jobsIDs), s, property, value, depth + 1, jobs, jobsIDs, true, true),
+                        jobs, jobsIDs);
             } else {
-                var = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
+                if (restriction.isSomeValuesFromRestriction())
+                    value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
+                else if (restriction.isAllValuesFromRestriction())
+                    value = restriction.asAllValuesFromRestriction().asNode();
+                else
+                    return jobID;
+                var = Var.alloc(value.getLocalName());
                 property = restriction.getOnProperty().asNode();
-                value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
+                right = pushSearch(s, property, var, jobs, jobsIDs);
+                left = pushSearch(var, rdfType, value, jobs, jobsIDs);
+                join = pushJoin(
+                        expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
+                        expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
+                jobID = pushUnion(jobID, join, jobs, jobsIDs);
             }
-            right = pushSearch(s, property, var, jobs, jobsIDs);
-            left = pushSearch(var, rdfType, value, jobs, jobsIDs);
-            join = pushJoin(
-                    expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
-                    expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
-            jobID = pushUnion(jobID, join, jobs, jobsIDs);
         }
         return jobID;
     }

@@ -97,9 +97,7 @@ public class DefaultOntology implements Ontology {
         Restriction currentRestriction;
         for (ExtendedIterator<Restriction> it = ontology.listRestrictions(); it.hasNext(); ) {
             currentRestriction = it.next();
-            if (currentRestriction.isSomeValuesFromRestriction())
-                classRestrictions.put(currentRestriction.asNode(), currentRestriction);
-            else if (currentRestriction.isHasValueRestriction())
+            if (currentRestriction.isSomeValuesFromRestriction() || currentRestriction.isAllValuesFromRestriction() || currentRestriction.isSomeValuesFromRestriction())
                 classRestrictions.put(currentRestriction.asNode(), currentRestriction);
         }
         IntersectionClass intersection;
