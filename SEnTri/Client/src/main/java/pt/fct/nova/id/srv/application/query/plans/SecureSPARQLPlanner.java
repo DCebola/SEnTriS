@@ -383,11 +383,11 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
                     return jobID;
                 var = Var.alloc(value.getLocalName());
                 property = restriction.getOnProperty().asNode();
-                right = pushSearch(s, property, var, jobs, jobsIDs);
                 left = pushSearch(var, rdfType, value, jobs, jobsIDs);
+                right = pushSearch(s, property, var, jobs, jobsIDs);
                 join = pushJoin(
-                        expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth + 1, jobs, jobsIDs, true, true),
-                        expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth + 1, jobs, jobsIDs), jobs, jobsIDs);
+                        expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth + 1, jobs, jobsIDs),
+                        expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth + 1, jobs, jobsIDs, true, true), jobs, jobsIDs);
                 jobID = pushUnion(jobID, join, jobs, jobsIDs);
             }
         }
@@ -396,33 +396,33 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
 
     private String expandClassConjunction(String prefix, Collection<? extends OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
-        String search, right = null, left;
+        String search, next = null, current;
         for (OntClass ontClass : ontClasses) {
             search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
-            left = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
-            if (right != null)
-                right = pushJoin(right, left, jobs, jobsIDs);
+            current = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            if (next != null)
+                next = pushJoin(next, current, jobs, jobsIDs);
             else
-                right = left;
+                next = current;
         }
-        if (right != null)
-            return pushUnion(jobID, right, jobs, jobsIDs);
+        if (next != null)
+            return pushUnion(jobID, next, jobs, jobsIDs);
         return jobID;
     }
 
     private String expandClassDisjunction(String prefix, Collection<OntClass> ontClasses, String jobID, Node s, int depth, Map<String, Job> jobs,
                                           Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
-        String search, right = null, left;
+        String search, next = null, current;
         for (OntClass ontClass : ontClasses) {
             search = pushSearch(s, rdfType, ontClass.asNode(), jobs, jobsIDs);
-            left = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
-            if (right != null)
-                right = pushUnion(right, left, jobs, jobsIDs);
+            current = expandClass(prefix.concat(" CLASS"), search, s, ontClass.asNode(), depth + 1, jobs, jobsIDs);
+            if (next != null)
+                next = pushUnion(next, current, jobs, jobsIDs);
             else
-                right = left;
+                next = current;
         }
-        if (right != null)
-            return pushUnion(jobID, right, jobs, jobsIDs);
+        if (next != null)
+            return pushUnion(jobID, next, jobs, jobsIDs);
         return jobID;
     }
 

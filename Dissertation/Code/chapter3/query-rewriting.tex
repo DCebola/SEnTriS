@@ -76,53 +76,55 @@ function generateSearchJobs($op_{OpBGP}$):
 function expandClass($jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$):
     if $depth$ == $ontology$.getMaximumExpansionDepth():
         return $jobID$
-    $jobID$ := expandClassDisjunction($ontology$.getSubClasses($o$), $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
-    $jobID$ := expandClassDisjunction($ontology$.getEquivalentClasses($o$), $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
-    $jobID$ := expandRestriction($ontology$.getRestriction($o$), $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
-    $jobID$ := expandClassDisjunction($ontology$.getIntersectionWhereClassIsOperand($o$), $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
+    $subclasses$ := $ontology$.getSubClasses($o$)
+    $equivalentClasses$ := $ontology$.getEquivalentClasses($o$)
+    $restriction$ := $ontology$.getRestriction($o$)
+    $intersectionClasses$ := $ontology$.getIntersectionWhereClassIsOperand($o$)
+    $jobID$ := expandClassDisjunction($subclasses$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
+    $jobID$ := expandClassDisjunction($equivalentClasses$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
+    $jobID$ := expandRestriction($restriction$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
+    $jobID$ := expandClassDisjunction($intersectionClasses$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
     $intersection$ := $ontology$.getIntersection($o$)
-    if (!intersection.isEmpty())
+    if $\#intersection$ == 0:
         $jobID$ := expandClassConjunction($intersection$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
     return $jobID$
 
 function expandRestriction($restriction = (type, \; property, \; value)$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):   
     if $restriction$ :neq :bot:
         if $type$ == "owl:hasValue":
-            $left$ := pushSearch(createVariable(parse($property$)), "rdf:type", $value$, $jobs$, $jobsIDs$)
+        $var$ := createVariable(parse($property$))
+            $left$ := pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$) 
             $right$ := expandProperty(pushSearch($s$, $property$, $value$, jobs, jobsIDs), $s$, $property$, $value$, $depth$ + 1, $jobs$, $jobsIDs$, true, true)
-            $jobID$ := pushUnion($left$, $right$, $jobs$, $jobsIDs$)
+            $jobID$ := pushUnion($right$, $left$, $jobs$, $jobsIDs$)
         elif $type \in \{$"owl:isSomeValuesFrom", "owl:allValuesFrom"$\}$:
             $var$ := createVariable(parse($value$))
-            $right$ := pushSearch($s$, $property$, $var$, $jobs$, $jobsIDs$)
-            $left$ := pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$)
-            $right_{expanded}$ := expandProperty($right$, $s$, $property$, $var$, $depth$ + 1, $jobs$, $jobsIDs$, true, true)
-            $left_{expanded}$ := expandClass($left$, $var$, $value$, $depth$ + 1, $jobs$, $jobsIDs$)
-            $join$ := pushJoin($right_{expanded}$, $left_{expanded}$, $jobs$, $jobsIDs$)
-            $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
+            $left$ := expandClass(pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$), $var$, $value$, $depth$ + 1, $jobs$, $jobsIDs$)
+            $right$ := expandProperty(pushSearch($s$, $property$, $var$, $jobs$, $jobsIDs$), $s$, $property$, $var$, $depth$ + 1, $jobs$, $jobsIDs$, true, true)
+            $jobID$ := pushUnion($jobID$, pushJoin($right$, $left$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
     return $jobID$
 
 function expandClassConjunction($classes$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):
     foreach $c$ in $classes$:
         $search$ := pushSearch($s$, "rdf:type", $c$, $jobs$, $jobsIDs$)
-        $left$ = expandClass($search$, $s$, $c$, $depth$ + 1, $jobs$, $jobsIDs$)
-        if $right$ :neq :bot:
-            $right$ := pushJoin($right$, $left$, $jobs$, $jobsIDs$)
+        $current$ = expandClass($search$, $s$, $c$, $depth$ + 1, $jobs$, $jobsIDs$)
+        if $next$ :neq :bot:
+            $next$ := pushJoin($next$, $current$, $jobs$, $jobsIDs$)
         else:
-            $right$ := $left$
-    if $right$ == :neq:
-        return pushUnion($jobID$, $right$, $jobs$, $jobsIDs$)
+            $next$ := $current$
+    if $next$ == :bot:
+        return pushUnion($jobID$, $next$, $jobs$, $jobsIDs$)
     return $jobID$
 
 function expandClassDisjunction($classes$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):
     foreach $c$ in $classes$:
         $search$ := pushSearch($s$, "rdf:type", $c$, $jobs$, $jobsIDs$)
-        $left$ = expandClass($search$, $s$, $c$, $depth$ + 1, $jobs$, $jobsIDs$)
-        if $right$ :neq :bot:
-            $right$ := pushUnion($right$, $left$, $jobs$, $jobsIDs$)
+        $current$ = expandClass($search$, $s$, $c$, $depth$ + 1, $jobs$, $jobsIDs$)
+        if $next$ :neq :bot:
+            $next$ := pushUnion($next$, $current$, $jobs$, $jobsIDs$)
         else:
-            $right$ := $left$
-    if $right$ == :neq:
-        return pushUnion($jobID$, $right$, $jobs$, $jobsIDs$)
+            $next$ := $current$
+    if $next$ == :bot:
+        return pushUnion($jobID$, $next$, $jobs$, $jobsIDs$)
     return $jobID$
 
 function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$):
@@ -144,15 +146,17 @@ function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $sym
                     $var$ = $var_{next}$
             $join$ := pushJoin($left$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
             $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
-    
-    $jobID$ := expandProperties($ontology$.getSubProperties($p$), $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
-    $jobID$ := expandProperties($ontology$.getEquivalentProperties($p$), $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+    $subproperties$ := $ontology$.getSubProperties($p$)
+    $equivalentProperties$ := $ontology$.getEquivalentProperties($p$)
+    $jobID$ := expandProperties($subproperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+    $jobID$ := expandProperties($equivalentProperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
     if $inverseOf$ == true:
-        $jobID$ := expandProperties($ontology$.getInverseOf($p$), $jobID$, $o$, $s$, $depth$, $jobs$, $jobsIDs$, $symmetric$, false)
+        $inverseProperty$ := $ontology$.getInverseOf($p$)
+        $jobID$ := expandProperties($inverseProperty$, $jobID$, $o$, $s$, $depth$, $jobs$, $jobsIDs$, $symmetric$, false)
     return $jobID$
 
 function expandProperties($properties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$):
     for $p$ in $properties$:
         $jobID$ := pushUnion($jobID$, pushSearch($s$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
-        $jobID$ := expandProperty($prefix$, $jobID$, $s$, $p$, $o$, $depth$ + 1, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+        $jobID$ := expandProperty($jobID$, $s$, $p$, $o$, $depth$ + 1, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
     return $jobID$
