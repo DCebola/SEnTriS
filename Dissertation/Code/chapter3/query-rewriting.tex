@@ -1,101 +1,77 @@
+State:
+    $operations_{parsed}$ := {}
+    $upload_{template}$ := {}
+    $delete_{template}$ := {}
+    $construct_{template}$ := {}
+    $queryType$ := $:bot$
+    $plan$ := ($jobs$ = {}, $execOrder$ = createLinkedList(), $vars$ = {})
+    $variables$ := {}
+    $ontology$ := :bot
 
-private void generateGetJobs(OpBGP op) throws InvalidNodeException 
-    List<Triple> patterns = op.getPattern().getList()
-    Map<String, String> jobIDs = new HashMap<>()
-    Map<String, Job> jobs = new HashMap<>()
-    Map<String, Set<Var>> bgp = new HashMap<>()
-    Node s, p, o
-    String jobID = null
-    Job job
-    for (Triple t : patterns) 
-        s = t.getSubject()
-        p = t.getPredicate()
-        o = t.getObject()
-        jobID = pushSearch(s, p, o, jobs, jobIDs)
-        if (ontology != null) 
-            if (p == (RDF.type.asNode()) && !o.isVariable())
-                jobID = expandClass("PATTERN", jobID, s, o, 0, jobs, jobIDs)
-            elif (!p.isVariable())
-                jobID = expandProperty("PATTERN", jobID, s, p, o, 0, jobs, jobIDs, true, true)
-        
-        job = jobs.get(jobID)
-        Set<Var> extractedVars
-        if (job is SearchJob searchJob) 
-            extractedVars = extractVars(searchJob)
-            $variables$.addAll(extractedVars)
-            bgp.put(jobID, extractVars(searchJob))
-            elif (job is Job2 job2)
-            bgp.put(jobID, extractVarsOfJob2(jobs, job2))
+function setOntology($ontology_{new}$):
+    $ontology$ := $ontology_{new}$
 
-    
-    if (patterns.size() > 1) 
-        generateRandomJoinPipeline(op, bgp)
-        elif (jobID != null)
-        $operations_{parsed}$.put(op, jobID)
+function extractVarsOfBinaryJob($jobs$, $job = (jobID, \; jobID_l, \; jobID_r)$) 
+    $vars$ := {}
+    $jobs_{queue}$ := createQueue()
+    $jobs_{queue}$.push($jobs$[$jobID_l$])
+    $jobs_{queue}$.push($jobs$[$jobID_r$])
+    while $\#jobs_{queue} > 0$: 
+        $job_{next}$ := $jobs_{queue}$.poll()
+        if $job_{next}$ is SEARCH:
+            $vars$ := $vars$ :U extractVars(searchJob)
+        elif $job_{next} = (jobID_{next}, \; l, \; r)$ is BINARY:
+            $jobs_{queue}$.push($jobs$[$l$])
+            $jobs_{queue}$.push($jobs$[$r$])
+    return $vars$
 
+function pushUnion($left$, $right$, $jobs$, $jobIDs$) 
+    $unionPattern$ := "union" || $left$ || $right$
+    $jobID$ := $jobIDs$[$unionPattern$]
+    if $jobID$ == :bot: 
+        $job_{MINUS}$ := createMinusJob(generateID(), $right$, $left$)
+        $jobID$ := generateID()
+        $job_{UNION}$ := createUnionJob($jobID$, $left$, $job_{MINUS}$.jobID)
+        $jobs$[$jobID$] := $job_{UNION}$
+        $jobIDs$[$jobID$] := $unionPattern$
+        pushJob($job_{MINUS}$)
+        pushJob($job_{UNION}$)
+    return $jobID$
 
-private Set<Var> extractVarsOfJob2(Map<String, Job> jobs, Job2 job) 
-    Set<Var> $variables$ = new HashSet<>()
-    Queue<Job> toBeProcessed = new LinkedList<>()
-    toBeProcessed.add(jobs.get(job.getLeftJobID()))
-    toBeProcessed.add(jobs.get(job.getRightJobID()))
-    Job next
-    while (!toBeProcessed.isEmpty()) 
-        next = toBeProcessed.poll()
-        if (next is SearchJob searchJob)
-            $variables$.addAll(extractVars(searchJob))
-        elif (next is Job2 job2) 
-            toBeProcessed.add(jobs.get(job2.getLeftJobID()))
-            toBeProcessed.add(jobs.get(job2.getRightJobID()))
-        
-    
-    return $variables$
+private String pushJoin($left$, $right$, $jobs$, $jobIDs$) 
+    $joinPattern$ := "join" || $left$ || $right$
+    $jobID$ := $jobIDs$[$joinPattern$]
+    if $jobID$ == :bot:
+        $jobID$ = generateID()
+        $job_{JOIN}$ = new JoinJob(jobID, left, right)
+        $jobs$[$jobID$] := $job_{JOIN}$
+        $jobIDs$[$joinPattern$] := $jobID$
+        pushJob($job_{JOIN}$)
+    return $jobID$
 
-
-
-private String pushSearch(Node s, Node p, Node o, Map<String, Job> jobs, Map<String, String> jobIDs) throws InvalidNodeException 
-    String jobSignature = ParsingUtils.parseTriple(s, p, o)
-    String jobID = jobIDs.get(jobSignature)
-    if (jobID == null) 
-        jobID = generateID()
-        SearchJob job = new SearchJob(jobID, extractVariablesPattern(s, p, o), s, p, o)
-        jobs.put(jobID, job)
-        jobIDs.put(jobSignature, jobID)
-        plan.pushJob(job)
-    
-    System.out.println("[SEARCH, " + jobID + "] - " + s + " | " + p + " | " + o)
-    return jobID
-
-
-private String pushUnion(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) 
-    String jobSignature = left.concat(right)
-    String jobID = jobIDs.get(jobSignature)
-    if (jobID == null) 
-        MinusJob minusJob = new MinusJob(generateID(), right, left)
-        jobID = generateID()
-        UnionJob job = new UnionJob(jobID, left, minusJob.getID())
-        jobs.put(jobID, job)
-        jobIDs.put(jobSignature, jobID)
-        plan.pushJob(minusJob)
-        plan.pushJob(job)
-    
-    System.out.println("[UNION, " + jobID + "] - " + left + " | " + right)
-    return jobID
-
-
-private String pushJoin(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) 
-    String jobSignature = left.concat(right)
-    String jobID = jobIDs.get(jobSignature)
-    if (jobID == null) 
-        jobID = generateID()
-        JoinJob job = new JoinJob(jobID, left, right)
-        jobs.put(jobID, job)
-        jobIDs.put(jobSignature, jobID)
-        plan.pushJob(job)
-    
-    System.out.println("[JOIN, " + jobID + "] - " + left + " | " + right)
-    return jobID
-
+function generateSearchJobs($op_{OpBGP}$):
+    $patterns$ = $op_{OpBGP}$.getPattern()
+    $jobIDs$ = {}
+    $jobs$ = {}
+    $jobVars$ = {}
+    foreach $t = (s, p, o)$ in $patterns$:
+        $jobID$ = pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$)
+        if $ontology$ :neq :bot:
+            if ($p$ is NODE) and ($o$ is not VARIABLE):
+                $jobID$ = expandClass($jobID$, $s$, $o$, 0, $jobs$, $jobIDs$)
+            elif $p$ is not VARIABLE:
+                $jobID$ = expandProperty($jobID$, $s$, $p$, $o$, 0, $jobs$, $jobIDs$, true, true)
+        $job$ := $jobs$[$jobID$]
+        if $job$ is SEARCH:
+            $vars_{job}$ := extractVars($job$)
+            $variables$ := $variables$ :U $vars_{job}$
+            $jobVars$[$jobID$] := $vars_{job}$
+        elif $job$ is BINARY:
+            $jobVars$[$jobID$] := extractVarsOfBinaryJob($jobs$, $job$)
+    if $\#patterns$ > 1:
+        generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$)
+    else:
+        $operations_{parsed}$.put($op_{OpBGP}$, $jobID$)
 
 private String expandClass(String prefix, String jobID, Node s, Node o, int depth, Map<String, Job> jobs, Map<String, String> jobsIDs) throws InvalidNodeException 
     assert ontology != null
@@ -111,6 +87,42 @@ private String expandClass(String prefix, String jobID, Node s, Node o, int dept
     if (!intersection.isEmpty())
         jobID = expandClassConjunction("INTERSECTION", intersection, jobID, s, depth, jobs, jobsIDs, rdfType)
     return jobID
+
+private String expandProperty(String prefix, String jobID, Node s, Node p, Node o, int depth,
+                                Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException 
+    assert ontology != null
+    if (depth == ontology.getMaximumExpansionDepth())
+        return jobID
+
+    System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o))
+    if (canExpandSymmetric && ontology.isSymmetric(p)) 
+        jobID = pushUnion(jobID, pushSearch(o, p, s, jobs, jobsIDs), jobs, jobsIDs)
+        jobID = expandProperty("SYMMETRIC", jobID, o, p, s, depth + 1, jobs, jobsIDs, false, canExpandInverseOf)
+    
+    if (ontology.isTransitive(p)) 
+        System.out.println("#####")
+        Var var = Var.alloc(p.getLocalName().concat(Integer.toString(0))), nextVar
+        String leftID = pushSearch(s, p, var, jobs, jobsIDs)
+        jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs)
+        for (int i = 1 i < ontology.getTransitivityDepth() i++) 
+            for (int j = 1 j < i + 1 j++) 
+                if (j == i) 
+                    nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)))
+                    leftID = pushJoin(leftID, pushSearch(var, p, nextVar, jobs, jobsIDs), jobs, jobsIDs)
+                    var = nextVar
+                
+            
+            jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs)
+        
+        System.out.println("#####")
+    
+
+    jobID = expandProperties("SUB-PROPERTY", ontology.getSubProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf)
+    jobID = expandProperties("EQUIVALENT-PROPERTY", ontology.getEquivalentProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf)
+    if (canExpandInverseOf)
+        jobID = expandProperties("INVERSE", ontology.getInverseOf(p), jobID, o, s, depth, jobs, jobsIDs, canExpandSymmetric, false)
+    return jobID
+
 
 
 private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs,
@@ -171,40 +183,6 @@ private String expandClassDisjunction(String prefix, Collection<OntClass> ontCla
     return jobID
 
 
-private String expandProperty(String prefix, String jobID, Node s, Node p, Node o, int depth,
-                                Map<String, Job> jobs, Map<String, String> jobsIDs, boolean canExpandSymmetric, boolean canExpandInverseOf) throws InvalidNodeException 
-    assert ontology != null
-    if (depth == ontology.getMaximumExpansionDepth())
-        return jobID
-
-    System.out.println("[" + prefix + "," + depth + "] - " + Triple.create(s, p, o))
-    if (canExpandSymmetric && ontology.isSymmetric(p)) 
-        jobID = pushUnion(jobID, pushSearch(o, p, s, jobs, jobsIDs), jobs, jobsIDs)
-        jobID = expandProperty("SYMMETRIC", jobID, o, p, s, depth + 1, jobs, jobsIDs, false, canExpandInverseOf)
-    
-    if (ontology.isTransitive(p)) 
-        System.out.println("#####")
-        Var var = Var.alloc(p.getLocalName().concat(Integer.toString(0))), nextVar
-        String leftID = pushSearch(s, p, var, jobs, jobsIDs)
-        jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs)
-        for (int i = 1 i < ontology.getTransitivityDepth() i++) 
-            for (int j = 1 j < i + 1 j++) 
-                if (j == i) 
-                    nextVar = Var.alloc(p.getLocalName().concat(Integer.toString(j)))
-                    leftID = pushJoin(leftID, pushSearch(var, p, nextVar, jobs, jobsIDs), jobs, jobsIDs)
-                    var = nextVar
-                
-            
-            jobID = pushUnion(jobID, pushJoin(leftID, pushSearch(var, p, o, jobs, jobsIDs), jobs, jobsIDs), jobs, jobsIDs)
-        
-        System.out.println("#####")
-    
-
-    jobID = expandProperties("SUB-PROPERTY", ontology.getSubProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf)
-    jobID = expandProperties("EQUIVALENT-PROPERTY", ontology.getEquivalentProperties(p), jobID, s, o, depth, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf)
-    if (canExpandInverseOf)
-        jobID = expandProperties("INVERSE", ontology.getInverseOf(p), jobID, o, s, depth, jobs, jobsIDs, canExpandSymmetric, false)
-    return jobID
 
 
 private String expandProperties(String prefix, Collection<? extends OntProperty> ontProperties, String jobID, Node s, Node o, int depth,
@@ -214,3 +192,4 @@ private String expandProperties(String prefix, Collection<? extends OntProperty>
         jobID = expandProperty(prefix, jobID, s, ontProperty.asNode(), o, depth + 1, jobs, jobsIDs, canExpandSymmetric, canExpandInverseOf)
     
     return jobID
+            

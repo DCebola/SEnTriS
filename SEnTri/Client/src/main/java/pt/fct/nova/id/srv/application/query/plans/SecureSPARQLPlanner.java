@@ -275,7 +275,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private String pushUnion(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
-        String jobSignature = left.concat(right);
+        String jobSignature = "union".concat(left.concat(right));
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
             MinusJob minusJob = new MinusJob(generateID(), right, left);
@@ -291,7 +291,7 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
     }
 
     private String pushJoin(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
-        String jobSignature = left.concat(right);
+        String jobSignature = "join".concat(left.concat(right));
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
             jobID = generateID();

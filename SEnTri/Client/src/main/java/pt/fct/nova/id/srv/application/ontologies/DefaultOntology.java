@@ -83,6 +83,7 @@ public class DefaultOntology implements Ontology {
     private void execClassInference() {
         Set<OntClass> s;
         OntClass c;
+
         for (ExtendedIterator<OntClass> it = ontology.listClasses(); it.hasNext(); ) {
             c = it.next();
             s = c.listSubClasses().toSet();

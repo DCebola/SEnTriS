@@ -215,7 +215,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     private String pushUnion(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
-        String jobSignature = left.concat(right);
+        String jobSignature = "union".concat(left.concat(right));
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
             MinusJob minusJob = new MinusJob(generateID(), right, left);
@@ -231,7 +231,7 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
     }
 
     private String pushJoin(String left, String right, Map<String, Job> jobs, Map<String, String> jobIDs) {
-        String jobSignature = left.concat(right);
+        String jobSignature = "join".concat(left.concat(right));
         String jobID = jobIDs.get(jobSignature);
         if (jobID == null) {
             jobID = generateID();
@@ -266,11 +266,12 @@ public class DefaultSPARQLPlanner extends OpVisitorByType implements SPARQLPlann
         Node property;
         String right, left, join;
         Node value;
-        if (restriction != null && (restriction.isHasValueRestriction() || restriction.isSomeValuesFromRestriction())) {
+        if (restriction != null) {
             if (restriction.isHasValueRestriction()) {
                 var = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
                 property = restriction.getOnProperty().asNode();
                 value = restriction.asHasValueRestriction().getHasValue().asNode();
+                jobID = expandProperty(prefix.concat(" PROPERTY"), pushSearch(s, property, value, jobs, jobsIDs), s, property, value, depth + 1, jobs, jobsIDs, true, true);
             } else {
                 var = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
                 property = restriction.getOnProperty().asNode();

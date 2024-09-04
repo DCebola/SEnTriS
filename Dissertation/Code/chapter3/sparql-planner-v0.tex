@@ -113,13 +113,13 @@ function generateSearchJobs($op_{OpBGP}$):
     $jobVars$ = {}
     foreach $t = (s, p, o)$ in $patterns$:
         $jobID$ = pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$)
-        $job$ = $jobs$.get($jobID$)
-        $vars_{job}$ = extractVars($job$)
-        $variables$ := $variables$ :U { $vars_{job}$ }
+        $job$ = $jobs$[$jobID$]
+        $vars_{job}$ := extractVars($job$)
+        $variables$ := $variables$ :U $vars_{job}$
         $jobVars$[$jobID$] := $vars_{job}$
     if $\#patterns$ > 1:
         generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$)
-    else
+    else:
         $operations_{parsed}$.put($op_{OpBGP}$, $jobID$)
     
 function pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$):
@@ -127,10 +127,10 @@ function pushSearch($s$, $p$, $o$, $jobs$, $jobIDs$):
     $jobID$ = $jobIDs$.get($searchPattern$)
     if $jobID$ == $:bot$: 
         $jobID$ := generateID()
-        $job$ := createSearchJob($jobID$, extractVariablesPattern($s$, $p$, $o$), $s$, $p$, $o$)
-        $jobs$[$jobID$] := $job$
+        $job_{SEARCH}$ := createSearchJob($jobID$, extractVariablesPattern($s$, $p$, $o$), $s$, $p$, $o$)
+        $jobs$[$jobID$] := $job_{SEARCH}$
         $jobIDs$[$searchPattern$] := $jobID$
-        pushJob($job$)
+        pushJob($job_{SEARCH}$)
     return $jobID$
 
 function generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$) 
@@ -166,7 +166,7 @@ function generateAdjacencyMatrix($jobVars$)
     $jobs$ := {}
     $vars$ := {}
     foreach $jobID_1$ in $jobVars$.getKeys(): 
-        $jobs$.add($jobID_1$)
+        $jobs$ := $jobs$ :U { $jobID_1$ }
         $v_1$ := $jobVars$[$jobID_1$]
         $vars$ := $vars$ :U $\;v_1$
         $edges$ := {}
