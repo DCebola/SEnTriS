@@ -394,15 +394,19 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
 
 \paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTri}, an ontology is an abstraction where we map class and property axioms to nodes. 
 
-Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model with the schema triples. After the generation of the model, we enumerate all classes and properties and store their axioms in adequate auxiliary data structures. Listing ... provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
+Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model. After the generation of the model, we load it with the schema triples. Once the triples are loaded, we iterate over all the classes and map each one to equivalent classes, subclasses, restrictions and intersections they are part of.
 
-During the query execution plan creation, when we are visiting a \gls{BGP}, we consult the ontology and search for axioms relating to the nodes present in the triple patterns. These axioms are used to expand the \gls{BGP} with new patterns. The patterns that are added to the original, are generated with the following rules: 
+In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two booleans which are true if, respectively, the property is symmetric and transitive.
 
-\begin{enumerate}
-    \item 
-\end{enumerate}
+All of this information is stored in adequate auxiliary data structures which will accessible to the query planner. Listing ... provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
 
-The modifications to the query parser are depicted in Listing ... .
+During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required are depicted in Listing \ref{query-rewriting-v0}. 
+
+\lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting-v0}]{Code/chapter3/query-rewriting.tex}
+
+Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions and intersections;  subproperties, equivalent, transitive, symmetric and inverse properties. Furthermore, we assume that the data that will be queried is consistent with the ontology provided. 
+
+We expand the triple patterns in a leveled approach. We decided to implement this parametrized expansion and transitive depth because it offers control over the expansion of the query, which impacts performance: the expansion may introduce additional operations. 
 
 
 \subsubsection{Supported Queries}
