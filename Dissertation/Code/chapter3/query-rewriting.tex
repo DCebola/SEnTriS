@@ -43,7 +43,7 @@ private String pushJoin($left$, $right$, $jobs$, $jobIDs$):
     $jobID$ := $jobIDs$[$joinPattern$]
     if $jobID$ == :bot:
         $jobID$ = generateID()
-        $job_{JOIN}$ = new JoinJob(jobID, left, right)
+        $job_{JOIN}$ = createJoinJob(jobID, left, right)
         $jobs$[$jobID$] := $job_{JOIN}$
         $jobIDs$[$joinPattern$] := $jobID$
         pushJob($job_{JOIN}$)
@@ -89,7 +89,7 @@ function expandClass($jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$):
         $jobID$ := expandClassConjunction($intersection$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
     return $jobID$
 
-function expandRestriction($restriction = (type, \; property, \; value)$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):   
+function expandRestriction($restriction = (type, \; property, value)$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):   
     if $restriction$ :neq :bot:
         if $type$ == "owl:hasValue":
         $var$ := createVariable(parse($property$))

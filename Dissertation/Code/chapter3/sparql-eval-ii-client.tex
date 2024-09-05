@@ -1,0 +1,23 @@
+State:
+    $queryEngine$ := createSPARQLQueryEngine()
+    $planner$ := :bot
+
+function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
+    try:
+        ($planner$, $plan$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        $queryType$ := $planner$.getQueryType()
+        if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
+            $sparqlResult$ := Triplestore.evaluateQuery($triplestoreID$, $plan$)
+        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+    catch Exception:
+        return :bot
+
+# SPARQL-EVAL-II.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
+function planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$):
+    $planner$ := createSPARQLQueryPlanner()
+    if $inference$ == true:
+        $schema$ := Triplestore.fecthSchema($triplestoreID$)
+        $ontology$ := createOntology()
+        $ontology$ := execInference($schema$, $inference$, $expansionDepth$, $transitivityDepth$)
+        $planner$.setOntology($ontology$)   
+    return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$))

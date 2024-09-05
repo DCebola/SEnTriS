@@ -388,28 +388,46 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
     SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listing \ref{storage-engine-schema-v0} we specify the modifications and extra operations of \gls{SEnTri} V0 storage engine that are required to support the storage of such triples.
+\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema-v0} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to \gls{SEnTri} V0 storage engine and the extra operations of the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
 
 \lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
+
+\lstinputlisting[caption={SPARQL-EVAL-II triplestore (extra operations)}, label={sparql-eval-ii-triplestore-pseudocode}]{Code/chapter3/sparql-eval-ii-triplestore.tex}
 
 \paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTri}, an ontology is an abstraction where we map class and property axioms to nodes. 
 
 Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model. After the generation of the model, we load it with the schema triples. Once the triples are loaded, we iterate over all the classes and map each one to equivalent classes, subclasses, restrictions and intersections they are part of.
 
-In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two booleans which are true if, respectively, the property is symmetric and transitive.
+In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two boolean parameters which are true if, respectively, the property is symmetric and transitive.
 
-All of this information is stored in adequate auxiliary data structures which will accessible to the query planner. Listing ... provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
+All of this information is stored in adequate auxiliary data structures which will accessible to the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
 
-During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required are depicted in Listing \ref{query-rewriting-v0}. 
+\lstinputlisting[caption={SEnTri Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
+
+During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting-v0} and \ref{sparql-eval-ii-client-pseudocode} respectively. 
 
 \lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting-v0}]{Code/chapter3/query-rewriting.tex}
 
-Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions and intersections;  subproperties, equivalent, transitive, symmetric and inverse properties. Furthermore, we assume that the data that will be queried is consistent with the ontology provided. 
+\lstinputlisting[caption={PARQL-EVAL-II client (modified operations)}, label={sparql-eval-ii-client-pseudocode}]{Code/chapter3/sparql-eval-ii-client.tex}
 
-We expand the triple patterns in a leveled approach. We decided to implement this parametrized expansion and transitive depth because it offers control over the expansion of the query, which impacts performance: the expansion may introduce additional operations. 
+Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions and intersections;  subproperties, equivalent, transitive, symmetric and inverse properties. Furthermore, we assume that the data which will be queried is consistent with the ontology provided. 
 
+We expand the triple patterns in a leveled approach. We decided to implement this solution with parametrized expansion and transitivity depth because it offers control over the expansion of the query, which impacts performance: the expansion tends to introduce additional operations.
+
+To conclude, this approach may also introduce duplicates into the results of a query, so we are required to use the DISTINCT modifier. 
 
 \subsubsection{Supported Queries}
+
+The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTri} will only be capable of evaluating the subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
+
+\begin{equation}
+    \begin{split} 
+    P ::= \;\; & tp \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P\; \textrm{FILTER}\; R \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; P_1\; \textrm{MINUS}\; P_2
+    \end{split}
+\end{equation}
+
+All query types will be supported apart from the LOAD and CLEAR, which will be implemented with dedicated operations to create, upload and delete a triplestore.
+
 
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}

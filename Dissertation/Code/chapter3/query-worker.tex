@@ -1,12 +1,11 @@
 State:
     $triplestoreID$ := :bot
     $storageEngine$ := :bot
-    $sparqlResult$ := :bot 
+    $sparqlResult$ := ({}, false, false, false, :bot, :bot)
 
-function create($target$, $storage$):
+function setContext($target$, $storage$):
     $triplestoreID$ := $target$
     $storageEngine$ := $storage$
-    $sparqlResult$ := ({}, false, false, false, :bot, :bot)
 
 function exec($job$):
     if $job$ is SEARCH:

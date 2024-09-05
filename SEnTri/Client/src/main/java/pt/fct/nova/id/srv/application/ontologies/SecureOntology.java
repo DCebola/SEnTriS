@@ -27,12 +27,11 @@ public class SecureOntology implements Ontology {
     Set<Node> transitiveProperties = new HashSet<>();
     OntModel ontology;
     OntModelSpec spec;
-    String triplestoreID;
     private final int transitivityDepth;
     private final int expansionDepth;
 
 
-    public SecureOntology(String triplestoreID, int t, int e) {
+    public SecureOntology(int t, int e) {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
@@ -44,12 +43,11 @@ public class SecureOntology implements Ontology {
         this.transitivityDepth = t;
         this.expansionDepth = e;
         this.spec = OWL_MEM_TRANS_INF;
-        this.triplestoreID = triplestoreID;
         this.ontology = ModelFactory.createOntologyModel(OWL_MEM);
 
     }
 
-    public SecureOntology(String triplestoreID) {
+    public SecureOntology() {
         this.subClasses = new HashMap<>();
         this.equivalentClasses = new HashMap<>();
         this.intersectionClasses = new HashMap<>();
@@ -61,7 +59,6 @@ public class SecureOntology implements Ontology {
         this.transitivityDepth = 0;
         this.expansionDepth = 0;
         this.spec = OWL_MEM_TRANS_INF;
-        this.triplestoreID = triplestoreID;
         this.ontology = ModelFactory.createOntologyModel(OWL_MEM);
     }
 

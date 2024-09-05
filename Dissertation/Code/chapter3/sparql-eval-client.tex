@@ -12,7 +12,7 @@ function executeSPARQLQuery($triplestoreID$, $query$):
     catch Exception:
         return :bot
 
-# SPARQL-EVAL.planQuery(query)
+# SPARQL-EVAL.planQuery($query$):
 function planQuery(query):
     $planner$ := createSPARQLQueryPlanner()
     return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$))

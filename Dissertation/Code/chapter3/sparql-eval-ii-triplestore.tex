@@ -1,0 +1,11 @@
+State:
+    $storageEngine$ := createStorageEngine()
+
+function saveTriples($triplestoreID$, $triples$, $schema$):
+    return $storageEngine$.save($triplestoreID$, $triples$)
+
+function delete($triplestoreID$, $schema$):
+    return $storageEngine$.delete($triplestoreID$, $schema$)
+
+function findSchema($triplestoreID$)
+    return storageEngine.searchSchema($triplestoreID$)

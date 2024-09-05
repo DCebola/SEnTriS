@@ -287,7 +287,8 @@ Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edg
 \begin{definition}[\textbf{SPARQL Query}] Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
 \end{definition}
 
-\begin{definition}[\textbf{Graph pattern}] Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
+\begin{definition}[\textbf{Graph pattern}]\label{ch2:definition:sparql-graph-pattern}
+Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 

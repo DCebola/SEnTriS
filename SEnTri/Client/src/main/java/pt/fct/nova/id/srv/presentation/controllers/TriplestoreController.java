@@ -88,7 +88,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            Ontology ontology = new DefaultOntology(triplestoreID);
+            Ontology ontology = new DefaultOntology();
             ontology.execInference(ParsingUtils.parseSchema(response.getBody()), inference);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             RDFDataMgr.write(out, ontology.getModel(), lang);
@@ -230,7 +230,7 @@ public class TriplestoreController implements TriplestoreAPI {
             }
             DefaultSPARQLPlanner planner;
             if (form.getInference()) {
-                Ontology ontology = new DefaultOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
+                Ontology ontology = new DefaultOntology(form.getTransitivityDepth(), form.getExpansionDepth());
                 ontology.execInference(ParsingUtils.parseSchema(response.getBody()), form.getInference());
                 planner = new DefaultSPARQLPlanner(ontology);
             } else

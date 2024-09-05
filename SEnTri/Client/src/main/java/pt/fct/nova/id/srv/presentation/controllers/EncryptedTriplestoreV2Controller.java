@@ -274,7 +274,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseSecretsMap(response.getBody());
-            Ontology ontology = new DefaultOntology(triplestoreID);
+            Ontology ontology = new DefaultOntology();
             response = fetchOntologySchema(httpClient, triplestoreID, getProtocol2(secrets), ontology, inference, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -359,7 +359,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             SecureSPARQLPlanner planner;
             System.out.println("INFERENCE: " + form.getInference());
             if (form.getInference()) {
-                Ontology ontology = new SecureOntology(triplestoreID, form.getTransitivityDepth(), form.getExpansionDepth());
+                Ontology ontology = new SecureOntology(form.getTransitivityDepth(), form.getExpansionDepth());
                 response = fetchOntologySchema(httpClient, triplestoreID, protocol, ontology, form.getInference(), accessToken);
                 if (response != null && response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
