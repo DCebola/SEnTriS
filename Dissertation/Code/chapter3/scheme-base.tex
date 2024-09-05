@@ -1,5 +1,5 @@
 
-// $(K_{MASTER}, \; K_{RND}, \; iv_{DET}, \; keyword_{schema})$ := $\Pi.Setup()$
+// $(K_{MASTER}, \; K_{RND}, \; iv_{DET}, \; keyword_{schema})$ := $\textrm{SSE-TP}.Setup()$
 State:   
     $K_{MASTER}$ := generateKey() 
     $K_{RND}$ := generateKey() 
@@ -10,7 +10,7 @@ State:
     $keywordFrequencies$ := {}
     $derivedKeys$ := {} 
     
-// $E(T)$ := $\Pi.ReInitialize(K_{MASTER}, \; K_{RND}, \; keyword_{schema})$
+// $E(T)$ := $\textrm{SSE-TP}.ReInitialize(K_{MASTER}, \; K_{RND}, \; keyword_{schema})$
 function loadState($master$, $rnd$, $iv$, $schema$):  
     $K_{MASTER}$ := $master$ 
     $K_{RND}$ := $rnd$
@@ -21,35 +21,35 @@ function loadState($master$, $rnd$, $iv$, $schema$):
     $keywordFrequencies$ := {}
     $derivedKeys$ := {}
 
-// $E(T)$ := $\Pi.Encrypt(T, \; schema)$
-function encrypt({$t_0$, $t_1$, ... $t_n$}, $schema$):
+// $E(T)$ := $\textrm{SSE-TP}.Encrypt([t_0, \; t_1,  ... , t_n], \; schema)$
+function encrypt($triples$, $schema$):
     if ($schema$ == true)
-        encryptSchemaTriples({$t_0$, $t_1$, ... $t_n$})
+        encryptSchemaTriples($triples$)
     else
-        encryptTriples({$t_0$, $t_1$, ... $t_n$})
+        encryptTriples($triples$)
     encryptKeywordInfo()
 
-function EncryptSchemaTriples({$t_0$, $t_1$, ... $t_n$}):
-    foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
-        encryptTBoxNode(parseNode($s$))
-        encryptTBoxNode(parseNode($p$))
-        encryptTBoxNode(parseNode($o$))
+function EncryptSchemaTriples($triples$):
+    foreach $t = (s,p,o)$ in $triples$:
+        encryptSchemaNode(parseNode($s$))
+        encryptSchemaNode(parseNode($p$))
+        encryptSchemaNode(parseNode($o$))
         
-function encryptTBoxNode($node$):
+function encryptSchemaNode($node$):
     $freq$ := incrementKeywordFrequency($keyword_{schema}$)
     $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
     $encryptedNode$[$trapdoor$] := E($K_{RND}$, $node$)
 
 
-// $E(T)$ := $\Pi.Decrypt(T, \; schema)$
-function decrypt($ct$, schema):
+// $E(T)$ := $\textrm{SSE-TP}.Decrypt(E(node), \; schema)$
+function decrypt($ct$, $schema$):
     if ($schema$ == true)
         return D($K_{RND}$, $ct$)
     else
         return decryptNode($ct$)
     
-function decryptTriples({$t_0$, $t_1$, ... $t_n$}):
-	foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
+function encryptTriples($triples$):
+	foreach $t = (s,p,o)$ in $triples$:
         $freq$ := {}
         $parsed_s$ := parseNode($s$)
         $parsed_p$ := parseNode($p$)
@@ -68,7 +68,7 @@ function decryptTriples({$t_0$, $t_1$, ... $t_n$}):
         $freq$ := $freq$ :U { encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$) }
         encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $freq$)
  
-function encryptTriple($keyword$, $frequencies$): 
+function encryptTriplePattern($keyword$, $frequencies$): 
     $i$ := 0
     foreach $freq$ in $frequencies$:
         $trapdoor$ := E(deriveKey($keyword$), $keyword$, $i$)
@@ -91,7 +91,7 @@ function incrementKeywordFrequency($keyword$):
         $keywordFrequencies$[$keyword$] := $freq$ + 1
     return $freq$
 
-// $trapdoor_{n,i}$ := $\Pi.Trapdoor(keyword_n, \; i)$
+// $trapdoor_{n,i}$ := $\textrm{SSE-TP}.Trapdoor(keyword_n, \; i)$
 function generateTrapdoor($keyword$, $i$):
     return E(deriveKey($keyword$), $keyword$, $i$)
     
@@ -101,9 +101,9 @@ function generateTrapdoor($keyword$):
 function generateTrapdoorAndIncrementIV($keyword$):
     return E(deriveKey($keyword$), $keyword$, incrementKeywordFrequency($keyword$))
 
-function generateTriplePatternTrapdoors({$t_0$, $t_1$, ... $t_n$}):
+function generateTriplePatternTrapdoors($triples$):
     $keywordPatternTrapdoors$ := {}
-    foreach $t = (s,p,o)$ in {$t_0$, $t_1$, ... $t_n$}:
+    foreach $t = (s,p,o)$ in $triples$:
         $keywords$ := {}
         $i$ := 0
         $keyword_s$ = parseKeyword($s$)
@@ -119,7 +119,6 @@ function generateTriplePatternTrapdoors({$t_0$, $t_1$, ... $t_n$}):
         $keywords$ := $keywords$ :U { "S" || $keyword_p$ || $keyword_o$ }
         $keywords$ := $keywords$ :U { "P" || $keyword_s$ || $keyword_o$ }
         $keywords$ := $keywords$ :U { "O" || $keyword_s$ || $keyword_p$ }
-        generatePatternTrapdoors(res, $keyword_t$, $keywords$)
         foreach $keyword$ in $keywords$:
             $trapdoors$ := $keywordPatternTrapdoors$[keyword]
             if ($trapdoors$ == :bot):
@@ -128,7 +127,7 @@ function generateTriplePatternTrapdoors({$t_0$, $t_1$, ... $t_n$}):
             $keywordPatternTrapdoors$[$keyword$] := $trapdoors$
             $i$++
     return $keywordPatternTrapdoors$
-
+    
 function setKeywordFrequencies($values$):
     foreach $keyword$ in $values$:
         $freq$ := $values$[$keyword$]

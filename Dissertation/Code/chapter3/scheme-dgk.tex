@@ -14,7 +14,6 @@ function encryptKeywordInfo():
     foreach $node$ in $eqTags$:
         $trapdoor$ := E($derivedKeys$[$node$], $node$, $iv_{ZERO}$)
         $encryptedNode$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$node$])
-
         
 function encryptNode($node$, $keyword$):
     $freq$ := incrementKeywordFrequency($keyword$)

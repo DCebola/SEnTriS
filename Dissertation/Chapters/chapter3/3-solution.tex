@@ -432,7 +432,26 @@ All query types will be supported apart from the LOAD and CLEAR, which will be i
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-When we encrypt \emph{triple patterns} we need to ensure that we do not lose any semantics. Our encryption schemes will mimic the indexing strategy of \gls{SEnTri} V0.
+In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the other two versions the protocol will be adapted to work with encrypted data. As such, the encryption schemes must encrypt data in such a way that it retains its functionality. For the subset of supported queries, data must be searchable via triple patterns and allow the equality operation, essential for the execution of equi-joins.
+
+\subsubsection{Triple Pattern SSE encryption scheme}
+
+In \gls{SEnTri} V1, we will follow \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} approach and encrypt nodes in two layered onions. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
+
+In \gls{SEnTri} V2 nodes are mapped to \emph{equality tags}. These values are homomorphically encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index equality tags and equality tags reference probabilistically encrypted nodes. When doing equality checks, we decrypt the equality tags and compare the values.
+
+\begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:sse-sentri-det}
+    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search)$ of 9 algorithms:
+    \begin{itemize}
+        \item $\lambda \leftarrow \mathbf{Setup()}$: Takes no input. Outputs a set of newly generated security parameters.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$: Takes as input a set of security parameters. In case of success, sets the security parameters and updates the state of the scheme and outputs SUCCESS, $\bot$ otherwise.
+        \item $E(nodes) \leftarrow \mathbf{Encrypt([t_0, t_1, ..., t_n], \; schema)}$: Takes as input a set of triples and a boolean parameter, which is set to true if the triples are schema triples. Outputs a set of encrypted nodes.
+        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples.
+        \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
+        \item $[E(binding_0), ..., E(binding_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier, a collection of trapdoors. Outputs a collection of encrypted bindings.
+    \end{itemize}
+    SSE-TP is a distributed, two-party protocol: encrypted data is stored and can be searched in a \emph{triplestore} component; whereas the remaining algorithms are all executed by a \emph{client} component.
+\end{definition}
 
 \subsubsection{Trapdoor generation}
 
@@ -444,66 +463,49 @@ For each index, the respective trapdoors are encrypted using a unique key. This 
 
 
 \begin{definition}[\textbf{Trapdoor Generation}]\label{ch3:definition:trapdoor-generation}
-
-    Let $keyword_n$ be the keyword of the index that references node $n$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
-
+    Let $keyword_n$ be the keyword that references node $n \in \textrm{ABox}$. Let $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_n}$ be the derived key for the context of $keyword_n$. Finally, let $i$ be the observed frequency for $keyword_n$, and $trapdoor_{n,i}$ be the trapdoor that is built from $keyword_n$, after $i - 1$ observations of the term:
     \begin{equation}
         trapdoor_{n, i} = E(K_{keyword_n}, \; keyword_n, \; i)
     \end{equation}
+\end{definition}
 
-    The trapdoor that references the frequency value of $keyword_n$ is a special case where $i=0$:
+In the case of the trapdoors that reference schema nodes, we will also base the solution in the previous indexing scheme, but instead of using a fixed schema keyword, we will randomly generate it for each triplestore.
 
+\begin{definition}[\textbf{Schema Node Trapdoor Generation}]\label{ch3:definition:schema-trapdoor-generation}
+    Let $keyword_{schema}$ be a randomly generated keyword, specific to a triplestore $t$. Let $n \in \textrm{TBox}$ be a schema node, $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{schema}$ be the derived key for the context of $keyword_{schema}$. Finally, let $i$ be the observed frequency for $keyword_{schema}$, and $trapdoor_{schema,i}$ be the trapdoor that is built from $keyword_{schema}$, after $i - 1$ observations of the term:
     \begin{equation}
-        trapdoor_{n, 0} = E(K_{keyword_n}, \; keyword_n, \; 0)
+        trapdoor_{schema,i} = E(K_{schema}, \; keyword_{schema}, \; i)
     \end{equation}
-
 \end{definition}
 
-\subsubsection{Triple Pattern SSE Scheme}
+Finally, we also reference with trapdoors the frequencies of a triple pattern, which are necessary for computing deletions.
 
-\paragraph*{Requirements} \gls{SEnTri} offers various functionalities, and to support all of them, the encryption schemes must respect a set of requirements:
-
-\begin{itemize}
-    \item \emph{Preserve Equality}: Encrypted nodes must preserve their equality property, which is essential for executing intermediate set operations during query evaluation;
-    \item \emph{Be dynamic}: For write operations, it must provide quick access to nodes from a specific triple pattern that requires deletion;
-    \item \emph{Preserve reasoning} To support the query \emph{rewriting techniques} that we use, it needs to allow quick access to nodes belonging to the \emph{TBox}.
-\end{itemize}
-
-\gls{SEnTri} V1 and V2 encryption schemes differ uniquely on the method of encryption for the nodes belonging to the \emph{ABox}, but are identical in all other aspects. If we consider the encryption of the \emph{ABox} nodes as an abstract operation, we can isolate the \emph{base encryption scheme} from where we build the other two. Such scheme is specified in Listing \ref{encryption-scheme-base}.
-
-\begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:triple-pattern-sse-scheme-base}
-    Let $\Pi$ be a triple pattern SSE scheme that supports the evaluation of \emph{SPARQL} queries. It is defined as a tuple $\Pi = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
-    \begin{itemize}
-        \item $\lambda \leftarrow \mathbf{Setup()}$:
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$:
-        \item $E(nodes) \leftarrow \mathbf{Encrypt(\{ t_0, t_1, ..., t_n\}, \; schema)}$:
-        \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$:
-        \item $E(binding_{n}) \leftarrow \mathbf{Search(trapdoor_{n,i})}$:
-        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$:
-        \item $\{true, false\} \leftarrow \mathbf{Equals(E(node_1), \; E(node_2))}$:
-    \end{itemize}
+\begin{definition}[\textbf{Triple Frequencies Trapdoor Generation}]\label{ch3:definition:schema-triple-freq-generation}
+    Let $keyword_{s}$, $keyword_{p}$ and $keyword_{o}$ be the keywords that reference the nodes belonging to a triple pattern $t = (s, p, o)$. Let $keyword_{t} = \textrm{SPO} \; \vert\vert \; keyword_{s} \; \vert\vert \; keyword_{p} \; \vert\vert \; keyword_{o}$ be the keyword that references $t$, $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_{t}}$ be the derived key for the context of $keyword_{t}$. Finally, let $i$ be the observed frequency for $keyword_{t}$, and $trapdoor_{t,i}$ be the trapdoor that is built from $keyword_{t}$, after $i - 1$ observations of the term:
+    \begin{equation}
+        trapdoor_{t,i} = E(K_{keyword_{t}}, \; keyword_{t}, \; i)
+    \end{equation}
 \end{definition}
 
+\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, and the state is exclusive to each triplestore.
 
-\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. We also create the data structures, where we keep track of the state of keyword frequencies, and derived keys.
+\paragraph{SEnTri V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
-\subsubsection{Schema triple encryption (TBox statements)} ...
+\paragraph{SEnTri V2} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \linebreak K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$ where, $K_{MASTER}$ and $K_{RND}$ are secret keys, $K_{DGK_{priv}}$ and $K_{DGK_{pub}}$ are, respectively, a \gls{DGK} private and public key, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
-\lstinputlisting[caption={Base encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
+\subsubsection{Triple Pattern encryption and decryption} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
 
-\subsubsection{Triple Encryption (ABox statements)}
+\lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-\paragraph*{SEnTri V1} In \gls{SEnTri} V1, an encrypted \emph{ABox} node corresponds to $E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$, where $iv_{DET}$ is a randomly generated initialization vector and $node$ is either a subject, predicate or object.
+\paragraph*{SEnTri V1} An encrypted \emph{ABox} node $E(node) = E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$ corresponds to a two layered encryption onion. The version specific functions for \gls{SEnTri} V1 are shown in Listing \ref{encryption-scheme-deterministic}.
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-\paragraph*{SEnTri V2} In \gls{SEnTri} V2, an encrypted \emph{ABox} node corresponds to $E(K_{RND}, \; node )$. Its encrypted \emph{equality tag} corresponds to $E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a subject, predicate or object to a unique positive integer.
+\paragraph*{SEnTri V2} An \emph{ABox} node $E(node) = E(K_{RND}, \; node )$ is probabilistically encrypted. Its encrypted \emph{equality tag} corresponds to $E(eq_{tag}) = E(K_{DGK_{pub}}, \; eqTag(node))$, where $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ is an injective function that maps the value of a node to a unique positive integer.
 
-We index the encrypted the node by the \emph{encrypted equality tag}. The equality tag is referenced by the trapdoor that would index the node in \gls{SEnTri} V1.
+We index the encrypted node by the \emph{encrypted equality tag}. The equality tag is referenced by the trapdoor that would index the node in \gls{SEnTri} V1. The version specific functions for \gls{SEnTri} V2 are shown in Listing \ref{encryption-scheme-dgk}.
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
-
-\subsubsection{Encrypted ABox Node equality}
 
 \subsubsection{Supporting Dynamism} ...
 
