@@ -441,14 +441,14 @@ In \gls{SEnTri} V1, we will follow \emph{CryptDB} \autocite{Popa2011-zb, Popa201
 In \gls{SEnTri} V2 nodes are mapped to \emph{equality tags}. These values are homomorphically encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index equality tags and equality tags reference probabilistically encrypted nodes. When doing equality checks, we decrypt the equality tags and compare the values.
 
 \begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:sse-sentri-det}
-    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search)$ of 9 algorithms:
+    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search)$ of 6 algorithms:
     \begin{itemize}
         \item $\lambda \leftarrow \mathbf{Setup()}$: Takes no input. Outputs a set of newly generated security parameters.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$: Takes as input a set of security parameters. In case of success, sets the security parameters and updates the state of the scheme and outputs SUCCESS, $\bot$ otherwise.
         \item $E(nodes) \leftarrow \mathbf{Encrypt([t_0, t_1, ..., t_n], \; schema)}$: Takes as input a set of triples and a boolean parameter, which is set to true if the triples are schema triples. Outputs a set of encrypted nodes.
-        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples.
+        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Outputs the decrypted node.
         \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
-        \item $[E(binding_0), ..., E(binding_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier, a collection of trapdoors. Outputs a collection of encrypted bindings.
+        \item $[E(binding_0), ..., E(binding_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier and a collection of trapdoors. Outputs a collection of encrypted bindings.
     \end{itemize}
     SSE-TP is a distributed, two-party protocol: encrypted data is stored and can be searched in a \emph{triplestore} component; whereas the remaining algorithms are all executed by a \emph{client} component.
 \end{definition}
@@ -507,9 +507,11 @@ We index the encrypted node by the \emph{encrypted equality tag}. The equality t
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsubsection{Supporting Dynamism} ...
+\subsubsection{Searching encrypted triple patterns} ...
 
-\subsubsection{Evaluation of SPARQL queries over encrypted data} ...
+\subsubsection{Data storage \& updates} ...
+
+\subsection{Evaluation of SPARQL queries over encrypted data} ...
 
 \begin{definition}[\textbf{Secure SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
     Let SEC-SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with triplestores encrypted using $\Pi$. It is defined as a tuple $\Omega = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
@@ -520,9 +522,9 @@ We index the encrypted node by the \emph{encrypted equality tag}. The equality t
     \end{itemize}
 \end{definition}
 
-\paragraph*{Query Preparation Phase}
-\paragraph*{Query Evaluation Phase}
-\paragraph*{Decryption of SPARQL query results}
+\subsubsection{Query Preparation Phase}
+\subsubsection{Query Evaluation Phase}
+\subsubsection{Decryption of SPARQL query results}
 
 
 \subsection{The M/M setting}
