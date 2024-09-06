@@ -12,12 +12,12 @@ function executeSPARQLQuery($triplestoreID$, $query$):
     catch Exception:
         return :bot
 
-# SPARQL-EVAL.planQuery($query$):
+// SPARQL-EVAL.planQuery($query$):
 function planQuery(query):
     $planner$ := createSPARQLQueryPlanner()
     return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$))
 
-# SPARQL-EVAL.generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$):
+// SPARQL-EVAL.generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$):
 function generateFinalResult($triplestoreID$, $queryType$, $variables$, $sparqlResult$, $construct_{template}$, $upload_{template}$, $delete_{template}$)
     if $queryType$ == "SELECT":
         return generateSELECTResults($variables$, $sparqlResult$)
@@ -34,8 +34,8 @@ function applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $d
     $triples_{upload}$ := {}
     $triples_{delete}$ := {}
     if $queryType$ == "MODIFY":
-        $triples_{upload}$ := generateTriplesFromBindings($upload_{template}$, $bindings$) #foreach binding, map values to variables and output the set of generated triples
-    $triples_{delete}$ := generateTriplesFromBindings($delete_{template}$, $bindings$) #foreach binding, map values to variables and output the set of generated triples
+        $triples_{upload}$ := generateTriplesFromBindings($upload_{template}$, $bindings$) //foreach binding, map values to variables and output the set of generated triples
+    $triples_{delete}$ := generateTriplesFromBindings($delete_{template}$, $bindings$) //foreach binding, map values to variables and output the set of generated triples
     else if (queryType == INSERT_DATA)
         $triples_{upload}$ := $upload_{template}$
     else if (queryType == DELETE_DATA)
@@ -51,10 +51,10 @@ function generateASKResults($bindings$):
     return $\#bindings \; > \; 0$
 
 function generateCONSTRUCTResults($construct_{template}$, $bindings$):
-    return generateGraphFromBindings($construct_{template}$, $bindings$) #foreach binding, map values to variables and output a graph with all the generated triples
+    return generateGraphFromBindings($construct_{template}$, $bindings$) //foreach binding, map values to variables and output a graph with all the generated triples
 
 function generateSELECTResults($variables$, $bindings$):
-    return generateJSONQueryResult($variables$, $bindings$) # map bindings collection to a well-formed JSON, as per the official specification
+    return generateJSONQueryResult($variables$, $bindings$) // map bindings collection to a well-formed JSON, as per the official specification
 
 private Response generateDESCRIBEResults($variables$, $bindings$) :
     frequencies := {}
@@ -63,4 +63,4 @@ private Response generateDESCRIBEResults($variables$, $bindings$) :
     foreach $binding$ in $bindings$:
         foreach $(var, \; node)$ in $binding$.getKeys(): 
             $frequencies$[$var$] := $frequencies$[$var$] + 1
-    return generateJSONFrequencyTable($frequencies$) # format the collection of variable frequencies as JSON
+    return generateJSONFrequencyTable($frequencies$) // format the collection of variable frequencies as JSON

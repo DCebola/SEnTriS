@@ -5,6 +5,9 @@ function loadState($master$, $rnd$, $det$, $iv$, $schema$):
     loadState($master$, $rnd$, $iv$, $schema$)
     $K_{DET}$ := $det$
 
+function getSecrets():
+    return $(K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \; keyword_{schema})$
+
 function encryptKeywordInfo():
     foreach $keyword$ in $keywordFrequencies$:
         $trapdoor$ := E($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)

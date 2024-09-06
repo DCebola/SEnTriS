@@ -1,0 +1,29 @@
+State:
+    $triplestores$ := {}
+    
+function save($triplestoreID$, $encryptedNodes$):
+    foreach $(trapdoor, ct)$ in $encryptedNodes$:
+        $triplestores$[$triplestoreID$][$trapdoor$] := $ct$
+    return "SUCCESS"
+
+function delete($triplestoreID$):
+    $triplestores$ := $triplestores$ / { $triplestores$[$triplestoreID$] }
+    return "SUCCESS"
+
+function delete($triplestoreID$, $trapdoors$):
+    foreach $trapdoor$ in $trapdoor$:
+        $triplestores$[$triplestoreID$][$trapdoor$] := :bot
+    return "SUCCESS"
+
+function update($triplestoreID$, $deletions$, $uploads$):
+    delete($triplestoreID$, $deletions$)
+    save($triplestoreID$, $uploads$)
+    return "SUCCESS"
+
+function search($triplestoreID$, $trapdoors$):
+    $result$ := {}
+    foreach $trapdoor$ in $trapdoor$:
+        $ct$ := $triplestores$[$triplestoreID$][$trapdoor$]
+        if $ct$ :neq :bot:
+            $result$ := $result$ :U { $ct$ }
+    return $result$

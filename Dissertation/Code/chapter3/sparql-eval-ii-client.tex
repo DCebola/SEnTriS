@@ -12,7 +12,7 @@ function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$
     catch Exception:
         return :bot
 
-# SPARQL-EVAL-II.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
+// SPARQL-EVAL-II.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
 function planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$):
     $planner$ := createSPARQLQueryPlanner()
     if $inference$ == true:

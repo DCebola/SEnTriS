@@ -1,8 +1,8 @@
 State:
     $triplestores$ := {}
-    $separator_{I}$ := fetchConfig($separator_{I}$) # A configurable parameter, must provide a value that does not belong to the charset used for nodes
-    $separator_{II}$ := fetchConfig($separator_{II}$) # Must be different than $separator_{I}$, and follow the same restrictions
-    $separator_{III}$ := fetchConfig($separator_{III}$) # Must be different than $separator_{I}$ and $separator_{II}$, and follow the same restrictions
+    $separator_{I}$ := fetchConfig($separator_{I}$) // A configurable parameter, must provide a value that does not belong to the charset used for nodes
+    $separator_{II}$ := fetchConfig($separator_{II}$) // Must be different than $separator_{I}$, and follow the same restrictions
+    $separator_{III}$ := fetchConfig($separator_{III}$) // Must be different than $separator_{I}$ and $separator_{II}$, and follow the same restrictions
 
 function save($triplestoreID$, $triples$):
     foreach $t$ in $triples$:
@@ -117,7 +117,7 @@ function generateNode($parsedValue$):
     if prefix == "BLANK":
         return createBlankNode($value$)
     elif prefix == "S":
-        return createIRINode($value$);
+        return createIRINode($value$)
     else
-        return createLiteralNode($value$, $datatype$);
+        return createLiteralNode($value$, $datatype$)
     

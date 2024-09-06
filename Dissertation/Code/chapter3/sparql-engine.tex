@@ -1,13 +1,13 @@
 State:
-    JENA$_{algebraGenerator}$ := JENA.createAlgebraGenerator(JENA$_{ARQ}$.getContext()) # the algebra generator compiles a query into operations
+    JENA$_{algebraGenerator}$ := JENA.createAlgebraGenerator(JENA$_{ARQ}$.getContext()) // the algebra generator compiles a query into operations
 
 function getQueryPlan($planner$, $queryString$):
     try: 
-        $query$ = JENA$_{QueryFactory}$.create($queryString$) # the query factory parses a string and generates a query
+        $query$ = JENA$_{QueryFactory}$.create($queryString$) // the query factory parses a string and generates a query
         $planner$.setQueryType($query$.getType())
         if $planner$.getQueryType() == "CONSTRUCT":
             $planner$.setConstructTemplate($query$.getConstructTemplate().getTriples())
         return $planner$.generatePlan(JENA$_{algebraGenerator}$.compile(query))
-    catch QueryParseException: # the query factory throws an exception when parsing a string for an update query                                                        
-        $updateQuery$ = JENA$_{UpdateFactory}$.create($queryString$) # the update factory parses a string and generates an update query
+    catch QueryParseException: // the query factory throws an exception when parsing a string for an update query                                                        
+        $updateQuery$ = JENA$_{UpdateFactory}$.create($queryString$) // the update factory parses a string and generates an update query
         return planner.generatePlan($updateQuery$.getOperations().get(0), JENA$_{UpdateFactory}$)

@@ -1,0 +1,22 @@
+State:
+    $storageEngine$ := createStorageEngine()
+
+// $[E(node_0), ..., E(node_n)] \leftarrow \textrm{SSE-TP}.Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])$ 
+function search($triplestoreID$, $trapdoors$):
+    return $storageEngine$.search($triplestoreID$, $trapdoors$)
+
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Upload(triplestoreID, \; E(nodes))$
+function upload($triplestoreID$, $encryptedNodes$):
+    return $storageEngine$.save($triplestoreID$, $encryptedNodes$)
+
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Delete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])$
+function delete($triplestoreID$, $trapdoors$):
+    return $storageEngine$.delete($triplestoreID$, $trapdoors$)
+
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Update(triplestoreID, \; E(nodes), \; [trapdoor_0, ..., trapdoor_n])$   
+function update($triplestoreID$, $encryptedNodes$, $trapdoors$):
+    return $storageEngine$.update($triplestoreID$, $encryptedNodes$, $trapdoors$)
+
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.DeleteAll(triplestoreID)$:    
+function delete($triplestoreID$)
+    return storageEngine.delete($triplestoreID$)

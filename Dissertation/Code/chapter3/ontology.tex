@@ -28,7 +28,7 @@ function execClassInference($classes$, $restrictions$, $intersections$):
     foreach $restriction = (type, \; property, \; value)$ in $restrictions$:
         $type \in \{$"owl:hasValue", "owl:isSomeValuesFrom", "owl:allValuesFrom"$\}$:
             $classRestrictions$[convertToNode($restriction$)] := $restriction$
-    foreach $intersection = (id, operands)$ in $intersections$: #Intersections are anonymous classes with a set of other classes (operands)
+    foreach $intersection = (id, operands)$ in $intersections$: // Intersections are anonymous classes with a set of other classes (operands)
         foreach $operand$ in $operands$:
             $intersectionsDirectSuperclasses$ := $intersectionsWhereClassIsOperand$[convertToNode($operand$)]
             if $intersectionsDirectSuperclasses$ == :bot:

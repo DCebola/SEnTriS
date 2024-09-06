@@ -31,7 +31,7 @@ function pushJob($job$):
     $plan$.$execOrder$.addLast($jobID$)
 
 function generatePlan($op$) 
-    JENA.$_{OpWalker}$.walk($op$, $this$) # the operation walker will call visit while there are operations which have not been visited, using a visitor (the query planner is a JENA$_{Visitor}$)
+    JENA.$_{OpWalker}$.walk($op$, $this$) // the operation walker will call visit while there are operations which have not been visited, using a visitor (the query planner is a JENA$_{Visitor}$)
     if $\#plan.vars$ == 0:
         $plan.vars$ := $variables$
     return $plan$
@@ -80,7 +80,7 @@ function visit(op)
 
 function visitUpdate($op_{UpdateDataInsert}$) 
     setQueryType("INSERT_DATA")
-    foreach $quad = (graph, \; triple)$ in $op_{UpdateDataInsert}$.getQuads(): # we only support a single default graph, hence quads can be converted to triples
+    foreach $quad = (graph, \; triple)$ in $op_{UpdateDataInsert}$.getQuads(): // we only support a single default graph, hence quads can be converted to triples
         $upload_{template}$ := $upload_{template}$ :U { triple }
 
 function visitUpdate($op_{UpdateDataDelete}$) 
