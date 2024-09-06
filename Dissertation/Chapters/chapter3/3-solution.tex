@@ -509,7 +509,7 @@ Trapdoors index encrypted equality tags and encrypted equality tags index encryp
 
 \subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt them and upload them. The schema triples are uploaded in upload operations afterwards. The triplestore creation and encryption operations are handled by the client. The Listing \ref{encrypted-triplestore-creation} shows how the client component handles the creation of a triplestore, this logic is common for both versions.
 
-\lstinputlisting[caption={SSE-TP Client (Encrypted Triplestore Creation)}, label={encrypted-triplestore-creation}]{Code/chapter3/sse-tp-client-create.tex}
+\lstinputlisting[caption={Triplestore Creation in SSE-TP Client}, label={encrypted-triplestore-creation}]{Code/chapter3/sse-tp-client-create.tex}
 
 Upon receiving the encrypted data pertaining to a triplestore, the triplestore component will store it. The storage engine logic is simplified, as it no longer is responsible for generating the indexes of the data. We will continue to assume that the storage engine is atomic. Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} specify, respectively, the simplified storage engine and the triplestore component.
 
@@ -517,8 +517,11 @@ Upon receiving the encrypted data pertaining to a triplestore, the triplestore c
 
 \lstinputlisting[caption={SSE-TP Triplestore Component}, label={sse-tp-triplestore-component}]{Code/chapter3/sse-tp-triplestore.tex}
 
-The search operation is a two-step process in \gls{SEnTri} V1. Firstly, for both versions, we parse the triple patterns to be searched and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. In \gls{SEnTri} V1, upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation. In \gls{SEnTri} V2, the results of the second search yield a collection of encrypted equality tags, we need an extra communication round, where we search for these values to retrieve the encrypted nodes.  Listings ... and ... show the search logic the client component in versions V1 and V2, respectively.
+The search operation is a two-step process in \gls{SEnTri} V1. Firstly, for both versions, we parse the triple patterns to be searched and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. In \gls{SEnTri} V1, upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation. In \gls{SEnTri} V2, the results of the second search yield a collection of encrypted equality tags, we need an extra communication round, where we search for these values to retrieve the encrypted nodes. This extra communication round is only required for search over the \emph{ABox}, schema triples are referenced by trapdoors, so the algorithm is exactly the same in both version. Listings \ref{sse-tp-client-search-v1} and \ref{sse-tp-client-search-v2} show the search logic in the client component for versions V1 and V2, respectively.
 
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp-client-search-v1.tex}
+
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp-client-search-v2.tex}
 
 To execute deletions we fetch the frequencies of the triple patterns keywords, generate their trapdoors and execute a deletion of such trapdoors (and their referenced encrypted nodes). 
 

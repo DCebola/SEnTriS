@@ -21,9 +21,7 @@ function update($triplestoreID$, $deletions$, $uploads$):
     return "SUCCESS"
 
 function search($triplestoreID$, $trapdoors$):
-    $result$ := {}
-    foreach $trapdoor$ in $trapdoor$:
-        $ct$ := $triplestores$[$triplestoreID$][$trapdoor$]
-        if $ct$ :neq :bot:
-            $result$ := $result$ :U { $ct$ }
+    $result$ := [$\#trapdoors$]
+    for $i$ in range(0, $\#trapdoor$):
+        $result$[$i$] := $triplestores$[$triplestoreID$][$trapdoors$[$i$]]
     return $result$

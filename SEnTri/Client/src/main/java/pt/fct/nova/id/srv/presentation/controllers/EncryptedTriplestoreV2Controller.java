@@ -749,10 +749,8 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 trapdoors = new ArrayList<>(vars.length);
                 for (int i = 0; i < vars.length; i++)
                     trapdoors.add(new ArrayList<>(keywordFrequency / vars.length));
-                for (int i = 0; i < keywordFrequency / vars.length; i++) {
-                    for (int j = 0; j < vars.length; j++)
-                        trapdoors.get(j).add(protocol.generateTrapdoorAndIncrementIV(keyword));
-                }
+                for (int i = 0; i < keywordFrequency; i++)
+                    trapdoors.get(i % vars.length).add(protocol.generateTrapdoorAndIncrementIV(keyword));
                 for (int i = 0; i < vars.length; i++) {
                     response = prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors.get(i), mask, accessToken);
                     if (response.getStatus() != OK)

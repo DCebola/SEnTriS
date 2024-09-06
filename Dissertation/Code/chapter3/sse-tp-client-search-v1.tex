@@ -1,6 +1,61 @@
 State:
-    secrets := {}
+    $secrets$ := {}
+
+function fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$):
+    $frequencies$ := {}
+    $trapdoors$ := [$\#keywords$]
+    for $keyword$ in $keywords$:
+        $trapdoors$.add($scheme$.generateTrapdoor($keyword$))
+    $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $trapdoors$)
+    for $i$ in range(0, $\#encryptedFrequencies$) 
+        $frequency$ := $encryptedKeywordsFrequencies$[$i$]
+        if $frequency$ :neq :bot: 
+            $frequencies$[$keywords$[$i$]] := $scheme$.decryptFrequency($frequency$)
+        else
+            $frequencies$[$keywords$[$i$]] := 0
+    return $frequencies$
 
 function search($triplestoreID$, $triplePatterns$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    $scheme$ := createEncryptionScheme()
+    $scheme$.loadState($secrets$[$triplestoreID$])
+    $keywords$ := [$\#triplePatterns$]
+    $i$ := 0
+    foreach $t$ in $triplePatterns$:
+        $keyword$ := extractKeywords($triplePattern$) // Parses the pattern and, based on its type, generates a keyword like the encryption scheme would. Outputs :bot if pattern not supported.
+        if $keyword$ :neq :bot:
+            $keywords$[$i$] := $keyword$
+            $i$++
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $trapdoors$ := createArrayList()
+    for $keyword$ in $keywords$:
+        for $i$ in range(0, $frequencies$[$keyword$]):
+            $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+    $encryptedNodes$ := Triplestore.search($triplestoreID$, $trapdoors$)
+    $results$ := {}
+    foreach $node$ in $encryptedNodes$:
+        if $node$ :neq :bot:
+            $results$ := $results$ :U { $scheme$.decrypt($node$, false) }
+    return $results$    
 
 function searchSchema($triplestoreID$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    $scheme$ := createEncryptionScheme()
+    $scheme$.loadState($secrets$[$triplestoreID$])
+    $keyword$ := $scheme$.getSchemaKeyword()
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $trapdoors$ := createArrayList()
+    for $i$ in range(0, $frequencies$[$keyword$]):
+        $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+    $encryptedNodes$ := Triplestore.search($triplestoreID$, $trapdoors$)
+    $schema$ := {}
+    $i$ := 0
+    while $i < frequencies$[$keyword$]:
+        $s$ := $scheme$.decrypt($encryptedNodes$[$i$], true)
+        $p$ := $scheme$.decrypt($encryptedNodes$[$i + 1$], true)
+        $o$ := $scheme$.decrypt($encryptedNodes$[$i + 2$], true)
+        $schema$ := $schema$ :U  { $(s, \; p, \; o)$ } 
+        $i$ := $i + 3$
+    return $schema$

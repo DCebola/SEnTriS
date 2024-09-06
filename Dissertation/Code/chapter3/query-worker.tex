@@ -83,11 +83,11 @@ function generateResults($jobResults$):
             sort($bindings$, $sortConditions$)
     else:
         if $sparqlResult$.$distinct$ == true:
-            $bindings$ = generateBindings(createHashSet(), $jobResults$)
+            $bindings$ := generateBindings(createHashSet(), $jobResults$)
         else
-            $bindings$ = generateBindings(createLinkedList(), $jobResults$)
+            $bindings$ := generateBindings(createLinkedList(), $jobResults$)
     if $sparqlResult$.$sliced$ == true:
-        $bindings$ = slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$, $sparqlResult$.$length$)
+        $bindings$ := slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$, $sparqlResult$.$length$)
     $sparqlResult$.$bindigns$ := $bindings$
     return $sparqlResult$.$bindigns$
 
@@ -95,11 +95,11 @@ function generateBindings($collector$, $jobResults$):
     vars = $jobResults$.getVariables()
     values := {}
     foreach $patterns$ in $jobResults$.getPatterns():
-        $binding$ = {}
-        i = 0
+        $binding$ := {}
+        $i$ := 0
         foreach $parsedValue$ in $patterns$:
             if $parsedValue$ :neq :bot:
-                $binding$[vars[i]] := storageEngine.generateNode($parsedValue$)
-            i++
+                $binding$[$vars$[$i$]] := storageEngine.generateNode($parsedValue$)
+            $i$++
         $collector$.add($binding$)
     return $collector$

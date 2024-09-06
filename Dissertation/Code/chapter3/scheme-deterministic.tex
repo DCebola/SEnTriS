@@ -19,6 +19,12 @@ function encryptNode($node$, $keyword$):
     $encryptedNode$[$trapdoor$] := E($K_{RND}$, E($K_{DET}$, $node$, $iv_{DET}$))
     return $freq$
  
+function decryptNode($node$):
+    return D($K_{RND}$, D($K_{DET}$, $ct$, $iv_{DET}$))
+
+function decryptFrequency($ct$):
+    return D($K_{RND}$, $ct$)
+
 function getDETKey():
     return $K_{DET}$
 

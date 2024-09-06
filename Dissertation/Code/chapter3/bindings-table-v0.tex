@@ -61,13 +61,13 @@ function getPatterns():
         $patternIDs$ := $patternIDs$ :U $patterns$[$var$].getKeys()
     foreach $patternID$ in $patternIDs$:
         $pattern$ := [$\#vars$]
-        i := 0
+        $i$ := 0
         foreach $var$ in $vars$:
             $binding$ := $patterns$[$var$][$patternID$]
-            $pattern$[i] := $binding$
+            $pattern$[$i$] := $binding$
             if $binding$ == :bot:
-                i++
-        if i < $\#vars$:
+                $i$++
+        if $i$ < $\#vars$:
             $patterns$ := $patterns$ :U { $pattern$ }
     return $patterns$
 
