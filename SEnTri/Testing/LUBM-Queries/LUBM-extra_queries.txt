@@ -60,15 +60,15 @@ ORDER BY ASC(?member) ASC(?graduateCourse)
 #Upload data of a new graduate student
 PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 INSERT DATA {
-<http://www.Department0.University0.edu/GraduateStudent0>
+<http://www.Department0.University0.edu/GraduateStudent146>
   a ub:GraduateStudent ;
-  ub:name "GraduateStudent0" ;
+  ub:name "GraduateStudent146" ;
   ub:memberOf <http://www.Department0.University0.edu> ;
   ub:emailAddress "GraduateStudent146@Department0.University0.edu" ;
   ub:telephone "xxx-xxx-xxxx" ;
-  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>, <http://www.Department0.University0.edu/GraduateCourse0>, <http://www.Department0.University0.edu/GraduateCourse0> ;
-  ub:undergraduateDegreeFrom <http://www.University0.edu> ;
-  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor0> .
+  ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse24>, <http://www.Department0.University0.edu/GraduateCourse5>, <http://www.Department0.University0.edu/GraduateCourse3> ;
+  ub:undergraduateDegreeFrom <http://www.University850.edu> ;
+  ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
 }
 
 
@@ -98,9 +98,19 @@ DELETE WHERE {<http://www.Department0.University0.edu/GraduateStudent146> ?p ?o}
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 DELETE {?graduate ub:telephone ?phoneNumber}
-INSERT {?graduate ub:telephone "yyy-yyy-yyyy"}
+INSERT {?graduate ub:telephone "xxx-xxx-xxxx"}
 WHERE
 {
-   ?graduate a ub:GraduateStudent;
-   ub:telephone ?phoneNumber
+  ?graduate a ub:GraduateStudent;
+  ub:telephone ?phoneNumber
 } 
+
+#Check
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
+SELECT ?graduate ?phoneNumber
+WHERE
+{
+  ?graduate a ub:GraduateStudent;
+  ub:telephone ?phoneNumber
+}

@@ -21,7 +21,7 @@ function update($triplestoreID$, $deletions$, $uploads$):
     return "SUCCESS"
 
 function search($triplestoreID$, $trapdoors$):
-    $result$ := [$\#trapdoors$]
+    $result$ := createArrayList($\#trapdoors$)
     for $i$ in range(0, $\#trapdoor$):
-        $result$[$i$] := $triplestores$[$triplestoreID$][$trapdoors$[$i$]]
+        $result$.add($triplestores$[$triplestoreID$][$trapdoors$[$i$]])
     return $result$

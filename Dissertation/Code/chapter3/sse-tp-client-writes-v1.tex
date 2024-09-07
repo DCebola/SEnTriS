@@ -1,13 +1,119 @@
 State:
     secrets := {}
-
-function upload($triplestoreID$, $triples$, $schema$):
-    
-
-function delete($triplestoreID$, $triples$, $schema$):
-
+    $BATCH_SIZE$ := fetchConfig($BATCH_SIZE$)
 
 function deleteAll($triplestoreID$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    else:
+        Triplestore.deleteAll($triplestoreID$)
+
+function upload($triplestoreID$, $triples$, $schema$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    $scheme$ := createEncryptionScheme()
+    $scheme$.loadState($secrets$[$triplestoreID$])
+    if $schema$ == false:
+        return uploadABox($triplestoreID$, $triples$, $scheme$)
+    else:
+        return updateNodes($triplestoreID$, $triples$, $scheme$, true)
+
+function delete($triplestoreID$, $triples$, $schema$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    $scheme$ := createEncryptionScheme()
+    $scheme$.loadState($secrets$[$triplestoreID$])
+    if $schema$ == false:
+        return deleteABox($triplestoreID$, $triples$, $scheme$)
+    else:
+        return deleteTBox($triplestoreID$, $triples$, $scheme$)
 
 
 function update($triplestoreID$, $triples_{delete}$, $triples_{upload}$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    $scheme$ := createEncryptionScheme()
+    $scheme$.loadState($secrets$[$triplestoreID$])
+    $keywords$ := [$\#triples_{delete}$]
+    $i$ := 0
+    foreach $t$ in $triples_{delete}$:
+        $keyword$ := extractKeywords($triples_{delete}$) 
+        if $keyword$ :neq :bot:
+            $keywords$[$i$] := $keyword$
+            $i$++
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    $trapdoors_{delete}$ := createLinkedList()
+    for $keyword$ in $keywords$:
+        for $i$ in range(0, $frequencies$[$keyword$]):
+            $trapdoors_{delete}$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+
+
+function batchExecute($triplestoreID$, $scheme$, $triples$, $opType$):
+    $batchIDs$ := createLinkedList()
+    while $\#triples > 0$: 
+        $batch$ := createLinkedList()
+        for $i$ in range(0, $BATCH_SIZE$):
+            if $\#triples > 0$:
+                $batch$.add($triples$.removeFirst())
+        if $\#batch > 0$:
+            $batchID$ := batch($triplestoreID$, $scheme$, $batch$, $opType$)
+            if $batchID$ == :bot:
+                throw BatchException()
+            $batchIDs$.add($batchID$)
+        $scheme$.clearNodes()
+    return $batchIDs$
+
+function batch($triplestoreID$, $scheme$, $batch$, $opType$):
+    if $opType$ == "UPLOAD":
+        return prepareABoxUpload($triplestoreID$, $batch$, $scheme$)
+    elif $opType$ == "DELETION":
+        return prepareABoxDelete($triplestoreID$, $batch$, $scheme$)
+    else:
+        throw IllegalStateException()
+
+function uploadABox($triplestoreID$, $triples$, $scheme$):
+    $keywords$ := [$\#triples$]
+    $i$ := 0
+    foreach $t$ in $triples$:
+        $keyword$ := extractKeywords($triplePattern$) 
+        if $keyword$ :neq :bot:
+            $keywords$[$i$] := $keyword$
+            $i$++
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    $encryptedNodes$ := $scheme$.encrypt($triples$, false)
+    return Triplestore.upload($triplestoreID$, $encryptedNodes$)
+
+
+function deleteABox($triplestoreID$, $triples$, $scheme$):
+    $keywords$ := [$\#triples$]
+    $i$ := 0
+    foreach $t$ in $triples$:
+        $keyword$ := extractKeywords($triplePattern$) 
+        if $keyword$ :neq :bot:
+            $keywords$[$i$] := $keyword$
+            $i$++
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    return deleteNodes($triplestoreID$, [$keyword$], $frequencies$)
+
+function deleteTBox($triplestoreID$, $triples$, $scheme$):
+    $keyword$ := $scheme$.getSchemaKeyword()
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    return deleteNodes($triplestoreID$, [$keyword$], $frequencies$)
+
+function deleteNodes($triplestoreID$, $keywords$, $frequencies$):
+    $trapdoors$ := createLinkedList()
+    for $keyword$ in $keywords$:
+        for $i$ in range(0, $frequencies$[$keyword$]):
+            $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+    return Triplestore.delete($triplestoreID$, $trapdoors$)
+
+function uploadTBox($triplestoreID$, $triples$, $scheme$):
+    $keyword$ := $scheme$.getSchemaKeyword()
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    $encryptedNodes$ := $scheme$.encrypt($triples$, false)
+    return Triplestore.upload($triplestoreID$, $encryptedNodes$)

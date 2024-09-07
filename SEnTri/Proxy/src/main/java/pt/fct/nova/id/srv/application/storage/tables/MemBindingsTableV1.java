@@ -106,15 +106,19 @@ public class MemBindingsTableV1 implements BindingsTableV1 {
         Set<Bytes> p_idxs = new HashSet<>();
         for (Var v : vars)
             p_idxs.addAll(patterns.get(v).keySet());
-        byte[] binding;
+        Bytes binding;
         int i;
         for (Bytes p_idx : p_idxs) {
             pattern = new ArrayList<>(vars.size());
             i = 0;
             for (Var v : vars) {
-                binding = patterns.get(v).get(p_idx).getData();
-                pattern.add(binding);
-                if (binding == null) i++;
+                binding = patterns.get(v).get(p_idx);
+                if (binding == null){
+                    pattern.add(null);
+                    i++;
+                } else {
+                    pattern.add(binding.getData());
+                }
             }
             if (i < vars.size()) res.add(pattern);
         }

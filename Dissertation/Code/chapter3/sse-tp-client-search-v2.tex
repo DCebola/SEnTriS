@@ -9,12 +9,12 @@ function search($triplestoreID$, $triplePatterns$):
     $keywords$ := [$\#triplePatterns$]
     $i$ := 0
     foreach $t$ in $triplePatterns$:
-        $keyword$ := extractKeywords($triplePattern$) // Parses the pattern and, based on its type, generates a keyword like the encryption scheme would. Outputs :bot if pattern not supported.
+        $keyword$ := extractKeywords($triplePattern$) 
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
     $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
-    $trapdoors$ := createArrayList()
+    $trapdoors$ := createLinkedList()
     for $keyword$ in $keywords$:
         for $i$ in range(0, $frequencies$[$keyword$]):
             $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
