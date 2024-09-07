@@ -5,18 +5,18 @@ State:
 function search($triplestoreID$, $trapdoors$):
     return $storageEngine$.search($triplestoreID$, $trapdoors$)
 
-// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Upload(triplestoreID, \; E(nodes))$
-function upload($triplestoreID$, $encryptedNodes$):
-    return $storageEngine$.save($triplestoreID$, $encryptedNodes$)
+// $\{uploadID, \bot\} \leftarrow \textrm{SSE-TP}.PrepareUpload(triplestoreID, \; E(nodes))$
+function prepareUpload($triplestoreID$, $encryptedNodes$):
+    return $storageEngine$.commitUpload($triplestoreID$, $encryptedNodes$)
 
-// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Delete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])$
-function delete($triplestoreID$, $trapdoors$):
-    return $storageEngine$.delete($triplestoreID$, $trapdoors$)
+// $\{deleteID, \bot\} \leftarrow \textrm{SSE-TP}.PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])$
+function prepareDelete($triplestoreID$, $trapdoors$):
+    return $storageEngine$.commitDelete($triplestoreID$, $trapdoors$)
 
-// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Update(triplestoreID, \; E(nodes), \; [trapdoor_0, ..., trapdoor_n])$   
-function update($triplestoreID$, $encryptedNodes$, $trapdoors$):
-    return $storageEngine$.update($triplestoreID$, $encryptedNodes$, $trapdoors$)
+// $\{\textrm{SUCCESS}, \bot\}$ $\leftarrow \textrm{SSE-TP}.Update$($triplestoreID$, $[updateID_0,...,updateID_n]$, $[deletionID_0, ..., deletionID_n]$) 
+function update($triplestoreID$, $uploadIDs$, $deletionIDs$):
+    return $storageEngine$.update($triplestoreID$, $uploadIDs$, $deletionIDs$)
 
 // $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.DeleteAll(triplestoreID)$:    
 function delete($triplestoreID$)
-    return storageEngine.delete($triplestoreID$)
+    return $storageEngine$.delete($triplestoreID$)

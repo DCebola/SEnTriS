@@ -1,8 +1,8 @@
 State:
     $triplestores$ := {}
-    $separator_{I}$ := fetchConfig($separator_{I}$) // A configurable parameter, must provide a value that does not belong to the charset used for nodes
-    $separator_{II}$ := fetchConfig($separator_{II}$) // Must be different than $separator_{I}$, and follow the same restrictions
-    $separator_{III}$ := fetchConfig($separator_{III}$) // Must be different than $separator_{I}$ and $separator_{II}$, and follow the same restrictions
+    $SEPARATOR_{I}$ := fetchConfig($SEPARATOR_{I}$) // A configurable parameter, must provide a value that does not belong to the charset used for nodes
+    $SEPARATOR_{II}$ := fetchConfig($SEPARATOR_{II}$) // Must be different than $SEPARATOR_{I}$, and follow the same restrictions
+    $SEPARATOR_{III}$ := fetchConfig($SEPARATOR_{III}$) // Must be different than $SEPARATOR_{I}$ and $SEPARATOR_{II}$, and follow the same restrictions
 
 function save($triplestoreID$, $triples$):
     foreach $t$ in $triples$:
@@ -48,7 +48,7 @@ function deleteTriple($triple = (s, p, o)$):
 
 function save($triplestoreID$, $varPattern$, $keyword$, $node_1$, $node_2$):
     $index$ := generateIndex($varPattern$, $keyword$)
-    $triplestores$[$triplestoreID$][$index$] := $triplestores$[$triplestoreID$][$index$] :U { $node_1$ || $separator_{III}$ || $node_2$ }
+    $triplestores$[$triplestoreID$][$index$] := $triplestores$[$triplestoreID$][$index$] :U { $node_1$ || $SEPARATOR_{III}$ || $node_2$ }
 
 function save($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$, $node$):
     $index$ := generateIndex($varPattern$, $keyword_1$, $keyword_2$)
@@ -56,17 +56,17 @@ function save($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$, $node$):
 
 function delete($triplestoreID$, $varPattern$, $keyword$, $node_1$, $node_2$):
     $index$ := generateIndex($varPattern$, $keyword$)
-    $triplestores$[$triplestoreID$][$index$] := $triplestores$[$triplestoreID$][$index$] / { $node_1$ || $separator_{III}$ || $node_2$ }
+    $triplestores$[$triplestoreID$][$index$] := $triplestores$[$triplestoreID$][$index$] / { $node_1$ || $SEPARATOR_{III}$ || $node_2$ }
 
 function delete($triplestoreID$, $varPattern$, $keyword_1$, $keyword_2$, $node$):
     $index$ := generateIndex($varPattern$, $keyword_1$, $keyword_2$)
     $triplestores$[$triplestoreID$][$index$] := $triplestores$[$index$] / { $node$ }
 
 function generateIndex($varPattern$, $keyword$):
-    return $separator_{II}$ || $varPattern$ || $separator_{II}$ || $keyword$ 
+    return $SEPARATOR_{II}$ || $varPattern$ || $SEPARATOR_{II}$ || $keyword$ 
 
 function generateIndex($varPattern$, $keyword_1$, $keyword_2$):
-    return $separator_{II}$ || $varPattern$ || $separator_{II}$ || $node_1$ || $separator_{II}$ || $node_2$
+    return $SEPARATOR_{II}$ || $varPattern$ || $SEPARATOR_{II}$ || $node_1$ || $SEPARATOR_{II}$ || $node_2$
 
 function search($triplestoreID$, $varPattern$, $s$, $p$, $o$):
     switch($varPattern$):
@@ -89,31 +89,31 @@ function fetchBindings($triplestoreID$, $index$, $var_1$, $var_2$):
     $table$.setVariables({$var_1$, $var_2$})
     foreach $nodePair$ in $triplestores$[$triplestoreID$][$index$]:
         $patternID$ := generateID()               
-        $nodes$ = $nodePair$.split($separator_{III}$)
+        $nodes$ = $nodePair$.split($SEPARATOR_{III}$)
         $table$.add($patternID$, $var_1$, $nodes$[0])
         $table$.add($patternID$, $var_2$, $nodes$[1])
     return $table$
 
 function parseNode($n$):
     if $n \in I$:            
-        return "S" || $separator_{I}$ || $n.value$  // IRI
+        return "S" || $SEPARATOR_{I}$ || $n.value$  // IRI
     elif $n \in L$:
-        return "L" || $separator_{I}$ || $n.value$ || $separator_{I}$ || $n.datatype$
+        return "L" || $SEPARATOR_{I}$ || $n.value$ || $SEPARATOR_{I}$ || $n.datatype$
     elif $n \in B$:
-        return "B" || $separator_{I}$ || $n.value$    // identifier of the blank node
+        return "B" || $SEPARATOR_{I}$ || $n.value$    // identifier of the blank node
     return $\bot$
 
 function parseKeyword($n$):
     if $n \in I$:            
-        return "S" || $separator_{I}$ || $n.value$   
+        return "S" || $SEPARATOR_{I}$ || $n.value$   
     elif $n \in L$:
-        return "L" || $separator_{I}$ || $n.value$ || $separator_{I}$ || $n.datatype$
+        return "L" || $SEPARATOR_{I}$ || $n.value$ || $SEPARATOR_{I}$ || $n.datatype$
     elif $n \in B$:
         return "BLANK"
     return $\bot$
 
 function generateNode($parsedValue$):
-    $(prefix, \; value, \; datatype)$ := $parsedValue$.split($separator_{I}$);
+    $(prefix, \; value, \; datatype)$ := $parsedValue$.split($SEPARATOR_{I}$);
     if prefix == "BLANK":
         return createBlankNode($value$)
     elif prefix == "S":

@@ -1,29 +1,6 @@
 State:
     $BATCH_SIZE$ := fetchConfig($BATCH_SIZE$)
 
-function batchExecute($triplestoreID$, $scheme$, $triples$, $keywordsFrequency$, $opType$):
-    $batchIDs$ := createLinkedList()
-    while $\#triples > 0$: 
-        $batch$ := createLinkedList()
-        for $i$ in range(0, $BATCH_SIZE$):
-            if $\#triples > 0$:
-                $batch$.add($triples$.removeFirst())
-        if $\#batch > 0$:
-            $batchID$ := batch($triplestoreID$, $scheme$, $keywordsFrequency$, $batch$, $opType$)
-            if $batchID$ == :bot:
-                throw BatchException()
-            $batchIDs$.add($batchID$)
-        $scheme$.clearNodes()
-    $scheme$.clearFrequencies()
-    return $batchIDs$
-
-function batch($triplestoreID$, $scheme$, $keywordsFrequency$, $batch$, $opType$):
-    if $opType$ == "UPLOAD":
-        return prepareUploads($triplestoreID$, $scheme$, $keywordsFrequency$, $batch$)
-    elif $opType$ == "DELETION":
-        return prepareDeletions($triplestoreID$, $scheme$, $batch$)
-    else:
-        throw IllegalStateException()
 
 
 function uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie,

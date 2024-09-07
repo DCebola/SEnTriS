@@ -1,23 +1,38 @@
 State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
     $triplestores$ := {}
+    $uploads$ := {}
+    $deletions$ := {}
     
-function save($triplestoreID$, $encryptedNodes$):
-    foreach $(trapdoor, ct)$ in $encryptedNodes$:
-        $triplestores$[$triplestoreID$][$trapdoor$] := $ct$
-    return "SUCCESS"
-
 function delete($triplestoreID$):
     $triplestores$ := $triplestores$ / { $triplestores$[$triplestoreID$] }
     return "SUCCESS"
 
-function delete($triplestoreID$, $trapdoors$):
-    foreach $trapdoor$ in $trapdoor$:
-        $triplestores$[$triplestoreID$][$trapdoor$] := :bot
-    return "SUCCESS"
+function commitUpload($triplestoreID$, $encryptedNodes$):
+    $uploadID$ := generateID()
+    $uploads$[$uploadID$] := $encryptedNodes$
+    schedule(expireUpload($uploadID$), $TIMEOUT$) // schedules function to execute after a period specified by $TIMEOUT$
+    return $uploadID$
 
-function update($triplestoreID$, $deletions$, $uploads$):
-    delete($triplestoreID$, $deletions$)
-    save($triplestoreID$, $uploads$)
+function commitDelete($triplestoreID$, $trapdoors$):
+    $deletionID$ := generateID()
+    $deletions$[$deletionID$] := $trapdoors$
+    schedule(expireDeletion($deletionID$), $TIMEOUT$)
+    return $deletionID$
+
+function update($triplestoreID$, $deletionIDs$, $uploadIDs$):
+    foreach $deletionID$ in $deletionIDs$:
+        $trapdoors$ := $deletions$[$deletionID$]
+        if $trapdoors$ == :bot:
+            return :bot
+        foreach $trapdoor$ in $trapdoors$:
+            $triplestores$[$triplestoreID$][$trapdoor$] := :bot
+    foreach $uploadID$ in $uploadIDs$:
+        $encryptedNodes$ := $uploads$[$uploadID$]
+        if $encryptedNodes$ == :bot:
+            return :bot
+        foreach $(trapdoor, \; encryptedNode)$ in $encryptedNodes$:
+            $triplestores$[$triplestoreID$][$trapdoor$] := $encryptedNode$ 
     return "SUCCESS"
 
 function search($triplestoreID$, $trapdoors$):
@@ -25,3 +40,11 @@ function search($triplestoreID$, $trapdoors$):
     for $i$ in range(0, $\#trapdoor$):
         $result$.add($triplestores$[$triplestoreID$][$trapdoors$[$i$]])
     return $result$
+
+function expireUpload($uploadID$):
+    if $uploads$[$uploadID$] :neq :bot:
+        $uploads$[$uploadID$] := :bot
+
+function expireDeletion($deletionID$):
+    if $deletions$[$deletionID$] :neq :bot:
+        $deletions$[$deletionID$] := :bot

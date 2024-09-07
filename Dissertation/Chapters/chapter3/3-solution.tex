@@ -437,7 +437,7 @@ In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the 
 \subsubsection{Triple Pattern SSE encryption scheme}
 
 \begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:sse-sentri-det}
-    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search, \allowbreak Upload, \; Delete, \; Update)$ of 9 algorithms:
+    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search, \allowbreak PrepareUpload, \; PrepareDelete, \; Update)$ of 9 algorithms:
     \begin{itemize}
         \item $\lambda \leftarrow \mathbf{Setup()}$: Takes no input. Outputs a set of newly generated security parameters.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$: Takes as input a set of security parameters. In case of success, sets the security parameters and updates the state of the scheme and outputs SUCCESS, $\bot$ otherwise.
@@ -445,10 +445,10 @@ In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the 
         \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Outputs the decrypted node.
         \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
         \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier and a collection of trapdoors. Outputs a collection of encrypted nodes.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Upload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Outputs SUCCESS if data is successfully uploaded, $\bot$ otherwise.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Delete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Outputs SUCCESS in case of successful deletion of the nodes referenced by the trapdoors, $\bot$ if there was an error.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID)}$: Takes as input the triplestore identifier. Outputs SUCCESS if triplestore was fully deleted, $\bot$ otherwise.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; E(nodes), \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier, a map of encrypted nodes, indexed by trapdoors, and a collection of trapdoors. Outputs SUCCESS if the data update was successful execution, $\bot$ otherwise.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Outputs the identifier of the upload changes stored to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. O. Outputs the identifier of the delete changes stored to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID, schema)}$: Takes as input the triplestore identifier and a boolean parameter, which is set to true if the all the nodes to delete belong only to the schema triples. Outputs SUCCESS if triplestore is fully deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the upload and deletion changes are successfully executed, $\bot$ otherwise.
     \end{itemize}
     SSE-TP is a distributed, two-party protocol: encrypted data is stored and can be searched in a \emph{triplestore} component; whereas encryption and decryption is scoped to a \emph{client} component.
 \end{definition}
@@ -507,11 +507,9 @@ Trapdoors index encrypted equality tags and encrypted equality tags index encryp
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt them and upload them. The schema triples are uploaded in upload operations afterwards. The triplestore creation and encryption operations are handled by the client. The Listing \ref{encrypted-triplestore-creation} shows how the client component handles the creation of a triplestore, this logic is common for both versions.
+\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt them and upload them. The schema triples are uploaded in upload operations afterwards. The triplestore creation and encryption operations are handled by the client. 
 
-\lstinputlisting[caption={Triplestore Creation in SSE-TP Client}, label={encrypted-triplestore-creation}]{Code/chapter3/sse-tp-client-create.tex}
-
-Upon receiving the encrypted data pertaining to a triplestore, the triplestore component will store it. The storage engine logic is simplified, as it no longer is responsible for generating the indexes of the data. We will continue to assume that the storage engine is atomic. Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} specify, respectively, the simplified storage engine and the triplestore component.
+Due to the high volumes of data than can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
 
 \lstinputlisting[caption={SSE-TP Storage Engine}, label={sse-tp-storage-engine}]{Code/chapter3/sse-tp-storage-engine.tex}
 

@@ -1,8 +1,0 @@
-State:
-    $secrets$ := {}
-
-function create($triplestoreID$, $triples_{ABox}$):
-    $scheme$ := createEncryptionScheme() 
-    $secrets$[$triplestoreID$] := $scheme$.getSecrets()
-    $encryptedNodes$ := $scheme$.encrypt($triples_{ABox}$, false)
-    return Triplestore.upload($triplestoreID$, $encryptedNodes$)
