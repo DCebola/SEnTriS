@@ -27,7 +27,7 @@ function encrypt($triples$, $schema$):
         encryptSchemaTriples($triples$)
     else
         encryptTriples($triples$)
-    encryptKeywordInfo()
+    return encryptContextualData()
 
 function EncryptSchemaTriples($triples$):
     foreach $t = (s,p,o)$ in $triples$:
@@ -38,7 +38,7 @@ function EncryptSchemaTriples($triples$):
 function encryptSchemaNode($node$):
     $freq$ := incrementKeywordFrequency($keyword_{schema}$)
     $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
-    $encryptedNode$[$trapdoor$] := E($K_{RND}$, $node$)
+    $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $node$)
 
 
 // $E(T)$ := $\textrm{SSE-TP}.Decrypt(E(node), \; schema)$
@@ -47,6 +47,9 @@ function decrypt($ct$, $schema$):
         return D($K_{RND}$, $ct$)
     else
         return decryptNode($ct$)
+
+function decryptContextualData($ct$):
+    return D($K_{RND}$, $ct$)
     
 function encryptTriples($triples$):
 	foreach $t = (s,p,o)$ in $triples$:
@@ -72,7 +75,7 @@ function encryptTriplePattern($keyword$, $frequencies$):
     $i$ := 0
     foreach $freq$ in $frequencies$:
         $trapdoor$ := E(deriveKey($keyword$), $keyword$, $i$)
-        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $freq$)
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $freq$)
         $i$++
 
 function deriveKey($context$):

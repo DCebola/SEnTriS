@@ -24,4 +24,4 @@ function search($triplestoreID$, $triplePatterns$):
     foreach $node$ in $encryptedNodes$:
         if $node$ :neq :bot:
             $results$ := $results$ :U { $scheme$.decrypt($node$, false) }
-    return $results$    
+    return $results$

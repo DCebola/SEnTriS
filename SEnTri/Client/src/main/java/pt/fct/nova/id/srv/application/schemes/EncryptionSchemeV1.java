@@ -83,7 +83,7 @@ public class EncryptionSchemeV1 implements EncryptionScheme {
             encryptSchemaTriples(triples);
         else
             encryptTriples(triples);
-        encryptKeywordInfo();
+        encryptContextualData();
     }
 
     private void encryptSchemaTriples(Set<Triple> triples) throws InvalidNodeException {
@@ -183,7 +183,7 @@ public class EncryptionSchemeV1 implements EncryptionScheme {
         return res;
     }
 
-    private void encryptKeywordInfo() {
+    private void encryptContextualData() {
         byte[] st, ct;
         for (String keyword : keywordFrequencies.keySet()) {
             st = generateDETLayer(derivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), frequencyIV);

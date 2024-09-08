@@ -8,22 +8,20 @@ function loadState($master$, $rnd$, $det$, $iv$, $schema$):
 function getSecrets():
     return $(K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \; keyword_{schema})$
 
-function encryptKeywordInfo():
-    foreach $keyword$ in $keywordFrequencies$:
+function encryptContextualData():
+    foreach $(keyword, \; frequency)$ in $keywordFrequencies$:
         $trapdoor$ := E($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
-        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$keyword$])
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $frequency$)
+    return $encryptedNodes$
 
 function encryptNode($node$, $keyword$):
     $freq$ := incrementKeywordFrequency($keyword$)
     $trapdoor$ := E(deriveKey($keyword$), $keyword$, $freq$)
-    $encryptedNode$[$trapdoor$] := E($K_{RND}$, E($K_{DET}$, $node$, $iv_{DET}$))
+    $encryptedNodes$[$trapdoor$] := E($K_{RND}$, E($K_{DET}$, $node$, $iv_{DET}$))
     return $freq$
  
 function decryptNode($node$):
     return D($K_{RND}$, D($K_{DET}$, $ct$, $iv_{DET}$))
-
-function decryptFrequency($ct$):
-    return D($K_{RND}$, $ct$)
 
 function getDETKey():
     return $K_{DET}$

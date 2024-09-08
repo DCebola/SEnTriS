@@ -659,7 +659,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         response = fetchEqTags(httpClient, triplestoreID, triplesToUpload, protocol, eqTags, accessToken);
         if (response != null && response.getStatus() != OK)
             return response;
-        protocol.seEqTags(eqTags);
+        protocol.setEqTags(eqTags);
         protocol.encrypt(triplesToUpload, false);
         Map<String, String> uploads = protocol.getEncryptedNodes();
         if (!uploads.isEmpty()) {
@@ -686,9 +686,8 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     private HTTPResponse fetchEqTags(CloseableHttpClient httpClient, String
             triplestoreID, Set<Triple> triples, EncryptionSchemeV2 protocol, Map<String, Integer> eqTagsCollector, String
                                              accessToken) throws InvalidNodeException, IOException, AEADBadTagException, ClassNotFoundException {
-        int totalNodes = 3 * triples.size();
         List<String> eqTagTrapdoors = new LinkedList<>();
-        List<String> nodes = new ArrayList<>(totalNodes);
+        List<String> nodes = new LinkedList<>();
         String s, p, o;
         Set<String> processed = new HashSet<>();
         for (Triple triple : triples) {
@@ -718,10 +717,12 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
         List<byte[]> encryptedEqTags = ParsingUtils.parseListOfBytes(response.getBody());
         byte[] encryptedEqTag;
 
-        for (int i = 0; i < nodes.size(); i += 3) {
+        int i = 0;
+        for(String node: nodes){
             encryptedEqTag = encryptedEqTags.get(i);
             if (encryptedEqTag != null)
-                eqTagsCollector.put(nodes.get(i), ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
+                eqTagsCollector.put(node, ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedEqTag)));
+            i++;
         }
         return null;
     }

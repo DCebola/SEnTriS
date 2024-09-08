@@ -445,12 +445,12 @@ In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the 
         \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Outputs the decrypted node.
         \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
         \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier and a collection of trapdoors. Outputs a collection of encrypted nodes.
-        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Outputs the identifier of the upload changes stored to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. O. Outputs the identifier of the delete changes stored to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID, schema)}$: Takes as input the triplestore identifier and a boolean parameter, which is set to true if the all the nodes to delete belong only to the schema triples. Outputs SUCCESS if triplestore is fully deleted, $\bot$ otherwise.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the upload and deletion changes are successfully executed, $\bot$ otherwise.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Outputs the identifier of the uploads to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Outputs the identifier of the deletions to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID, schema)}$: Takes as input the triplestore identifier and a boolean parameter, which is set to true if only the schema triples should be deleted. Outputs SUCCESS if the requested data is deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the uploads and deletions are successfully executed, $\bot$ otherwise.
     \end{itemize}
-    SSE-TP is a distributed, two-party protocol: encrypted data is stored and can be searched in a \emph{triplestore} component; whereas encryption and decryption is scoped to a \emph{client} component.
+    SSE-TP is a distributed, two-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; whereas encryption and decryption of data is scoped to the \emph{client} component.
 \end{definition}
 
 \subsubsection{Trapdoor generation}
@@ -478,7 +478,7 @@ In the case of the trapdoors that reference schema nodes, we will also base the 
     \end{equation}
 \end{definition}
 
-Finally, we also reference with trapdoors the frequencies of a triple pattern, which are necessary for computing deletions.
+We also reference with trapdoors the frequencies of a triple pattern, which are necessary for computing deletions.
 
 \begin{definition}[\textbf{Triple Frequencies Trapdoor Generation}]\label{ch3:definition:schema-triple-freq-generation}
     Let $keyword_{s}$, $keyword_{p}$ and $keyword_{o}$ be the keywords that reference the nodes belonging to a triple pattern $t = (s, p, o)$. Let $keyword_{t} = \textrm{SPO} \; \vert\vert \; keyword_{s} \; \vert\vert \; keyword_{p} \; \vert\vert \; keyword_{o}$ be the keyword that references $t$, $K_{MASTER}$ be a master key for a deterministic encryption scheme and $K_{keyword_{t}}$ be the derived key for the context of $keyword_{t}$. Finally, let $i$ be the observed frequency for $keyword_{t}$, and $trapdoor_{t,i}$ be the trapdoor that is built from $keyword_{t}$, after $i - 1$ observations of the term:
@@ -487,13 +487,15 @@ Finally, we also reference with trapdoors the frequencies of a triple pattern, w
     \end{equation}
 \end{definition}
 
+Finally, uniquely to \gls{SEnTri} V2, trapdoors generated with $iv = 0$ for the context of the parsed value of a node, reference its \emph{equality tag}. We will define equality tags in Section \ref{ch3:encryption-definition}
+
 \subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, and the state is exclusive to each triplestore.
 
 \paragraph{SEnTri V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
 \paragraph{SEnTri V2} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \linebreak K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$ where, $K_{MASTER}$ and $K_{RND}$ are secret keys, $K_{DGK_{priv}}$ and $K_{DGK_{pub}}$ are, respectively, a \gls{DGK} private and public key, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
-\subsubsection{Triple Pattern encryption and decryption} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
+\subsubsection{Triple Pattern encryption and decryption} \label{ch3:encryption-definition} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
 
 \lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
@@ -507,7 +509,7 @@ Trapdoors index encrypted equality tags and encrypted equality tags index encryp
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt them and upload them. The schema triples are uploaded in upload operations afterwards. The triplestore creation and encryption operations are handled by the client. 
+\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples cab be uploaded in separate upload operations. The triplestore creation and encryption operations are handled by the client. 
 
 Due to the high volumes of data than can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
 
@@ -515,19 +517,27 @@ Due to the high volumes of data than can be processed during write operations, t
 
 \lstinputlisting[caption={SSE-TP Triplestore Component}, label={sse-tp-triplestore-component}]{Code/chapter3/sse-tp-triplestore.tex}
 
-The search operation is a two-step process in \gls{SEnTri} V1. Firstly, for both versions, we parse the triple patterns to be searched and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. In \gls{SEnTri} V1, upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation. In \gls{SEnTri} V2, the results of the second search yield a collection of encrypted equality tags, we need an extra communication round, where we search for these values to retrieve the encrypted nodes. This extra communication round is only required for search over the \emph{ABox}, schema triples are referenced by trapdoors, so the algorithm is exactly the same in both version. Listings \ref{sse-tp-client-search-v1} and \ref{sse-tp-client-search-v2} show the search logic in the client component for versions V1 and V2, respectively.
+The search operation is a two-step process in \gls{SEnTri} V1. Firstly, we parse the triple patterns and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. Upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation.
+
+In \gls{SEnTri} V2, the results of the second search yield a collection of encrypted equality tags. We need an extra communication round to retrieve the encrypted nodes, referenced by the encrypted equality tags. This extra communication round is only required for search over the \emph{ABox}, so the algorithm is exactly the same in both version.
+
+Listings \ref{sse-tp-client-search-v1} and \ref{sse-tp-client-search-v2} show the search logic in the client component for versions V1 and V2, respectively.
 
 \lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp-client-search-v1.tex}
 
 \lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp-client-search-v2.tex}
 
-To execute deletions we fetch the frequencies of the triple patterns keywords, generate their trapdoors and execute a deletion of such trapdoors (and their referenced encrypted nodes). 
+In \gls{SEnTri} V1, to execute deletions, we fetch the frequencies of the triple patterns, generate their trapdoors and send a deletion request for data referenced by those trapdoors. In the case of \gls{SEnTri} V2, we are required to fetch the equality tags, because data referenced by them needs to be deleted as well. The deletion requests are sent to the triplestore, where they are temporarily saved.
 
-To upload new data we need to set the encryption scheme to the correct context. We first fetch the frequencies of the triple patterns keywords. Upon receiving the encrypted frequencies, we decrypt them, and update the encryption scheme. We then encrypt the triple patterns and upload the data to the triplestore.  
+To upload new data, firstly, we fetch the frequencies of the triple patterns keywords. Additionally, in \gls{SEnTri} V2, we will need to fetch the equality tags. Upon receiving all the contextual data, we decrypt it, and set the encryption scheme to the right context. We then issue deletion requests for any duplicated data, encrypt the new triple patterns and send the upload requests to the triplestore component.  
 
-To apply update operations we compute the deletions and the uploads following the same logic. To ensure that triplestores always stay in a consistent state after subsequent modifications, in the triplestore component, deletions are processed first, and then the updated values are stored. All this logic is specified in Listings ... and ...
+Update operations are the only way to actually persist changes in the triplestores, so they are always executed at the end of an upload or deletion request. To ensure that triplestores always stay in a consistent state after subsequent modifications, deletions are processed first, and then the updated values are stored.
 
+Listings \ref{sse-tp-client-writes-v1} and \ref{sse-tp-client-writes-v2} show the underlying logic of write operations in the client component. For version V2, we only highlight the algorithms that differ between versions.
 
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTri V1)}, label={sse-tp-client-writes-v1}]{Code/chapter3/sse-tp-client-writes-v1.tex}
+
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTri V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp-client-writes-v2.tex}
 
 \subsection{Evaluation of SPARQL queries over encrypted data} ...
 

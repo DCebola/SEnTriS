@@ -10,20 +10,21 @@ function loadState($master$, $rnd$, $KeyPair_{DGK}$, $iv$, $schema$):
 function getSecrets():
     return $(K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \; K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$
 
-function encryptKeywordInfo():
-    foreach $keyword$ in $keywordFrequencies$:
+function encryptContextualData():
+    foreach $(keyword, \; frequency)$ in $keywordFrequencies$:
         $trapdoor$ := E($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
-        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$keyword$])
-    foreach $node$ in $eqTags$:
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$keyword$])
+    foreach $(node, \; eqTag)$ in $eqTags$:
         $trapdoor$ := E($derivedKeys$[$node$], $node$, $iv_{ZERO}$)
-        $encryptedNode$[$trapdoor$] := E($K_{RND}$, $keywordFrequencies$[$node$])
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $eqTag$)
+    return $encryptedNodes$
         
 function encryptNode($node$, $keyword$):
     $freq$ := incrementKeywordFrequency($keyword$)
     $trapdoor$ := E(deriveKey($keyword$), $keyword$, $freq$)
     $enc_{eq_{tag}}$ := E($K_{DGK_{pub}}$, getEqTag(node))
-    $encryptedNode$[$trapdoor$] := $enc_{eq_{tag}}$
-    $encryptedNode$[$enc_{eq_{tag}}$] := E($K_{RND}$, $node$)
+    $encryptedNodes$[$trapdoor$] := $enc_{eq_{tag}}$
+    $encryptedNodes$[$enc_{eq_{tag}}$] := E($K_{RND}$, $node$)
     return $freq$
 
 function getEqTag($node$):
@@ -34,7 +35,7 @@ function getEqTag($node$):
     if ($eq_{tag}$ > $eq_{last}$)
         $eq_{last}$ := $eq_{tag}$
     return $eq_{tag}$;
-
+    
 function setEqTags($value$):
     $eqTags$ := $value$
 

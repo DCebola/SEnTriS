@@ -103,7 +103,7 @@ public class EncryptionSchemeV2 implements EncryptionScheme {
             encryptSchemaTriples(triples);
         else
             encryptTriples(triples);
-        encryptKeywordInfo();
+        encryptContextualData();
     }
 
     private void encryptSchemaTriples(Set<Triple> triples) throws InvalidNodeException {
@@ -205,7 +205,7 @@ public class EncryptionSchemeV2 implements EncryptionScheme {
         return res;
     }
 
-    private void encryptKeywordInfo() {
+    private void encryptContextualData() {
         byte[] st, ct;
         for (String keyword : keywordFrequencies.keySet()) {
             st = encryptDET(derivedKeys.get(keyword), keyword.getBytes(StandardCharsets.UTF_8), zeroIV);
@@ -293,7 +293,7 @@ public class EncryptionSchemeV2 implements EncryptionScheme {
         }
     }
 
-    public void seEqTags(Map<String, Integer> values) {
+    public void setEqTags(Map<String, Integer> values) {
         eqTags.putAll(values);
     }
 

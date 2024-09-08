@@ -1,0 +1,98 @@
+State:
+    secrets := {}
+    $BATCH\_SIZE$ := fetchConfig($BATCH\_SIZE$)
+
+function batchExecute($triplestoreID$, $scheme$, $triples$, $opType$):
+    $batchIDs$ := createLinkedList()
+    while $\#triples > 0$: 
+        $batch$ := createLinkedList()
+        for $i$ in range(0, $BATCH\_SIZE$):
+            if $\#triples > 0$:
+                $batch$.add($triples$.removeFirst())
+        if $\#batch > 0$:
+            $batchID$ := batch($triplestoreID$, $scheme$, $batch$, $opType$)
+            if $batchID$ == :bot:
+                throw BatchException()
+            $batchIDs$.add($batchID$)
+        $scheme$.clearNodes()
+        $scheme$.clearEqTags()
+    $scheme$.clearFrequencies()
+    return $batchIDs$
+        
+function prepareUpload($triplestoreID$, $triples$, $scheme$):
+    $keywords$ := [$\#triples$]
+    $i$ := 0
+    foreach $t$ in $triples$:
+        $keyword$ := extractKeyword($triplePattern$) 
+        if $keyword$ :neq :bot:
+            $keywords$[$i$] := $keyword$
+            $i$++
+    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $scheme$.setKeywordFrequencies($frequencies$)
+    $eqTags$ := fecthEqTags($triplestoreID$, $triples$, $scheme$)
+    $scheme$.setEqTags($eqTags$)
+    $encryptedNodes$ := $scheme$.encrypt($triples$, false)
+    return Triplestore.prepareUpload($triplestoreID$, $encryptedNodes$)
+
+function fecthEqTags($triplestoreID$, $triples$, $scheme$):
+    $eqTags$ := {}
+    $eqTagTrapdoors$ := createLinkedList()
+    $nodes$ := createLinkedList()
+    $processed$ := {}
+    foreach $(s, p, o)$ in $triples$
+        $parsed_s$ := parseNode($s$)
+        $parsed_p$ := parseNode($p$)
+        $parsed_o$ := parseNode($o$)
+        if $s \notin processed$:
+            $nodes$.add($parsed_s$)
+            $eqTagTrapdoors$.add($scheme$.generateTrapdoor($parsed_s$))
+            $processed$.add($parsed_s$)
+        if $p \notin processed$:
+            $nodes$.add($parsed_p$)
+            $eqTagTrapdoors$.add($scheme$.generateTrapdoor($parsed_p$))
+            $processed$.add($parsed_p$)
+        if $o \notin processed$:
+            $nodes$.add($parsed_o$)
+            $eqTagTrapdoors$.add($scheme$.generateTrapdoor($parsed_o$))
+            $processed$.add($parsed_o$)
+    $encryptedEqTags$ := Triplestore.search($triplestoreID$, $eqTagTrapdoors$)
+    $i$ := 0
+    foreach $node$ in $nodes$:
+        $encryptedEqTag$ = $encryptedEqTags$.get($i$)
+        if $encryptedEqTag$ :neq :bot:
+            $eqTags$[$node$] := $scheme$.decryptContextualData($encryptedEqTag$)
+        $i$++
+    return $eqTags$
+
+function prepareDelete($triplestoreID$, $triples$, $scheme$):
+    $keywordsTrapdoors$ := $scheme$.generateTriplePatternTrapdoors($triples$)
+    $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $triplePatternTrapdoors$)
+    $keywords$ := createArrayList($\#keywordsTrapdoors$.getKeys())
+    $totalTrapdoors$ := 0
+    foreach $keywordTrapdoors$ in $keywordsTrapdoors$.getValues():
+        $totalTrapdoors$ := $totalTrapdoors$ + $\#keywordTrapdoors$
+    $trapdoors$ := createArrayList($totalTrapdoors$)
+    foreach $keyword$ in $keywords$:
+        foreach $keywordTrapdoors$ in $keywordsTrapdoors$[$keyword$]:
+            foreach $trapdoor$ in $keywordTrapdoors$:
+                $trapdoors$.add($trapdoor$)
+    $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $trapdoors$)
+    $offset$ := 0
+    $deletions$ := createLinkedList()
+    $eqTagTrapdoors$ := createLinkedList()
+    foreach $keyword$ in $keywords$:
+        $length$ := $\#keywordsTrapdoors$[$keyword$]
+        for $i$ in range($offset$, $offset$ + $length$) 
+            $encryptedFrequency$ := $encryptedFrequencies$.get($i$)
+            if $encryptedFrequency$ :neq :bot:
+                $frequency$ := $scheme$.decryptContextualData($encryptedFrequency$)
+                $eqTagTrapdoor$ := $scheme$.generateTrapdoor($keyword$, $frequency$)
+                $deletions$.add($eqTagTrapdoor$)
+                $deletions$.add($trapdoors$.get($i$))
+                $eqTagTrapdoors$.add($eqTagTrapdoor$)
+        $offset$ := $offset$ + $length$
+    $encryptedEqTags$ := Triplestore.search($triplestoreID$, $eqTagTrapdoors$)
+    foreach $encryptedEqTag$ in $encryptedEqTags$:
+        if $encryptedEqTag$ :neq :bot:
+            $deletions$.add($encryptedEqTag$)
+    return Triplestore.prepareDelete($triplestoreID$, $trapdoors$)

@@ -10,7 +10,7 @@ function fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$):
     for $i$ in range(0, $\#encryptedFrequencies$) 
         $frequency$ := $encryptedFrequencies$.get($i$)
         if $frequency$ :neq :bot: 
-            $frequencies$[$keywords$[$i$]] := $scheme$.decryptFrequency($frequency$)
+            $frequencies$[$keywords$[$i$]] := $scheme$.decryptContextualData($frequency$)
         else
             $frequencies$[$keywords$[$i$]] := 0
     return $frequencies$
@@ -54,8 +54,8 @@ function searchSchema($triplestoreID$):
     $i$ := 0
     while $i < frequencies$[$keyword$]:
         $s$ := $scheme$.decrypt($encryptedNodes$.get($i$), true)
-        $p$ := $scheme$.decrypt($encryptedNodes$.get($i + 1$), true)
-        $o$ := $scheme$.decrypt($encryptedNodes$.get($i + 2$), true)
+        $p$ := $scheme$.decrypt($encryptedNodes$.get($i$ + 1), true)
+        $o$ := $scheme$.decrypt($encryptedNodes$.get($i$ + 2), true)
         $schema$ := $schema$ :U  { $(s, \; p, \; o)$ } 
-        $i$ := $i + 3$
+        $i$ := $i$ + 3
     return $schema$
