@@ -71,7 +71,7 @@ function prepareUpload($triplestoreID$, $triples$, $scheme$):
     $keywords$ := [$\#triples$]
     $i$ := 0
     foreach $t$ in $triples$:
-        $keyword$ := extractKeywords($triplePattern$) 
+        $keyword$ := extractKeyword($triplePattern$) 
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
@@ -81,18 +81,29 @@ function prepareUpload($triplestoreID$, $triples$, $scheme$):
     return Triplestore.prepareUpload($triplestoreID$, $encryptedNodes$)
 
 function prepareDelete($triplestoreID$, $triples$, $scheme$):
-    $keywords$ := [$\#triples$]
-    $i$ := 0
-    foreach $t$ in $triples$:
-        $keyword$ := extractKeywords($triples$) 
-        if $keyword$ :neq :bot:
-            $keywords$[$i$] := $keyword$
-            $i$++
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
-    $trapdoors$ := createLinkedList()
-    for $keyword$ in $keywords$:
-        for $i$ in range(0, $frequencies$[$keyword$]):
-            $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+    $keywordsTrapdoors$ := $scheme$.generateTriplePatternTrapdoors($triples$)
+    $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $triplePatternTrapdoors$)
+    $keywords$ := createArrayList($\#keywordsTrapdoors$.getKeys())
+    $totalTrapdoors$ := 0
+    foreach $keywordTrapdoors$ in $keywordsTrapdoors$.getValues():
+        $totalTrapdoors$ := $totalTrapdoors + \#keywordTrapdoors$
+    $trapdoors$ := createArrayList($totalTrapdoors$)
+    foreach $keyword$ in $keywords$:
+        foreach $keywordTrapdoors$ in $keywordsTrapdoors$[$keyword$]:
+            foreach $trapdoor$ in $keywordTrapdoors$:
+                $trapdoors$.add($trapdoor$)
+    $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $trapdoors$)
+    $offset$ := 0
+    $deletions$ := createLinkedList()
+    foreach $keyword$ in $keywords$:
+        $length$ := $\#keywordsTrapdoors$[$keyword$]
+        for $i$ in range($offset$, $offset + length$) 
+            $encryptedFrequency$ := $encryptedFrequencies$.get($i$)
+            if $encryptedFrequency$ :neq :bot:
+                $frequency$ := $scheme$.decryptFrequency($encryptedFrequency$)
+                deletions.add($scheme$.generateTrapdoor($keyword$, $frequency$))
+                deletions.add($trapdoors$.get($i$))
+        $offset$ := $offset + length$
     return Triplestore.prepareDelete($triplestoreID$, $trapdoors$)
 
 function uploadTBox($triplestoreID$, $triples$, $scheme$):

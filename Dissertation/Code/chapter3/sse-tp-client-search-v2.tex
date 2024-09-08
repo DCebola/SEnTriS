@@ -9,7 +9,7 @@ function search($triplestoreID$, $triplePatterns$):
     $keywords$ := [$\#triplePatterns$]
     $i$ := 0
     foreach $t$ in $triplePatterns$:
-        $keyword$ := extractKeywords($triplePattern$) 
+        $keyword$ := extractKeyword($triplePattern$) 
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
