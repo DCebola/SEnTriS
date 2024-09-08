@@ -19,14 +19,14 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 
 \gls{SEnTri} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
-\gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware. It remains \emph{transparent} (working with encrypted ontologies does not affect a user's workflow in any significant way) and outsources storage and heavy computations to external servers.
+\gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware, where storage and heavy computations are outsourced to external servers.
 
 \subsection{System Model}
 \label{ch3:sec:solution-models:system-model}
 
 \paragraph{Overview} In \gls{SEnTri}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
 
-\gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{key sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
+\gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{secrets sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
 
 \paragraph{System Architecture} \gls{SEnTri} is a multi-party system comprised of 5 components:
 
@@ -53,14 +53,14 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 
 These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
 
-Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment. \mytodo{Add example of access token emission \& validation (\gls{IAM} Provider, Vault, Triplestore)}
+Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment.
 
 \subsection{Security Model}
 \label{ch3:sec:solution-models:security-model}
 
 We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers and, if it has access to the external servers where the semantic data and execution logs are stored, try to infer or decrypt sensitive information.
 
-Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. The other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
+Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. We will consider that the other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
 When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use.
 
@@ -71,23 +71,23 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
 
 \subsection{Overview}
 
-The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. The following figure depicts this pipeline \mytodo{Add figure with standard query evaluation pipeline}.
+The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, which consist in sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. 
 
-\emph{SEnTri} follows a similar logic for query evaluation with a few modifications to enhance security. The system only works with encrypted data, which is encrypted in a manner that allows for search and set operations to be executed. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system. Figure shows the modified pipeline \mytodo{Add figure with SEnTri query evaluation pipeline}.
+\emph{SEnTri} follows a similar logic, for query evaluation, with a few modifications to enhance security. The system works with data that is encrypted in a manner that allows for search and set operations to remain executable. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system.
 
-In \gls{SEnTri} we employ \emph{SSE} techniques during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are used for the evaluation of complex \emph{graph patterns}
+\emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are used for the evaluation of complex \emph{graph patterns}
 
-We have implemented \gls{SEnTri} using three different approaches:
+\gls{SEnTri} is implemented using three different approaches:
 
 \begin{itemize}
-    \item \emph{\gls{SEnTri} V0}: Uses the same query evaluation techniques as the other two, but operates over plaintext data.
+    \item \emph{\gls{SEnTri} V0}: Operates over plaintext data and does not provide data confidentiality, but enforces role-based access control.
 
-    \item \emph{\gls{SEnTri} V1}: In this implementation, data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
+    \item \emph{\gls{SEnTri} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
 
     \item \emph{\gls{SEnTri} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by employing \emph{additive blinding} techniques\footnote{\emph{Additive blinding} is a technique where we sum a random value to the ciphertext.} and using additive homomorphic encryption schemes. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support additive blinding. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{binding tables} are built with the \emph{blinded equality tags}. When doing equality checks, we decrypt the \emph{blinded equality tags}. These remain deterministic, but different for every query evaluation.
 \end{itemize}
 
-In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we can expand the \gls{SPARQL} query evaluation protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTri}; 5) provide a mapping between the protocols and the system components; 6) define the security properties of \gls{SEnTri} and analize the security and performance trade-offs of the various implementations.
+In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we adapt the protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTri}; 6) define the security properties of \gls{SEnTri}; 7) analyze the security and performance trade-offs of the various implementations.
 
 \subsection{Core elements}
 
@@ -140,9 +140,9 @@ A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; binding_0),...
 
 \paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection of \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
 
-Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of triple patterns found after the evaluation of a query. A triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
+Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query, a triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
 
-\paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type: 
+\paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013-hd, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type: 
 \begin{itemize}
     \item \textit{SELECT}: it will be a query result in JSON format;
     \item \textit{ASK}: it will be a boolean;
@@ -155,7 +155,7 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query an
 
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
 
-\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acp$ is the triplestore's \gls{ACP}. $E(nodes)$ will be defined in Subsection \ref{chapter3:definition:triple-pattern-encryption-schemes}
+\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acp$ is the triplestore's \gls{ACP}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
 
 
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
@@ -168,18 +168,18 @@ Only the \emph{secure search job} is structurally different. It is a tuple $job_
 
 \paragraph{Randomized Prepared Query Execution Plans} After the query preparation phase, the $searches$ maps, in the secure search jobs, have been updated to map obfuscated variables to search identifiers. A plan where all search jobs have been updated like this is said to be \textit{prepared}.
 
-\paragraph{Encrypted \emph{Bindings} tables} Similar to a \emph{bindings} table, an encrypted \emph{bindings} table is a tuple $E(BindingsTable) = (E(bindings), \; E(patterns))$ where $E(bindings) = \{ (O(var_0), \allowbreak E(bindingsMap_0)), ..., (O(var_n), \; E(bindingsMap_n))\}$ and $E(patterns) = \{ (O(var_0), \linebreak E(patternsMap_0)), ..., (O(var_0), \; E(patternsMap_n))\}$ are maps that map \emph{obfuscated} query variables, respectively, to encrypted \emph{bindings} and \emph{triple patterns} maps.
+\paragraph{Encrypted \emph{Bindings} tables} Similar to a \emph{bindings} table, an encrypted \emph{bindings} table is a tuple $E(BindingsTable) = (E(bindings), \; E(patterns))$ where $E(bindings) = \{ (O(var_0), \allowbreak E(bindingsMap_0)), ..., (O(var_n), \; E(bindingsMap_n))\}$ and $E(patterns) = \{ (O(var_0), \linebreak E(patternsMap_0)), ..., (O(var_n), \; E(patternsMap_n))\}$ are maps that map \emph{obfuscated} query variables, respectively, to encrypted \emph{bindings} and \emph{triple patterns} maps.
 
 An encrypted \emph{bindings} map, $E(bindingsMap) = \{ (E(binding_0), \; [pattternID_{0,0},...,\linebreak patternID_{0,k}]),..., (E(binding_n), \; [pattternID_{0,0},...,patternID_{n,k}])\}$, is a map where encrypt-\linebreak\text{ed}  \emph{bindings} are mapped to a list of \emph{triple pattern} identifiers, which are \gls{UUID}s (version 4).
 
 An encrypted \emph{triple patterns} map, $E(patternsMap) = \{ (pattternID_0, \; E(binding_0)),..., \allowbreak (patternID_n, \; E(binding_n))\}$, is a map where \emph{triple pattern} identifiers are mapped to encrypted \emph{bindings}.
 
-We will define $E(binding)$ in Subsection \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTri} V1 and \gls{SEnTri} V2.
+We will define $E(binding)$ in Section \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTri} V1 and \gls{SEnTri} V2.
 
 
 \paragraph{Encrypted SPARQL Query Result} An encrypted \gls{SPARQL} query result is a tuple \linebreak $E(sparqlResult) = (E(bindings), \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $E(bindings) = [E(pattern_0), ..., \allowbreak E(pattern_n)]$ is a collection of encrypted \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \allowbreak dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
 
-Let $n \in \mathbb{Z}^{+}$ be the number of variables (obfuscated) in a \gls{SPARQL} query and $k \in \mathbb{Z}_0^{+}$ be the number of encrypted triple patterns found after the evaluation of a query. An encrypted triple pattern $E(pattern_i) = \{(O(var_0), \; E(binding_{i,0})),...,(O(var_n), \; E(binding_{i,n}))\}$ is a map where each obfuscated variable is mapped to an encrypted $binding$. An encrypted $binding$ can either have a value or be $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
+Let $n \in \mathbb{Z}^{+}$ be the number of variables (obfuscated) in a \gls{SPARQL} query, an encrypted triple pattern $E(pattern_i) = \{(O(var_0), \; E(binding_{i,0})),...,(O(var_n), \; E(binding_{i,n}))\}$ is a map where each obfuscated variable is mapped to an encrypted $binding$. An encrypted $binding$ can either have a value or be $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
 
 \subsection{Cryptographic Tools}
 
@@ -400,7 +400,7 @@ Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undate
 
 In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two boolean parameters which are true if, respectively, the property is symmetric and transitive.
 
-All of this information is stored in adequate auxiliary data structures which will accessible to the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
+All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
 
 \lstinputlisting[caption={SEnTri Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
 
@@ -410,7 +410,7 @@ During the creation of the query execution plan, when visiting a \gls{BGP}, the 
 
 \lstinputlisting[caption={PARQL-EVAL-II client (modified operations)}, label={sparql-eval-ii-client-pseudocode}]{Code/chapter3/sparql-eval-ii-client.tex}
 
-Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions and intersections;  subproperties, equivalent, transitive, symmetric and inverse properties. Furthermore, we assume that the data which will be queried is consistent with the ontology provided. 
+Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions, intersections, subproperties, equivalent and inverse properties, property transitivity and symmetry. Furthermore, we assume that the data which will be queried is consistent with the ontology provided. 
 
 We expand the triple patterns in a leveled approach. We decided to implement this solution with parametrized expansion and transitivity depth because it offers control over the expansion of the query, which impacts performance: the expansion tends to introduce additional operations.
 
@@ -418,11 +418,11 @@ To conclude, this approach may also introduce duplicates into the results of a q
 
 \subsubsection{Supported Queries}
 
-The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTri} will only be capable of evaluating the subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
+The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTri} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
 
 \begin{equation}
     \begin{split} 
-    P ::= \;\; & tp \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P\; \textrm{FILTER}\; R \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; P_1\; \textrm{MINUS}\; P_2
+    P ::= \;\; & tp \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; P_1\; \textrm{MINUS}\; P_2
     \end{split}
 \end{equation}
 
@@ -489,7 +489,7 @@ We also reference with trapdoors the frequencies of a triple pattern, which are 
 
 Finally, uniquely to \gls{SEnTri} V2, trapdoors generated with $iv = 0$ for the context of the parsed value of a node, reference its \emph{equality tag}. We will define equality tags in Section \ref{ch3:encryption-definition}
 
-\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, and the state is exclusive to each triplestore.
+\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, the state exclusive to each triplestore, and we might need to execute multiple operations against different triplestores.
 
 \paragraph{SEnTri V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
@@ -509,9 +509,9 @@ Trapdoors index encrypted equality tags and encrypted equality tags index encryp
 
 \lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
-\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples cab be uploaded in separate upload operations. The triplestore creation and encryption operations are handled by the client. 
+\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples can be uploaded in separate upload operations. The triplestore creation and encryption operations are handled by the client. 
 
-Due to the high volumes of data than can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
+Due to the high volumes of data that can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
 
 \lstinputlisting[caption={SSE-TP Storage Engine}, label={sse-tp-storage-engine}]{Code/chapter3/sse-tp-storage-engine.tex}
 
