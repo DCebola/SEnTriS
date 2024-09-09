@@ -331,13 +331,13 @@ Notice that a search operation always produces a \emph{bindings table}. This dat
 Having defined how data is stored, we will now explain the protocol for evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol}]\label{ch3:definition:sparql-protocol}
-    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery, \allowbreak GenerateFinalResult)$ of 3 algorithms:
+    Let SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol. It is a tuple $\textrm{SPARQL-EVAL} = (PlanQuery, \; EvaluateQuery, \allowbreak GenerateFinalResult)$ of 3 algorithms where:
     \begin{itemize}
-        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query)}$: takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
+        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query)}$: Takes as input a \gls{SPARQL} query. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
 
-        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
+        \item $\{sparqlResult, \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; triplestoreID)}$: Takes as input a query execution plan and the identifier of the triplestore to be queried. In case of success, outputs the query results, $\bot$ otherwise.
         
-        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ variables, \; sparqlResult, \; construct, \; upload, \; delete)}$: takes as input a triplestore identifier, the query type and variables, the $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $\textrm{CONSTRUCT}$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
+        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ variables, \; sparqlResult, \; construct, \; upload, \; delete)}$: Takes as input a triplestore identifier, the query type, a collection of variables, the $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $\textrm{CONSTRUCT}$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
     \end{itemize}
     SPARQL-EVAL is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
@@ -381,9 +381,9 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
 \begin{definition}[\textbf{SPARQL Query Evaluation Protocol with Reasoning}]\label{ch3:definition:sparql-protocol-reasoning}
     Let \linebreak SPARQL-EVAL-II be a \emph{SPARQL} query evaluation protocol that supports reasoning, via the application of query rewriting techniques.
     
-    It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery, \linebreak \textrm{SPARQL-EVAL}.GenerateFinalResult)$ of 3 algorithms:
+    It is a tuple $\textrm{SPARQL-EVAL-II} = (PlanQuery, \; \textrm{SPARQL-EVAL}.EvaluateQuery, \linebreak \textrm{SPARQL-EVAL}.GenerateFinalResult)$ of 3 algorithms where:
     \begin{itemize}
-        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query, \; triplestoreID, }$\linebreak$\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: takes as input a \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
+        \item $\{plan, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query, \; triplestoreID, }$\linebreak$\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: Takes as input a \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered. If the query is well-formed, and all required operations are supported, outputs a query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
     \end{itemize}
     SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
@@ -437,16 +437,16 @@ In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the
 \subsubsection{Triple Pattern SSE encryption scheme}
 
 \begin{definition}[\textbf{Triple Pattern SSE Scheme}]\label{ch3:definition:sse-sentri-det}
-    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search, \allowbreak PrepareUpload, \; PrepareDelete, \; Update)$ of 9 algorithms:
+    Let $\textrm{SSE-TP}$ be triple pattern \gls{SSE} scheme. It is defined as a tuple $\textrm{SSE-TP} = (Setup, \; ReInitialize, \; Encrypt, \; Decrypt, \; Trapdoor, \; Search, \allowbreak PrepareUpload, \; PrepareDelete, \; Update)$ of 9 algorithms where:
     \begin{itemize}
         \item $\lambda \leftarrow \mathbf{Setup()}$: Takes no input. Outputs a set of newly generated security parameters.
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$: Takes as input a set of security parameters. In case of success, sets the security parameters and updates the state of the scheme and outputs SUCCESS, $\bot$ otherwise.
-        \item $E(nodes) \leftarrow \mathbf{Encrypt([t_0, t_1, ..., t_n], \; schema)}$: Takes as input a set of triples and a boolean parameter, which is set to true if the triples are schema triples. Outputs a map of encrypted nodes, indexed by trapdoors.
-        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Outputs the decrypted node.
-        \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
-        \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input the triplestore identifier and a collection of trapdoors. Outputs a collection of encrypted nodes.
-        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Outputs the identifier of the uploads to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Outputs the identifier of the deletions to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ReInitialize(\lambda)}$: Takes as input a set of security parameters. In case of success, sets the security parameters, updates the state of the scheme and outputs SUCCESS, $\bot$ otherwise.
+        \item $E(nodes) \leftarrow \mathbf{Encrypt([t_0, t_1, ..., t_n], \; schema)}$: Takes as input a set of triples and a boolean parameter, which is set to true if the triples are schema triples. Parses the data received and outputs a map of encrypted nodes, indexed by trapdoors.
+        \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Decrypts the node and outputs the plaintext value.
+        \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Generates and outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
+        \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Searches the encrypted triplestore for matches against the received trapdoors. Outputs a collection of encrypted nodes, where there was a match.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifier of the uploads to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID, schema)}$: Takes as input the triplestore identifier and a boolean parameter, which is set to true if only the schema triples should be deleted. Outputs SUCCESS if the requested data is deleted, $\bot$ otherwise.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the uploads and deletions are successfully executed, $\bot$ otherwise.
     \end{itemize}
@@ -539,15 +539,26 @@ Listings \ref{sse-tp-client-writes-v1} and \ref{sse-tp-client-writes-v2} show th
 
 \lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp-client-writes-v2.tex}
 
-\subsection{Evaluation of SPARQL queries over encrypted data} ...
+\subsection{Evaluation of SPARQL queries over encrypted data}
+
+We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, and create a protocol capable of evaluating \gls{SPARQL} queries that works with encrypted triplestores.
 
 \begin{definition}[\textbf{Secure SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
-    Let SEC-SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with triplestores encrypted using $\Pi$. It is defined as a tuple $\Omega = (Setup, \; ReInitialize, \; Encrypt, \allowbreak Trapdoor, \; Decrypt, \; Equals)$ of 8 algorithms:
-    \begin{itemize}
-        \item $plan_{rnd} \leftarrow \mathbf{PlanQuery(query)}$:
-        \item $preparedPlan_{rnd} \leftarrow \mathbf{PrepareQuery(plan_{rnd}, triplestoreID)}$:
-        \item $E(sparqlResult) \leftarrow \mathbf{EvaluateQuery(preparedPlan_{rnd})}$:
+    Let SSE-SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with SSE-TP encrypted triplestores. It is a tuple $\textrm{SSE-SPARQL-EVAL} = (\textrm{SSE-TP}.Setup, \; \textrm{SSE-TP}.ReInitialize, \; \textrm{SSE-TP}.Encrypt, \linebreak \textrm{SSE-TP}.Decrypt, \; \textrm{SSE-TP}.PrepareUpload, \; \textrm{SSE-TP}.PrepareDelete, \; \textrm{SSE-TP}.Update, \linebreak \textrm{SSE-TP}.Trapdoor, \; \textrm{SSE-TP}.Search, \; PlanQuery, \; PrepareQuery, \; PrepareSearch, \linebreak PrepareBindings, \; EvaluateQuery, \; GenerateFinalResult)$ of 8 algorithms where:
+    \begin{itemize}        
+        \item $\{plan_{rnd}, \; construct, \; upload, \; delete, \; \bot\} \leftarrow \mathbf{PlanQuery(query, \; triplestoreID, }$\linebreak$\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: Takes as input a \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered. If the query is well-formed, and all required operations are supported, outputs a randomized query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
+         
+        \item $\{ preparedPlan_{rnd}, \; \bot \} \leftarrow \mathbf{PrepareQuery(triplestoreID, \; plan_{rnd})}$: Takes as input a \linebreak triplestore identifier and a randomized query execution plan. For each distinct $job_{SEC\_SEARCH}$ in the plan a SSE-SPARQL-EVAL.$PrepareSearch$ will be triggered. Upon receiving the $searchID$, the respective $job_{SEC\_SEARCH}$ keywords will be updated accordingly. Outputs a randomized prepared query execution plan. In case of any error, outputs $\bot$.
+        
+        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareSearch([triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input a triplestore identifier, a masking value and a collection of trapdoors. Upon finding the values, these will be blinded, if $mask \neq \bot$. Finally, a SSE-SPARQL-EVAL.$PrepareBindings$ operation is executed. Outputs the value received from the SSE-SPARQL-EVAL.$PrepareBindings$ operation.
+        
+        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareBindings([E(binding_0),...,E(binding_n)])}$: Takes as input a collection of encrypted bindings. Generates a fresh \gls{UUID} (version 4) and persists the received values in memory, associating them with the generated identifier. Outputs the identifier, or $\bot$ if an error occurs.
+
+        \item $\{E(sparqlResult), \; \bot\} \leftarrow \mathbf{EvaluateQuery(preparedPlan_{rnd}, \; K)}$: Takes as input a randomized prepared query execution plan and a secret key. Executes the query plan and outputs the encrypted \gls{SPARQL} results. If there is an error, outputs $\bot$. 
+        
+        \item $\{sparqlFinalResult, \bot\} \leftarrow \mathbf{GenerateFinalResult(triplestoreID, \; queryType, }$\linebreak$\mathbf{ variables, \; E(sparqlResult), \; construct, \; upload, \; delete)}$: Takes as input a triplestore identifier, the query type, a variables map, the encrypted $sparqlResult$ obtained from the evaluation of a $\textrm{WHERE}$ clause, and three collections of triple patterns. The $construct$ template will be used for generating the final result of a $\textrm{CONSTRUCT}$ query, whereas the $upload$ and $delete$ templates will be used to compute the triples to, respectively, upload and delete in the specified triplestore. In case of success outputs a $sparqlFinalResult$, $\bot$ otherwise.
     \end{itemize}
+    SSE-SPARQL-EVAL is a distributed, three-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; encryption and decryption of data, query plan generation, preparation and final result generation is scoped to the \emph{client} component; the evaluation of the query execution plans are scoped to a secure computation \emph{proxy} component.
 \end{definition}
 
 \subsubsection{Query Preparation Phase}
