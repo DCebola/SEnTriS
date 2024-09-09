@@ -1,12 +1,12 @@
 %%!TEX root = ../../template.tex
 \typeout{NT FILE chapter3}
 
-\chapter{SEnTri: A Searchable Encrypted Triplestore}
+\chapter{SEnTriS: A Searchable Encrypted Triplestore Sharing Protocol}
 \label{cha:solution}
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTri} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we formally define the proposed solution, specify its enforcement of security guaranties and present the \gls{SPARQL} query evaluation pipeline: triple pattern encryption schemes,  high level execution pipelines and protocols, reasoning preservation techniques and list the supported query types.
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTriS} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we formally define the proposed solution, specify its enforcement of security guaranties and present the \gls{SPARQL} query evaluation pipeline: triple pattern encryption schemes,  high level execution pipelines and protocols, reasoning preservation techniques and list the supported query types.
 
 \section{Solution Models}
 \label{ch3:sec:solution-models}
@@ -15,20 +15,20 @@ In this chapter we will present the main contribution of our research. In Sectio
 
 The current \emph{state-of-the-art} solutions solely focus on the problem of secure \gls{RDF} data outsourcing, leaving the problem of dynamic updates out of scope. Furthermore, these systems do not have reasoning capabilities, suffer from leakage problems and, frequently, solely provide search over simple \emph{triple patterns}.
 
-Considering all these limitations we developed \gls{SEnTri}, a solution for secure and cooperative development of semantic knowledge bases.
+Considering all these limitations we developed \gls{SEnTriS}, a solution for secure and cooperative development of semantic knowledge bases.
 
-\gls{SEnTri} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
+\gls{SEnTriS} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
-\gls{SEnTri} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware, where storage and heavy computations are outsourced to external servers.
+\gls{SEnTriS} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware, where storage and heavy computations are outsourced to external servers.
 
 \subsection{System Model}
 \label{ch3:sec:solution-models:system-model}
 
-\paragraph{Overview} In \gls{SEnTri}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
+\paragraph{Overview} In \gls{SEnTriS}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
 
-\gls{SEnTri} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{secrets sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
+\gls{SEnTriS} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{secrets sharing} between trusted users. Figure \mytodo{Add system model figure} depicts a high level overview of the system.
 
-\paragraph{System Architecture} \gls{SEnTri} is a multi-party system comprised of 5 components:
+\paragraph{System Architecture} \gls{SEnTriS} is a multi-party system comprised of 5 components:
 
 \begin{itemize}
     \item \emph{Client}: a public facing component where users can authenticate themselves and create, upload, share, request or revoke access to and query triplestores.
@@ -40,7 +40,7 @@ Considering all these limitations we developed \gls{SEnTri}, a solution for secu
 
 Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication.  Figure \mytodo{Add system architecture figure} depicts a high level architecture of the solution.
 
-\paragraph{Role-Based Access Control} In \emph{SEnTri} roles grant different permissions to the users, which restrict the type of operations they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} and \emph{basic} user.
+\paragraph{Role-Based Access Control} In \emph{SEnTriS} roles grant different permissions to the users, which restrict the type of operations they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} and \emph{basic} user.
 
 \emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to existing triplestores.
 
@@ -49,7 +49,7 @@ Each individual component is a web server that exposes a \glsxtrshort{REST} \gls
 \emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage users, any triplestore and process role change requests.
 
 
-\paragraph{M/M setting} In \gls{SEnTri} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write \gls{ACL}.
+\paragraph{M/M setting} In \gls{SEnTriS} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write \gls{ACL}.
 
 These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
 
@@ -60,7 +60,7 @@ Correctness of concurrent write and read operations is achieved with a \emph{loc
 
 We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers and, if it has access to the external servers where the semantic data and execution logs are stored, try to infer or decrypt sensitive information.
 
-Following the architecture of \gls{SEnTri}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. We will consider that the other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
+Following the architecture of \gls{SEnTriS}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. We will consider that the other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
 When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use.
 
@@ -73,25 +73,25 @@ Additionally, we will not consider the case where attacks involve \emph{revoked 
 
 The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, which consist in sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers. 
 
-\emph{SEnTri} follows a similar logic, for query evaluation, with a few modifications to enhance security. The system works with data that is encrypted in a manner that allows for search and set operations to remain executable. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system.
+\emph{SEnTriS} follows a similar logic, for query evaluation, with a few modifications to enhance security. The system works with data that is encrypted in a manner that allows for search and set operations to remain executable. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system.
 
 \emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are used for the evaluation of complex \emph{graph patterns}
 
-\gls{SEnTri} is implemented using three different approaches:
+\gls{SEnTriS} is implemented using three different approaches:
 
 \begin{itemize}
-    \item \emph{\gls{SEnTri} V0}: Operates over plaintext data and does not provide data confidentiality, but enforces role-based access control.
+    \item \emph{\gls{SEnTriS} V0}: Operates over plaintext data and does not provide data confidentiality, but enforces role-based access control.
 
-    \item \emph{\gls{SEnTri} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
+    \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
 
-    \item \emph{\gls{SEnTri} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by employing \emph{additive blinding} techniques\footnote{\emph{Additive blinding} is a technique where we sum a random value to the ciphertext.} and using additive homomorphic encryption schemes. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support additive blinding. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{binding tables} are built with the \emph{blinded equality tags}. When doing equality checks, we decrypt the \emph{blinded equality tags}. These remain deterministic, but different for every query evaluation.
+    \item \emph{\gls{SEnTriS} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by employing \emph{additive blinding} techniques\footnote{\emph{Additive blinding} is a technique where we sum a random value to the ciphertext.} and using additive homomorphic encryption schemes. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support additive blinding. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{binding tables} are built with the \emph{blinded equality tags}. When doing equality checks, we decrypt the \emph{blinded equality tags}. These remain deterministic, but different for every query evaluation.
 \end{itemize}
 
-In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we adapt the protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTri}; 6) define the security properties of \gls{SEnTri}; 7) analyze the security and performance trade-offs of the various implementations.
+In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we adapt the protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTriS}; 6) define the security properties of \gls{SEnTriS}; 7) analyze the security and performance trade-offs of the various implementations.
 
 \subsection{Core elements}
 
-\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTri} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acp$ is the triplestore's \gls{ACP}.
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTriS} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acp$ is the triplestore's \gls{ACP}.
 
 This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
@@ -112,7 +112,7 @@ This data structure is a simplified version of the one defined in section \ref{c
 \paragraph{Ephemeral Access tokens} An ephemeral access token $at = (tokenID, \; ttl, \; username, \allowbreak sessionID, \; triplestoreID, \; lockID)$ is a tuple, where $tokenID$ is a \gls{UUID} (version 4), $ttl \in N$ specifies the remaining time (in seconds) that the token will stay active, $username$ is the identifier of the user who holds the token, $sessionID$ is the identifier of the token holder's active session, at the time of its creation, $triplestoreID$ is the identifier of the triplestore whose access is being requested and $lockID$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests).
 
 
-\paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTri} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
+\paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTriS} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
 
 
 \paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $execOrder$ is a sequence of job identifiers.
@@ -151,7 +151,7 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query, a
     \item \textit{SPARQL UPDATE}: it will be either $\textrm{SUCCESS}$, or $\bot$ in case of failure;
 \end{itemize}
 
-\subsubsection{SEnTri V1 and V2 specific}
+\subsubsection{SEnTriS V1 and V2 specific}
 
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
 
@@ -160,7 +160,7 @@ We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$
 
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
-\paragraph{Secure Query Jobs} The only difference between jobs in \gls{SEnTri} V1 and V2, to jobs in \gls{SEnTri} V0, is that they operate over obfuscated variables and output encrypted \emph{bindings} tables.
+\paragraph{Secure Query Jobs} The only difference between jobs in \gls{SEnTriS} V1 and V2, to jobs in \gls{SEnTriS} V0, is that they operate over obfuscated variables and output encrypted \emph{bindings} tables.
 
 Only the \emph{secure search job} is structurally different. It is a tuple $job_{SEC\_SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [O(var_0), ..., \allowbreak O(var_n)]$ is a collection of obfuscated variables. During the query preparation phase, $searches = \{(O(var_0), \; keyword_0), ..., $\linebreak$ (O(var_n), \; keyword_n)\}$ is a map that maps variables to the keywords to be searched, whereas, in the query evaluation phase, $searches = \{(O(var_0), \; searchID_0), ...,  (O(var_n), \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4).
 
@@ -174,7 +174,7 @@ An encrypted \emph{bindings} map, $E(bindingsMap) = \{ (E(binding_0), \; [pattte
 
 An encrypted \emph{triple patterns} map, $E(patternsMap) = \{ (pattternID_0, \; E(binding_0)),..., \allowbreak (patternID_n, \; E(binding_n))\}$, is a map where \emph{triple pattern} identifiers are mapped to encrypted \emph{bindings}.
 
-We will define $E(binding)$ in Section \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTri} V1 and \gls{SEnTri} V2.
+We will define $E(binding)$ in Section \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTriS} V1 and \gls{SEnTriS} V2.
 
 
 \paragraph{Encrypted SPARQL Query Result} An encrypted \gls{SPARQL} query result is a tuple \linebreak $E(sparqlResult) = (E(bindings), \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; limit, \; \textrm{\textit{offset}})$ where $E(bindings) = [E(pattern_0), ..., \allowbreak E(pattern_n)]$ is a collection of encrypted \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $limit$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \allowbreak dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
@@ -189,7 +189,7 @@ For the remainder of the document, the function $E(K, \; m, \; iv)$ denotes the 
 
 \subsubsection{DGK Encryption}
 
-\gls{SEnTri} V2 can be implemented with any additive homomorphic encryption scheme, but we have chosen to use the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains. It also permits us to employ more efficient equality checks, which is a very common operation when evaluating \gls{SPARQL} queries.
+\gls{SEnTriS} V2 can be implemented with any additive homomorphic encryption scheme, but we have chosen to use the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains. It also permits us to employ more efficient equality checks, which is a very common operation when evaluating \gls{SPARQL} queries.
 
 \begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk} Let $k$, $t$, and $l$ be public parameters. Parameter $k$ determines the size of a \gls{RSA} modulus, $l$ is the bit length of the messages to encrypt and $t$ should be large enough so that exhaustive search is infeasible.
 
@@ -291,7 +291,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTri} V0. For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTriS} V0. For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
 
 \subsubsection{Storage of triple patterns}
 
@@ -299,7 +299,7 @@ The first step when designing a solution that supports \gls{SPARQL}, is to defin
 
 To achieve this, when we index data, our goal is to preserve the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
-In \gls{SEnTri} V0, we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
+In \gls{SEnTriS} V0, we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
 
 \begin{align}
     \begin{split}
@@ -312,19 +312,19 @@ In \gls{SEnTri} V0, we index a triple pattern, $t = (s, p, o)$ based on all of i
     \end{split}
 \end{align}
 
-We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTri} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either. 
+We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTriS} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either. 
 
 For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO"\space for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
 
 For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" \space for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
 
-In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTri} V0 storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
+In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTriS} V0 storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
 
-\lstinputlisting[caption={Storage Engine for SEnTri V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
+\lstinputlisting[caption={Storage Engine for SEnTriS V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
 
 Notice that a search operation always produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing \ref{bindings-table-v0}, we show the underlying logic of a \emph{bindings table}.
 
-\lstinputlisting[caption={Bindings Table in SEnTri V0}, label={bindings-table-v0}]{Code/chapter3/bindings-table-v0.tex}
+\lstinputlisting[caption={Bindings Table in SEnTriS V0}, label={bindings-table-v0}]{Code/chapter3/bindings-table-v0.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
@@ -342,33 +342,33 @@ Having defined how data is stored, we will now explain the protocol for evaluati
     SPARQL-EVAL is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Query Plan Generation} In \gls{SEnTri} we created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
+\paragraph{Query Plan Generation} In \gls{SEnTriS} we created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
 The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
 
-\lstinputlisting[caption={\gls{SEnTri} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-engine.tex}
+\lstinputlisting[caption={\gls{SEnTriS} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-engine.tex}
 
-One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of a simplified \gls{SEnTri} V0 query planner (without any reasoning capabilities) is shown in Listing \ref{sparql-query-planner-pseudocode}.
+One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of a simplified \gls{SEnTriS} V0 query planner (without any reasoning capabilities) is shown in Listing \ref{sparql-query-planner-pseudocode}.
 
-\lstinputlisting[caption={\gls{SEnTri} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-planner-v0.tex}
+\lstinputlisting[caption={\gls{SEnTriS} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-planner-v0.tex}
 
 Notice that the query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
 
 We generate a random ordering of the equi-joins, by randomly sampling one of the valid execution orders. \gls{BGP}s are the only elements from a query that generate equi-joins. When we have visited all \gls{BGP} operations, we create an auxiliary graph where compatible equi-joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. We generate the execution order of the equi-joins, by exploring the graph and computing a path that contains each $job_{JOIN}$ once. To generate the random ordering, we randomly sample the origin of the path. After generating the execution order we add the query jobs to the execution plan.
 
-\paragraph{Query Evaluation} Following the dispatcher pattern, we have created two other abstractions in \gls{SEnTri}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
+\paragraph{Query Evaluation} Following the dispatcher pattern, we have created two other abstractions in \gls{SEnTriS}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
 
-In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The currently \gls{SEnTri} only supports sequential dispatching of jobs to a single worker.
+In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The currently \gls{SEnTriS} only supports sequential dispatching of jobs to a single worker.
 
 The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and stays available to be retrieved as output. 
 
-Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTri} V0.
+Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={\gls{SEnTri} V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
+\lstinputlisting[caption={\gls{SEnTriS} V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
 
-\lstinputlisting[caption={\gls{SEnTri} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+\lstinputlisting[caption={\gls{SEnTriS} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
 
-\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTri} components.
+\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
 
 \lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval-client.tex}
 
@@ -388,21 +388,21 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
     SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTri} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema-v0} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to \gls{SEnTri} V0 storage engine and the extra operations of the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
+\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTriS} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema-v0} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to \gls{SEnTriS} V0 storage engine and the extra operations of the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
 
 \lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
 
 \lstinputlisting[caption={SPARQL-EVAL-II triplestore (extra operations)}, label={sparql-eval-ii-triplestore-pseudocode}]{Code/chapter3/sparql-eval-ii-triplestore.tex}
 
-\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTri}, an ontology is an abstraction where we map class and property axioms to nodes. 
+\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTriS}, an ontology is an abstraction where we map class and property axioms to nodes. 
 
 Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model. After the generation of the model, we load it with the schema triples. Once the triples are loaded, we iterate over all the classes and map each one to equivalent classes, subclasses, restrictions and intersections they are part of.
 
 In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two boolean parameters which are true if, respectively, the property is symmetric and transitive.
 
-All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTri} V0.
+All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={SEnTri Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
+\lstinputlisting[caption={SEnTriS Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
 
 During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting-v0} and \ref{sparql-eval-ii-client-pseudocode} respectively. 
 
@@ -418,7 +418,7 @@ To conclude, this approach may also introduce duplicates into the results of a q
 
 \subsubsection{Supported Queries}
 
-The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTri} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
+The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTriS} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
 
 \begin{equation}
     \begin{split} 
@@ -432,7 +432,7 @@ All query types will be supported apart from the LOAD and CLEAR, which will be i
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the other two versions the protocol will be adapted to work with encrypted data. As such, the encryption schemes must encrypt data in such a way that it retains its functionality. For the subset of supported queries, data must be searchable via triple patterns and allow the equality operation, essential for the execution of equi-joins.
+In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the other two versions the protocol will be adapted to work with encrypted data. As such, the encryption schemes must encrypt data in such a way that it retains its functionality. For the subset of supported queries, data must be searchable via triple patterns and allow the equality operation, essential for the execution of equi-joins.
 
 \subsubsection{Triple Pattern SSE encryption scheme}
 
@@ -455,7 +455,7 @@ In \gls{SEnTri} V0 query evaluation is executed with plaintext data, but in the 
 
 \subsubsection{Trapdoor generation}
 
-Following the \gls{SSE} approach, in \gls{SEnTri} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the observed frequency of the index keyword.
+Following the \gls{SSE} approach, in \gls{SEnTriS} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the observed frequency of the index keyword.
 
 Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency.
 
@@ -487,27 +487,27 @@ We also reference with trapdoors the frequencies of a triple pattern, which are 
     \end{equation}
 \end{definition}
 
-Finally, uniquely to \gls{SEnTri} V2, trapdoors generated with $iv = 0$ for the context of the parsed value of a node, reference its \emph{equality tag}. We will define equality tags in Section \ref{ch3:encryption-definition}
+Finally, uniquely to \gls{SEnTriS} V2, trapdoors generated with $iv = 0$ for the context of the parsed value of a node, reference its \emph{equality tag}. We will define equality tags in Section \ref{ch3:encryption-definition}
 
 \subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, the state exclusive to each triplestore, and we might need to execute multiple operations against different triplestores.
 
-\paragraph{SEnTri V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
+\paragraph{SEnTriS V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
-\paragraph{SEnTri V2} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \linebreak K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$ where, $K_{MASTER}$ and $K_{RND}$ are secret keys, $K_{DGK_{priv}}$ and $K_{DGK_{pub}}$ are, respectively, a \gls{DGK} private and public key, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
+\paragraph{SEnTriS V2} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \linebreak K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$ where, $K_{MASTER}$ and $K_{RND}$ are secret keys, $K_{DGK_{priv}}$ and $K_{DGK_{pub}}$ are, respectively, a \gls{DGK} private and public key, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
 \subsubsection{Triple Pattern encryption and decryption} \label{ch3:encryption-definition} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
 
 \lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
 
-\paragraph*{SEnTri V1} We follow the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} approach and encrypt \emph{ABox} nodes in two layered onions $E(node) = E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values. The version specific functions for \gls{SEnTri} V1 are shown in Listing \ref{encryption-scheme-deterministic}.
+\paragraph*{SEnTriS V1} We follow the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} approach and encrypt \emph{ABox} nodes in two layered onions $E(node) = E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values. The version specific functions for \gls{SEnTriS} V1 are shown in Listing \ref{encryption-scheme-deterministic}.
 
-\lstinputlisting[caption={Triple Pattern Encryption for SEnTri V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
 
-\paragraph*{SEnTri V2} \emph{ABox} nodes are mapped to \emph{equality tags}. We generate equality tags by using an injective function $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ which maps the value of a node to a unique positive integer.
+\paragraph*{SEnTriS V2} \emph{ABox} nodes are mapped to \emph{equality tags}. We generate equality tags by using an injective function $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ which maps the value of a node to a unique positive integer.
 
-Trapdoors index encrypted equality tags and encrypted equality tags index encrypted \emph{ABox} nodes. Respectively, nodes are probabilistically encrypted $E(node) = E(K_{RND}, \; node )$ and equality tags are homomorphically encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb} $E(eq_{tag}) = E(K_{DGK_{pub}}, \; eqTag(node))$. When doing equality checks, we decrypt the equality tags and compare the values. The version specific functions for \gls{SEnTri} V2 are shown in Listing \ref{encryption-scheme-dgk}.
+Trapdoors index encrypted equality tags and encrypted equality tags index encrypted \emph{ABox} nodes. Respectively, nodes are probabilistically encrypted $E(node) = E(K_{RND}, \; node )$ and equality tags are homomorphically encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb} $E(eq_{tag}) = E(K_{DGK_{pub}}, \; eqTag(node))$. When doing equality checks, we decrypt the equality tags and compare the values. The version specific functions for \gls{SEnTriS} V2 are shown in Listing \ref{encryption-scheme-dgk}.
 
-\lstinputlisting[caption={Triple Pattern Encryption for SEnTri V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
 
 \subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples can be uploaded in separate upload operations. The triplestore creation and encryption operations are handled by the client. 
 
@@ -517,27 +517,27 @@ Due to the high volumes of data that can be processed during write operations, t
 
 \lstinputlisting[caption={SSE-TP Triplestore Component}, label={sse-tp-triplestore-component}]{Code/chapter3/sse-tp-triplestore.tex}
 
-The search operation is a two-step process in \gls{SEnTri} V1. Firstly, we parse the triple patterns and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. Upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation.
+The search operation is a two-step process in \gls{SEnTriS} V1. Firstly, we parse the triple patterns and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. Upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation.
 
-In \gls{SEnTri} V2, the results of the second search yield a collection of encrypted equality tags. We need an extra communication round to retrieve the encrypted nodes, referenced by the encrypted equality tags. This extra communication round is only required for search over the \emph{ABox}, so the algorithm is exactly the same in both version.
+In \gls{SEnTriS} V2, the results of the second search yield a collection of encrypted equality tags. We need an extra communication round to retrieve the encrypted nodes, referenced by the encrypted equality tags. This extra communication round is only required for search over the \emph{ABox}, so the algorithm is exactly the same in both version.
 
 Listings \ref{sse-tp-client-search-v1} and \ref{sse-tp-client-search-v2} show the search logic in the client component for versions V1 and V2, respectively.
 
-\lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp-client-search-v1.tex}
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp-client-search-v1.tex}
 
-\lstinputlisting[caption={Searches in SSE-TP Client (SEnTri V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp-client-search-v2.tex}
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp-client-search-v2.tex}
 
-In \gls{SEnTri} V1, to execute deletions, we fetch the frequencies of the triple patterns, generate their trapdoors and send a deletion request for data referenced by those trapdoors. In the case of \gls{SEnTri} V2, we are required to fetch the equality tags, because data referenced by them needs to be deleted as well. The deletion requests are sent to the triplestore, where they are temporarily saved.
+In \gls{SEnTriS} V1, to execute deletions, we fetch the frequencies of the triple patterns, generate their trapdoors and send a deletion request for data referenced by those trapdoors. In the case of \gls{SEnTriS} V2, we are required to fetch the equality tags, because data referenced by them needs to be deleted as well. The deletion requests are sent to the triplestore, where they are temporarily saved.
 
-To upload new data, firstly, we fetch the frequencies of the triple patterns keywords. Additionally, in \gls{SEnTri} V2, we will need to fetch the equality tags. Upon receiving all the contextual data, we decrypt it, and set the encryption scheme to the right context. We then issue deletion requests for any duplicated data, encrypt the new triple patterns and send the upload requests to the triplestore component.  
+To upload new data, firstly, we fetch the frequencies of the triple patterns keywords. Additionally, in \gls{SEnTriS} V2, we will need to fetch the equality tags. Upon receiving all the contextual data, we decrypt it, and set the encryption scheme to the right context. We then issue deletion requests for any duplicated data, encrypt the new triple patterns and send the upload requests to the triplestore component.  
 
 Update operations are the only way to actually persist changes in the triplestores, so they are always executed at the end of an upload or deletion request. To ensure that triplestores always stay in a consistent state after subsequent modifications, deletions are processed first, and then the updated values are stored.
 
 Listings \ref{sse-tp-client-writes-v1} and \ref{sse-tp-client-writes-v2} show the underlying logic of write operations in the client component. For version V2, we only highlight the algorithms that differ between versions.
 
-\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTri V1)}, label={sse-tp-client-writes-v1}]{Code/chapter3/sse-tp-client-writes-v1.tex}
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-writes-v1}]{Code/chapter3/sse-tp-client-writes-v1.tex}
 
-\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTri V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp-client-writes-v2.tex}
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp-client-writes-v2.tex}
 
 \subsection{Evaluation of SPARQL queries over encrypted data} ...
 
@@ -563,7 +563,7 @@ Authentication is validated with \emph{sessions}, management of access to triple
 
 \subsubsection{Session Validation}
 
-Authentication is the process where we verify the identity of a user. We do so, by checking that the provided credentials, during login, match the ones saved within our system. To avoid having to verify this condition in every request sent by the user, we use \emph{sessions}. The session is generated upon a successful login request. A valid session will prove the identity of the user sending the requests. In \gls{SEnTri}, an authenticated user needs to be valid (has been registered within the system) and hold an active session.
+Authentication is the process where we verify the identity of a user. We do so, by checking that the provided credentials, during login, match the ones saved within our system. To avoid having to verify this condition in every request sent by the user, we use \emph{sessions}. The session is generated upon a successful login request. A valid session will prove the identity of the user sending the requests. In \gls{SEnTriS}, an authenticated user needs to be valid (has been registered within the system) and hold an active session.
 
 \begin{definition}[\textbf{Authentication Check}]\label{ch3:definition:authentication} Let $IsAuth(user)$ be a predicate that evaluates to $true$ if a $user$ is authenticated, $\bot$ otherwise. Given $s_i = (sessionID,\; username_s,\; ttl)$ and $user_u = (username_u, \; password_u,\; role_u,\; owned_u)$ be valid, correctness of the authentication procedure will be upheld by always checking if the user has an active session:
 
@@ -574,7 +574,7 @@ Authentication is the process where we verify the identity of a user. We do so, 
 
 \subsubsection{Enforcing Access Permissions}
 
-Permissions in \gls{SEnTri} are logical rules which dictate whether a user is allowed to execute a certain operation, or not. These rules are continuously checked during execution.
+Permissions in \gls{SEnTriS} are logical rules which dictate whether a user is allowed to execute a certain operation, or not. These rules are continuously checked during execution.
 
 \begin{definition}[\textbf{Permission Rules}]\label{ch3:definition:permissions}
     Let $HasAccess(user, \; triplestore, \allowbreak type)$ be a predicate that evaluates to true if  $user$ has access of a certain $type$, to the specified $triplestore$, $\bot$ otherwise. Let $CanGrantAccess(user, \; type, \;  triplestore, \; target)$, and $CanRevokeAccess(user, \allowbreak type, \; triplestore, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant or revoke access, of a certain $type$, to the specified $triplestore$, to the specified $target$ user, $\bot$ otherwise.
@@ -583,7 +583,7 @@ Permissions in \gls{SEnTri} are logical rules which dictate whether a user is al
 
     Finally, let $CanGrantRole(user, \; role, \; target)$, $CanRevokeRole(user, \; role, \; target)$ be predicates that evaluate to $true$, respectively, if a $user$ can grant, or revoke, the specified $target$ user's $role$, $\bot$ otherwise.
 
-    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \; acp_i = (r_i, w_i))$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, \; role_t, \allowbreak password_t, \; owned_t)$ \gls{SEnTri} can verify, when requested, the following permissions:
+    Given $type \in \{\textrm{READ},\textrm{WRITE},\textrm{OWNER}\}$, triplestore $T_i = (triplestoreID_i,\; nodes_i, \; acp_i = (r_i, w_i))$, $user_u = (username_u, \; password_u, \; role_u, \; owned_u)$, and $user_t = (username_t, \; role_t, \allowbreak password_t, \; owned_t)$ \gls{SEnTriS} can verify, when requested, the following permissions:
 
     \begin{align}
         \begin{split}
@@ -655,13 +655,13 @@ Queries that contain write predicates, will require that their target remains \e
 \end{definition}
 
 
-\subsection{Definition of SEnTri}
+\subsection{Definition of SEnTriS}
 \label{ch3:sec:solution-definition:formal-definition}
-We will now formally define all versions of \gls{SEnTri}.
+We will now formally define all versions of \gls{SEnTriS}.
 %Mention secret sharing, access control, triplestore management, as well as sse-sparql
 
-\begin{definition}[\textbf{SEnTri V0}]\label{ch3:definition:sentri-v0}
-    \gls{SEnTri} V0 is a collection of 3 protocols $(\textrm{IAM}, \; \textrm{TRIPLESTORE}, \allowbreak \textrm{CLIENT})$ where:
+\begin{definition}[\textbf{SEnTriS V0}]\label{ch3:definition:sentri-v0}
+    \gls{SEnTriS} V0 is a collection of 3 protocols $(\textrm{IAM}, \; \textrm{TRIPLESTORE}, \allowbreak \textrm{CLIENT})$ where:
 
     \begin{itemize}
         \item IAM is a tuple of 24 polynomial time algorithms. These algorithms are responsible for management of user data, roles and triplestore access policies. They are also responsible for session and permissions enforcement:
@@ -719,7 +719,7 @@ We will now formally define all versions of \gls{SEnTri}.
 
               \end{itemize}
 
-        \item CLIENT is a tuple of 20 polynomial time algorithms. This protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It is responsible for: 1) session validation; 2) user creation and role management; 3) triplestore creation, deletion, sharing (access management) and querying. We will consider this as the public facing protocol, whereas the others are internal. These 20 algorithms are:
+        \item CLIENT is a tuple of 20 polynomial time algorithms. This protocol centralizes all functionalities of \gls{SEnTriS} and abstracts the communication logic with the other protocols. It is responsible for: 1) session validation; 2) user creation and role management; 3) triplestore creation, deletion, sharing (access management) and querying. We will consider this as the public facing protocol, whereas the others are internal. These 20 algorithms are:
               \begin{itemize}
 
                   \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.auth(username, \; password)$ and outputs the result of the algorithm.
@@ -775,11 +775,11 @@ We will now formally define all versions of \gls{SEnTri}.
     \end{itemize}
 \end{definition}
 
-\begin{definition}[\textbf{SEnTri V1}]\label{ch3:definition:sentri-v1}
-    \gls{SEnTri} V1 extends functionalities of \gls{SEnTri} V0 to work with encrypted data. It is a collection of 5 protocols $(\textrm{SEnTri-V0.IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
+\begin{definition}[\textbf{SEnTriS V1}]\label{ch3:definition:sentri-v1}
+    \gls{SEnTriS} V1 extends functionalities of \gls{SEnTriS} V0 to work with encrypted data. It is a collection of 5 protocols $(\textrm{SEnTriS-V0.IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
 
     \begin{itemize}
-        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in version V0, this protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V0, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
+        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in version V0, this protocol centralizes all functionalities of \gls{SEnTriS} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V0, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
 
               \begin{itemize}
                   \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
@@ -820,11 +820,11 @@ We will now formally define all versions of \gls{SEnTri}.
     \end{itemize}
 \end{definition}
 
-\begin{definition}[\textbf{SEnTri V2}]\label{ch3:definition:sentri-v2}
-    \gls{SEnTri} V2 is a collection of 5 protocols $(\textrm{TRIPLESTORE}, \allowbreak \textrm{SEnTri-V0.IAM}, \textrm{CLIENT}, \; \textrm{SEnTri-V1.VAULT}, \; \textrm{PROXY})$:
+\begin{definition}[\textbf{SEnTriS V2}]\label{ch3:definition:sentri-v2}
+    \gls{SEnTriS} V2 is a collection of 5 protocols $(\textrm{TRIPLESTORE}, \allowbreak \textrm{SEnTriS-V0.IAM}, \textrm{CLIENT}, \; \textrm{SEnTriS-V1.VAULT}, \; \textrm{PROXY})$:
 
     \begin{itemize}
-        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in previous versions, the protocol centralizes all functionalities of \gls{SEnTri} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V1, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
+        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in previous versions, the protocol centralizes all functionalities of \gls{SEnTriS} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V1, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
 
               \begin{itemize}
                   \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$: %same as in V1
@@ -839,12 +839,12 @@ We will now formally define all versions of \gls{SEnTri}.
 
               \end{itemize}
 
-        \item TRIPLESTORE protocol is a tuple with all \textrm{SEnTri-V1.TRIPLESTORE} algorithms, apart from the $\textrm{TRIPLESTORE}.prepareSearch$. In this version the algorithm, we mask the bindings of a search. We will only define this algorithm, and assume the others to be equal as their previous definition:
+        \item TRIPLESTORE protocol is a tuple with all \textrm{SEnTriS-V1.TRIPLESTORE} algorithms, apart from the $\textrm{TRIPLESTORE}.prepareSearch$. In this version the algorithm, we mask the bindings of a search. We will only define this algorithm, and assume the others to be equal as their previous definition:
               \begin{itemize}
                   \item $\{searchID, \bot\} \leftarrow \mathbf{prepareMaskedSearch(triplestoreID, \; trapdoors, \; mask, \; at)}$:
               \end{itemize}
 
-        \item PROXY is a tuple of 2 polynomial time algorithms. Like in \gls{SEnTri} V1 it will prepare and evaluate queries. It differs from the previous version, on query evaluation algorithm. We will only define this algorithms, and assume the others to be equal as their previous definition:
+        \item PROXY is a tuple of 2 polynomial time algorithms. Like in \gls{SEnTriS} V1 it will prepare and evaluate queries. It differs from the previous version, on query evaluation algorithm. We will only define this algorithms, and assume the others to be equal as their previous definition:
               \begin{itemize}
                   \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{DGK_{eq}}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
               \end{itemize}
@@ -855,8 +855,8 @@ We will now formally define all versions of \gls{SEnTri}.
 
 \section{Security Analysis}
 
-\subsection{SEnTri Security Properties}
-In conformity with the assumptions explained in ..., and based on its definition, we expect all implementations of \gls{SEnTri} to possess the following \emph{security properties}:
+\subsection{SEnTriS Security Properties}
+In conformity with the assumptions explained in ..., and based on its definition, we expect all implementations of \gls{SEnTriS} to possess the following \emph{security properties}:
 
 \begin{enumerate}
     \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
@@ -868,13 +868,13 @@ In conformity with the assumptions explained in ..., and based on its definition
     \item An attacker will not be able to tamper with messages sent between components.
 \end{enumerate}
 
-In conformity with the lack of data confidentiality, present in \gls{SEnTri}-V0, the following security properties are exclusive for the other two implementations:
+In conformity with the lack of data confidentiality, present in \gls{SEnTriS}-V0, the following security properties are exclusive for the other two implementations:
 \begin{enumerate}
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
         \begin{enumerate}
-            \item \emph{SEnTri V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-            \item \emph{SEnTri V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+            \item \emph{SEnTriS V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+            \item \emph{SEnTriS V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
         \end{enumerate}
 \end{enumerate}
 
@@ -884,30 +884,30 @@ In conformity with the lack of data confidentiality, present in \gls{SEnTri}-V0,
 
 All implementations come with a trade-off between data confidentiality, query evaluation leakage and performance.
 
-\gls{SEnTri} V0 only provides access control, trading data confidentiality for performance.
+\gls{SEnTriS} V0 only provides access control, trading data confidentiality for performance.
 
-\gls{SEnTri} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
+\gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
 
-In \gls{SEnTri} V2 provides both data confidentiality, access control and reduced leakage, but this comes at the cost of an extra round of communication where we have to reverse the blinding applied to the \emph{equality tags} and need to fetch the values being referenced from these. Only after this step, can we decrypt the actual query results.
+In \gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage, but this comes at the cost of an extra round of communication where we have to reverse the blinding applied to the \emph{equality tags} and need to fetch the values being referenced from these. Only after this step, can we decrypt the actual query results.
 
 \subsection{Leakage Analysis}
-\subsubsection{SEnTri V1}
-\subsubsection{SEnTri V2}
+\subsubsection{SEnTriS V1}
+\subsubsection{SEnTriS V2}
 \subsubsection{Discussion}
 %Corolary: sentry v2 leakage is reduced
 
 \section{Complexity Analysis}
 \subsection{Storage Complexity}
 %Space complexity in terms of RDF terms
-\subsubsection{SEnTri V0}
-\subsubsection{SEnTri V1}
-\subsubsection{SEnTri V2}
+\subsubsection{SEnTriS V0}
+\subsubsection{SEnTriS V1}
+\subsubsection{SEnTriS V2}
 
 \subsection{Query Evaluation Complexity}
 %Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
-\subsubsection{SEnTri V0}
-\subsubsection{SEnTri V1}
-\subsubsection{SEnTri V2}
+\subsubsection{SEnTriS V0}
+\subsubsection{SEnTriS V1}
+\subsubsection{SEnTriS V2}
 
 \subsection{Discussion}
 

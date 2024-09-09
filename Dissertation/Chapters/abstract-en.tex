@@ -5,11 +5,11 @@ Ontologies provide a shared understanding of a domain and, in general, only cont
 
 With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions and the outsourcing of heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, present new security concerns.
 
-In this thesis, we investigate existing secure computation techniques, encryption protocols and storage systems with the finality of developing a practical and secure solution for the collaborative development, distribution and usage of ontologies.
+In this thesis, we investigate existing secure computation techniques, encryption protocols and storage systems with the finality of developing a practical and secure solution for the collaborative development, distribution and usage of semantic data knowledge bases.
 
-Our main contributions from this research are: (i) SEnTri, a searchable encrypted triplestore that can evaluate secure SPARQL read and write queries, possesses reasoning capabilities and supports access control; (ii) Two secure protocols for the evaluation of SPARQL queries, based on Searchable Symmetric Encryption techniques and secure equality joins; (iii) A novel secure equality join, inspired by the DGK cryptosystem, that operates over homomorphically encrypted values.
+Our main contributions from this research are: (i) SPARQL-EVAL and SPARQL-EVAL-II, two \gls{SPARQL} query evaluation protocols, the former applies query rewriting techniques to retain reasoning capabilities; (ii) SSE-TP, a triple pattern \gls{SSE} protocol, where encrypted \gls{RDF} data remains searchable via triple patterns; (iii) SSE-SPARQL-EVAL, an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted data; (iv) \gls{SEnTriS} protocol, an adaptation of the SPARQL-EVAL-II and SSE-SPARQL-EVAL protocols for a multiuser setting that offers varying degrees of data confidentiality and role-based access controls.
 
-The system has been evaluated using the LUBM benchmark under different configurations with varying security and performance trade-offs. \mytodo{Summarize experimental evaluation results}
+The solution has been evaluated using the LUBM benchmark under different configurations with varying security and performance trade-offs. \mytodo{Summarize experimental evaluation results}
 
 \begin{keywords}
 Ontologies, Searchable Encryption, Secure Computing, SPARQL, Secure Equality Join
