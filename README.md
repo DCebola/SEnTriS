@@ -1,6 +1,6 @@
-# SEnTri: Searchable Encrypted Triplestore
+# SEnTriS: Searchable Encrypted Triplestore Sharing Protocol
 
-A searchable encrypted triplestore solution with (limited) support for SPARQL queries.
+A searchable encrypted triplestore sharing solution with (limited) support for SPARQL query evaluation.
 
 ### Client API
 
