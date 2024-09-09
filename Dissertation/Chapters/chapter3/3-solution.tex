@@ -561,9 +561,23 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
     SSE-SPARQL-EVAL is a distributed, three-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; encryption and decryption of data, query plan generation, preparation and final result generation is scoped to the \emph{client} component; the evaluation of the query execution plans are scoped to a secure computation \emph{proxy} component.
 \end{definition}
 
-\subsubsection{Query Preparation Phase}
-\subsubsection{Query Evaluation Phase}
-\subsubsection{Decryption of SPARQL query results}
+\subsubsection{Query Preparation Phase} In this phase we generate the query execution plan. We adapt the solution developed in the SPARQL-EVAL-II protocol in two ways. To introduce extra randomness in the query plan, the data structures of an ontology have random order and the expansion algorithm is randomized. The variables are also obfuscated. Listing ... and ... specify the modifications to the query planner and ontology logic.
+
+Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value is also computed and sent alongside each of the previous requests. 
+
+After receiving the collections of trapdoors, the triplestore component matches them against the requested triplestore's data. The bindings found are sent to the computation proxy, to be persisted and used during the query evaluation phase. In \gls{SEnTriS} V2, before sending the data to the proxy, the bindings are blinded with the mask value.
+
+After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component, and used in the next phase of the protocol. Listings ..., ... and ... show the logic of the client, triplestore and proxy components. We only highlight algorithms that differ from the previous protocols.
+
+\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the SPARQL-EVAL protocols. The only difference is in the query worker. This worker will construct the encrypted binding tables and execute the set operations. It will also have access to the secret key provided. Listing ... specifies the modifications to the query worker.
+
+In \gls{SEnTriS} V1, before constructing the binding tables, the probabilistic encryption layer of the bindings will be decrypted. The deterministic values allow the binding tables to operate as normal.
+
+In \gls{SEnTriS} V2, although the values can be compared using the key provided, they remain probabilistic. Before constructing the encryption tables we have to group the values, keeping track of pattern indexes but retaining one unique value, per distinct group. This will enable the construction of the encryption tables without altering their data structures. Because the remaining bindings in the tables continue to be probabilistic, searching for keys will have to be done with sequential scans. This will have a much higher complexity, compared to the other versions. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
+
+Listings ...  and ... provide the logic of the proxy search engines, where the logic for binding table construction is scoped. Listing ... shows the modified binding tables for \gls{SEnTriS} V2.
+
+\subsubsection{Decryption of SPARQL query results} Upon receiving the results from the query evaluation, the client component will decrypt the values and construct the final results. This final step will require an extra communication round for \gls{SEnTriS} V2, because the returned values are encrypted equality tags. It will have to unmask the values and search for the referenced nodes. This logic is specified in Listing ... .
 
 
 \subsection{The M/M setting}
