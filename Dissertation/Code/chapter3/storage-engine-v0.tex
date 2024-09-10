@@ -76,6 +76,7 @@ function search($triplestoreID$, $varPattern$, $s$, $p$, $o$):
         case "PO": return fetchBindings($triplestoreID$, generateIndex("PO", $s$), $p$, $o$)
         case "SO": return fetchBindings($triplestoreID$, generateIndex("SO", $p$), $s$, $o$)
         case "SP": return fetchBindings($triplestoreID$, generateIndex("SP", $o$), $s$, $p$)
+        default: throw NotImplementedException()
 
 function fetchBindings($triplestoreID$, $index$, $var$):
     $table$ := createBindingsTable()

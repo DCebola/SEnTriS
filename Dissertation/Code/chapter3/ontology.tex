@@ -22,9 +22,9 @@ function execInference($schema$, $e$, $t$):
     execPropertyInference($model$.listAllOntProperties())
 
 function execClassInference($classes$, $restrictions$, $intersections$):
-    foreach $class = (sub, \; eq)$ in $classes$:
-        $subClasses$[convertToNode($class$)] := $sub$
-        $equivalentClasses$[convertToNode($class$)] := $eq$
+    foreach $class = (subclasses, \; equivalentClasses)$ in $classes$:
+        $subClasses$[convertToNode($class$)] := $subclasses$
+        $equivalentClasses$[convertToNode($class$)] := $equivalentClasses$
     foreach $restriction = (type, \; property, \; value)$ in $restrictions$:
         $type \in \{$"owl:hasValue", "owl:isSomeValuesFrom", "owl:allValuesFrom"$\}$:
             $classRestrictions$[convertToNode($restriction$)] := $restriction$
@@ -38,14 +38,14 @@ function execClassInference($classes$, $restrictions$, $intersections$):
         $intersectionClasses$[convertToNode($intersection$)] := $operands$
 
 function execPropertyInference($properties$):
-    foreach $p = (type, \; value, \; sub, \; eq, \; inv)$ in $properties$:
+    foreach $p = (type, \; value, \; subproperties, \; equivalentProperties, \; inverseProperties)$ in $properties$:
         if $type$ == "owl:SymmetricProperty":
             $symmetricProperties$ := $symmetricProperties$ :U { $p$ }
         elif $type$ == "owl:TransitiveProperty":
             $transitiveProperties$ := $transitiveProperties$ :U { $p$ }
-        $subProperties$[convertToNode($p$)] := $sub$
-        $equivalentProperties$[convertToNode($p$)] := $eq$
-        $inverseProperties$[convertToNode($p$)] := $inv$
+        $subProperties$[convertToNode($p$)] := $subproperties$
+        $equivalentProperties$[convertToNode($p$)] := $equivalentProperties$
+        $inverseProperties$[convertToNode($p$)] := $inverseProperties$
     
 function getEquivalentClasses($node$):
     $classes$ := $equivalentClasses$[$node$]
