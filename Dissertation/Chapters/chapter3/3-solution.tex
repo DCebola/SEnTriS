@@ -568,7 +568,7 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
     SSE-SPARQL-EVAL is a distributed, three-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; encryption and decryption of data, query plan generation, preparation and final result generation is scoped to the \emph{client} component; the evaluation of the query execution plans are scoped to a secure computation \emph{proxy} component.
 \end{definition}
 
-\subsubsection{Query Preparation Phase} In this phase we generate the query execution plan. We adapt the solution  the SPARQL-EVAL-II protocol in two ways: we obfuscate the variables; to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-query-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
+\subsubsection{Query Preparation Phase} In this phase we generate the query execution plan. We adapt the solution  the SPARQL-EVAL-II protocol in two ways: we obfuscate the variables; to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
 
 \lstinputlisting[caption={Randomized ontology}, label={ontology-rnd}]{Code/chapter3/ontology-rnd.tex}
 
@@ -579,7 +579,11 @@ Upon the generation of a randomized query execution plan, the client component p
 
 After receiving the collections of trapdoors, the triplestore component matches them against the triplestore's data. The bindings found are sent to the computation proxy, to be temporarily persisted and used during the query evaluation phase. In \gls{SEnTriS} V2, before sending the data to the proxy, the bindings are blinded with the mask value.
 
-After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component. Listings ..., ... and ... show the logic of the client, triplestore and proxy components. We only highlight algorithms that differ from the previous protocols.
+After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component. Listings \ref{sse-sparql-client-v1} and \ref{sse-sparql-client-v2} show the logic of the client for \gls{SEnTriS} V1 and V2 respectively. Listings ... and ... show the logic of the triplestore and proxy components. We only highlight algorithms that differ from the previous protocols.
+
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL Client (SEnTriS V1)}, label={sse-sparql-client-v1}]{Code/chapter3/sse-sparql-client-v1.tex}
+
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL Client (SEnTriS V2)}, label={sse-sparql-client-v2}]{Code/chapter3/sse-sparql-client-v2.tex}
 
 \subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted binding tables. Listings  \ref{secure-query-worker}  specifies the modifications to the query worker.
 

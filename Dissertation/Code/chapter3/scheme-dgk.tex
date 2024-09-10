@@ -49,7 +49,11 @@ function getLastEqTag():
     return $eq_{last}$
 
 function getEqKey():
-    return $K_{DGK_{eq}}$ = ($K_{DGK_{priv}}.p$, $K_{DGK_{priv}}.vp$, $K_{DGK_{pub}}.n$, $K_{DGK_{pub}}.u$)
+    return ($K_{DGK_{priv}}.p$, $K_{DGK_{priv}}.vp$, $K_{DGK_{pub}}.n$, $K_{DGK_{pub}}.u$)
+
+function getPubDGK()
+    return ($K_{DGK_{pub}}.n$, $K_{DGK_{pub}}.g$, $K_{DGK_{pub}}.h$, $K_{DGK_{pub}}.u$, $K_{DGK_{pub}}.k$, $K_{DGK_{pub}}.t$, $K_{DGK_{pub}}.l$)
 
 function clearEqTags():
     $eqTags$ := {}
+

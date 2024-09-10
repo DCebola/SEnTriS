@@ -1,0 +1,24 @@
+State:
+    $queryEngine$ := createSPARQLQueryEngine()
+    $planner$ := :bot
+    $secrets$ := {}
+
+function executeSPARQLQuery($triplestoreID$, $query$, $inference$, $expansionDepth$,$transitivityDepth$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    try:
+        $scheme$ := createEncryptionScheme()
+        $scheme$.ReInitialize($secrets$[$triplestoreID$])
+        ($planner$, $plan_{rnd}$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        $queryType$ := $planner$.getQueryType()
+        if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
+            $mask$ := generateMask($scheme$)
+            $preparedPlan$ := prepareQuery($triplestoreID$, $plan_{rnd}$, $scheme$, $mask$)
+            $sparqlResult$ := Proxy.evaluateQuery($preparedPlan$, $scheme$.getEqKey())
+        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+    catch Exception:
+        return :bot
+
+function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$):
+    $r$ := generateDGKRandom($t$) // Generate random 2.5t-bit integer
+    return $h^r \textrm{mod} \; n$

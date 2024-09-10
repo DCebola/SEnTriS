@@ -1,0 +1,45 @@
+State:
+    $queryEngine$ := createSPARQLQueryEngine()
+    $planner$ := :bot
+    $secrets$ := {}
+
+function executeSPARQLQuery($triplestoreID$, $query$, $inference$, $expansionDepth$,$transitivityDepth$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    try:
+        $scheme$ := createEncryptionScheme()
+        $scheme$.ReInitialize($secrets$[$triplestoreID$])
+        ($planner$, $plan_{rnd}$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        $queryType$ := $planner$.getQueryType()
+        if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
+            $preparedPlan$ := prepareQuery($triplestoreID$, $plan_{rnd}$, $scheme$, :bot)
+            $sparqlResult$ := Proxy.evaluateQuery($preparedPlan$, $scheme$.getRNDKey())
+        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+    catch Exception:
+        return :bot
+
+function prepareQuery($triplestoreID$, $planner$, $plan_{rnd} = (jobs, \; rndExecOrder)$, $scheme$, $mask$):
+    $keywordsFrequency$ := fetchKeywordsFrequencies($triplestoreID$, $planner$.getKeywords(), $scheme$)
+    $searchIDCollector$ := {}
+    foreach $jobID$ in $planner$.getSearchJobIDs():
+        $job_{SEC\_SEARCH}$ := $jobs$[$jobID$]
+        $job_{vars}$ = $job_{SEC\_SEARCH}$.getVariabless()
+        $keyword$ = $job_{SEC\_SEARCH}$.getSearches()[$job_{vars}$[0]]
+        $searchIDs$ := $searchIDCollector$.get($keyword$);
+        if $searchIDs$ == :bot:
+            $searchIDs$ := createArrayList($\#job_{vars}$)
+            $keywordFrequency$ := $keywordsFrequency$[$keyword$]
+            $trapdoors$ := createArrayList($job_{vars}$)
+            for $i$ in range(0, $\#job_{vars}$)
+                $trapdoors$.add(createArrayList($keywordFrequency$ / $\#job_{vars}$))
+            for $i$ in range(0, $keywordFrequency$)
+                $trapdoors$.get($i \; \% \; \#job_{vars}$).add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+            for $i$ in range(0, $\#job_{vars}$)
+                $searchID$ = Triplestore.prepareSearch($triplestoreID$, $mask$, $trapdoors$.get($i$))
+                $searchIDs$.add($searchID$)
+                $job_{SEC\_SEARCH}$.getSearches()[$job_{vars}$[i]] := $searchID$
+            $searchIDCollector$[$keyword$] := $searchIDs$
+        else:
+            for $i$ in range(0, $\#job_{vars}$)
+                $job_{SEC\_SEARCH}$.getSearches()[$job_{vars}$[i]] := $searchIDs$.get($i$)
+    return $plan_{rnd}$
