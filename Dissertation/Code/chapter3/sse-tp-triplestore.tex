@@ -18,5 +18,5 @@ function update($triplestoreID$, $uploadIDs$, $deletionIDs$):
     return $storageEngine$.update($triplestoreID$, $uploadIDs$, $deletionIDs$)
 
 // $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.DeleteAll(triplestoreID)$:    
-function delete($triplestoreID$)
+function deleteAll($triplestoreID$)
     return $storageEngine$.delete($triplestoreID$)

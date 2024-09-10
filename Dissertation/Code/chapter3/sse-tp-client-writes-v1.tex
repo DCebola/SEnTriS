@@ -2,12 +2,14 @@ State:
     secrets := {}
     $BATCH\_SIZE$ := fetchConfig($BATCH\_SIZE$)
 
-function create($triplestoreID$, $triples_{ABox}$):
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.CreateTriplestore(triplestoreID, \; [t_0, t_1, ..., t_n])$
+function createTriplestore($triplestoreID$, $triples_{ABox}$):
     $scheme$ := createEncryptionScheme() 
     $secrets$[$triplestoreID$] := $scheme$.getSecrets()
     return executeUpdate($triplestoreID$, {}, $triples_{ABox}$, $scheme$)
 
-function deleteAll($triplestoreID$, $schema$):
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.DeleteTriplestore(triplestoreID, \; schema)$
+function deleteTriplestore($triplestoreID$, $schema$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     else:
@@ -15,31 +17,34 @@ function deleteAll($triplestoreID$, $schema$):
             return deleteTBox($triplestoreID$, $schema$)
         return Triplestore.delete($triplestoreID$)
 
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Upload(triplestoreID, \; [t_0, t_1, ..., t_n], \; schema)$
 function upload($triplestoreID$, $triples$, $schema$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     $scheme$ := createEncryptionScheme()
-    $scheme$.loadState($secrets$[$triplestoreID$])
+    $scheme$.ReInitialize($secrets$[$triplestoreID$])
     if $schema$ == true:
         return uploadTBox($triplestoreID$, $triples$, $scheme$)
     return executeUpdate($triplestoreID$, {}, $triples$, $scheme$)
 
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.Delete(triplestoreID, \; [t_0, t_1, ..., t_n])$
 function delete($triplestoreID$, $triples$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     $scheme$ := createEncryptionScheme()
-    $scheme$.loadState($secrets$[$triplestoreID$])
+    $scheme$.ReInitialize($secrets$[$triplestoreID$])
     return executeUpdate($triplestoreID$, $triples$, {}, $scheme$)
 
-function update($triplestoreID$, $triples$, $triples_{upload}$):
+// $\{\textrm{SUCCESS}, \bot\} \leftarrow \textrm{SSE-TP}.UpdateTriplestore(triplestoreID, \; triples_{delete}, \; triples_{upload})$
+function updateTriplestore($triplestoreID$, $triples_{delete}$, $triples_{upload}$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     $scheme$ := createEncryptionScheme()
-    $scheme$.loadState($secrets$[$triplestoreID$])
-    return executeUpdate($triplestoreID$, $triples$, $triples_{upload}$)
+    $scheme$.ReInitialize($secrets$[$triplestoreID$])
+    return executeUpdate($triplestoreID$, $triples_{delete}$, $triples_{upload}$)
 
-function executeUpdate($triplestoreID$, $triples$, $triples_{upload}$):
-    $deleteIDs$ := batchExecute($triplestoreID$, $scheme$, $triples$, "DELETION")
+function executeUpdate($triplestoreID$, $triples_{delete}$, $triples_{upload}$):
+    $deleteIDs$ := batchExecute($triplestoreID$, $scheme$, $triples_{delete}$, "DELETION")
     $uploadIDs$ := batchExecute($triplestoreID$, $scheme$, $triples_{upload}$, "UPLOAD")
     return Triplestore.update($triplestoreID$, $uploadIDs$, $deleteIDs$)
 

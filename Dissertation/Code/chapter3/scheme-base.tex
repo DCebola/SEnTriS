@@ -11,7 +11,7 @@ State:
     $derivedKeys$ := {} 
     
 // $E(T)$ := $\textrm{SSE-TP}.ReInitialize(K_{MASTER}, \; K_{RND}, \; keyword_{schema})$
-function loadState($master$, $rnd$, $iv$, $schema$):  
+function ReInitialize($master$, $rnd$, $iv$, $schema$):  
     $K_{MASTER}$ := $master$ 
     $K_{RND}$ := $rnd$
     $iv_{ZERO}$ := $iv$

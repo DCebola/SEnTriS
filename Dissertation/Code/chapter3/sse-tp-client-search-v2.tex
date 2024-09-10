@@ -1,11 +1,12 @@
 State:
     $secrets$ := {}
 
+// $\{[node_0, ..., node_n], \; \bot\} \leftarrow \textrm{SSE-TP}.SearchTriplestore(triplestoreID, \; triplePatterns)$
 function search($triplestoreID$, $triplePatterns$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     $scheme$ := createEncryptionScheme()
-    $scheme$.loadState($secrets$[$triplestoreID$])
+    $scheme$.ReInitialize($secrets$[$triplestoreID$])
     $keywords$ := [$\#triplePatterns$]
     $i$ := 0
     foreach $t$ in $triplePatterns$:

@@ -3,7 +3,7 @@ State:
     $eqTags$ := {}
     $eq_{last}$ := 0
 
-function loadState($master$, $rnd$, $KeyPair_{DGK}$, $iv$, $schema$):
+function ReInitialize($master$, $rnd$, $KeyPair_{DGK}$, $iv$, $schema$):
     loadState($master$, $rnd$, $iv$, $schema$)
     ($K_{DGK_{priv}}$, $K_{DGK_{pub}}$) := $KeyPair_{DGK}$
 

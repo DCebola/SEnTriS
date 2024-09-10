@@ -1,7 +1,7 @@
 State:
     $K_{DET}$ := generateKey()
 
-function loadState($master$, $rnd$, $det$, $iv$, $schema$):
+function ReInitialize($master$, $rnd$, $det$, $iv$, $schema$):
     loadState($master$, $rnd$, $iv$, $schema$)
     $K_{DET}$ := $det$
 
