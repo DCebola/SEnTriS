@@ -3,7 +3,7 @@ State:
     $planner$ := :bot
     $secrets$ := {}
 
-function executeSPARQLQuery($triplestoreID$, $query$, $inference$, $expansionDepth$,$transitivityDepth$):
+function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     try:
@@ -19,6 +19,5 @@ function executeSPARQLQuery($triplestoreID$, $query$, $inference$, $expansionDep
     catch Exception:
         return :bot
 
-function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$):
-    $r$ := generateDGKRandom($t$) // Generate random 2.5t-bit integer
-    return $h^r \textrm{mod} \; n$
+function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u)$):
+    return E($K_{DGK_{pub}}$, generateRandom(0, $u$)) // Generate random value in $\mathbb{Z}_{u}$

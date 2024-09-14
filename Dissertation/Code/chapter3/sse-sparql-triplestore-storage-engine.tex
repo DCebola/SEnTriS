@@ -1,0 +1,14 @@
+State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
+    $triplestores$ := {}
+    $uploads$ := {}
+    $deletions$ := {}
+
+function search($triplestoreID$, $mask$, $trapdoors$):
+    $result$ := createArrayList($\#trapdoors$)
+    for $i$ in range(0, $\#trapdoor$):
+        $result$.add(blind($mask$, $triplestores$[$triplestoreID$][$trapdoors$[$i$]]))
+    return $result$
+
+function blind($mask$, $value$):
+    return $value * mask$ 

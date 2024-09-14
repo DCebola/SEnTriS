@@ -3,7 +3,7 @@ State:
     $planner$ := :bot
     $secrets$ := {}
 
-function executeSPARQLQuery($triplestoreID$, $query$, $inference$, $expansionDepth$,$transitivityDepth$):
+function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     try:
@@ -33,7 +33,7 @@ function prepareQuery($triplestoreID$, $planner$, $plan_{rnd} = (jobs, \; rndExe
             for $i$ in range(0, $\#job_{vars}$)
                 $trapdoors$.add(createArrayList($keywordFrequency$ / $\#job_{vars}$))
             for $i$ in range(0, $keywordFrequency$)
-                $trapdoors$.get($i \; \% \; \#job_{vars}$).add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
+                $trapdoors$.get($i \; \textrm{mod} \; \#job_{vars}$).add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
             for $i$ in range(0, $\#job_{vars}$)
                 $searchID$ = Triplestore.prepareSearch($triplestoreID$, $mask$, $trapdoors$.get($i$))
                 $searchIDs$.add($searchID$)
