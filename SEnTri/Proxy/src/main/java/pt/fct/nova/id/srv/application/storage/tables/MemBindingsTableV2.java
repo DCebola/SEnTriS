@@ -276,7 +276,13 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
 
     private Set<Bytes> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<Bytes>> bindings, BigInteger target) throws HomomorphicException {
         BigInteger res = bindings.keySet().parallelStream()
-                .filter(item -> DGKEqUtils.equals(key, item, target))
+                .filter(item -> {
+                    try {
+                        return DGKEqUtils.equals(key, item, target);
+                    } catch (HomomorphicException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .findAny()
                 .orElse(null);
         if (res == null)

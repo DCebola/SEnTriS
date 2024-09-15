@@ -10,11 +10,13 @@ public class DGKEqKey implements DGK_Key, Serializable {
     private final BigInteger p;
     private final BigInteger vp;
     private final BigInteger n;
+    private final long u;
 
-    public DGKEqKey(BigInteger p, BigInteger vp, BigInteger n) {
+    public DGKEqKey(BigInteger p, BigInteger vp, BigInteger n, long u) {
         this.p = p;
         this.vp = vp;
         this.n = n;
+        this.u = u;
     }
 
     public BigInteger getP() {
@@ -29,4 +31,7 @@ public class DGKEqKey implements DGK_Key, Serializable {
         return n;
     }
 
+    public long getU() {
+        return u;
+    }
 }

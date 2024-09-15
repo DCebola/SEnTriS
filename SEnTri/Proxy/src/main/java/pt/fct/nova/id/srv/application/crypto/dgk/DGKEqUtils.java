@@ -23,9 +23,30 @@ public class DGKEqUtils {
      * @return boolean - true, if are equal, false otherwise.
      * @throws HomomorphicException - If the ciphertext is larger than N, an exception will be thrown
      */
-    public static boolean equals(DGKEqKey key, BigInteger ciphertext1, BigInteger ciphertext2) {
+    public static boolean equals(DGKEqKey key, BigInteger ciphertext1, BigInteger ciphertext2) throws HomomorphicException {
         BigInteger p = key.getP();
-        BigInteger vp = key.getVp();
-        return NTL.POSMOD(ciphertext1.modPow(vp, p), p).subtract(NTL.POSMOD(ciphertext2.modPow(vp, p), p)).equals(BigInteger.ZERO);
+        return NTL.POSMOD(subtract(key, ciphertext1, ciphertext2).modPow(key.getVp(), p), p).equals(BigInteger.ONE);
     }
+
+
+    /**
+     * Subtract encrypted values.
+     *
+     * @param key         - DGK equality key.
+     * @param ciphertext1 - Encrypted DGK value
+     * @param ciphertext2 - Encrypted DGK value
+     * @return DGK encrypted ciphertext with ciphertext1 - ciphertext2
+     * @throws HomomorphicException - If either ciphertext is greater than N or negative, throw an exception
+     */
+    private static BigInteger subtract(DGKEqKey key, BigInteger ciphertext1, BigInteger ciphertext2) throws HomomorphicException {
+        BigInteger n = key.getN();
+        if (ciphertext1.signum() == -1 || ciphertext1.compareTo(key.getN()) > 0) {
+            throw new HomomorphicException("DGKEqCheck: Invalid Parameter ciphertext1: " + ciphertext1);
+        } else if (ciphertext2.signum() == -1 || ciphertext2.compareTo(key.getN()) > 0) {
+            throw new HomomorphicException("DGKEqCheck: Invalid Parameter ciphertext2: " + ciphertext2);
+        }
+        long u = key.getU();
+        return  ciphertext1.multiply(ciphertext2.modPow(BigInteger.valueOf(u - 1), n)).mod(n);
+    }
+
 }

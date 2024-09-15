@@ -302,7 +302,8 @@ public class EncryptionSchemeV2 implements EncryptionScheme {
         return new DGKEqKey(
                 ((DGKPrivateKey) privDGK).getP(),
                 ((DGKPrivateKey) privDGK).getVp(),
-                ((DGKPublicKey) pubDGK).getN()
+                ((DGKPublicKey) pubDGK).getN(),
+                ((DGKPublicKey) pubDGK).getU()
         );
     }
 
