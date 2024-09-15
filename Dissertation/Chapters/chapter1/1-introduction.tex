@@ -94,7 +94,7 @@ In this thesis we aim to develop a practical and secure solution for the collabo
 
     \item \textbf{SSE-SPARQL-EVAL - A distributed three-party \gls{SPARQL} query evaluation protocol} \linebreak \textbf{ for SSE-TP encrypted triplestores:}   
     SSE-SPARQL-EVAL is an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted triplestores. It was implemented in two versions, each one modified to work with one of the two implementations of the SSE-TP protocol. 
-    The main distinction between them is in the equality function used during set operations. In the first version, when equality checks are required, we peel the outer layer of the encryption onions and compare the values. In the second version, we use additive blinding to mask the values of the equality tags. When doing equality checks, we decrypt the \emph{blinded equality tags} and compare the values. These remain deterministic, but different for every query evaluation.
+    The main distinction between them is in the equality function used during set operations. In the first version, when equality checks are required, we peel the outer layer of the encryption onions and compare the values. In the second version, we mask the values of the equality tags, via re-encryption. When doing equality checks, we decrypt the \emph{blinded equality tags} and compare the values. These remain deterministic, but different for every query evaluation.
 
     \item [\gls{SEnTriS} - A multiparty searchable encrypted triplestore sharing protocol:] 
     
