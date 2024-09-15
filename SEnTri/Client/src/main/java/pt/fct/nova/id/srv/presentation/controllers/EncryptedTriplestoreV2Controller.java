@@ -430,9 +430,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return response.build();
         }
         DGKPublicKey k = (DGKPublicKey) protocol.getPubDGK();
-        BigInteger mask = DGKUtils.generateMask(k);
+        BigInteger r = DGKUtils.generateRandom(k);
         response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency,
-                mask, accessToken);
+                DGKUtils.generateMask(r, k, false), accessToken);
         if (response != null && response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
@@ -451,7 +451,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 vars.add(deobfuscationMap.get(var));
             Collection<Binding> bindings = new LinkedList<>();
             response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), deobfuscationMap, protocol, bindings,
-                    mask, accessToken);
+                    DGKUtils.generateMask(r, k, true), accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
@@ -492,9 +492,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                     return Response.ok(NO_UPDATES).build();
                 }
                 DGKPublicKey k = (DGKPublicKey) protocol.getPubDGK();
-                BigInteger mask = DGKUtils.generateMask(k);
+                BigInteger r = DGKUtils.generateRandom(k);
                 response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency,
-                        mask, accessToken);
+                        DGKUtils.generateMask(r, k, false), accessToken);
                 if (response != null && response.getStatus() != OK) {
                     releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -510,7 +510,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 Map<Var, Var> deobfuscationMap = planner.getDeobfuscationMap();
                 Collection<Binding> bindings = new LinkedList<>();
                 response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), deobfuscationMap, protocol, bindings,
-                        mask, accessToken);
+                        DGKUtils.generateMask(r, k, true), accessToken);
                 if (response != null && response.getStatus() != OK) {
                     releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -775,7 +775,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     private HTTPResponse fetchAndDecryptBindings(CloseableHttpClient httpClient, String triplestoreID,
                                                  Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> deobfuscationMap,
                                                  EncryptionSchemeV2 protocol, Collection<Binding> bindingsCollector,
-                                                 BigInteger mask, String accessToken) throws AEADBadTagException, IOException, HomomorphicException, ClassNotFoundException {
+                                                 BigInteger r, String accessToken) throws AEADBadTagException, IOException, HomomorphicException, ClassNotFoundException {
         Map<BigInteger, Integer> eqTagsOrder = new HashMap<>();
         List<String> eqTags = new ArrayList<>();
         BigInteger eqTag;
@@ -786,7 +786,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 eqTag = new BigInteger(binding.get(it.next()));
                 if (!eqTagsOrder.containsKey(eqTag)) {
                     eqTagsOrder.put(eqTag, i);
-                    eqTags.add(ParsingUtils.eqTagToString(DGKUtils.unmask(k, mask, eqTag)));
+                    eqTags.add(ParsingUtils.eqTagToString(DGKUtils.unmask(k, r, eqTag)));
                     i++;
                 }
             }

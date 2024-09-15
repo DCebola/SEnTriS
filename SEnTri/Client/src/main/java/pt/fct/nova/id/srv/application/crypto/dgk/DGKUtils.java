@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.SecureRandom;
 
 public class DGKUtils {
     private static DGKKeyPairGenerator keyPairGenerator;
-    private static final SecureRandom rnd = new SecureRandom();
 
     public static KeyPair generateKeyPair() throws HomomorphicException {
         if (keyPairGenerator == null)
@@ -22,12 +20,18 @@ public class DGKUtils {
         return keyPairGenerator.generateKeyPair();
     }
 
-    public static BigInteger generateMask(DGKPublicKey k) {
-        return k.encrypt(rnd.nextLong(0, k.getU()));
+    public static BigInteger generateRandom(DGKPublicKey k) {
+        return NTL.generateXBitRandom(3 * k.getT());
     }
 
-    public static BigInteger unmask(DGKPublicKey k, BigInteger mask, BigInteger ciphertext) throws HomomorphicException {
-        return k.subtract(ciphertext, mask);
+    public static BigInteger generateMask(BigInteger r, DGKPublicKey k, boolean negate) {
+        if (negate)
+            return k.getH().modPow(r.negate(), k.getN());
+        return k.getH().modPow(r, k.getN());
+    }
+
+    public static BigInteger unmask(DGKPublicKey k, BigInteger r, BigInteger ciphertext) throws HomomorphicException {
+        return k.reencrypt(r, ciphertext);
     }
 
     public static KeyPair parseKeyPair(byte[] contents) throws IOException, ClassNotFoundException {
