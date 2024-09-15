@@ -20,5 +20,5 @@ function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$
         return :bot
 
 function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$):
-    $r$ := generateDGKRandom($t$) // Generate random 2.5t-bit integer
-    return $h^r \textrm{mod} \; n$
+    $mask$ := generateDGKRandom($t$) // Generate random 2.5t-bit integer
+    return $h^{mask} \; \textrm{mod} \; n$

@@ -7,8 +7,7 @@ State:
 function search($triplestoreID$, $mask$, $trapdoors$):
     $result$ := createArrayList($\#trapdoors$)
     for $i$ in range(0, $\#trapdoor$):
-        $result$.add(blind($mask$, $triplestores$[$triplestoreID$][$trapdoors$[$i$]]))
+        $binding$ := $triplestores$[$triplestoreID$][$trapdoors$[$i$]]
+        if $binding$ :neq :bot
+            $result$.add($binding \; * \; mask$)
     return $result$
-
-function blind($mask$, $value$):
-    return $value * mask$ 
