@@ -364,9 +364,9 @@ The dispatching of jobs continuous until there are no more jobs pending executio
 
 Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={\gls{SEnTriS} V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
+\lstinputlisting[caption={SEnTriS V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
 
-\lstinputlisting[caption={\gls{SEnTriS} V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+\lstinputlisting[caption={SEnTriS V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
 
 \paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
 
@@ -402,7 +402,7 @@ In the next step, we iterate over all properties and map each one to their subpr
 
 All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={SEnTriS Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
+\lstinputlisting[caption={SEnTriS V0 Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
 
 During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting-v0} and \ref{sparql-eval-ii-client-pseudocode} respectively. 
 
@@ -570,9 +570,9 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
 
 \subsubsection{Query Preparation Phase} In this phase we generate the query execution plan. We adapt the solution  the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
 
-\lstinputlisting[caption={Randomized ontology}, label={ontology-rnd}]{Code/chapter3/ontology-rnd.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL ontology}, label={ontology-rnd}]{Code/chapter3/ontology-rnd.tex}
 
-\lstinputlisting[caption={SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sparql-planner-secure.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sparql-planner-secure.tex}
 
 
 Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value is also computed and sent alongside each of the previous requests. 
@@ -581,27 +581,27 @@ After receiving the collections of trapdoors, the triplestore component matches 
 
 After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component. Listings \ref{sse-sparql-client-v1} and \ref{sse-sparql-client-v2} show the logic of the client for \gls{SEnTriS} V1 and V2 respectively.  
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL Client (SEnTriS V1)}, label={sse-sparql-client-v1}]{Code/chapter3/sse-sparql-client-v1.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V1)}, label={sse-sparql-client-v1}]{Code/chapter3/sse-sparql-client-v1.tex}
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL Client (SEnTriS V2)}, label={sse-sparql-client-v2}]{Code/chapter3/sse-sparql-client-v2.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V2)}, label={sse-sparql-client-v2}]{Code/chapter3/sse-sparql-client-v2.tex}
 
 Listings \ref{sse-sparql-triplestore} and \ref{sse-sparql-triplestore-storage} show the logic of the triplestore component and how search values are blinded in the storage engine.
 
-\lstinputlisting[caption={SSE-SPARQL Triplestore}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-triplestore.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-triplestore.tex}
 
-\lstinputlisting[caption={SSE-SPARQL Triplestore Storage Engine}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-triplestore-storage-engine.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore Storage Engine}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-triplestore-storage-engine.tex}
 
 Finally, listings \ref{sse-sparql-proxy-prepare-bindings} and \ref{sse-proxy-save-bindings} provide the logic for the proxy component and how the bindings are temporarily stored. We have only highlighted the algorithms that differ from the previous protocols.
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-proxy-prepare-bindings.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-proxy-prepare-bindings.tex}
 
-\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-proxy-save-bindings.tex}
+\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-proxy-save-bindings.tex}
 
 \subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker. 
 
-\lstinputlisting[caption={Query Evaluation in SSE-SPARQL Proxy}, label={sse-sparql-proxy-query-eval}]{Code/chapter3/sse-sparql-proxy-evaluate-query.tex}
+\lstinputlisting[caption={Query Evaluation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-query-eval}]{Code/chapter3/sse-sparql-proxy-evaluate-query.tex}
 
-\lstinputlisting[caption={SSE-SPARQL Query Worker}, label={query-worker-v1}]{Code/chapter3/query-worker-v1.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Query Worker}, label={query-worker-v1}]{Code/chapter3/query-worker-v1.tex}
 
 As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} V1, before constructing the bindings tables, the probabilistic encryption layer of the bindings will be decrypted. The deterministic values allow the bindings tables to operate as normal. 
 
@@ -609,7 +609,7 @@ As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} 
 
 In \gls{SEnTriS} V2, the values remain probabilistic. Consequently, equality checks, and set operations that require this operation, will have to be keyed as illustrated in Listing \ref{query-worker-v2}.
 
-\lstinputlisting[caption={Keyed set operations in SSE-SPARQL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/query-worker-v2.tex}
+\lstinputlisting[caption={Keyed set operations in SSE-SPARQL-EVAL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/query-worker-v2.tex}
 
 Before constructing the encryption tables we will to group the values, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
 
