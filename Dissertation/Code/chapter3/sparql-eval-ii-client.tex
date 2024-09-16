@@ -4,7 +4,7 @@ State:
 
 function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
     try:
-        ($planner$, $plan$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        ($planner$, $plan$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
         $queryType$ := $planner$.getQueryType()
         if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
             $sparqlResult$ := Triplestore.evaluateQuery($triplestoreID$, $plan$)
@@ -12,7 +12,7 @@ function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$
     catch Exception:
         return :bot
 
-// SPARQL-EVAL-II.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
+// {$(plan, \; construct, \; upload, \; delete)$, :bot} := \textrm{SPARQL-EVAL-II}.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
 function planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$):
     $planner$ := createSPARQLQueryPlanner()
     if $inference$ == true:
@@ -20,4 +20,4 @@ function planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $tra
         $ontology$ := createOntology()
         $ontology$ := execInference($schema$, $inference$, $expansionDepth$, $transitivityDepth$)
         $planner$.setOntology($ontology$)   
-    return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$))
+    return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())

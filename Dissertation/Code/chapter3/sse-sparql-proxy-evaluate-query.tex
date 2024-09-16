@@ -1,7 +1,7 @@
 State:
     $storageEngine$ := createStorageEngine()
 
-// $\{E(sparqlResult), \; \bot\} \leftarrow EvaluateQuery(preparedPlan_{rnd}, \; K)$
+// $\{E(sparqlResult), \; \bot\} \leftarrow \textrm{SSE-SPARQL-EVAL}.EvaluateQuery(preparedPlan_{rnd}, \; K)$
 function evaluateQuery($plan$, \; $key$):
     $worker$ := createQueryWorker()
     $worker$.setContext($key$, $storageEngine$)

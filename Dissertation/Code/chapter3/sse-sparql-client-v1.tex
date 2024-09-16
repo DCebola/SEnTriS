@@ -9,7 +9,7 @@ function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$
     try:
         $scheme$ := createEncryptionScheme()
         $scheme$.ReInitialize($secrets$[$triplestoreID$])
-        ($planner$, $plan_{rnd}$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        ($planner$, $plan_{rnd}$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
         $queryType$ := $planner$.getQueryType()
         if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
             $preparedPlan$ := prepareQuery($triplestoreID$, $plan_{rnd}$, $scheme$, :bot)
