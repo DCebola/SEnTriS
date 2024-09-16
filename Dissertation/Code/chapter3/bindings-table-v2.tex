@@ -54,8 +54,7 @@ function join($vars_{mutual}$, $table_l$, $table_r$, $type$, $K_{DGK_{eq}}$)
             joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$, $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$, $K_{DGK_{eq}}$)
     return $table_{join}$
 
-function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
-                            $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$, $K_{DGK_{eq}}$) 
+function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$, $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$, $K_{DGK_{eq}}$) 
     foreach $patternID_l$ in $patternIDs_l$:
         $match$ := false
         if $patternIDs_r$ :neq :bot:

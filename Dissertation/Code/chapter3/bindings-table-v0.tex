@@ -145,8 +145,7 @@ function join($vars_{mutual}$, $table_l$, $table_r$, $type$)
             joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$, $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$)
     return $table_{join}$
 
-function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$,
-                            $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$) 
+function joinPatterns($vars_{mutual}$, $table_l$, $vars_l$, $patternIDs_l$, $table_r$, $vars_r$, $patternIDs_r$, $table_{join}$, $type$) 
     foreach $patternID_l$ in $patternIDs_l$:
         $match$ := false
         if $patternIDs_r$ :neq :bot:
