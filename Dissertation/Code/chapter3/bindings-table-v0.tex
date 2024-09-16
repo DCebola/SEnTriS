@@ -96,7 +96,7 @@ function union($other$):
     copyAllBindings($vars_r$, $other$, $table_{union}$)
     return $table_{union}$
 
-function minus(other):
+function minus($other$):
     $vars_{mutual}$ := copy(getVariables())
     $vars_{mutual}$.retain($other$.getVariables())
     $di\textrm{\emph{ff}}$ := {}

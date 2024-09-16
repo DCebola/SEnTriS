@@ -75,7 +75,7 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 \emph{SEnTriS} follows a similar logic, for query evaluation, with a few modifications to enhance security. The system works with data that is encrypted in a manner that allows for search and set operations to remain executable. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system.
 
-\emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{binding tables}, which are used for the evaluation of complex \emph{graph patterns}
+\emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{bindings tables}, which are used for the evaluation of complex \emph{graph patterns}
 
 \gls{SEnTriS} is implemented using three different approaches:
 
@@ -84,7 +84,7 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
     \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
 
-    \item \emph{\gls{SEnTriS} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by using an additive homomorphic encryption scheme. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support re-encryption. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{binding tables} are built with \emph{re-encrypted equality tags}. When doing equality checks, we decrypt the \emph{equality tags}. These remain deterministic, but different for every query evaluation.
+    \item \emph{\gls{SEnTriS} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by using an additive homomorphic encryption scheme. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support re-encryption. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{bindings tables} are built with \emph{re-encrypted equality tags}. When doing equality checks, we decrypt the \emph{equality tags}. These remain deterministic, but different for every query evaluation.
 \end{itemize}
 
 In the remainder of this section we will: 1) begin by defining the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain how we adapt the protocols to the \gls{M/M} setting; 5) define the various implementations of \gls{SEnTriS}; 6) define the security properties of \gls{SEnTriS}; 7) analyze the security and performance trade-offs of the various implementations.
@@ -278,7 +278,7 @@ For the remainder of the document, the function $E(K, \; m, \; iv)$ denotes the 
     Given Equations \ref{ch2:sec:homomorphic-encryption:def-eq-additive-subtraciton} and \ref{chapter3:definition:dgk:equation:mul-negative}, subtraction of two ciphertexts is achieved by computing:
 
     \begin{equation}
-        E(m_1 - m_2) = E(m_1 + (-1) * m_2) = E(m_1) + E(m_2)^{(u - 1)}
+        E(m_1 - m_2) = E(m_1 + (-1) * m_2) = E(m_1) * E(m_2)^{(u - 1)}
     \end{equation}
 
 \end{definition}
@@ -572,7 +572,7 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
 
 \lstinputlisting[caption={Randomized ontology}, label={ontology-rnd}]{Code/chapter3/ontology-rnd.tex}
 
-\lstinputlisting[caption={SPARQL Planner (SEnTriS V1 \& V2)}, label={secure-sparql-planner}]{Code/chapter3/sparql-planner-secure.tex}
+\lstinputlisting[caption={SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sparql-planner-secure.tex}
 
 
 Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value is also computed and sent alongside each of the previous requests. 
@@ -587,21 +587,37 @@ After receiving the search identifiers, the client substitutes the search jobs k
 
 Listings \ref{sse-sparql-triplestore} and \ref{sse-sparql-triplestore-storage} show the logic of the triplestore component and how search values are blinded in the storage engine.
 
-\lstinputlisting[caption={SSE-SPARQL Triplestore (SEnTriS V1 \& V2)}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-triplestore.tex}
+\lstinputlisting[caption={SSE-SPARQL Triplestore}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-triplestore.tex}
 
-\lstinputlisting[caption={SSE-SPARQL Triplestore Storage Engine (SEnTriS V1 \& V2)}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-triplestore-storage-engine.tex}
+\lstinputlisting[caption={SSE-SPARQL Triplestore Storage Engine}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-triplestore-storage-engine.tex}
 
-Finally, listings ... and ... provide the logic for the proxy component and how the bindings are temporarily stored by its storage engine. We have only highlighted the algorithms that differ from the previous protocols.
+Finally, listings \ref{sse-sparql-proxy-prepare-bindings} and \ref{sse-proxy-save-bindings} provide the logic for the proxy component and how the bindings are temporarily stored. We have only highlighted the algorithms that differ from the previous protocols.
 
-\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted binding tables. Listings  \ref{secure-query-worker}  specifies the modifications to the query worker.
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-proxy-prepare-bindings.tex}
 
-\lstinputlisting[caption={Query Worker (SEnTriS V1 \& V2)}, label={secure-query-worker}]{Code/chapter3/query-worker-secure.tex}
+\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-proxy-save-bindings.tex}
 
-In \gls{SEnTriS} V1, before constructing the binding tables, the probabilistic encryption layers will be decrypted. The deterministic values allow the binding tables to operate as normal.
+\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker. 
 
-In \gls{SEnTriS} V2, although the values can be compared using the key provided, they remain probabilistic. Before constructing the encryption tables we have to group the values, keeping track of pattern indexes but retaining one unique value, per distinct group. This will enable us to construct the encryption tables without altering their data structures. Because the remaining bindings in the tables continue to be probabilistic, searching for keys will have to be done with sequential scans. This will have a much higher complexity, compared to the other versions. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
+\lstinputlisting[caption={Query Evaluation in SSE-SPARQL Proxy}, label={sse-sparql-proxy-query-eval}]{Code/chapter3/sse-sparql-proxy-evaluate-query.tex}
 
-Listings ...  and ... provide the logic of the proxy storage engine, for \gls{SEnTriS} V1 and V2. Listing ... shows the modified binding tables for \gls{SEnTriS} V2.
+\lstinputlisting[caption={SSE-SPARQL Query Worker}, label={query-worker-v1}]{Code/chapter3/query-worker-v1.tex}
+
+As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} V1, before constructing the bindings tables, the probabilistic encryption layer of the bindings will be decrypted. The deterministic values allow the bindings tables to operate as normal. 
+
+\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V1)}, label={construct-bindings-tables-sentris-v1}]{Code/chapter3/sse-sparql-proxy-construct-bindings-tables-v1.tex}
+
+In \gls{SEnTriS} V2, the values remain probabilistic. Consequently, equality checks, and set operations that require this operation, will have to be keyed as illustrated in Listing \ref{query-worker-v2}.
+
+\lstinputlisting[caption={Keyed set operations in SSE-SPARQL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/query-worker-v2.tex}
+
+Before constructing the encryption tables we will to group the values, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
+
+Listings \ref{construct-bindings-tables-sentris-v2} and \ref{bindings-tables-sentris-v2} provide the logic for the construction of bindings tables, in \gls{SEnTriS} V2, and their respective modifications.
+
+\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V2)}, label={construct-bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-proxy-construct-bindings-tables-v2.tex}
+
+\lstinputlisting[caption={Bindings Tables (SEnTriS V2)}, label={bindings-tables-sentris-v2}]{Code/chapter3/bindings-table-v2.tex}
 
 \subsubsection{Decryption of SPARQL query results} Upon receiving the results from the query evaluation, the client component will decrypt the values and construct the final results. This final step will require an extra communication round for \gls{SEnTriS} V2, because the returned values are encrypted equality tags. It will have to unmask the values and search for the referenced nodes.
 

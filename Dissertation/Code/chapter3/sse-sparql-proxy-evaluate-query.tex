@@ -1,0 +1,11 @@
+State:
+    $storageEngine$ := createStorageEngine()
+
+// $\{E(sparqlResult), \; \bot\} \leftarrow EvaluateQuery(preparedPlan_{rnd}, \; K)$
+function evaluateQuery($plan$, \; $key$):
+    $worker$ := createQueryWorker()
+    $worker$.setContext($key$, $storageEngine$)
+    $execution$ := createQueryExecution()
+    $execution$.exec($plan$, $worker$)
+    $storageEngine$.delete($worker$.getSearchIDs())
+    return $execution$.getSPARQLResult()

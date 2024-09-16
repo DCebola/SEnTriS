@@ -1,0 +1,41 @@
+State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
+    $bindings$ := {}
+
+function search($K_{DGK_{eq}} = (p, \; vp, \; n, \; u)$, $variables$, $searches$):
+    $table$ := createBindingsTable()
+    $table$.setVariables($variables$)
+    $searchResults$ := {}
+    foreach $variable$ in $variables$:
+        $searchBindings_{var}$ := $bindings$[$searches$[$variable$]]
+        for $i$ in range(0, $\#bindings_{var}$):
+            $searchResults$[$variable$][$i$] := $searchBindings_{var}$
+    foreach $variable$ in $variables$:
+        for $i$ in range(0, $\#searchResults$[$variable$]):
+            $eqTag$ := $searchResults$[$variable$][$i$]
+            $searchResults$[$variable$][$i$] := $eqTag \; \textrm{mod} \; n$
+    $groupedEqTags$ := {}
+    foreach $variable$ in $variables$:
+        $groupedEqTags$[$variable$] := {}
+    for $i$ in range(0, $\#searchResults$[$variables$[0]]):
+        $patternID$ := generateID()
+        foreach $variable$ in $variables$:
+            $eqTagGroup$ := findEqTagGroup($K_{DGK_{eq}}$, $groupedEqTags$[$variable$], $searchResults$[$variable$][$i$])
+            $table$.add($patternID$, $variable$, $eqTagGroup$)
+    return $table$
+
+function findEqTagGroup($K_{DGK_{eq}}$, $groupedEqTags$, $newEqTag$):
+    $eqTagGroup$ := :bot
+    foreach $eqTag$ in $groupedEqTags$:
+        if equals($K_{DGK_{eq}}$, $eqTag$, $newEqTag$)
+            $eqTagGroup$ := $eqTag$
+    if $eqTagGroup$ :neq :bot:
+        return $eqTagGroup$
+    $groupedEqTags$ := $groupedEqTags$ :U { $newEqTag$ }
+    return $newEqTag$
+
+function equals($K_{DGK_{eq}} = (p, \; vp, \; n, \; u)$, $ct_1$, $ct_2$):
+    $\Delta$ := $ct_1 \; * \; ct_2\;^{(u - 1)} \; \textrm{mod} \; n$
+    if $\Delta^{vp} \; \textrm{mod} \; p$ = 1:
+        return true
+    return false

@@ -54,11 +54,11 @@ public class ProxyStorageV2 extends ProxyStorage {
         }
     }
 
-    private static BigInteger findEqTagGroup(DGKEqKey key, Set<BigInteger> groupedEqTags, BigInteger newEqTag) {
+    private static BigInteger findEqTagGroup(DGKEqKey key, Set<BigInteger> groupedEqTags, BigInteger eqTag) {
         BigInteger res = groupedEqTags.parallelStream()
                 .filter(item -> {
                     try {
-                        return DGKEqUtils.equals(key, item, newEqTag);
+                        return DGKEqUtils.equals(key, item, eqTag);
                     } catch (HomomorphicException e) {
                         throw new RuntimeException(e);
                     }
@@ -67,8 +67,8 @@ public class ProxyStorageV2 extends ProxyStorage {
                 .orElse(null);
         if (res != null)
             return res;
-        groupedEqTags.add(newEqTag);
-        return newEqTag;
+        groupedEqTags.add(eqTag);
+        return eqTag;
     }
 
 }

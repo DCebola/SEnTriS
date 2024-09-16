@@ -13,7 +13,7 @@ function exec($job$):
         $searches$ := $job$.getSearches()
         foreach $(var, \; searchID)$ in $searches$
             $searchIDs$ :=  $searchIDs$ :U { $searchID$ }
-        return $storageEngine$.search($key$, $job$.getVariables(), $searches$);
+        return $storageEngine$.search($key$, $job$.getVariables(), $searches$)
     elif $job$ is EMPTY:
         return createBindingsTable($job$.vars)
     throw JobInstanceException()
@@ -24,8 +24,8 @@ function generateResults($jobResults$):
         $bindings$ := generateBindings(createHashSet(), $jobResults$)
     else
         $bindings$ := generateBindings(createLinkedList(), $jobResults$)
-    $sparqlResult$.$bindigns$ := $bindings$
-    return $sparqlResult$.$bindigns$
+    $sparqlResult$.$bindings$ := $bindings$
+    return $sparqlResult$.$bindings$
 
 function generateBindings($collector$, $jobResults$):
     vars = $jobResults$.getVariables()
@@ -39,3 +39,6 @@ function generateBindings($collector$, $jobResults$):
             $i$++
         $collector$.add($binding$)
     return $collector$
+
+function getSearchIDs():
+    return $searchIDs$
