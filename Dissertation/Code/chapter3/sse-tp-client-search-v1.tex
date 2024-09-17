@@ -2,18 +2,18 @@ State:
     $secrets$ := {}
 
 function fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$):
-    $frequencies$ := {}
+    $\textrm{\emph{f}}requencies$ := {}
     $trapdoors$ := [$\#keywords$]
     for $keyword$ in $keywords$:
         $trapdoors$.add($scheme$.generateTrapdoor($keyword$))
     $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $trapdoors$)
     for $i$ in range(0, $\#encryptedFrequencies$) 
-        $frequency$ := $encryptedFrequencies$.get($i$)
-        if $frequency$ :neq :bot: 
-            $frequencies$[$keywords$[$i$]] := $scheme$.decryptContextualData($frequency$)
+        $\textrm{\emph{f}}requency$ := $encryptedFrequencies$.get($i$)
+        if $\textrm{\emph{f}}requency$ :neq :bot: 
+            $\textrm{\emph{f}}requencies$[$keywords$[$i$]] := $scheme$.decryptContextualData($\textrm{\emph{f}}requency$)
         else
-            $frequencies$[$keywords$[$i$]] := 0
-    return $frequencies$
+            $\textrm{\emph{f}}requencies$[$keywords$[$i$]] := 0
+    return $\textrm{\emph{f}}requencies$
 
 // $\{[node_0, ..., node_n], \; \bot\} \leftarrow \textrm{SSE-TP}.SearchTriplestore(triplestoreID, \; triplePatterns)$
 function search($triplestoreID$, $triplePatterns$):
@@ -28,10 +28,10 @@ function search($triplestoreID$, $triplePatterns$):
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
     $trapdoors$ := createLinkedList()
     for $keyword$ in $keywords$:
-        for $i$ in range(0, $frequencies$[$keyword$]):
+        for $i$ in range(0, $\textrm{\emph{f}}requencies$[$keyword$]):
             $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
     $encryptedNodes$ := Triplestore.search($triplestoreID$, $trapdoors$)
     $results$ := {}
@@ -47,14 +47,14 @@ function searchSchema($triplestoreID$):
     $scheme$ := createEncryptionScheme()
     $scheme$.ReInitialize($secrets$[$triplestoreID$])
     $keyword$ := $scheme$.getSchemaKeyword()
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
     $trapdoors$ := createLinkedList()
-    for $i$ in range(0, $frequencies$[$keyword$]):
+    for $i$ in range(0, $\textrm{\emph{f}}requencies$[$keyword$]):
         $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
     $encryptedNodes$ := Triplestore.search($triplestoreID$, $trapdoors$)
     $schema$ := {}
     $i$ := 0
-    while $i < frequencies$[$keyword$]:
+    while $i < \textrm{\emph{f}}requencies$[$keyword$]:
         $s$ := $scheme$.decrypt($encryptedNodes$.get($i$), true)
         $p$ := $scheme$.decrypt($encryptedNodes$.get($i$ + 1), true)
         $o$ := $scheme$.decrypt($encryptedNodes$.get($i$ + 2), true)

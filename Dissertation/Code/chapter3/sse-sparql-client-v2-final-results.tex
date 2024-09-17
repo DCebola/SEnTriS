@@ -1,0 +1,33 @@
+State:
+    $queryEngine$ := createSPARQLQueryEngine()
+    $secrets$ := {}
+    $planner$ := :bot
+
+function fetchAndDecryptBindings($triplestoreID$, $inverseMask$, $bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$):
+    $decryptedBindings$ := createLinkedList()
+    $eqTagsOrder$ := {}
+    $eqTags$ := createArrayList()
+    $i$ := 0
+    $K_{DGK_{pub}}$ := $scheme$.getPubDGK()
+    foreach $binding$ in $bindings$:
+        foreach ($ob\textrm{\emph{f}}uscatedVar$, $eqTag$) in $binding$:
+            if $eqTag \notin eqTagsOrder$: 
+                $eqTagsOrder$[$eqTag$] := $i$
+                $eqTags$.add(unmask($K_{DGK_{pub}}$, $inverseMask$, $eqTag$))
+                $i$++
+    $encryptedBindings$ := Triplestore.search($triplestoreID$, $eqTags$)
+    $decryptedNodes$ := {}
+    foreach $binding$ in $bindings$:
+        $bindingCollector$ := {}
+        foreach ($ob\textrm{\emph{f}}uscatedVar$, $eqTag$) in $binding$:
+            $i$ := $eqTagsOrder$[$eqTag$]
+            $decryptedNode$ := $decryptedNodes$[$i$]
+            if $decryptedNode$ = :bot:
+                $decryptedNode$ := $scheme$.decryptNode($encryptedBindings$.get($i$))
+                $decryptedNodes$[$i$] := $decryptedNode$
+            $bindingCollector$ := $bindingCollector$ :U { ($deob\textrm{\emph{f}}uscationMap$[$var$], $decryptedNode$) }
+        $decryptedBindings$.add($bindingCollector$)
+    return $decryptedBindings$
+
+function unmask($K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$, $mask$, $eqTag$):
+    return $eqTag * mask \; \textrm{mod} \; n$

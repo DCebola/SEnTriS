@@ -96,15 +96,15 @@ function visitUpdate($op_{UpdateDeleteWhere}$):
         $delete_{template}$ := $delete_{template}$ :U { triple }
     JENA.$_{OpWalker}$.walk(JENA.createOpBGP($bgp$), $this$)
 
-function visitUpdate($op_{UpdateModify}$, JENA$_{algebraGenerator}$) 
+function visitUpdate($op_{UpdateModi\textrm{\emph{f}}y}$, JENA$_{algebraGenerator}$) 
     setQueryType("MODIFY")
-    if $op_{UpdateModify}$.hasInsertClause():
+    if $op_{UpdateModi\textrm{\emph{f}}y}$.hasInsertClause():
         foreach $quad = (graph, \; triple)$ in $op_{UpdateDataInsert}$.getInsertQuads():
             $upload_{template}$ := $upload_{template}$ :U { triple }
-    if $op_{UpdateModify}$.hasDeleteClause():
+    if $op_{UpdateModi\textrm{\emph{f}}y}$.hasDeleteClause():
         foreach $quad = (graph, \; triple)$ in $op_{UpdateDeleteWhere}$.getDeleteQuads():
             $delete_{template}$ := $delete_{template}$ :U { triple }
-        JENA.$_{OpWalker}$.walk(JENA$_{algebraGenerator}$.compile($op_{UpdateModify}$.getWherePattern()), $this$)
+        JENA.$_{OpWalker}$.walk(JENA$_{algebraGenerator}$.compile($op_{UpdateModi\textrm{\emph{f}}y}$.getWherePattern()), $this$)
             
 function generateSearchJobs($op_{OpBGP}$):
     $patterns$ = $op_{OpBGP}$.getPattern()
@@ -137,9 +137,9 @@ function generateRandomJoinPipeline($op_{OpBGP}$, $jobVars$)
     ($graph$, $vars$, $jobs$) := generateAdjacencyMatrix($jobVars$)
     $path$ := createArrayList($numJobs$)
     $sampled$ := {}
-    $stop$ := $false$
+    $stop$ := false
     $numJobs$ := $\#jobVars$.getKeys()
-    while $\#sampled$ < $numJobs$ and $stop$ == $false$:
+    while $\#sampled$ < $numJobs$ and $stop$ == false:
         $next$ := sample($jobs$ / $sampled$)
         $sampled$ := $sampled$ :U { $next$ }
         bfsSearch($next$, $graph$, $path$, $numJobs$)
@@ -227,7 +227,7 @@ function generateJoinJob($op_{OpJoin}$)
     pushJob(createJoinJob($jobID$, getJobID($op$.getLeft()), getJobID($op$.getRight())))
     $operations_{parsed}$[$op$] := $jobID$
 
-function generateOptionalJob($op_{OpLeftJoin}$) 
+function generateOptionalJob($op_{OpLe\textrm{\emph{f}}tJoin}$) 
     $jobID$ := generateID()
     pushJob(new OptionalJob(jobID, getJobID(op.getLeft()), getJobID(op.getRight())))
     $operations_{parsed}$[$op$] := $jobID$

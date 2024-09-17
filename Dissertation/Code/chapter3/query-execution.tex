@@ -1,6 +1,6 @@
 State:
     $pending$ := {}
-    $finished$ := {}
+    $\textrm{\emph{f}}inished$ := {}
     $results$ := {}
     $current$ := :bot
     $sparqlResult$ := :bot
@@ -10,7 +10,7 @@ function exec($plan = (jobs, \; execOrder)$, $worker$):
     while not isFinished():
         $current$ = $execOrder$.peek()
         $results$[$current$] := delegateJob($worker$, $jobs$[$current$])
-        $finished$ := $finished$ :U { $pending$.poll() };
+        $\textrm{\emph{f}}inished$ := $finished$ :U { $pending$.poll() };
     $sparqlResult$ := $worker$.generateSPARQLResult($results$[$current$]);
 
 function delegateJob($worker$, $job$):
@@ -26,7 +26,7 @@ function delegateJob($worker$, $job$):
         return $res$;
 
 function getFinishedJobs():
-    return $finished$
+    return $\textrm{\emph{f}}inished$
 
 function getPendingJobs():
     return $pending$

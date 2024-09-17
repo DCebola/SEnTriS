@@ -2,22 +2,22 @@ State:
     $queryEngine$ := createSPARQLQueryEngine()
     $planner$ := :bot
 
-function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
+function executeSPARQLQuery($triplestoreID$,$query$,$in\textrm{\emph{f}}erence$,$expansionDepth$,$transitivityDepth$):
     try:
-        ($planner$, $plan$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        ($plan$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$) 
         $queryType$ := $planner$.getQueryType()
         if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
             $sparqlResult$ := Triplestore.evaluateQuery($triplestoreID$, $plan$)
-        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+        return generateFinalResult($triplestoreID$, $queryType$, $plan$.$vars$, $sparqlResult$.$bindings$, $construct$, $upload$, $delete$)
     catch Exception:
         return :bot
 
-// {$(plan, \; construct, \; upload, \; delete)$, :bot} := \textrm{SPARQL-EVAL-II}.planQuery(query, triplestoreID, inference, expansionDepth, transitivityDepth)
-function planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$):
+// {$(plan, \; construct, \; upload, \; delete)$, :bot} := $\textrm{SPARQL-EVAL-II}$.planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$)
+function planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$):
     $planner$ := createSPARQLQueryPlanner()
-    if $inference$ == true:
+    if $in\textrm{\emph{f}}erence$ == true:
         $schema$ := Triplestore.fecthSchema($triplestoreID$)
         $ontology$ := createOntology()
-        $ontology$ := execInference($schema$, $inference$, $expansionDepth$, $transitivityDepth$)
+        $ontology$ := execInference($schema$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$)
         $planner$.setOntology($ontology$)   
-    return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())
+    return ($queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())

@@ -25,15 +25,15 @@ function exec($job$, $prevJobResults$):
         return execSlice($job$, $prevJobResults$)
     throw JobInstanceException()
 
-function exec($job$, $left$, $right$):
+function exec($job$, $le\textrm{\emph{f}}t$, $right$):
     if $job$ is JOIN:
-        return execJoin($left$, $right$)
+        return execJoin($le\textrm{\emph{f}}t$, $right$)
     elif $job$ is UNION:
-        return execUnion($left$, $right$)
+        return execUnion($le\textrm{\emph{f}}t$, $right$)
     elif $job$ is OPTIONAL:
-        return execOptional($left$, $right$)
+        return execOptional($le\textrm{\emph{f}}t$, $right$)
     elif $job$ is MINUS:
-        return execMinus($left$, $right$)
+        return execMinus($le\textrm{\emph{f}}t$, $right$)
     throw JobInstanceException()
 
 private execSearch($job_{SEARCH} = (jobID, \; varPattern, \; s, \; p, \; o)$):
@@ -51,43 +51,44 @@ function execOrderBy($job_{ORDERBY} = (jobID, \; jobID_{prev}, \; sortCondititio
     $sparqlResult$.$sortConditions$ := $sortCondititions$
     return $prevJobResults$
 
-function execSlice($job_{SLICE} = (jobID, \; jobID_{prev}, \; \textrm{\textit{offset}}, \; length)$, $prevJobResults$):
+function execSlice($job_{SLICE} = (jobID, \; jobID_{prev}, \; o\textrm{\emph{ff}}set, \; length)$, $prevJobResults$):
     $sparqlResult$.$sliced$ := true
     $sparqlResult$.$length$ := length
-    $sparqlResult$.$\textrm{\textit{offset}}$ := offset
+    $sparqlResult$.$o\textrm{\emph{ff}}set$ := $o\textrm{\emph{ff}}set$
     return $prevJobResults$
 
 function execDistinct($prevJobResults$):
     $sparqlResult$.$distinct$ := true
     return $prevJobResults$
 
-function execJoin($left$, $right$):
-    return $left$.join($right$)
+function execJoin($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.join($right$)
 
-function execUnion($left$, $right$):
-    return $left$.union($right$)
+function execUnion($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.union($right$)
 
-function execOptional($left$, $right$):
-    return $left$.leftOuterJoin($right$)
+function execOptional($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.leftOuterJoin($right$)
 
-function execMinus($left$, $right$):
-    return $left$.minus($right$)
+function execMinus($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.minus($right$)
 
 function generateResults($jobResults$):
     $bindings$ := :bot
     if $sparqlResult$.$ordered$ == true:
+        $comparator$ := JENA.$_{BindingComparator}$.create($sparqlResult$.$sortConditions$)
         if $sparqlResult$.$distinct$ == true:
-            $bindings$ := generateBindings(createTreeSet($sparqlResult$.$sortConditions$), $jobResults$)
+            $bindings$ := generateBindings(createTreeSet($comparator$), $jobResults$)
         else:
             $bindings$ := generateBindings(createLinkedList(), $jobResults$)
-            sort($bindings$, $sortConditions$)
+            sort($bindings$, $comparator$)
     else:
         if $sparqlResult$.$distinct$ == true:
             $bindings$ := generateBindings(createHashSet(), $jobResults$)
         else
             $bindings$ := generateBindings(createLinkedList(), $jobResults$)
     if $sparqlResult$.$sliced$ == true:
-        $bindings$ := slice($bindings$, $sparqlResult$.$\textrm{\textit{offset}}$, $sparqlResult$.$length$)
+        $bindings$ := slice($bindings$, $sparqlResult$.$o\textrm{\emph{ff}}set$, $sparqlResult$.$length$)
     $sparqlResult$.$bindigns$ := $bindings$
     return $sparqlResult$.$bindigns$
 
@@ -99,7 +100,7 @@ function generateBindings($collector$, $jobResults$):
         $i$ := 0
         foreach $parsedValue$ in $patterns$:
             if $parsedValue$ :neq :bot:
-                $binding$[$vars$[$i$]] := storageEngine.generateNode($parsedValue$)
+                $binding$[$vars$[$i$]] := $storageEngine$.generateNode($parsedValue$)
             $i$++
         $collector$.add($binding$)
     return $collector$

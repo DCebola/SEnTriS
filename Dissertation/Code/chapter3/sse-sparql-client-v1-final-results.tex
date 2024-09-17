@@ -3,21 +3,50 @@ State:
     $secrets$ := {}
     $planner$ := :bot
 
-// {$sparqlFinalResult$, :bot} := \textrm{SSE-SPARQL-EVAL}.generateFinalResult($triplestoreID$, $queryType$, $E(sparqlResult)$, $construct$, $upload$, $delete$):
-function generateFinalResult($triplestoreID$, $queryType$, $variables$, $sparqlResult$, $construct_{template}$, $upload_{template}$, $delete_{template}$)
-    
-    //Decrypt Bindings & Deobfuscate Variables
+function decryptBindings($bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$):
+    $decryptedBindings$ := createLinkedList()
+    foreach $binding$ in $bindings$:
+        $bindingCollector$ := {}
+        foreach ($var$, $ct$) in $binding$:
+            $bindingCollector$ := $bindingCollector$ :U { ($deob\textrm{\emph{f}}uscationMap$[$var$], $scheme$.decryptBinding($ct$)) }
+        $decryptedBindings$.add($bindingCollector$)
+    return $decryptedBindings$
 
+function applyModifiers($sparqlResult$, $deob\textrm{\emph{f}}uscationMap$, $bindings$):
+    if $sparqlResult$.$ordered$ = true:
+        $bindings$ = orderResults($sparqlResult$.$distinct$, $sparqlResult$.$sortConditions$, $deob\textrm{\emph{f}}uscationMap$, $bindings$)
+    if $sparqlResult$.$sliced$ = true:
+        $bindings$ = slice($sparqlResult$.$o\textrm{\emph{ff}}set$, $sparqlResult$.$length$, $bindings$)
+    return $bindings$
+
+function orderResults($distinct$, $ob\textrm{\emph{f}}uscatedSortConditions$, $deob\textrm{\emph{f}}uscationMap$, $bindings$):
+    $sortConditions$ := createLinkedList()
+    foreach $(ob\textrm{\emph{f}}uscatedVar, \; dir)$ in $ob\textrm{\emph{f}}uscatedSortConditions$:
+        $sortConditions$.add(($deob\textrm{\emph{f}}uscationMap$[$ob\textrm{\emph{f}}uscatedVar$], $dir$))
+    $comparator$ := JENA$_{BindingComparator}$.create($sortConditions$)
+    if $distinct$ = true:
+        $sortedBindings$ := createTreeSet($comparator$)
+        foreach $binding$ in $bindings$:
+            $sortedBindings$.add($binding$)
+    else:
+        $sortedBindings$ := createLinkedList()
+        foreach $binding$ in $bindings$:
+            $sortedBindings$.add($binding$)
+        sort($sortedBindings$, $comparator$)
+    return $sortedBindings$
+
+// {$sparqlFinalResult$, :bot} := $\textrm{SSE-SPARQL-EVAL}$.generateFinalResult($triplestoreID$, $variables$, $queryType$, $bindings$, $construct$, $upload$, $delete$):
+function generateFinalResult($triplestoreID$, $queryType$, $variables$, $bindings$, $construct_{template}$, $upload_{template}$, $delete_{template}$, $scheme$)
     if $queryType$ == "SELECT":
-        return generateSELECTResults($variables$, $sparqlResult$)
+        return generateSELECTResults($variables$, $bindings$)
     elif $queryType$ == "CONSTRUCT":
-        return generateCONSTRUCTResults($construct_{template}$, $sparqlResult.bindings$)
+        return generateCONSTRUCTResults($construct_{template}$, $bindings$)
     elif $queryType$ == "ASK":
-        return generateASKResults($sparqlResult$.$bindings$)
+        return generateASKResults($bindings$)
     elif $queryType$ == "DESCRIBE":
         return generateDESCRIBEResults($variables$, $sparqlResult$)
     else:
-        return applyModifications($triplestoreID$, $sparqlResult$.$bindings$, $upload_{template}$, $delete_{template}$)   
+        return applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $delete_{template}$)   
 
 function applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $delete_{template}$):
     $triples_{upload}$ := {}
@@ -30,3 +59,5 @@ function applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $d
     else if (queryType == DELETE_DATA)
         $triples_{delete}$ := $delete_{template}$
     return updateTriplestore($triplestoreID$, $triples_{delete}$, $triples_{upload}$)
+
+

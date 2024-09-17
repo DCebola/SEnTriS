@@ -115,9 +115,9 @@ function parseKeyword($n$):
 
 function generateNode($parsedValue$):
     $(prefix, \; value, \; datatype)$ := $parsedValue$.split($SEPARATOR_{I}$);
-    if prefix == "BLANK":
+    if $pre\textrm{\emph{f}}ix$ == "BLANK":
         return createBlankNode($value$)
-    elif prefix == "S":
+    elif $pre\textrm{\emph{f}}ix$ == "S":
         return createIRINode($value$)
     else
         return createLiteralNode($value$, $datatype$)

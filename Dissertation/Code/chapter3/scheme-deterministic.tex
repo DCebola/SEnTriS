@@ -11,17 +11,20 @@ function getSecrets():
 function encryptContextualData():
     foreach $(keyword, \; frequency)$ in $keywordFrequencies$:
         $trapdoor$ := E($derivedKeys$[$keyword$], $keyword$, $iv_{ZERO}$)
-        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $frequency$)
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $\textrm{\emph{f}}requency$)
     return $encryptedNodes$
 
 function encryptNode($node$, $keyword$):
-    $freq$ := incrementKeywordFrequency($keyword$)
-    $trapdoor$ := E(deriveKey($keyword$), $keyword$, $freq$)
+    $\textrm{\emph{f}}req$ := incrementKeywordFrequency($keyword$)
+    $trapdoor$ := E(deriveKey($keyword$), $keyword$, $\textrm{\emph{f}}req$)
     $encryptedNodes$[$trapdoor$] := E($K_{RND}$, E($K_{DET}$, $node$, $iv_{DET}$))
-    return $freq$
+    return $\textrm{\emph{f}}req$
  
 function decryptNode($node$):
-    return D($K_{RND}$, D($K_{DET}$, $ct$, $iv_{DET}$))
+    return D($K_{RND}$, D($K_{DET}$, $node$, $iv_{DET}$))
+
+function decryptBinding($ct$):
+    return D($K_{DET}$, $ct$)
 
 function getDETKey():
     return $K_{DET}$

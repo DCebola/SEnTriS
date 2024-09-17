@@ -3,22 +3,29 @@ State:
     $planner$ := :bot
     $secrets$ := {}
 
-function executeSPARQLQuery($triplestoreID$,$query$,$inference$,$expansionDepth$,$transitivityDepth$):
+function executeSPARQLQuery($triplestoreID$,$query$,$in\textrm{\emph{f}}erence$,$expansionDepth$,$transitivityDepth$):
     if $secrets$[$triplestoreID$] == :bot
         return :bot
     try:
         $scheme$ := createEncryptionScheme()
         $scheme$.ReInitialize($secrets$[$triplestoreID$])
-        ($planner$, $plan_{rnd}$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $inference$, $expansionDepth$, $transitivityDepth$) 
+        ($plan_{rnd}$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$) 
         $queryType$ := $planner$.getQueryType()
         if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
-            $mask$ := generateMask($scheme$)
+            $mask$ := generateMask($scheme$.getPubDGK())
             $preparedPlan$ := prepareQuery($triplestoreID$, $plan_{rnd}$, $scheme$, $mask$)
             $sparqlResult$ := Proxy.evaluateQuery($preparedPlan$, $scheme$.getEqKey())
-        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+            $inverseMask$ := generateInverseMask($mask$, $scheme$.getPubDGK())
+            $deob\textrm{\emph{f}}uscationMap$ := $planner$.getDeobfuscationMap()
+            $bindings$ := decryptAndFetchBindings($triplestoreID$, $sparqlResult$.$bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$)
+            $bindings$ := applyModifiers($sparqlResult$, $deob\textrm{\emph{f}}uscationMap$, $bindings$)
+        return generateFinalResult($triplestoreID$, $queryType$, $plan$.$vars$, $bindings$, $construct$, $upload$, $delete$)
     catch Exception:
         return :bot
 
 function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$):
     $mask$ := generateDGKRandom($t$) // Generate random 2.5t-bit integer
     return $h^{mask} \; \textrm{mod} \; n$
+
+function generateInverseMask($mask$, $K_{DGK_{pub}} = (n, \; g, \; h, \; u, \; k, \; t, \; l)$):
+    return $h^{-mask} \; \textrm{mod} \; n$

@@ -14,10 +14,10 @@ function search($triplestoreID$, $triplePatterns$):
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
     $trapdoors$ := createLinkedList()
     for $keyword$ in $keywords$:
-        for $i$ in range(0, $frequencies$[$keyword$]):
+        for $i$ in range(0, $\textrm{\emph{f}}requencies$[$keyword$]):
             $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
     $encryptedEqTags$ := Triplestore.search($triplestoreID$, $trapdoors$)
     $encryptedNodes$ := Triplestore.search($triplestoreID$, $encryptedEqTags$)

@@ -20,12 +20,15 @@ function encryptContextualData():
     return $encryptedNodes$
         
 function encryptNode($node$, $keyword$):
-    $freq$ := incrementKeywordFrequency($keyword$)
-    $trapdoor$ := E(deriveKey($keyword$), $keyword$, $freq$)
+    $\textrm{\emph{f}}req$ := incrementKeywordFrequency($keyword$)
+    $trapdoor$ := E(deriveKey($keyword$), $keyword$, $\textrm{\emph{f}}req$)
     $enc_{eq_{tag}}$ := E($K_{DGK_{pub}}$, getEqTag(node))
     $encryptedNodes$[$trapdoor$] := $enc_{eq_{tag}}$
     $encryptedNodes$[$enc_{eq_{tag}}$] := E($K_{RND}$, $node$)
-    return $freq$
+    return $\textrm{\emph{f}}req$
+
+function decryptNode($node$):
+    return D($K_{RND}$, $node$)
 
 function getEqTag($node$):
     $eq_{tag}$ := $eqTags$[$node$]

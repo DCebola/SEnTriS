@@ -8,7 +8,7 @@ State:
     $ontology$ := :bot
     $classExpansionOrder$ := ["SUBCLASS", "EQUIVALENT_CLASS", "INTERSECTION_OPERAND", "RESTRICTION", "INTERSECTION"]
     $propertyExpansionOrder$ := ["SUBPROPERTY", "EQUIVALENT_PROPERTY", "SYMMETRIC", "TRANSITIVE", "INVERSE_OF"]
-    $obfuscationMap$ := {}
+    $ob\textrm{\emph{f}}uscationMap$ := {}
     $deobfuscationMap$ := {}
     $keywords$ := {}
     $searchJobIDs$ := {}
@@ -16,7 +16,7 @@ State:
 function generatePlan($op$) 
     JENA.$_{OpWalker}$.walk($op$, $this$)
     if $\#plan.vars$ == 0:
-        $plan.vars$ := $obfuscationMap$.getKeys()
+        $plan.vars$ := $ob\textrm{\emph{f}}uscationMap$.getKeys()
     return $plan$
 
 function getKeywords():
@@ -29,12 +29,12 @@ function getDeobfuscationMap():
     return $deobfuscationMap$
 
 function obfuscate(var):
-    $var_{obfuscated}$ := $obfuscationMap$[$var$]
-    if $var_{obfuscated}$ == :bot:
-        $var_{obfuscated}$ := generateID()
-        $obfuscationMap$[var] := $var_{obfuscated}$
-        $deobfuscationMap$[$var_{obfuscated}$] := $var$
-    return $var_{obfuscated}$
+    $var_{ob\textrm{\emph{f}}uscated}$ := $ob\textrm{\emph{f}}uscationMap$[$var$]
+    if $var_{ob\textrm{\emph{f}}uscated}$ == :bot:
+        $var_{ob\textrm{\emph{f}}uscated}$ := generateID()
+        $ob\textrm{\emph{f}}uscationMap$[var] := $var_{ob\textrm{\emph{f}}uscated}$
+        $deobfuscationMap$[$var_{ob\textrm{\emph{f}}uscated}$] := $var$
+    return $var_{ob\textrm{\emph{f}}uscated}$
 
 function generateSecureSearchJob($var$, $node_1$, $node_2$, $pattern$):
     $searches$ := {}
@@ -124,36 +124,36 @@ function expandClass($jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$):
                 $jobID$ := expandClassConjunction($intersection$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$)
     return $jobID$
 
-function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$):
+function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$):
     if $depth$ == $ontology$.getMaximumExpansionDepth():
         return $jobID$
     foreach $expandtionType$ in shuffle($classExpansionOrder$):
         if $expandtionType$ == "SYMMETRIC":
             if $symmetric$ == true and $ontology$.isSymmetric($p$):
                 $jobID$ := pushUnion($jobID$, pushSearch($o$, $p$, $s$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
-                $jobID$ := expandProperty($jobID$, $o$, $p$, $s$, $depth$ + 1, $jobs$, $jobsIDs$, false, $inverseOf$)
+                $jobID$ := expandProperty($jobID$, $o$, $p$, $s$, $depth$ + 1, $jobs$, $jobsIDs$, false, $inverseO\textrm{\emph{f}}$)
         elif $expandtionType$ == "TRANSITIVE":
             if $ontology$.isTransitive($p$):
                 $var$ := createVariable(parse(p) || 0)
-                $left$ := pushSearch($s$, $p$, $var$, $jobs$, $jobsIDs$)
-                $join$ := pushJoin($left$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+                $le\textrm{\emph{f}}t$ := pushSearch($s$, $p$, $var$, $jobs$, $jobsIDs$)
+                $join$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
                 $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
                 for $i$ in range(0, $ontology$.getTransitivityDepth())
                     for $j$ in range(0, $i$ + 1):
                         if $j$ == $i$: 
                             $var_{next}$ = createVariable(parse(p) || $j$)
-                            $left$ := pushJoin($left$, pushSearch($var$, $p$, $var_{next}$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+                            $le\textrm{\emph{f}}t$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $var_{next}$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
                             $var$ = $var_{next}$
-                    $join$ := pushJoin($left$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+                    $join$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
                     $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
         elif $expandtionType$ == "SUBPROPERTY":
             $subproperties$ := $ontology$.getSubProperties($p$)
-            $jobID$ := expandProperties($subproperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+            $jobID$ := expandProperties($subproperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$)
         elif $expandtionType$ == "EQUIVALENT_PROPERTY":
             $equivalentProperties$ := $ontology$.getEquivalentProperties($p$)
-            $jobID$ := expandProperties($equivalentProperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+            $jobID$ := expandProperties($equivalentProperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$)
         elif $expandtionType$ == "INVERSE_OF":
-            if $inverseOf$ == true:
+            if $inverseO\textrm{\emph{f}}$ == true:
                 $inverseProperty$ := $ontology$.getInverseOf($p$)
                 $jobID$ := expandProperties($inverseProperty$, $jobID$, $o$, $s$, $depth$, $jobs$, $jobsIDs$, $symmetric$, false)
     return $jobID$

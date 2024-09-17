@@ -25,25 +25,25 @@ function extractVarsOfBinaryJob($jobs$, $job = (jobID, \; jobID_l, \; jobID_r)$)
             $jobs_{queue}$.push($jobs$[$r$])
     return $vars$
 
-function pushUnion($left$, $right$, $jobs$, $jobIDs$): 
-    $unionPattern$ := "union" || $left$ || $right$
+function pushUnion($le\textrm{\emph{f}}t$, $right$, $jobs$, $jobIDs$): 
+    $unionPattern$ := "union" || $le\textrm{\emph{f}}t$ || $right$
     $jobID$ := $jobIDs$[$unionPattern$]
     if $jobID$ == :bot: 
-        $job_{MINUS}$ := createMinusJob(generateID(), $right$, $left$)
+        $job_{MINUS}$ := createMinusJob(generateID(), $right$, $le\textrm{\emph{f}}t$)
         $jobID$ := generateID()
-        $job_{UNION}$ := createUnionJob($jobID$, $left$, $job_{MINUS}$.jobID)
+        $job_{UNION}$ := createUnionJob($jobID$, $le\textrm{\emph{f}}t$, $job_{MINUS}$.jobID)
         $jobs$[$jobID$] := $job_{UNION}$
         $jobIDs$[$jobID$] := $unionPattern$
         pushJob($job_{MINUS}$)
         pushJob($job_{UNION}$)
     return $jobID$
 
-private String pushJoin($left$, $right$, $jobs$, $jobIDs$):
-    $joinPattern$ := "join" || $left$ || $right$
+private String pushJoin($le\textrm{\emph{f}}t$, $right$, $jobs$, $jobIDs$):
+    $joinPattern$ := "join" || $le\textrm{\emph{f}}t$ || $right$
     $jobID$ := $jobIDs$[$joinPattern$]
     if $jobID$ == :bot:
         $jobID$ = generateID()
-        $job_{JOIN}$ = createJoinJob(jobID, left, right)
+        $job_{JOIN}$ = createJoinJob($jobID$, $le\textrm{\emph{f}}t$, $right$)
         $jobs$[$jobID$] := $job_{JOIN}$
         $jobIDs$[$joinPattern$] := $jobID$
         pushJob($job_{JOIN}$)
@@ -93,14 +93,14 @@ function expandRestriction($restriction = (type, \; property, value)$, $jobID$, 
     if $restriction$ :neq :bot:
         if $type$ == "owl:hasValue":
         $var$ := createVariable(parse($property$))
-            $left$ := pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$) 
+            $le\textrm{\emph{f}}t$ := pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$) 
             $right$ := expandProperty(pushSearch($s$, $property$, $value$, jobs, jobsIDs), $s$, $property$, $value$, $depth$ + 1, $jobs$, $jobsIDs$, true, true)
-            $jobID$ := pushUnion($right$, $left$, $jobs$, $jobsIDs$)
+            $jobID$ := pushUnion($right$, $le\textrm{\emph{f}}t$, $jobs$, $jobsIDs$)
         elif $type \in \{$"owl:isSomeValuesFrom", "owl:allValuesFrom"$\}$:
             $var$ := createVariable(parse($value$))
-            $left$ := expandClass(pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$), $var$, $value$, $depth$ + 1, $jobs$, $jobsIDs$)
+            $le\textrm{\emph{f}}t$ := expandClass(pushSearch($var$, "rdf:type", $value$, $jobs$, $jobsIDs$), $var$, $value$, $depth$ + 1, $jobs$, $jobsIDs$)
             $right$ := expandProperty(pushSearch($s$, $property$, $var$, $jobs$, $jobsIDs$), $s$, $property$, $var$, $depth$ + 1, $jobs$, $jobsIDs$, true, true)
-            $jobID$ := pushUnion($jobID$, pushJoin($right$, $left$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+            $jobID$ := pushUnion($jobID$, pushJoin($right$, $le\textrm{\emph{f}}t$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
     return $jobID$
 
 function expandClassConjunction($classes$, $jobID$, $s$, $depth$, $jobs$, $jobsIDs$):
@@ -127,36 +127,36 @@ function expandClassDisjunction($classes$, $jobID$, $s$, $depth$, $jobs$, $jobsI
         return pushUnion($jobID$, $next$, $jobs$, $jobsIDs$)
     return $jobID$
 
-function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$):
+function expandProperty($jobID$, $s$, $p$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$):
     if $depth$ == $ontology$.getMaximumExpansionDepth():
         return $jobID$
     if $symmetric$ == true and $ontology$.isSymmetric($p$):
         $jobID$ := pushUnion($jobID$, pushSearch($o$, $p$, $s$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
-        $jobID$ := expandProperty($jobID$, $o$, $p$, $s$, $depth$ + 1, $jobs$, $jobsIDs$, false, $inverseOf$)
+        $jobID$ := expandProperty($jobID$, $o$, $p$, $s$, $depth$ + 1, $jobs$, $jobsIDs$, false, $inverseO\textrm{\emph{f}}$)
     if $ontology$.isTransitive($p$):
         $var$ := createVariable(parse(p) || 0)
-        $left$ := pushSearch($s$, $p$, $var$, $jobs$, $jobsIDs$)
-        $join$ := pushJoin($left$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+        $le\textrm{\emph{f}}t$ := pushSearch($s$, $p$, $var$, $jobs$, $jobsIDs$)
+        $join$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
         $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
         for $i$ in range(0, $ontology$.getTransitivityDepth())
             for $j$ in range(0, $i$ + 1):
                 if $j$ == $i$: 
                     $var_{next}$ = createVariable(parse(p) || $j$)
-                    $left$ := pushJoin($left$, pushSearch($var$, $p$, $var_{next}$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+                    $le\textrm{\emph{f}}t$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $var_{next}$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
                     $var$ = $var_{next}$
-            $join$ := pushJoin($left$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
+            $join$ := pushJoin($le\textrm{\emph{f}}t$, pushSearch($var$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
             $jobID$ := pushUnion($jobID$, $join$, $jobs$, $jobsIDs$)
     $subproperties$ := $ontology$.getSubProperties($p$)
     $equivalentProperties$ := $ontology$.getEquivalentProperties($p$)
-    $jobID$ := expandProperties($subproperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
-    $jobID$ := expandProperties($equivalentProperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
-    if $inverseOf$ == true:
+    $jobID$ := expandProperties($subproperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$)
+    $jobID$ := expandProperties($equivalentProperties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$)
+    if $inverseO\textrm{\emph{f}}$ == true:
         $inverseProperty$ := $ontology$.getInverseOf($p$)
         $jobID$ := expandProperties($inverseProperty$, $jobID$, $o$, $s$, $depth$, $jobs$, $jobsIDs$, $symmetric$, false)
     return $jobID$
 
-function expandProperties($properties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$):
+function expandProperties($properties$, $jobID$, $s$, $o$, $depth$, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$):
     for $p$ in $properties$:
         $jobID$ := pushUnion($jobID$, pushSearch($s$, $p$, $o$, $jobs$, $jobsIDs$), $jobs$, $jobsIDs$)
-        $jobID$ := expandProperty($jobID$, $s$, $p$, $o$, $depth$ + 1, $jobs$, $jobsIDs$, $symmetric$, $inverseOf$)
+        $jobID$ := expandProperty($jobID$, $s$, $p$, $o$, $depth$ + 1, $jobs$, $jobsIDs$, $symmetric$, $inverseO\textrm{\emph{f}}$)
     return $jobID$

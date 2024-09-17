@@ -80,8 +80,8 @@ function prepareUpload($triplestoreID$, $triples$, $scheme$):
         if $keyword$ :neq :bot:
             $keywords$[$i$] := $keyword$
             $i$++
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
-    $scheme$.setKeywordFrequencies($frequencies$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, $keywords$, $scheme$)
+    $scheme$.setKeywordFrequencies($\textrm{\emph{f}}requencies$)
     $encryptedNodes$ := $scheme$.encrypt($triples$, false)
     return Triplestore.prepareUpload($triplestoreID$, $encryptedNodes$)
 
@@ -98,37 +98,37 @@ function prepareDelete($triplestoreID$, $triples$, $scheme$):
             foreach $trapdoor$ in $keywordTrapdoors$:
                 $trapdoors$.add($trapdoor$)
     $encryptedFrequencies$ := Triplestore.search($triplestoreID$, $trapdoors$)
-    $offset$ := 0
+    $o\textrm{\emph{ff}}set$ := 0
     $deletions$ := createLinkedList()
     foreach $keyword$ in $keywords$:
         $length$ := $\#keywordsTrapdoors$[$keyword$]
-        for $i$ in range($offset$, $offset$ + $length$) 
+        for $i$ in range($o\textrm{\emph{ff}}set$, $o\textrm{\emph{ff}}set$ + $length$) 
             $encryptedFrequency$ := $encryptedFrequencies$.get($i$)
             if $encryptedFrequency$ :neq :bot:
-                $frequency$ := $scheme$.decryptContextualData($encryptedFrequency$)
-                $deletions$.add($scheme$.generateTrapdoor($keyword$, $frequency$))
+                $\textrm{\emph{f}}requency$ := $scheme$.decryptContextualData($encryptedFrequency$)
+                $deletions$.add($scheme$.generateTrapdoor($keyword$, $\textrm{\emph{f}}requency$))
                 $deletions$.add($trapdoors$.get($i$))
-        $offset$ := $offset$ + $length$
+        $o\textrm{\emph{ff}}set$ := $o\textrm{\emph{ff}}set$ + $length$
     return Triplestore.prepareDelete($triplestoreID$, $trapdoors$)
 
 function uploadTBox($triplestoreID$, $triples$, $scheme$):
     $keyword$ := $scheme$.getSchemaKeyword()
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
     $deletionIDs$ := {}
-    if $frequencies[keyword] > 0$:
-        $deletionIDs$ := batchExecuteDeleteTBox($triplestoreID$, $frequencies$[$keyword$], $scheme$)
-    $uploadIDs$ := batchExecuteUploadTBox($triplestoreID$, $triples$, $frequencies$[$keyword$], $scheme$)
+    if $\textrm{\emph{f}}requencies[keyword] > 0$:
+        $deletionIDs$ := batchExecuteDeleteTBox($triplestoreID$, $\textrm{\emph{f}}requencies$[$keyword$], $scheme$)
+    $uploadIDs$ := batchExecuteUploadTBox($triplestoreID$, $triples$, $\textrm{\emph{f}}requencies$[$keyword$], $scheme$)
     return Triplestore.update($triplestoreID$, $uploadIDs$, $deleteIDs$)
 
 function deleteTBox($triplestoreID$, $triples$, $scheme$):
     $keyword$ := $scheme$.getSchemaKeyword()
-    $frequencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
+    $\textrm{\emph{f}}requencies$ := fetchKeywordsFrequencies($triplestoreID$, [$keyword$], $scheme$)
     $deletionIDs$ := {}
-    if $frequencies[keyword] > 0$:
-        $deletionIDs$ := batchExecuteDeleteTBox($triplestoreID$, $keyword$, $frequencies$[$keyword$], $scheme$)
+    if $\textrm{\emph{f}}requencies[keyword] > 0$:
+        $deletionIDs$ := batchExecuteDeleteTBox($triplestoreID$, $keyword$, $\textrm{\emph{f}}requencies$[$keyword$], $scheme$)
     return Triplestore.update($triplestoreID$, $uploadIDs$, $deleteIDs$)
 
-function batchExecuteDeleteTBox($triplestoreID$, $frequency$, $keyword$, $scheme$):
+function batchExecuteDeleteTBox($triplestoreID$, $\textrm{\emph{f}}requency$, $keyword$, $scheme$):
     $batchIDs$ := createLinkedList()
     while $\#triples > 0$: 
         $batch$ := createLinkedList()
@@ -136,18 +136,18 @@ function batchExecuteDeleteTBox($triplestoreID$, $frequency$, $keyword$, $scheme
             if $\#triples > 0$:
                 $batch$.add($triples$.removeFirst())
         if $\#batch > 0$:
-            $offset$ := 0
+            $o\textrm{\emph{ff}}set$ := 0
             while true:
                 $trapdoors$ := createLinkedList()       
-                for $i$ in range($offset$, $BATCH\_SIZE$ + $offset$):
-                    if $i < frequency$:
+                for $i$ in range($o\textrm{\emph{ff}}set$, $BATCH\_SIZE$ + $o\textrm{\emph{ff}}set$):
+                    if $i < \textrm{\emph{f}}requency$:
                         $trapdoors$.add($scheme$.generateTrapdoorAndIncrementIV($keyword$))
                 if $\#trapdoors > 0$:
                     $batchID$ := Triplestore.prepareDelete($triplestoreID$, $encryptedNodes$)
                     if $batchID$ == :bot:
                         throw BatchException()
                     $batchIDs$.add($batchID$)
-                    $offset$ := $offset$$ + $$BATCH\_SIZE$
+                    $o\textrm{\emph{ff}}set$ := $o\textrm{\emph{ff}}set$$ + $$BATCH\_SIZE$
                 else:
                     break
     return $batchIDs$

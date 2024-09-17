@@ -4,31 +4,31 @@ State:
 
 function executeSPARQLQuery($triplestoreID$, $query$):
     try:
-        ($planner$, $plan$, $construct$, $upload$, $delete$) := planQuery($query$) 
+        ($plan$, $construct$, $upload$, $delete$) := planQuery($query$) 
         $queryType$ := $planner$.getQueryType()
         if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
             $sparqlResult$ := Triplestore.evaluateQuery($triplestoreID$, $plan$)
-        return generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$)
+        return generateFinalResult($triplestoreID$, $queryType$, $plan$.$vars$, $sparqlResult$.$bindings$, $construct$, $upload$, $delete$)
     catch Exception:
         return :bot
 
-// {$(plan, \; construct, \; upload, \; delete)$, :bot} := \textrm{SPARQL-EVAL}.planQuery($query$)
+// {$(plan, \; construct, \; upload, \; delete)$, :bot} := $\textrm{SPARQL-EVAL}$.planQuery($query$)
 function planQuery(query):
     $planner$ := createSPARQLQueryPlanner()
-    return ($planner$, $queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())
+    return ($queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())
 
-// {$sparqlFinalResult$, :bot} := SPARQL-EVAL.generateFinalResult($triplestoreID$, $queryType$, $sparqlResult$, $construct$, $upload$, $delete$):
+// {$sparqlFinalResult$, :bot} := $\textrm{SPARQL-EVAL}$.generateFinalResult($triplestoreID$, $variables$, $queryType$, $bindings$, $construct$, $upload$, $delete$):
 function generateFinalResult($triplestoreID$, $queryType$, $variables$, $sparqlResult$, $construct_{template}$, $upload_{template}$, $delete_{template}$)
     if $queryType$ == "SELECT":
-        return generateSELECTResults($variables$, $sparqlResult$)
+        return generateSELECTResults($variables$, $bindings$)
     elif $queryType$ == "CONSTRUCT":
-        return generateCONSTRUCTResults($construct_{template}$, $sparqlResult.bindings$)
+        return generateCONSTRUCTResults($construct_{template}$, $bindings$)
     elif $queryType$ == "ASK":
-        return generateASKResults($sparqlResult$.$bindings$)
+        return generateASKResults($bindings$)
     elif $queryType$ == "DESCRIBE":
-        return generateDESCRIBEResults($variables$, $sparqlResult$)
+        return generateDESCRIBEResults($variables$, $bindings$)
     else:
-        return applyModifications($triplestoreID$, $sparqlResult$.$bindings$, $upload_{template}$, $delete_{template}$)   
+        return applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $delete_{template}$)   
 
 function applyModifications($triplestoreID$, $bindings$, $upload_{template}$, $delete_{template}$):
     $triples_{upload}$ := {}
@@ -57,10 +57,10 @@ function generateSELECTResults($variables$, $bindings$):
     return generateJSONQueryResult($variables$, $bindings$) // map bindings collection to a well-formed JSON, as per the official specification
 
 private Response generateDESCRIBEResults($variables$, $bindings$) :
-    frequencies := {}
+    $\textrm{\emph{f}}requencies$ := {}
     foreach $var$ in $variables$:
-        $frequencies$[$var$] := 0
+        $\textrm{\emph{f}}requencies$[$var$] := 0
     foreach $binding$ in $bindings$:
         foreach $(var, \; node)$ in $binding$.getKeys(): 
-            $frequencies$[$var$] := $frequencies$[$var$] + 1
-    return generateJSONFrequencyTable($frequencies$) // format the collection of variable frequencies as JSON
+            $\textrm{\emph{f}}requencies$[$var$] := $\textrm{\emph{f}}requencies$[$var$] + 1
+    return generateJSONFrequencyTable($\textrm{\emph{f}}requencies$) // format the collection of variable frequencies as JSON

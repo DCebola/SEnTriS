@@ -36,8 +36,8 @@ function EncryptSchemaTriples($triples$):
         encryptSchemaNode(parseNode($o$))
         
 function encryptSchemaNode($node$):
-    $freq$ := incrementKeywordFrequency($keyword_{schema}$)
-    $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $freq$)
+    $\textrm{\emph{f}}req$ := incrementKeywordFrequency($keyword_{schema}$)
+    $trapdoor$ := E(deriveKey($keyword_{schema}$), $keyword_{schema}$, $\textrm{\emph{f}}req$)
     $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $node$)
 
 
@@ -53,29 +53,29 @@ function decryptContextualData($ct$):
     
 function encryptTriples($triples$):
 	foreach $t = (s,p,o)$ in $triples$:
-        $freq$ := {}
+        $\textrm{\emph{f}}req$ := {}
         $parsed_s$ := parseNode($s$)
         $parsed_p$ := parseNode($p$)
         $parsed_o$ := parseNode($o$)
         $keyword_s$ := parseKeyword($s$)
         $keyword_p$ := parseKeyword($p$)
         $keyword_o$ := parseKeyword($o$)
-        $freq$ := $freq$ :U { encryptNode($parsed_p$, "PO" || $keyword_s$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_o$, "PO" || $keyword_s$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_s$, "SO" || $keyword_p$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_o$, "SO" || $keyword_p$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_s$, "SP" || $keyword_o$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_p$, "SP" || $keyword_o$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$) }
-        $freq$ := $freq$ :U { encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$) }
-        encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $freq$)
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_p$, "PO" || $keyword_s$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_o$, "PO" || $keyword_s$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_s$, "SO" || $keyword_p$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_o$, "SO" || $keyword_p$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_s$, "SP" || $keyword_o$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_p$, "SP" || $keyword_o$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$) }
+        $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$) }
+        encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $\textrm{\emph{f}}req$)
  
 function encryptTriplePattern($keyword$, $frequencies$): 
     $i$ := 0
-    foreach $freq$ in $frequencies$:
+    foreach $\textrm{\emph{f}}req$ in $frequencies$:
         $trapdoor$ := E(deriveKey($keyword$), $keyword$, $i$)
-        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $freq$)
+        $encryptedNodes$[$trapdoor$] := E($K_{RND}$, $\textrm{\emph{f}}req$)
         $i$++
 
 function deriveKey($context$):
@@ -86,13 +86,13 @@ function deriveKey($context$):
     return $key$
 
 function incrementKeywordFrequency($keyword$):
-    $freq$ := $keywordFrequencies$[$keyword$]
-    if $freq$ == :bot :
-        $freq$ := 1
-        $keywordFrequencies$[$keyword$] := $freq$
+    $\textrm{\emph{f}}req$ := $keywordFrequencies$[$keyword$]
+    if $\textrm{\emph{f}}req$ == :bot :
+        $\textrm{\emph{f}}req$ := 1
+        $keywordFrequencies$[$keyword$] := $\textrm{\emph{f}}req$
     else:
-        $keywordFrequencies$[$keyword$] := $freq$ + 1
-    return $freq$
+        $keywordFrequencies$[$keyword$] := $\textrm{\emph{f}}req$ + 1
+    return $\textrm{\emph{f}}req$
 
 // $trapdoor_{n,i}$ := $\textrm{SSE-TP}.Trapdoor(keyword_n, \; i)$
 function generateTrapdoor($keyword$, $i$):
@@ -133,9 +133,9 @@ function generateTriplePatternTrapdoors($triples$):
     
 function setKeywordFrequencies($values$):
     foreach $keyword$ in $values$:
-        $freq$ := $values$[$keyword$]
-        if ($freq$ > 0)
-            $keywordFrequencies$[$keyword$] := $freq$
+        $\textrm{\emph{f}}req$ := $values$[$keyword$]
+        if ($\textrm{\emph{f}}req$ > 0)
+            $keywordFrequencies$[$keyword$] := $\textrm{\emph{f}}req$
             
 function getSchemaKeyword():
     return $keyword_{schema}$
