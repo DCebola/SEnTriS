@@ -452,8 +452,8 @@ In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the
         \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Decrypts the node and outputs the plaintext value.
         \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Generates and outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
         \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Searches the encrypted triplestore for matches against the received trapdoors. Outputs a collection of encrypted nodes, where there was a match.
-        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifier of the uploads to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied upon the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifiers of the uploads to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the uploads and deletions are successfully executed, $\bot$ otherwise.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID)}$: Takes as input the triplestore identifier. Outputs SUCCESS if the triplestore data is deleted, $\bot$ otherwise.
     \end{itemize}
@@ -555,9 +555,9 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
     \begin{itemize}        
         \item $\{(plan_{rnd}, \; construct, \; upload, \; delete), \; \bot\} \leftarrow \mathbf{PlanQuery(query, \; triplestoreID, }$\linebreak$\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: Takes as input a \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered. If the query is well-formed, and all required operations are supported, outputs a randomized query execution plan and three collections of triple patterns used while constructing the final query results: the $construct$, $upload$ and $delete$ collections. In case of any error, it outputs $\bot$.
          
-        \item $\{ preparedPlan_{rnd}, \; \bot \} \leftarrow \mathbf{PrepareQuery(triplestoreID, \; plan_{rnd})}$: Takes as input a \linebreak triplestore identifier and a randomized query execution plan. For each distinct $job_{SEC\_SEARCH}$ in the plan a SSE-SPARQL-EVAL.$PrepareSearch$ will be triggered. Upon receiving the $searchID$, the respective $job_{SEC\_SEARCH}$ keywords will be updated accordingly. Outputs a randomized prepared query execution plan. In case of any error, outputs $\bot$.
+        \item $\{ preparedPlan_{rnd}, \; \bot \} \leftarrow \mathbf{PrepareQuery(triplestoreID, \; plan_{rnd})}$: Takes as input a \linebreak triplestore identifier and a randomized query execution plan. For each distinct $job_{SEC\_SEARCH}$ in the plan a SSE-SPARQL-EVAL.$PrepareSearch$ request will be issued. Upon receiving the $searchID$, the respective $job_{SEC\_SEARCH}$ keywords will be updated accordingly. Outputs a randomized prepared query execution plan. In case of any error, outputs $\bot$.
         
-        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareSearch(triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input a triplestore identifier, a masking value and a collection of trapdoors. Upon finding the values, these will be re-encrypted, if $mask \neq \bot$. Finally, a SSE-SPARQL-EVAL.$PrepareBindings$ operation is executed. Outputs the value received from the SSE-SPARQL-EVAL.$PrepareBindings$ operation.
+        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareSearch(triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n])}$: \linebreak Takes as input a triplestore identifier, a masking value and a collection of trapdoors. Upon finding the values, these will be re-encrypted, if $mask \neq \bot$. Finally, issues a SSE-SPARQL-EVAL.$PrepareBindings$ request and outputs the result of the algorithm.
         
         \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareBindings([E(binding_0),...,E(binding_n)])}$: Takes as input a collection of encrypted bindings. Generates a fresh \gls{UUID} (version 4) and persists the received values in memory, associating them with the generated identifier. Outputs the identifier, or $\bot$ if an error occurs.
 
@@ -633,43 +633,42 @@ After the decryption of the results, any modifications required are executed. Li
 So far we have specified the building blocks for the secure evaluation of \gls{SPARQL} queries, but \gls{SEnTriS} is more than a query evaluation protocol. It is also a triplestore management and sharing protocol: users can create, manage and share encrypted and non-encrypted triplestores with varying degrees of access. 
 To adapt the previous protocols to the \gls{M/M} setting we will require an identity and access management protocol, with secret sharing between authorized users for \gls{SEnTriS} V1 and V2.
 
-Authentication will be validated with \emph{sessions}, management of access to triplestores will be achieved with the definition of triplestore \glsxtrlong{ACL}s and strict \emph{permission rules}. Finally, we will rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access, when executing unsafe operations (writes), is done in a controlled and safe manner.
+Authentication will be validated with \emph{sessions}, management of access to triplestores will be achieved with the definition of triplestore \glsxtrlong{ACL}s and strict \emph{permission rules}. Finally, we will rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access is done in a controlled and safe manner.
 
 \begin{definition}[\textbf{Identity and Access Management Protocol with Secret Sharing}]\label{ch3:definition:iam-protocol}
     Let IAM be an identity and access management protocol between authenticated users, where temporary access to triplestores is granted using ephemeral access tokens. It is a tuple of $\textrm{IAM} = ()$ of 45 algorithms where:
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{init()}$: initializes the protocol by registering a default admin user. Outputs $\textrm{SUCCESS}$ if the user is created and registered, $\bot$ otherwise.
 
-        \item $\{cookie, \bot\} \leftarrow \mathbf{createSession(username, \; password)}$: takes as input a pair of user credentials. In case of valid credentials, creates a new session and outputs a $cookie$, $\bot$ otherwise.
+        \item $\{cookie, \bot\} \leftarrow \mathbf{createSession(username, \; password)}$: takes as input a pair of user credentials. In case of valid credentials, creates a new session and outputs a $cookie$ holding its data, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{save(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(cookie, \; username)}$ takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(cookie, \; username)}$: takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: \linebreak takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
 
-        \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Outputs the collection of pending role changing requests.
+        \item $\{[roleRequest_0,...,roleRequest_n], \bot \} \leftarrow  \mathbf{getPendingRoleRequests(cookie, \; username)}$: \linebreak takes as input a cookie, and the request issuer username. Outputs the collection of pending role changing requests, $\bot$ in case of error.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplesto{\text -}}$\linebreak $\mathbf{reID)}$: takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplestoreID)}$: \linebreak takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
 
-        \item $[triplestoreID_0, ..., triplestoreID_n]  \leftarrow \mathbf{getTriplestores(cookie, \; issuer, \; owns, }$\linebreak$\mathbf{read, \; write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access;
+        \item $[triplestoreID_0, ..., triplestoreID_n]  \leftarrow \mathbf{getTriplestores(cookie, \; issuer, \; owns, \; read,}$\linebreak$\mathbf{write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access;
 
         \item $\{msg, \bot\} \leftarrow \mathbf{getUsersWithAccess(cookie, triplestoreID, \; write, \; at)}$: takes as input a cookie, a triplestore identifier, a boolean filter parameter and an access token. If the access token has sufficient permissions, outputs a message with the specified triplestore's \emph{owner} username and the collection of \emph{read} and \emph{write} access (if the $write$ parameter is \emph{true}) users' usernames, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestoreID, \; target, \; at)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestoreID, \; target, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: \linebreak takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestoreID, \; target,\; write)}$: \linebreak takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestoreID, \; target,\; write)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
 
         \item $\{[accessRequest_0, ..., accessRequest_n], \bot\} \leftarrow \mathbf{getPendingAccessRequests(cookie, }$\linebreak$\mathbf{ triplestoreID, \; at)}$: takes as input a cookie, a triplestore indentifier and an access token. Outputs the collection of the triplestore's pending access change requests, if the specified access token has sufficient permissions, $\bot$ otherwise.
-
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \; triplestoreID, \; requestID,}$\linebreak$\mathbf{decision, \; at)}$: takes as input a cookie, a triplestore identifier, an access change request identifier, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the specified request is successfully processed according to the provided $decision$ parameter, $\bot$ otherwise.
 
@@ -688,24 +687,26 @@ Authentication will be validated with \emph{sessions}, management of access to t
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{releaseTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the lock associated with the token is successfully unlocked, $\bot$ otherwise.
+        
+        %Client operations
 
-        \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.auth(username, \; password)$ and outputs the result of the algorithm.
+        \item $\{cookie, \bot\} \leftarrow \mathbf{auth(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.auth$ request and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials, executes $\textrm{IAM}.registerUser(username, \; password)$ and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{registerUser(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.registerUser$ request and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \linebreak username)}$: takes as input a cookie and the username of the user to delete, executes $\textrm{IAM}.deleteUser(cookie, \; username)$ and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$: takes as input a cookie and the username of the user to delete, issues a $\textrm{IAM}.deleteUser$ request and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueUpgradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{PRIVILEGED})$ and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueUpgradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Issues a $\textrm{IAM}.issueGrantRoleRequest$ request, with $role=\textrm{PRIVILEGED}$, and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueDowngradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Executes $\textrm{IAM}.issueGrantRoleRequest(cookie, \linebreak username, \; username, \; \textrm{BASIC})$ and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueDowngradeRequest(cookie, \; username)}$: takes as input a cookie, and a username. Issues a $\textrm{IAM}.issueGrantRoleRequest$ request, with $role=\textrm{PRIVILEGED}$, and outputs the result of the algorithm.
 
-        \item $[roleRequest_0,...,roleRequest_n] \leftarrow  \mathbf{listPendingRoleRequests(cookie, \; user{\text -}}$\linebreak $\mathbf{name)}$: takes as input a cookie, and the request issuer username. Executes $\textrm{IAM}.getPendingRoleRequests(cookie, \; username)$ and outputs the result of the algorithm.
+        \item $\{[roleRequest_0,...,roleRequest_n], \bot \} \leftarrow  \mathbf{listPendingRoleRequests(cookie, }$\linebreak$\mathbf{ username)}$: takes as input a cookie, and the request issuer username. Issues a $\textrm{IAM}.getPendingRoleRequests$ request and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Executes $\textrm{IAM}.processRoleRequest(cookie, \; username, \; target, \allowbreak requestID, \;  decision)$ and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID, }$\linebreak$\mathbf{ decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Issues a $\textrm{IAM}.processRoleRequest$ request and outputs the result of the algorithm.
 
-        \item $\{[triplestoreID_0, ..., triplestoreID_n], \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, }$\linebreak$\mathbf{ write, \; read, \; owns)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Executes $\textrm{IAM}.listTriplestores(cookie, \allowbreak issuer, \; write, \; read, \; owns)$ and outputs the result of the algorithm, or $\bot$ in case of error.
+        \item $\{[triplestoreID_0, ..., triplestoreID_n], \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, }$\linebreak$\mathbf{ read, \; owns)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Issues a $\textrm{IAM}.getTriplestores$ request and outputs the result of the algorithm, or $\bot$ in case of error.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ target)}$: takes as input a cookie, a triplestore identifier, a username and an access token. Creates an access token by executing ... . In case of success, tries to lock the triplestore with ... . If it fails to lock the resource, deletes the access token by executing ... . If the lock is successfully acquired, executes ... and retrieves the response of the algorithm. Finally, releases the lock and deletes the access token, with ... followed by ... , and outputs the retrieved response.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, \; target)}$: takes as input a cookie, a triplestore identifier, and two usernames, respectively, of the request issuer and the new triplestore owner. Tries to create an access token and lock the triplestore. Issues a IAM. outputs the retrieved response.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
 
@@ -715,13 +716,16 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listPendingAccessRequests(cookie, \;  triplestoreID, \; issuer)}$:
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ requestID, \; decision)}$:
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processAccessRequest(cookie, \;  triplestoreID, \; issuer, \; requestID, }$\linebreak $\mathbf{ decision)}$:
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$:
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
+        
+        %Vault Operations
+
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createSecrets(triplestoreID, \; secrets, \; at)}$:
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteSecrets(triplestoreID, \; at)}$:
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{getSecrets(triplestoreID, \; at)}$:
