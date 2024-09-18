@@ -662,9 +662,9 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantTriplestoreAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeTriplestoreAccess(cookie, \; triplestoreID, \; target,\; write, }$\linebreak$\mathbf{ at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore is successfully revoked, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{issueAccessRequest(cookie, \; triplestoreID, \; target,\; write)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if an access change request, for the $target$ user, granting \emph{read} or \emph{write} (if the $write$ parameter is \emph{true}) permissions against the specified triplestore is sucessfully issued, $\bot$ otherwise.
 
@@ -706,9 +706,9 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{[triplestoreID_0, ..., triplestoreID_n], \bot\} \leftarrow \mathbf{listTriplestores(cookie, \; issuer, \; write, }$\linebreak$\mathbf{ read, \; owns)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Issues a $\textrm{IAM}.getTriplestores$ request and outputs the result of the algorithm, or $\bot$ in case of error.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, \; target)}$: takes as input a cookie, a triplestore identifier, and two usernames, respectively, of the request issuer and the new triplestore owner. Tries to create an access token and lock the triplestore. Issues a IAM. outputs the retrieved response.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{updateTriplestoreOwner(cookie, \;  triplestoreID, \; issuer, \; target)}$: takes as input a cookie, a triplestore identifier, and two usernames, respectively, of the request issuer and the new triplestore owner. Tries to create an access token and lock the triplestore. Issues a IAM.$changeTriplestoreOwner$ request and outputs the retrieved response.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$: takes as input a cookie, a triplestore identifier, two usernames, respectively, of the request issuer and the new triplestore owner, and a boolean parameter to specify the access type. Tries to create an access token and lock the triplestore. Issues a IAM.$grantTriplestoreAccess$ request and outputs the retrieved response.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{revokeAccess(cookie, \;  triplestoreID, \; issuer, \; target, \; write)}$:
 
