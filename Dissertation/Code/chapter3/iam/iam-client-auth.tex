@@ -1,0 +1,11 @@
+function registerUser($username$, $password$):
+    return IAM.saveUser($username$, $password$)
+
+function auth($username$, $password$):
+    $response$ := IAM.createSession($username$, $password$)
+    if $response$ :neq :bot:
+        return extractCookie($response$)
+    return $response$
+
+function deleteUser($cookie$, $username$):
+    return IAM.deleteUser($cookie$, $username$)

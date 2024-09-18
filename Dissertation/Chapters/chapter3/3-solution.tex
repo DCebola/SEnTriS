@@ -320,11 +320,11 @@ For patterns with a single variable, the index is the concatenation of the patte
 
 In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTriS} V0 storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
 
-\lstinputlisting[caption={Storage Engine for SEnTriS V0}, label={storage-engine-v0}]{Code/chapter3/storage-engine-v0.tex}
+\lstinputlisting[caption={Storage Engine for SEnTriS V0}, label={storage-engine-v0}]{Code/chapter3/sparql-eval/storage-engine-v0.tex}
 
 Notice that a search operation always produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing \ref{bindings-table-v0}, we show the underlying logic of a \emph{bindings table}.
 
-\lstinputlisting[caption={Bindings Table in SEnTriS V0}, label={bindings-table-v0}]{Code/chapter3/bindings-table-v0.tex}
+\lstinputlisting[caption={Bindings Table in SEnTriS V0}, label={bindings-table-v0}]{Code/chapter3/sparql-eval/bindings-table-v0.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
@@ -346,11 +346,11 @@ Having defined how data is stored, we will now explain the protocol for evaluati
 
 The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations} (their equivalent abstraction to our \emph{query jobs}). We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
 
-\lstinputlisting[caption={\gls{SEnTriS} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-engine.tex}
+\lstinputlisting[caption={\gls{SEnTriS} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-eval/sparql-engine.tex}
 
 One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of a simplified \gls{SEnTriS} V0 query planner (without any reasoning capabilities) is shown in Listing \ref{sparql-query-planner-pseudocode}.
 
-\lstinputlisting[caption={\gls{SEnTriS} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-planner-v0.tex}
+\lstinputlisting[caption={\gls{SEnTriS} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-eval/sparql-planner-v0.tex}
 
 Notice that the query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
 
@@ -364,15 +364,15 @@ The dispatching of jobs continuous until there are no more jobs pending executio
 
 Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={SEnTriS V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/query-execution.tex}
+\lstinputlisting[caption={SEnTriS V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/sparql-eval/query-execution.tex}
 
-\lstinputlisting[caption={SEnTriS V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/query-worker.tex}
+\lstinputlisting[caption={SEnTriS V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/sparql-eval/query-worker.tex}
 
 \paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
 
-\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval-client.tex}
+\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-client.tex}
 
-\lstinputlisting[caption={SPARQL-EVAL triplestore}, label={sparql-eval-triplestore-pseudocode}]{Code/chapter3/sparql-eval-triplestore.tex}
+\lstinputlisting[caption={SPARQL-EVAL triplestore}, label={sparql-eval-triplestore-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-triplestore.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
@@ -390,9 +390,9 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
 
 \paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTriS} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema-v0} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to \gls{SEnTriS} V0 storage engine and the extra operations of the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
 
-\lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/storage-engine-schema-v0.tex}
+\lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/sparql-eval/storage-engine-schema-v0.tex}
 
-\lstinputlisting[caption={SPARQL-EVAL-II triplestore (extra operations)}, label={sparql-eval-ii-triplestore-pseudocode}]{Code/chapter3/sparql-eval-ii-triplestore.tex}
+\lstinputlisting[caption={SPARQL-EVAL-II triplestore (extra operations)}, label={sparql-eval-ii-triplestore-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-ii-triplestore.tex}
 
 \paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTriS}, an ontology is an abstraction where we map class and property axioms to nodes. 
 
@@ -402,13 +402,13 @@ In the next step, we iterate over all properties and map each one to their subpr
 
 All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTriS} V0.
 
-\lstinputlisting[caption={SEnTriS V0 Ontology}, label={ontology-pseudocode}]{Code/chapter3/ontology.tex}
+\lstinputlisting[caption={SEnTriS V0 Ontology}, label={ontology-pseudocode}]{Code/chapter3/sparql-eval/ontology.tex}
 
 During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. The logic to rewrite queries is scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting-v0} and \ref{sparql-eval-ii-client-pseudocode} respectively. 
 
-\lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting-v0}]{Code/chapter3/query-rewriting.tex}
+\lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting-v0}]{Code/chapter3/sparql-eval/query-rewriting.tex}
 
-\lstinputlisting[caption={SPARQL-EVAL-II client (modified operations)}, label={sparql-eval-ii-client-pseudocode}]{Code/chapter3/sparql-eval-ii-client.tex}
+\lstinputlisting[caption={SPARQL-EVAL-II client (modified operations)}, label={sparql-eval-ii-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-ii-client.tex}
 
 Optimization and development of a fully functional query rewriting technique is out of the scope of this thesis. The system can not evaluate property paths, functions and nested queries, which limits our available solutions. We focused on trying to support a few expansions related with: subclasses, equivalent classes, restrictions, intersections, subproperties, equivalent and inverse properties, property transitivity and symmetry. Furthermore, we assume that the data which will be queried is consistent with the ontology provided. 
 
@@ -504,25 +504,25 @@ Finally, uniquely to \gls{SEnTriS} V2, trapdoors generated with $iv = 0$ for the
 
 \subsubsection{Triple Pattern encryption and decryption} \label{ch3:encryption-definition} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
 
-\lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/scheme-base.tex}
+\lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/sse-tp/scheme-base.tex}
 
 \paragraph*{SEnTriS V1} We follow the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} approach and encrypt \emph{ABox} nodes in two layered onions $E(node) = E(K_{RND}, E(K_{DET}, \; node, \; iv_{DET}))$. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values. The version specific functions for \gls{SEnTriS} V1 are shown in Listing \ref{encryption-scheme-deterministic}.
 
-\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V1}, label={encryption-scheme-deterministic}]{Code/chapter3/scheme-deterministic.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V1}, label={encryption-scheme-deterministic}]{Code/chapter3/sse-tp/scheme-deterministic.tex}
 
 \paragraph*{SEnTriS V2} \emph{ABox} nodes are mapped to \emph{equality tags}. We generate equality tags by using an injective function $eqTag: (I \cup L \cup V) \rightarrow \mathbb{Z}^{+}$ which maps the value of a node to a unique positive integer.
 
 Trapdoors index encrypted equality tags and encrypted equality tags index encrypted \emph{ABox} nodes. Respectively, nodes are probabilistically encrypted $E(node) = E(K_{RND}, \; node )$ and equality tags are homomorphically encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb} $E(eq_{tag}) = E(K_{DGK_{pub}}, \; eqTag(node))$. When doing equality checks, we decrypt the equality tags and compare the values. The version specific functions for \gls{SEnTriS} V2 are shown in Listing \ref{encryption-scheme-dgk}.
 
-\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V2}, label={encryption-scheme-dgk}]{Code/chapter3/scheme-dgk.tex}
+\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V2}, label={encryption-scheme-dgk}]{Code/chapter3/sse-tp/scheme-dgk.tex}
 
 \subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. We then parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples can be uploaded in separate upload operations. The triplestore creation and encryption operations are handled by the client. 
 
 Due to the high volumes of data that can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
 
-\lstinputlisting[caption={SSE-TP Storage Engine}, label={sse-tp-storage-engine}]{Code/chapter3/sse-tp-storage-engine.tex}
+\lstinputlisting[caption={SSE-TP Storage Engine}, label={sse-tp-storage-engine}]{Code/chapter3/sse-tp/sse-tp-storage-engine.tex}
 
-\lstinputlisting[caption={SSE-TP Triplestore Component}, label={sse-tp-triplestore-component}]{Code/chapter3/sse-tp-triplestore.tex}
+\lstinputlisting[caption={SSE-TP Triplestore Component}, label={sse-tp-triplestore-component}]{Code/chapter3/sse-tp/sse-tp-triplestore.tex}
 
 The search operation is a two-step process in \gls{SEnTriS} V1. Firstly, we parse the triple patterns and generate their keyword frequency trapdoors (where $i = 0$) and search for these values. Upon receiving the encrypted values, we decrypt the frequencies, generate trapdoors accordingly and execute the final search operation.
 
@@ -530,9 +530,9 @@ In \gls{SEnTriS} V2, the results of the second search yield a collection of encr
 
 Listings \ref{sse-tp-client-search-v1} and \ref{sse-tp-client-search-v2} show the search logic in the client component for versions V1 and V2, respectively.
 
-\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp-client-search-v1.tex}
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-search-v1}]{Code/chapter3/sse-tp/sse-tp-client-search-v1.tex}
 
-\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp-client-search-v2.tex}
+\lstinputlisting[caption={Searches in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-search-v2}]{Code/chapter3/sse-tp/sse-tp-client-search-v2.tex}
 
 In \gls{SEnTriS} V1, to execute deletions, we fetch the frequencies of the triple patterns, generate their trapdoors and send a deletion request for data referenced by those trapdoors. In the case of \gls{SEnTriS} V2, we are required to fetch the equality tags, because data referenced by them needs to be deleted as well. The deletion requests are sent to the triplestore, where they are temporarily saved.
 
@@ -542,9 +542,9 @@ Update operations are the only way to actually persist changes in the triplestor
 
 Listings \ref{sse-tp-client-writes-v1} and \ref{sse-tp-client-writes-v2} show the underlying logic of write operations in the client component. For version V2, we only highlight the algorithms that differ between versions.
 
-\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-writes-v1}]{Code/chapter3/sse-tp-client-writes-v1.tex}
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V1)}, label={sse-tp-client-writes-v1}]{Code/chapter3/sse-tp/sse-tp-client-writes-v1.tex}
 
-\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp-client-writes-v2.tex}
+\lstinputlisting[caption={Write operations in SSE-TP Client (SEnTriS V2)}, label={sse-tp-client-writes-v2}]{Code/chapter3/sse-tp/sse-tp-client-writes-v2.tex}
 
 \subsection{Evaluation of SPARQL queries over encrypted data}
 
@@ -570,9 +570,9 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
 
 \subsubsection{Query Preparation Phase} In this phase we generate the query execution plan. We adapt the solution  the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
 
-\lstinputlisting[caption={SSE-SPARQL-EVAL ontology}, label={ontology-rnd}]{Code/chapter3/ontology-rnd.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL ontology}, label={ontology-rnd}]{Code/chapter3/sse-sparql-eval/ontology-rnd.tex}
 
-\lstinputlisting[caption={SSE-SPARQL-EVAL SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sparql-planner-secure.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sse-sparql-eval/sparql-planner-secure.tex}
 
 
 Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value is also computed and sent alongside each of the previous requests. 
@@ -581,51 +581,51 @@ After receiving the collections of trapdoors, the triplestore component matches 
 
 After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component. Listings \ref{sse-sparql-client-v1} and \ref{sse-sparql-client-v2} show the logic of the client for \gls{SEnTriS} V1 and V2 respectively.  
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V1)}, label={sse-sparql-client-v1}]{Code/chapter3/sse-sparql-client-v1.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V1)}, label={sse-sparql-client-v1}]{Code/chapter3/sse-sparql-eval/sse-sparql-client-v1.tex}
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V2)}, label={sse-sparql-client-v2}]{Code/chapter3/sse-sparql-client-v2.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Client (SEnTriS V2)}, label={sse-sparql-client-v2}]{Code/chapter3/sse-sparql-eval/sse-sparql-client-v2.tex}
 
 Listings \ref{sse-sparql-triplestore} and \ref{sse-sparql-triplestore-storage} show the logic of the triplestore component and how search values are blinded in the storage engine.
 
-\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-triplestore.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore}, label={sse-sparql-triplestore}]{Code/chapter3/sse-sparql-eval/sse-sparql-triplestore.tex}
 
-\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore Storage Engine}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-triplestore-storage-engine.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Triplestore Storage Engine}, label={sse-sparql-triplestore-storage}]{Code/chapter3/sse-sparql-eval/sse-sparql-triplestore-storage-engine.tex}
 
 Finally, listings \ref{sse-sparql-proxy-prepare-bindings} and \ref{sse-proxy-save-bindings} provide the logic for the proxy component and how the bindings are temporarily stored. We have only highlighted the algorithms that differ from the previous protocols.
 
-\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-proxy-prepare-bindings.tex}
+\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-prepare-bindings.tex}
 
-\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-proxy-save-bindings.tex}
+\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-save-bindings.tex}
 
 \subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker. 
 
-\lstinputlisting[caption={Query Evaluation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-query-eval}]{Code/chapter3/sse-sparql-proxy-evaluate-query.tex}
+\lstinputlisting[caption={Query Evaluation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-query-eval}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-evaluate-query.tex}
 
-\lstinputlisting[caption={SSE-SPARQL-EVAL Query Worker}, label={query-worker-v1}]{Code/chapter3/query-worker-v1.tex}
+\lstinputlisting[caption={SSE-SPARQL-EVAL Query Worker}, label={query-worker-v1}]{Code/chapter3/sse-sparql-eval/query-worker-v1.tex}
 
 As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} V1, before constructing the bindings tables, the probabilistic encryption layer of the bindings will be decrypted. The deterministic values allow the bindings tables to operate as normal. 
 
-\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V1)}, label={construct-bindings-tables-sentris-v1}]{Code/chapter3/sse-sparql-proxy-construct-bindings-tables-v1.tex}
+\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V1)}, label={construct-bindings-tables-sentris-v1}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-construct-bindings-tables-v1.tex}
 
 In \gls{SEnTriS} V2, the values remain probabilistic. Consequently, equality checks, and set operations that require this operation, will have to be keyed as illustrated in Listing \ref{query-worker-v2}.
 
-\lstinputlisting[caption={Keyed set operations in SSE-SPARQL-EVAL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/query-worker-v2.tex}
+\lstinputlisting[caption={Keyed set operations in SSE-SPARQL-EVAL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/sse-sparql-eval/query-worker-v2.tex}
 
 Before constructing the encryption tables we will to group the values, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
 
 Listings \ref{construct-bindings-tables-sentris-v2} and \ref{bindings-tables-sentris-v2} provide the logic for the construction of bindings tables, in \gls{SEnTriS} V2, and their respective modifications.
 
-\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V2)}, label={construct-bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-proxy-construct-bindings-tables-v2.tex}
+\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V2)}, label={construct-bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-construct-bindings-tables-v2.tex}
 
-\lstinputlisting[caption={Bindings Tables (SEnTriS V2)}, label={bindings-tables-sentris-v2}]{Code/chapter3/bindings-table-v2.tex}
+\lstinputlisting[caption={Bindings Tables (SEnTriS V2)}, label={bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-eval/bindings-table-v2.tex}
 
 \subsubsection{Decryption of SPARQL query results} Upon receiving the results from the query evaluation, the client component will decrypt them and construct the final results. This final step will require an extra communication round for \gls{SEnTriS} V2, because the returned values are encrypted equality tags. These will need to be unmasked, and used to search for the encrypted nodes. 
 
 After the decryption of the results, any modifications required are executed. Listings \ref{sse-sparql-final-results-v1} and \ref{sse-sparql-final-results-v2} illustrate this logic for \gls{SEnTriS} V1 and V2, respectively.
 
-\lstinputlisting[caption={Generating Final Results in SSE-SPARQL-EVAL (SEnTriS V1)}, label={sse-sparql-final-results-v1}]{Code/chapter3/sse-sparql-client-v1-final-results.tex}
+\lstinputlisting[caption={Generating Final Results in SSE-SPARQL-EVAL (SEnTriS V1)}, label={sse-sparql-final-results-v1}]{Code/chapter3/sse-sparql-eval/sse-sparql-client-v1-final-results.tex}
 
-\lstinputlisting[caption={Generating Final Results in SSE-SPARQL-EVAL (SEnTriS V2)}, label={sse-sparql-final-results-v2}]{Code/chapter3/sse-sparql-client-v2-final-results.tex}
+\lstinputlisting[caption={Generating Final Results in SSE-SPARQL-EVAL (SEnTriS V2)}, label={sse-sparql-final-results-v2}]{Code/chapter3/sse-sparql-eval/sse-sparql-client-v2-final-results.tex}
 
 \subsection{The M/M setting}
 \label{ch3:sec:solution-definition:mm-setting}
@@ -642,9 +642,9 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{cookie, \bot\} \leftarrow \mathbf{createSession(username, \; password)}$: takes as input a pair of user credentials. In case of valid credentials, creates a new session and outputs a $cookie$ holding its data, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{save(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{saveUser(username, \; password)}$: takes as input a pair of user credentials. Outputs $\textrm{SUCCESS}$ if a new user is registered, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(cookie, \; username)}$: takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteUser(cookie, \; username)}$: takes as input a cookie and the username of the user to delete. Outputs $\textrm{SUCCESS}$ if the user is successfully deleted, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow  \mathbf{issueGrantRoleRequest(cookie, \; username, \;issuer, \; role)}$: takes as input a cookie, the usernames of the target and issuer of the role changing request and the desired role. Outputs $\textrm{SUCCESS}$ if the request is successfully persisted, $\bot$ otherwise.
 
@@ -747,7 +747,14 @@ Authentication is the process where we verify the identity of a user. We do so, 
     \end{equation}
 \end{definition}
 
-The login request is initiated by the client component, which will redirect the provided credentials to the IAM provider, responsible for the emission of a cookie, holding the session data. Listings ... and ... provide the authentication logic for the client and IAM provider components respectively.
+The login request is initiated by the client component, which will redirect the provided credentials to the IAM provider, responsible for the emission of a cookie, holding the session data. In the IAM provider we store the user credentials, following \gls{NIST} best practices \autocite{Nist-dy}. The passwords are stored using a suitable one-way key derivation function (e.g. \gls{PBKDF2}). Listings \ref{iam-client-auth} and \ref{iam-provider-auth} provide the authentication logic for the client and IAM provider components respectively. Listing \ref{iam-provider-storage-engine-users} shows the IAM provider storage engine logic for storing user data. We will assume that the storage engine is atomic.
+
+\lstinputlisting[caption={Authentication in Client}, label={iam-client-auth}]{Code/chapter3/iam/iam-client-auth.tex}
+
+\lstinputlisting[caption={Session Validation in IAM Provider}, label={iam-provider-auth}]{Code/chapter3/iam/iam-provider-auth.tex}
+
+\lstinputlisting[caption={User Data Storage}, label={iam-provider-storage-engine-users}]{Code/chapter3/iam/iam-provider-storage-engine-users.tex}
+
 
 \subsubsection{Enforcing Access Permissions} 
 
@@ -803,7 +810,7 @@ Operations against triplestores are more complex. The query evaluation pipeline 
 
 To fulfill such requirements, every request contains an \emph{access token}. Permission checks are executed, by sending this token to a verifier component, in the case of \gls{SEnTriS} it will be the \emph{\gls{IAM} Provider}. The \emph{\gls{IAM} Provider} verifies the validity of the token, and if its associated permissions are correct.
 
-Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The targetted triplestore will remain in a \emph{locked} state until its \emph{access token} is deleted or the \emph{lock} expires.
+Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The targeted triplestore will remain in a \emph{locked} state until its \emph{access token} is deleted or the \emph{lock} expires.
 
 \begin{definition}[\textbf{Concurrent Lock-based Access Checks}]\label{ch3:definition:concurrent-access}
     Let $IsLocked(resource, \; l)$ and $CanLock(triplestore, \; at)$ be predicates that evaluate to $true$ if, respectively, $resource$ is in a $locked$ state associated with the lock $l$ and $triplestore$ can transition to a $locked$ state, and associate the generated lock with access token $at$, $\bot$ otherwise.
@@ -827,7 +834,7 @@ Queries that contain write predicates, will require that their target remains \e
     \end{align}
 \end{definition}
 
-The emission of locks and ephemeral access tokens is also scoped to the IAM provider. We specify this logic in Listing ... .
+The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing ... . Listing ... provides the logic for the operation permission checks. 
 
 \subsubsection{Issuing Role Change and Access Requests} 
 
