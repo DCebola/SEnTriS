@@ -4,3 +4,39 @@ State:
     $passwords$ := {}
     $sessions$ := {}
     $owned$ := {}
+
+function cacheSession($username$):
+    $sessionID$ := generateID()
+    $sessions$[$username$] := $sessionID$
+    schedule(expireSession($sessionID$, $username$), $SESSION\_LIFETIME$)
+    return createCookie($sessionID$)
+
+function getSession($username$):
+    return $sessions$[$username$]
+
+function userExists($username$):
+    return $roles$[$username$] :neq :bot and $passwords$[$username$] :neq :bot
+
+function saveUser($username$, $password$, $role$)
+    $roles$[$username$] := $role$
+    $passwords$[$username$] := $password$
+    $owned$[$username$] := {}
+
+function getPassword($username$)
+    return $passwords$[$username$]    
+
+function getRole($username$)
+    return $roles$[$username$]    
+
+public static boolean checkIfOwnsAny($username$)
+    return $\#owned[username] > 0$ 
+
+function deleteUser($username$)
+    $roles$[$username$] := :bot
+    $passwords$[$username$] := :bot
+    $owned$[$username$] := :bot
+    $sessions$[$username$] := :bot
+
+function expireSession($sessionID$, $username$):
+    if $sessions$[$username$] = $sessionID$:
+        $sessions$[$username$] := :bot

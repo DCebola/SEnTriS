@@ -10,7 +10,7 @@ function createSession($username$, $password$):
 
 function saveUser($username$, $password$):
     $lockID$ := $locksClient$.acquireUserLock($username$)
-    if $storageEngine$.getUser(username) :neq :bot:
+    if $storageEngine$.userExists($username$) = false:
         $lockID$ := $locksClient$.releaseUserLock($username$)
         return :bot
     $hash$ := hash($password$) // Generates a hash using a one-way key derivation function, and a randomly generated salt
