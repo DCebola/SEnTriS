@@ -17,7 +17,7 @@ public interface TriplestoresAPI {
     @Path("")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(TEXT_PLAIN)
-    Response createTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response createTriplestoreAccessList(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                            @MultipartForm TriplestoreForm form);
 
     @GET
@@ -48,7 +48,7 @@ public interface TriplestoresAPI {
     @DELETE
     @Path("/{triplestoreID}")
     @Produces(TEXT_PLAIN)
-    Response deleteTriplestoreAccessPolicy(@CookieParam(COOKIE_PARAM) Cookie cookie,
+    Response deleteTriplestoreAccessList(@CookieParam(COOKIE_PARAM) Cookie cookie,
                                            @PathParam("triplestoreID") String triplestoreID,
                                            @HeaderParam(AUTHORIZATION) List<String> authorizationHeaders);
 

@@ -202,7 +202,7 @@ public class IAMStorage {
         }
     }
 
-    public static boolean triplestoreAccessPolicyExists(String triplestoreID) {
+    public static boolean triplestoreAccessListExists(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             Response<Boolean> r1 = p.exists(String.format(TRIPLESTORE_OWNER, triplestoreID));
@@ -213,7 +213,7 @@ public class IAMStorage {
         }
     }
 
-    public static void saveTriplestoreAccessPolicy(String triplestoreID, String owner, Set<String> read, Set<String> write) {
+    public static void saveTriplestoreAccessList(String triplestoreID, String owner, Set<String> read, Set<String> write) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             t.sadd(String.format(USER_OWNED_TRIPLESTORES, owner), triplestoreID);
@@ -238,7 +238,7 @@ public class IAMStorage {
         }
     }
 
-    public static void deleteTriplestoreAccessPolicy(String triplestoreID) {
+    public static void deleteTriplestoreAccessList(String owner, String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             List<String> pendingRequests = jedis.lrange(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID), 0, -1);
             Transaction t = jedis.multi();
@@ -246,6 +246,7 @@ public class IAMStorage {
             t.del(String.format(TRIPLESTORE_READ_ACCESS, triplestoreID));
             t.del(String.format(TRIPLESTORE_WRITE_ACCESS, triplestoreID));
             t.del(String.format(TRIPLESTORE_PENDING_ACCESS_REQUESTS, triplestoreID));
+            t.srem(String.format(USER_OWNED_TRIPLESTORES, owner), triplestoreID);
             for (String requestID : pendingRequests)
                 t.del(String.format(PENDING_ACCESS_REQUEST, requestID));
             t.exec();

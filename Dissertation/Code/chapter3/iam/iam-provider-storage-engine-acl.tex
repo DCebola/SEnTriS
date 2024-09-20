@@ -1,0 +1,90 @@
+State:
+    $locksClient$ := createLocksClient()
+    $SESSION\_LIFETIME$ := fetchConfig($SESSION\_LIFETIME$)
+    $ACCESS\_TOKEN\_LIFETIME$ := fetchConfig($ACCESS\_TOKEN\_LIFETIME$)
+    $roles$ := {}
+    $passwords$ := {}
+    $sessions$ := {}
+    $owned$ := {}
+    $acls$ := {}
+    $pendingAccessRequests$ := {}
+    $accessTokens$ := {}
+
+function checkIfOwns($username$, $triplestoreID$):
+    return $triplestoreID \in owned[username]$
+
+function getOwner($triplestoreID$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $owner$
+
+function checkIfUserHasReadAccess($username$, $triplestoreID$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $username \in read$
+
+function checkIfUserHasWriteAccess($username$, $triplestoreID$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $username \in write$
+
+function triplestoreAccessListExists($triplestoreID$):
+    return $acls$[$triplestore$] :neq :bot
+
+function saveTriplestoreAccessList($triplestoreID$, $owner$, $read$, $write$):
+    $owned$[$owner$] := $owned$[$owner$] :U { $triplestoreID$ }
+    $acls$[$triplestore$] := ($owner$, $read$, $write$, {})
+
+function updateTriplestoreOwner($triplestoreID$, $currentOwner$, $newOwner$)
+    $owned$[$currentOwner$] := $owned$[$currentOwner$] / { $triplestoreID$ }
+    $owned$[$newOwner$] := $owned$[$currentOwner$] :U { $triplestoreID$ }
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    $acls$[$triplestore$] := ($newOwner$, $read$ / { $newOwner$ }, $write$ / { $newOwner$ }, $acrl$)
+
+function deleteTriplestoreAccessList($triplestoreID$)
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    $pendingAccessRequests$ := $pendingAccessRequests$ / $acrl$
+    $owned$[$owner$] := $owned$[$owner$] / { $triplestoreID$ }
+    $acls$[$triplestore$] := :bot
+
+function getTriplestores($username$, $write$, $read$, $owns$)
+    if $write$ = false and $read$ = false and $owns$ = false:
+        return {}
+    $res$ := $owned$[$username$]
+    if $write$ = false and $read$ = false and $owns$ = true:
+        return $res$
+    foreach $(owner, \; read, \; write, \; acrl)$ in $acls$:
+        if $write$ = true:
+            if $username \in write$:
+                $res$ := $res$ :U { $triplestoreID$ }
+        else:
+            if $username \in read$:
+                $res$ := $res$ :U { $triplestoreID$ }
+    return $res$
+
+function getUserWithReadAccess($triplestoreID$)
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $read$
+
+function getUserWithWriteAccess($triplestoreID$)
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $write$ 
+
+function saveToken($username$, $session$, $triplestoreID$):
+    $tokenID$ := generateID()
+    $accessTokens$[$tokenID$] := ($tokenID$, $username$, $sessionID$, $triplestoreID$, :bot)
+    schedule(deleteAccessToken($tokenID$, $username$, $triplestoreID$, :bot), $ACCESS\_TOKEN\_LIFETIME$)
+    return $tokenID$
+
+function addLockToToken($tokenID$, $lockID_{new}$) 
+    ($tokenID$, $username$, $sessionID$, $triplestoreID$, $lockID$) := $accessTokens$[$tokenID$]
+    $accessTokens$[$tokenID$] := ($tokenID$, $username$, $sessionID$, $triplestoreID$, $lockID_{new}$)
+
+function deleteLockFromToken($tokenID$) 
+    ($tokenID$, $username$, $sessionID$, $triplestoreID$, $lockID$) := $accessTokens$[$tokenID$]
+    $accessTokens$[$tokenID$] := ($tokenID$, $username$, $sessionID$, $triplestoreID$, :bot)
+
+function getToken($tokenID$) 
+    return $accessTokens$[$tokenID$]
+
+function deleteAccessToken($tokenID$, $username$, $triplestoreID$, $lockID$) 
+    if $lockID$ :neq :bot:
+        $locksClient$.releaseTriplestoreLock($username$, $triplestoreID$, $lockID$)
+    $accessTokens$[$tokenID$] := :bot

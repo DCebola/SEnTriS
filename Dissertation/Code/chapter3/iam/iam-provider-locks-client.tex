@@ -1,12 +1,12 @@
 State:
-    $SEPARATOR_{I}$ := fetchConfig($SEPARATOR_{I}$)
+    $SEPARATOR$ := fetchConfig($SEPARATOR$)
     $LOCK\_LIFETIME$ := fetchConfig($LOCK\_LIFETIME$)
     $LOCK\_TRIES$ := fetchConfig($LOCK\_TRIES$)
     $LOCK\_SLEEP$ := fetchConfig($LOCK\_SLEEP$)
     $locks$ := {}
 
 function acquireUserLock($username$):
-    $key$ = "UL" || $SEPARATOR_{I}$ || $username$
+    $key$ = "UL" || $SEPARATOR$ || $username$
     $lockID$ := generateID()
     $tries$ := $LOCK\_TRIES$
     while $tries > 0$:
@@ -20,13 +20,13 @@ function acquireUserLock($username$):
     throw TooManyLockRetriesException()
 
 function releaseUserLock($username$, $lockID$) 
-    $key$ = "UL" || $SEPARATOR_{I}$ || $username$
+    $key$ = "UL" || $SEPARATOR$ || $username$
     if $locks$[$key$] = $lockID$:
         $locks$[$key$] := :bot
 
 function acquireTriplestoreLock($username$, $triplestoreID$):
     $triplestoreLockKey$ := "LT" || $triplestoreID$
-    $userTriplestoreKey$ := "UTL" || $username$ || $SEPARATOR_{I}$ || $triplestoreID$ || $SEPARATOR_{I}$ || $lockID$
+    $userTriplestoreKey$ := "UTL" || $username$ || $SEPARATOR$ || $triplestoreID$ || $SEPARATOR$ || $lockID$
     $lockID$ := generateID()
     $tries$ := $LOCK\_TRIES$
     while $tries > 0$:
@@ -46,22 +46,22 @@ function checkIfTriplestoreLockExists($triplestoreID$, $lockID$)
 
 function releaseTriplestoreLock($username$, $triplestoreID$, $lockID$):
     $triplestoreLockKey$ := "LT" || $triplestoreID$
-    $userTriplestoreKey$ := "UTL" || $username$ || $SEPARATOR_{I}$ || $triplestoreID$ || $SEPARATOR_{I}$ || $lockID$
+    $userTriplestoreKey$ := "UTL" || $username$ || $SEPARATOR$ || $triplestoreID$ || $SEPARATOR$ || $lockID$
     if $locks$[$triplestoreLockKey$] = $lockID$:
         $locks$[$triplestoreLockKey$] := :bot
         $locks$[$userTriplestoreKey$] := :bot
 
 public static synchronized void deleteUserTriplestoreLock($username$, $triplestoreID$):
-    $pattern$ := "UTL" || $username$ || $SEPARATOR_{I}$ || $triplestoreID$ || $SEPARATOR_{I}$ || "*"
+    $pattern$ := "UTL" || $username$ || $SEPARATOR$ || $triplestoreID$ || $SEPARATOR$ || "*"
     deleteUserLocks($username$, $pattern$)
 
 function deleteAllUserLocks($username$):
-    $pattern$ := "UTL" || $username$ || $SEPARATOR_{I}$ || "*"
+    $pattern$ := "UTL" || $username$ || $SEPARATOR$ || "*"
     deleteUserLocks($username$, $pattern$)
 
 function deleteUserLocks($username$, $pattern$):
     $lockKeys$ := {}
     foreach $(key, \; \_)$ in $locks$:
         if patternMatch($key$, $pattern$) = true:
-            $values$ = $key$.split($SEPARATOR_{I}$)
+            $values$ = $key$.split($SEPARATOR$)
             releaseTriplestoreLock($username$, $values$[1], $values$[2])

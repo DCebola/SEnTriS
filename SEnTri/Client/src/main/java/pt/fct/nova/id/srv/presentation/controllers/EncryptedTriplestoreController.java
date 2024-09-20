@@ -68,7 +68,7 @@ public class EncryptedTriplestoreController {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         }
-        response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
+        response = deleteTriplestoreAccessList(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

@@ -63,7 +63,7 @@ public class TriplestoreController implements TriplestoreAPI {
         if (cookie == null)
             return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
-            HTTPResponse response = createTriplestoreAccessPolicy(httpClient, cookie, form.getTriplestoreID(), form.getIssuer());
+            HTTPResponse response = createTriplestoreAccessList(httpClient, cookie, form.getTriplestoreID(), form.getIssuer());
             if (response.getStatus() != OK)
                 return response.build();
             return Response.ok(SUCCESSFUL_CREATION).build();
@@ -194,7 +194,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 return response.build();
             }
             if (!schema) {
-                response = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
+                response = deleteTriplestoreAccessList(httpClient, cookie, triplestoreID, accessToken);
                 if (response.getStatus() != OK) {
                     releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -508,14 +508,14 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    public static HTTPResponse createTriplestoreAccessPolicy(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
+    public static HTTPResponse createTriplestoreAccessList(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
         try (CloseableHttpResponse response = IAMClient.createTriplestore(httpClient, cookie, triplestoreID, issuer)) {
             return new HTTPResponse(response);
         }
     }
 
 
-    public static HTTPResponse deleteTriplestoreAccessPolicy(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteTriplestoreAccessList(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
         try (CloseableHttpResponse response = IAMClient.deleteTriplestore(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }

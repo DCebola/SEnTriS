@@ -91,11 +91,11 @@ In the remainder of this section we will: 1) begin by defining the core data ele
 
 \subsection{Core elements}
 
-\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTriS} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acp$ is the triplestore's \gls{ACP}.
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTriS} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acl$ is the triplestore's \gls{ACL}.
 
 This data structure is a simplified version of the one defined in section \ref{ch2:sec:semantic-web:sparql}, where we only represent the \emph{default} graph.
 
-\paragraph{Triplestore Access Control Policy} A triplestore's \gls{ACP} $acp = (r,\; w,\; acrl)$, is a tuple where $r$ and $w$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $accessRequest = (requestID, \; username, \; write)$ is a tuple where $requestID$ is a \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
+\paragraph{Triplestore Access Control List} A triplestore's \gls{ACL} $acl = (owner, \; read,\; write,\; acrl)$, is a tuple where $owner$ is the username of the owner of the triplestore, $read$ and $write$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $accessRequest = (requestID, \; username, \; write)$ is a tuple where $requestID$ is a \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
 
 \paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED},\; \textrm{ADMIN}\}$.
 
@@ -155,7 +155,7 @@ Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query, a
 
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
 
-\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acp)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acp$ is the triplestore's \gls{ACP}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
+\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acl$ is the triplestore's \gls{ACL}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
 
 
 \paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
@@ -761,11 +761,13 @@ To fulfill such requirements, every request will have an authorization header, f
 
 Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The targeted triplestore will remain in a \emph{locked} state until its \emph{access token} is deleted or the \emph{lock} expires.
 
-The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing \ref{iam-provider-locks-client}. Listings \ref{iam-provider-permission-checks} and ... provide the logic for the emission of access tokens, triplestore locking and permission verification.
+The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing \ref{iam-provider-locks-client}. Listings \ref{iam-provider-permission-checks} and \ref{iam-provider-storage-engine-acl} provide the logic for the emission of access tokens, triplestore locking and permission verification.
 
 \lstinputlisting[caption={Locks Client}, label={iam-provider-locks-client}]{Code/chapter3/iam/iam-provider-locks-client.tex}
 
 \lstinputlisting[caption={Permission Checks}, label={iam-provider-permission-checks}]{Code/chapter3/iam/iam-provider-permission-checks.tex}
+
+\lstinputlisting[caption={ACL \& Access Tokens Data Storage}, label={iam-provider-storage-engine-acl}]{Code/chapter3/iam/iam-provider-storage-engine-acl.tex}
 
 \subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings ... and ... show the logic for triplestore access management.
 
