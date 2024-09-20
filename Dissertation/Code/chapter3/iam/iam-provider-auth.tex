@@ -9,25 +9,31 @@ function createSession($username$, $password$):
     return $cookie$
 
 function saveUser($username$, $password$):
-    $lockID$ := $locksClient$.acquireUserLock($username$)
-    if $storageEngine$.userExists($username$) = false:
-        $lockID$ := $locksClient$.releaseUserLock($username$)
+    try:
+        $lockID$ := $locksClient$.acquireUserLock($username$)
+        if $storageEngine$.userExists($username$) = false:
+            $lockID$ := $locksClient$.releaseUserLock($username$)
+            return :bot
+        $hash$ := hash($password$) // Generates a hash using a one-way key derivation function, and a randomly generated salt
+        $storageEngine$.saveUser($username$, $hash$, "BASIC")
+        $locksClient$.releaseUserLock($username$, $lockID$)
+        return "SUCCESS"
+    catch Exception:
         return :bot
-    $hash$ := hash($password$) // Generates a hash using a one-way key derivation function, and a randomly generated salt
-    $storageEngine$.saveUser($username$, $hash$, "BASIC")
-    $locksClient$.releaseUserLock($username$, $lockID$)
-    return "SUCCESS"
 
 function deleteUser($cookie$, $username$):
-    if authCheck($cookie$, $username$):
-    $lockID$ := $locksClient$.acquireUserLock($username$)
-    if $storageEngine$.checkIfOwnsAny($username$): // Triplestores owned by the user must be deleted beforehand
+    try:
+        authCheck($cookie$, $username$)
+        $lockID$ := $locksClient$.acquireUserLock($username$)
+        if $storageEngine$.checkIfOwnsAny($username$): // Triplestores owned by the user must be deleted beforehand
+            $locksClient$.releaseUserLock($username$, $lockID$)
+            return :bot
+        $storageEngine$.deleteUser($username$)
+        $locksClient$.deleteAllUserLocks($username$)
         $locksClient$.releaseUserLock($username$, $lockID$)
+        return "SUCCESS"
+    catch Exception:
         return :bot
-    $storageEngine$.deleteUser($username$)
-    $locksClient$.deleteAllUserLocks($username$)
-    $locksClient$.releaseUserLock($username$, $lockID$)
-    return "SUCCESS"
 
 function checkPassword($username$, $password$):
     $hash$ := $storageEngine$.getPassword($username$)
@@ -36,3 +42,14 @@ function checkPassword($username$, $password$):
         $hash_2$ := hash($password$, $salt$) // Generates a hash a one-way key derivation function, and the extracted salt
         return $hash_2$ = $hash$ // We will assume a secure implementation of the comparison
     return false
+
+function authCheck($cookie$, $username$):
+    if $cookie$ :neq :bot:
+        return sessionCheck($cookie$.getValue(), $username$)
+    throw AuthException()
+
+function sessionCheck($sessionID_{provided}$, $username$)
+    if $sessionID_{provided}$ :neq :bot:
+        $sessionID$ := $storageEngine$.getSession($username$)
+        if $sessionID$ :neq :bot:
+            return $sessionID_{provided}$ = $sessionID$

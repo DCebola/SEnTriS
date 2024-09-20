@@ -676,13 +676,13 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteAccessToken(cookie, \; triplestoreID, \; at)}$: takes as input a cookie, a triplestore identifier, and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully deleted, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{read} access to the specified triplestore, $\bot$ otherwise.
+        \item $\{\textrm{OK}, \bot\} \leftarrow \mathbf{checkReadAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{OK}$ if the token grants \emph{read} access to the specified triplestore, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{write} access to the specified triplestore, $\bot$ otherwise.
+        \item $\{\textrm{OK}, \bot\} \leftarrow \mathbf{checkWriteAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{OK}$ if the token grants \emph{write} access to the specified triplestore, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
+        \item $\{\textrm{OK}, \bot\} \leftarrow \mathbf{checkOwnerAccess(triplestoreID, \; at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{OK}$ if the token grants \emph{owner} access to the specified triplestore, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the token is active (the associated session or the token has not expired), $\bot$ otherwise.
+        \item $\{\textrm{OK}, \bot\} \leftarrow \mathbf{checkIfActive(at)}$: takes as input a triplestore identifier and an access token. Outputs $\textrm{OK}$ if the token is active (the associated session or the token has not expired), $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{acquireTriplestoreLock(cookie, \; at)}$: takes as input a cookie and an access token. Outputs $\textrm{SUCCESS}$ if the token is successfully associated with a newly generated lock against the triplestore affected by the token, $\bot$ otherwise.
 
@@ -757,15 +757,19 @@ Concurrent operations can target users or triplestores. The correctness of concu
 
 Operations against triplestores are more complex. The query evaluation pipeline is distributed between different components. As such, whenever the execution context changes we must verify if the author of the request has sufficient permissions to execute the operations being requested.
 
-To fulfill such requirements, every request contains an \emph{access token}. Permission checks are executed, by sending this token to a verifier component, in the case of \gls{SEnTriS} it will be the \gls{IAM} provider. The \gls{IAM} provider verifies the validity of the token, and if its associated permissions are correct.
+To fulfill such requirements, every request will have an authorization header, following the bearer authentication scheme, containing an \emph{access token}. Permission checks are executed, by issuing a verification request, with the token, to a verifier component. In the case of \gls{SEnTriS} it will be the \gls{IAM} provider. The \gls{IAM} provider extracts the token from the authorization header, verifies the validity of the token, and if its associated permissions are correct.
 
 Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The targeted triplestore will remain in a \emph{locked} state until its \emph{access token} is deleted or the \emph{lock} expires.
 
-The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing ... . Listings ... and ... provide the logic for the emission of access tokens, triplestore locking and permission verification.
+The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing \ref{iam-provider-locks-client}. Listings \ref{iam-provider-permission-checks} and ... provide the logic for the emission of access tokens, triplestore locking and permission verification.
+
+\lstinputlisting[caption={Locks Client}, label={iam-provider-locks-client}]{Code/chapter3/iam/iam-provider-locks-client.tex}
+
+\lstinputlisting[caption={Permission Checks}, label={iam-provider-permission-checks}]{Code/chapter3/iam/iam-provider-permission-checks.tex}
+
+\subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings ... and ... show the logic for triplestore access management.
 
 \subsubsection{Management of Roles} To manage their roles, users can issue role upgrade and downgrade requests via the client. This will trigger the issuing of a role change request, which can either be processed manually, by an admin user, or automatically in case of a downgrade request. Listings ... and ... specify this logic.
-
-\subsubsection{Sharing Triplestores} Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings ... and ... show the logic for triplestore access management.
 
 \subsection{Definition of SEnTriS}
 \label{ch3:sec:solution-definition:formal-definition}
@@ -867,7 +871,7 @@ In conformity with the assumptions explained in ..., and based on its definition
     \item An attacker will not be able to tamper with messages sent between components.
 \end{enumerate}
 
-In conformity with the lack of data confidentiality, present in \gls{SEnTriS}-V0, the following security properties are exclusive for the other two implementations:
+Due to the lack of data confidentiality in \gls{SEnTriS}-V0, the following security properties are exclusive to the other two implementations:
 \begin{enumerate}
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
@@ -887,7 +891,7 @@ All implementations come with a trade-off between data confidentiality, query ev
 
 \gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
 
-In \gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage, but this comes at the cost of an extra round of communication where we have to reverse the masking applied to the \emph{equality tags} and need to fetch the values being referenced from these. Only after this step, can we decrypt the actual query results.
+In \gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage. This is achieved at the cost of: 1) an increase in complexity, during set operations between binding tables: 2) an extra communication round during query evaluation, where we have to reverse the masking applied to the \emph{equality tags} and need to fetch, and decrypt, the node values to generate the final results.
 
 \subsection{Leakage Analysis}
 \subsubsection{SEnTriS V1}
