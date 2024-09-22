@@ -119,7 +119,6 @@ function releaseTriplestoreLock($cookie$, $triplestoreID$, $headers$)
         return :bot
 
 function fetchAccessToken($headers$):
-    $token$ := fetchToken($headers$)
     $tokenID$ := extractAccessToken($headers$) // Extracts the value of the access token from the headers
     if $tokenID$ = :bot
         throw TokenException

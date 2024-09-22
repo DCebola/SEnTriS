@@ -777,7 +777,11 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 
 \lstinputlisting[caption={Storage of Access Requests}, label={iam-provider-storage-engine-access}]{Code/chapter3/iam/iam-provider-storage-engine-access.tex}
 
-\subsubsection{Secrets sharing} In \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Permission to modify a triplestore's secrets will only be granted to its owner. Revoking access to a triplestore, will also revoke access to its secrets. Listings ... and ... show, respectively, the updated client component and the vault component logic.
+\subsubsection{Secrets sharing} In \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Permission to modify a triplestore's secrets will only be granted to its owner. Revoking access to a triplestore, will also revoke access to its secrets. Listings \ref{iam-client-acl-secrets} and \ref{iam-vault} show, respectively, the updated client component and the vault component logic.
+
+\lstinputlisting[caption={Access Management in Client (SEnTriS V1 \& V2)}, label={iam-client-acl-secrets}]{Code/chapter3/iam/iam-client-acl-secrets.tex}
+
+\lstinputlisting[caption={Secret Management in Vault}, label={iam-vault}]{Code/chapter3/iam/iam-vault.tex}
 
 \subsubsection{Management of Roles} To manage their roles, users can issue role upgrade and downgrade requests via the client. This will trigger the issuing of a role change request, which can either be processed manually, by an admin user, or automatically in case of a downgrade request. Listings ... and ... specify this logic.
 

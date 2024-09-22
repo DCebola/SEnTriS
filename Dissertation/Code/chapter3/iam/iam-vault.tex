@@ -1,0 +1,26 @@
+State:
+    $secrets$ := {}
+
+function saveSecrets($triplestoreID$, $secrets$, $accessToken$):
+    $tokenID$ := extractAccessToken($headers$)
+    if $tokenID$ = :bot or IAM_Provider.checkOwnerAccess($triplestoreID$, $accessToken$) = false:
+        return :bot
+    if $secrets$[$triplestoreID$] :neq :bot:
+        return :bot
+    $secrets$[$triplestoreID$] := $secrets$
+    return "SUCCESS"
+
+function getSecrets($triplestoreID$, $accessToken$):
+    $tokenID$ := extractAccessToken($headers$)
+    if $tokenID$ = :bot or IAM_Provider.checkReadAccess($triplestoreID$, $accessToken$) = false:
+        return :bot
+    return $secrets$[$triplestoreID$]
+
+function deleteSecrets($triplestoreID$, $accessToken$):
+    $tokenID$ := extractAccessToken($headers$)
+    if $tokenID$ = :bot or IAM_Provider.checkOwnerAccess($triplestoreID$, $accessToken$) = false:
+        return :bot
+    if $secrets$[$triplestoreID$] = :bot:
+        return :bot
+    $secrets$[$triplestoreID$] := :bot
+    return "SUCCESS"

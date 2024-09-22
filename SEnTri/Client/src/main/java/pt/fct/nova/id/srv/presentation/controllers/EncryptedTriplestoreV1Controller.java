@@ -61,7 +61,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
-            HTTPResponse response = createTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, issuer);
+            HTTPResponse response = createTriplestoreAccessList(httpClient, cookie, triplestoreID, issuer);
             if (response.getStatus() != OK)
                 return response.build();
 
@@ -77,15 +77,13 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             }
             response = saveSecrets(httpClient, triplestoreID, generateSecretsMap(new EncryptionSchemeV1()), accessToken);
             if (response.getStatus() != OK) {
-                HTTPResponse response2 = deleteTriplestoreAccessPolicy(httpClient, cookie, triplestoreID, accessToken);
-                if (response2.getStatus() != OK)
+                HTTPResponse response2 = deleteTriplestoreAccessList(httpClient, cookie, triplestoreID, accessToken);
+                if (response2.getStatus() != OK) {
+                    deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response2.build();
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
-                deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+                }
                 return response.build();
             }
-
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return Response.ok(SUCCESSFUL_CREATION).build();
         } catch (Exception e) {
@@ -115,9 +113,8 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
-            if (form.getContent() == null) {
+            if (form.getContent() == null)
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
-            }
             Set<Triple> triples = parseTriples(form.getContent(), parseRDFLanguage(form.getSyntax()));
             if (triples.isEmpty())
                 return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
@@ -133,7 +130,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             response = getSecrets(httpClient, triplestoreID, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
             Map<String, String> secrets = ParsingUtils.parseSecretsMap(response.getBody());
@@ -179,7 +175,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
             byte[] encryptedFrequency = ParsingUtils.parseListOfBytes(response.getBody()).get(rndIndex);
@@ -201,7 +196,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                     response = deleteSomeContents(httpClient, protocolVersion, triplestoreID, batch, accessToken);
                     if (response.getStatus() != OK) {
                         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                        releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                         return response.build();
                     }
                     deletions.add(response.getBody());
@@ -221,7 +215,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, deletions, uploads, accessToken);
         } catch (Exception e) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             throw new RuntimeException(e);
         }
     }
@@ -233,7 +226,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
         response = upload(httpClient, protocolVersion, triplestoreID, protocol.getEncryptedNodes(), accessToken);
         if (response != null) {
             if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             } else
                 uploads.add(response.getBody());
@@ -463,23 +455,19 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
                 if (response != null && response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
                 if (keywordsFrequency.containsValue(0)) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     return Response.ok(NO_UPDATES).build();
                 }
                 response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency, accessToken);
                 if (response != null && response.getStatus() != OK) {
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
                 response = query(httpClient, protocolVersion, protocol.getRNDKey().getEncoded(), plan, accessToken);
                 if (response.getStatus() != OK) {
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
@@ -491,7 +479,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 if (sparqlResult.isSliced())
                     bindings = sliceResults(sparqlResult.getOffset(), sparqlResult.getLength(), bindings);
                 if (bindings.isEmpty()) {
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return Response.ok(NO_UPDATES).build();
                 }
@@ -525,7 +512,6 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             System.out.println("Uploads IDs: " + Arrays.toString(uploads.toArray()));
             return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, deletions, uploads, accessToken);
         } catch (Exception e) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             throw new RuntimeException(e);
         }
@@ -562,10 +548,9 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             default -> throw new IllegalStateException("Unexpected value: " + opType);
         }
         if (response != null) {
-            if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            if (response.getStatus() != OK)
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            } else
+            else
                 collector.add(response.getBody());
         }
         return response;

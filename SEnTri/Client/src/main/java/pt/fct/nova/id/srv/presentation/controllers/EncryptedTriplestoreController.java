@@ -51,26 +51,23 @@ public class EncryptedTriplestoreController {
         if (response.getStatus() != OK)
             return response;
         String accessToken = response.getBody();
-
         response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response;
         }
-
         response = deleteAllContents(httpClient, protocolVersion, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response;
         }
         response = deleteSecrets(httpClient, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
+            return response;
         }
         response = deleteTriplestoreAccessList(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response;
         }
@@ -142,7 +139,6 @@ public class EncryptedTriplestoreController {
     public Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID,
                                       List<String> deletions, List<String> uploads, String accessToken) throws IOException {
         HTTPResponse response = execTriplestoreUpdate(httpClient, protocolVersion, triplestoreID, deletions, uploads, accessToken);
-        releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK)
             return response.build();

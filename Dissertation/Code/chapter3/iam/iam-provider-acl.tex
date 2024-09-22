@@ -58,7 +58,6 @@ function listUsersWithAccess($cookie$, $triplestoreID$, $write$, $headers$):
     catch Exception: 
        return :bot
 
-
 function changeTriplestoreOwner($cookie$, $triplestoreID$, $target$, $headers$):
     try:
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
@@ -107,7 +106,6 @@ function deleteTriplestoreAccessList($cookie$, $triplestoreID$, $headers$):
         return "OK"
     catch Exception: 
        return :bot
-
 
 function grantAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
     try:

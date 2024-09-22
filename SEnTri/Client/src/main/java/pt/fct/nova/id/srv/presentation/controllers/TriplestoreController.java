@@ -131,7 +131,6 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
 
-
     @Override
     public Response upload(Cookie cookie, boolean schema, UploadForm form) {
         if (cookie == null)
@@ -189,21 +188,17 @@ public class TriplestoreController implements TriplestoreAPI {
 
             response = deleteTriplestoreContents(httpClient, triplestoreID, schema, accessToken);
             if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
             if (!schema) {
                 response = deleteTriplestoreAccessList(httpClient, cookie, triplestoreID, accessToken);
                 if (response.getStatus() != OK) {
-                    releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
                 }
-            } else {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
+            } else
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
-            }
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
@@ -280,7 +275,6 @@ public class TriplestoreController implements TriplestoreAPI {
         if (queryType == MODIFY || queryType == DELETE_WHERE) {
             response = query(httpClient, triplestoreID, plan, accessToken);
             if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
@@ -301,7 +295,6 @@ public class TriplestoreController implements TriplestoreAPI {
         if (!triplesToDelete.isEmpty()) {
             response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
             if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
@@ -309,12 +302,10 @@ public class TriplestoreController implements TriplestoreAPI {
         if (!triplesToUpload.isEmpty()) {
             response = upload(httpClient, triplestoreID, triplesToUpload, false, accessToken);
             if (response.getStatus() != OK) {
-                releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
         }
-        releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
         return Response.ok(SUCCESSFUL_UPDATE).build();
     }
@@ -385,7 +376,6 @@ public class TriplestoreController implements TriplestoreAPI {
             }
 
             response = updateTriplestoreOwner(httpClient, cookie, triplestoreID, target, accessToken);
-            releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (IOException e) {
@@ -455,9 +445,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-
             response = grantAccess(httpClient, cookie, triplestoreID, target, write, accessToken);
-            releaseTriplestoreLock(httpClient, cookie, issuer, triplestoreID);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
@@ -480,9 +468,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-
             response = revokeAccess(httpClient, cookie, triplestoreID, target, write, accessToken);
-            releaseTriplestoreLock(httpClient, cookie, issuer, triplestoreID);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
@@ -499,7 +485,6 @@ public class TriplestoreController implements TriplestoreAPI {
             if (response.getStatus() != OK)
                 return response.build();
             String accessToken = response.getBody();
-
             response = listUsersWithAccess(httpClient, cookie, triplestoreID, write, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
