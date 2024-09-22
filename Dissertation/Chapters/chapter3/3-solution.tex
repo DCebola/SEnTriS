@@ -769,13 +769,15 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 
 \lstinputlisting[caption={ACL \& Access Tokens Data Storage}, label={iam-provider-storage-engine-acl}]{Code/chapter3/iam/iam-provider-storage-engine-acl.tex}
 
-\subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings \ref{iam-client-acl}, \ref{iam-provider-acl} and \ref{iam-provider-storage-engine-access} show the logic for triplestore access management.
+\subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. Listings \ref{iam-client-acl}, \ref{iam-provider-acl} and \ref{iam-provider-storage-engine-access} show the logic for triplestore access management.
 
 \lstinputlisting[caption={Access Management in Client}, label={iam-client-acl}]{Code/chapter3/iam/iam-client-acl.tex}
 
 \lstinputlisting[caption={Access Management in IAM Provider}, label={iam-provider-acl}]{Code/chapter3/iam/iam-provider-acl.tex}
 
 \lstinputlisting[caption={Storage of Access Requests}, label={iam-provider-storage-engine-access}]{Code/chapter3/iam/iam-provider-storage-engine-access.tex}
+
+\subsubsection{Secrets sharing} In \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Permission to modify a triplestore's secrets will only be granted to its owner. Revoking access to a triplestore, will also revoke access to its secrets. Listings ... and ... show, respectively, the updated client component and the vault component logic.
 
 \subsubsection{Management of Roles} To manage their roles, users can issue role upgrade and downgrade requests via the client. This will trigger the issuing of a role change request, which can either be processed manually, by an admin user, or automatically in case of a downgrade request. Listings ... and ... specify this logic.
 
