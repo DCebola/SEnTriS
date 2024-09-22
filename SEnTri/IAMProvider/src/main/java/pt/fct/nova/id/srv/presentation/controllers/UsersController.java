@@ -83,7 +83,6 @@ public class UsersController implements UsersAPI {
     @Override
     public Response deleteUser(Cookie cookie, String username) {
         try {
-            //TODO: Admin should be able to delete user. Verify that is admin or username==target
             Utils.authCheck(cookie, username);
             String lockID = LocksClient.acquireUserLock(username);
             if (IAMStorage.checkIfOwnsAny(username)) {
@@ -205,7 +204,6 @@ public class UsersController implements UsersAPI {
         try {
             Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
         } catch (SessionException e) {
-            IAMStorage.deleteAccessToken(tokenID, token);
             return handleSessionException(e);
         }
         return Response.ok(ACCESS_ALLOWED).build();
