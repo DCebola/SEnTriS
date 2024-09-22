@@ -8,10 +8,7 @@ function createAccessToken($cookie$, $triplestoreID$, $target$):
         if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
             return :bot
         $role$ := $storageEngine$.getRole($target$)
-        if $role$ :neq "ADMIN" and
-           $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$) = false and
-           $storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = false and
-           $storageEngine$.checkIfOwns($target$, $triplestoreID$) = false:
+        if $role$ :neq "ADMIN" and $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$) = false and $storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = false and $storageEngine$.checkIfOwns($target$, $triplestoreID$) = false:
             return :bot
         return $storageEngine$.saveToken($target$, $cookie$.getValue(), $triplestoreID$)
     catch Exception:
@@ -46,15 +43,11 @@ function checkReadAccess($triplestoreID$, $headers$):
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
-        if $storageEngine$.checkIfUserHasReadAccess($username$, $triplestoreID$) = false and
-           $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and
-           $storageEngine$.checkIfOwns($username$, $triplestoreID$):
-            $storageEngine$.deleteAccessToken($tokenID$, $lockID$, $username$, $triplestoreID_{token}$)
+        if $storageEngine$.checkIfUserHasReadAccess($username$, $triplestoreID$) = false and $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and $storageEngine$.checkIfOwns($username$, $triplestoreID$):
             return :bot
         return "OK"
     catch Exception: 
         return :bot
-
 
 function checkWriteAccess($triplestoreID$, $headers$) 
     try: 
@@ -64,10 +57,9 @@ function checkWriteAccess($triplestoreID$, $headers$)
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
-        if $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and 
-           $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false:
+        if $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false:
             return :bot
         return "OK"
     catch Exception: 
@@ -100,9 +92,7 @@ function acquireTriplestoreLock($cookie$, $triplestoreID$, $headers$)
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
         $role$ := $storageEngine$.getRole($username$)
-        if $role$ :neq "ADMIN" and
-           $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and
-           $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false:
+        if $role$ :neq "ADMIN" and $storageEngine$.checkIfUserHasWriteAccess($username$, $triplestoreID$) = false and $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false:
             return :bot
         $lockID$ := $locksClient$.acquireTriplestoreLock($username$, $triplestoreID$)
         $storageEngine$.addLockToToken($tokenID$, $lockID$)

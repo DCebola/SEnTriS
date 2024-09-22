@@ -51,7 +51,7 @@ function releaseTriplestoreLock($username$, $triplestoreID$, $lockID$):
         $locks$[$triplestoreLockKey$] := :bot
         $locks$[$userTriplestoreKey$] := :bot
 
-public static synchronized void deleteUserTriplestoreLock($username$, $triplestoreID$):
+function deleteUserTriplestoreLock($username$, $triplestoreID$):
     $pattern$ := "UTL" || $username$ || $SEPARATOR$ || $triplestoreID$ || $SEPARATOR$ || "*"
     deleteUserLocks($username$, $pattern$)
 

@@ -1,0 +1,90 @@
+function createTriplestore($cookie$, $triplestoreID$, $issuer$):
+    if $cookie$ = :bot
+        return :bot
+    return IAM_Provider.createTriplestoreAccessList($cookie$, $triplestoreID$, $issuer$)
+
+function listTriplestores($cookie$, $issuer$, $write$, $read$, $owns$):
+    if $cookie$ = :bot
+        return :bot
+    return IAM_Provider.listTriplestores($cookie$, $issuer$, $write$, $read$, $owns$)
+
+function updateTriplestoreOwner($cookie$, $triplestoreID$, $issuer$, $target$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ := IAM_Provider.acquireTriplestoreLock($cookie$, $triplestoreID$, $accessToken$)
+    if $response$ = :bot: 
+        IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+        return :bot
+    $response$ := IAM_Provider.updateTriplestoreOwner($cookie$, $triplestoreID$, $target$, $accessToken$)
+    IAM_Provider.releaseTriplestoreLock($cookie$, $triplestoreID$, $accessToken$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+
+function issueAccessRequest($cookie$, $triplestoreID$, $issuer$, $write$):
+    if $cookie$ = :bot
+        return :bot
+    return IAM_Provider.requestAccess($cookie$, $triplestoreID$, $issuer$, $write$)
+
+function listPendingAccessRequests($cookie$, $triplestoreID$, $issuer$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ := IAM_Provider.listPendingAccessRequests($cookie$, $triplestoreID$, $accessToken$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+
+function processPendingAccessRequest($cookie$, $triplestoreID$, $issuer$, $requestID$, $accept$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ := IAM_Provider.processAccessRequest($cookie$, $triplestoreID$, $requestID$, $accept$, $accessToken$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+
+function grantAccess($cookie$, $triplestoreID$, $issuer$, $target$, $write$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ := IAM_Provider.acquireTriplestoreLock($cookie$, $triplestoreID$, $accessToken$)
+    if $response$ = :bot: 
+        IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+        return :bot
+    $response$ := IAM_Provider.grantAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
+    IAM_Provider.releaseTriplestoreLock($cookie$, $issuer$, $triplestoreID$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+
+function revokeAccess($cookie$, $triplestoreID$, $issuer$, $target$, $write$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ = acquireTriplestoreLock($cookie$, $triplestoreID$, $accessToken$)
+    if $response$ = :bot: 
+        IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+        return :bot
+    $response$ := IAM_Provider.revokeAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
+    IAM_Provider.releaseTriplestoreLock($cookie$, $issuer$, $triplestoreID$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+
+function listUsersWithAccess($cookie$, $triplestoreID$, $issuer$, $write$):
+    if $cookie$ = :bot
+        return :bot
+    $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
+    if $accessToken$ = :bot:
+        return :bot
+    $response$ := IAM_Provider.listUsersWithAccess($cookie$, $triplestoreID$, $write$, $accessToken$)
+    IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
+    return $response$
+    

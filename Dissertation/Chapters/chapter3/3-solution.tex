@@ -652,7 +652,7 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{processRoleRequest(cookie, \; username, \; target, \; requestID,}$ \linebreak $\mathbf{decision)}$: takes as input a cookie, the username of the processing request's issuer, the username of the role change target, the request identifier and the issuer's decision. Outputs $\textrm{SUCCESS}$ if the role changing request is successfully processed, according to the provided decision, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessPolicy(cookie, \; issuer, \; triplestoreID)}$: \linebreak takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is sucessfully generated, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestoreAccessList(cookie, \; issuer, \; triplestoreID)}$: \linebreak takes as input a cookie, the username of the request's issuer and a triplestore identifier. Outputs $\textrm{SUCCESS}$ if the triplestore access policy is successfully generated, $\bot$ otherwise.
 
         \item $[triplestoreID_0, ..., triplestoreID_n]  \leftarrow \mathbf{getTriplestores(cookie, \; issuer, \; owns, \; read,}$\linebreak$\mathbf{write)}$: takes as input a cookie, the username of the request's issuer and three boolean filter parameters. Outputs a collection of triplestore identifiers: if $owns$ is \emph{true}, returns identifiers of \emph{owned} triplestores; if $read$ is \emph{true}, returns identifiers of triplestores that the user has \emph{read} access; if $write$ is \emph{true}, returns identifiers of triplestores that the user has \emph{write} access;
 
@@ -660,7 +660,7 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{changeTriplestoreOwner(cookie, \; triplestoreID, \; target, \; at)}$: \linebreak takes as input a cookie, a triplestore identifier, a username and an access token. Outputs $\textrm{SUCCESS}$ if the ownership of the specified triplestore is successfully transfered to the $target$ user, $\bot$ otherwise.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessPolicy(cookie, \; triplestoreID, \; at)}$: takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestoreAccessList(cookie, \; triplestoreID, \; at)}$: takes as input a cookie a triplestore identifier and an access token. Outputs $\textrm{SUCCESS}$ if the specified triplestore access policy is successfully deleted, $\bot$ otherwise.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{grantTriplestoreAccess(cookie, \; triplestoreID, \; target,\; write, \; at)}$: takes as input a cookie, a triplestore identifier, a username, a boolean parameter and an access token. Outputs $\textrm{SUCCESS}$ if the $target$ user is successfully granted \emph{read}, or \emph{write} (if $write$ parameter is \emph{true}), access against the specified triplestore, $\bot$ otherwise.
 
@@ -720,9 +720,9 @@ Authentication will be validated with \emph{sessions}, management of access to t
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{listUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$: takes as input a cookie, a triplestore identifier, the request issuer username and a boolean parameter specifying the type of access. Tries to create an access token. Issues a IAM.$getUsersWithAccess$ request and outputs the retrieved response.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$: takes as input a cookie and a new triplestore identifier. Issues a IAM.$createTriplestoreAccessPolicy$ request and outputs the retrieved response. In case of SUCCESS, in \gls{SEnTriS} V1 and V2, will also try to create an access token and lock the newly created triplestore. After the setup of the encryption scheme, will try to save the generated secrets by issuing a IAM.$saveSecrets$ request. In case of error, deletes the newly generated triplestore and outputs $\bot$. Outputs SUCCESS if the triplestore \gls{ACL} is successfully created and the secrets saved correctly.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$: takes as input a cookie and a new triplestore identifier. Issues a IAM.$createTriplestoreAccessList$ request and outputs the retrieved response. In case of SUCCESS, in \gls{SEnTriS} V1 and V2, will also try to create an access token and lock the newly created triplestore. After the setup of the encryption scheme, will try to save the generated secrets by issuing a IAM.$saveSecrets$ request. In case of error, deletes the newly generated triplestore and outputs $\bot$. Outputs SUCCESS if the triplestore \gls{ACL} is successfully created and the secrets saved correctly.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID)}$: takes as input a cookie, a username and a triplestore identifier. Tries to create an access token and lock the triplestore. Issues a IAM.$deleteTriplestoreAccessPolicy$ request and outputs the retrieved response. In case of \gls{SEnTriS} V1 and V2, it issues a IAM.$deleteSecrets$ request beforehand, and only continues the execution upon receiving a SUCCESS response. Outputs $\bot$ in case there is any error, and SUCCESS otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID)}$: takes as input a cookie, a username and a triplestore identifier. Tries to create an access token and lock the triplestore. Issues a IAM.$deleteTriplestoreAccessList$ request and outputs the retrieved response. In case of \gls{SEnTriS} V1 and V2, it issues a IAM.$deleteSecrets$ request beforehand, and only continues the execution upon receiving a SUCCESS response. Outputs $\bot$ in case there is any error, and SUCCESS otherwise.
         
         %Vault Operations
 
@@ -761,7 +761,7 @@ To fulfill such requirements, every request will have an authorization header, f
 
 Queries that contain write predicates, will require that their target remains \emph{locked}, during their evaluation. As such, an \emph{access token} can be associated with a \emph{lock}. The targeted triplestore will remain in a \emph{locked} state until its \emph{access token} is deleted or the \emph{lock} expires.
 
-The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing \ref{iam-provider-locks-client}. Listings \ref{iam-provider-permission-checks} and \ref{iam-provider-storage-engine-acl} provide the logic for the emission of access tokens, triplestore locking and permission verification.
+The emission of locks and ephemeral access tokens is also scoped to the IAM provider. The creation and management of locks is scoped to a \emph{locks client}. This abstraction functions like an atomic storage engine as shown in Listing \ref{iam-provider-locks-client}. Listing \ref{iam-provider-permission-checks} provides the logic for the emission of access tokens, triplestore locking and permission verification. Finally, Listing \ref{iam-provider-storage-engine-acl} shows the underlying storage engine for storing and modifying \gls{ACL}s and access tokens.
 
 \lstinputlisting[caption={Locks Client}, label={iam-provider-locks-client}]{Code/chapter3/iam/iam-provider-locks-client.tex}
 
@@ -769,7 +769,13 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 
 \lstinputlisting[caption={ACL \& Access Tokens Data Storage}, label={iam-provider-storage-engine-acl}]{Code/chapter3/iam/iam-provider-storage-engine-acl.tex}
 
-\subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings ... and ... show the logic for triplestore access management.
+\subsubsection{Creation and Sharing of Triplestores} Any privileged user can create new triplestores. Access to triplestores can either be given, requested or revoked. An access request will have to be processed manually by an admin user or the triplestore owner. In the case of \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Nonetheless, permission to modify a triplestore's secrets will only be granted to its owner. Listings \ref{iam-client-acl}, \ref{iam-provider-acl} and \ref{iam-provider-storage-engine-access} show the logic for triplestore access management.
+
+\lstinputlisting[caption={Access Management in Client}, label={iam-client-acl}]{Code/chapter3/iam/iam-client-acl.tex}
+
+\lstinputlisting[caption={Access Management in IAM Provider}, label={iam-provider-acl}]{Code/chapter3/iam/iam-provider-acl.tex}
+
+\lstinputlisting[caption={Storage of Access Requests}, label={iam-provider-storage-engine-access}]{Code/chapter3/iam/iam-provider-storage-engine-access.tex}
 
 \subsubsection{Management of Roles} To manage their roles, users can issue role upgrade and downgrade requests via the client. This will trigger the issuing of a role change request, which can either be processed manually, by an admin user, or automatically in case of a downgrade request. Listings ... and ... specify this logic.
 

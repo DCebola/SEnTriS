@@ -1,0 +1,220 @@
+State:
+    $storageEngine$ := createStorageEngine()
+    $locksClient$ := createLocksClient()
+
+function createTriplestoreAccessList($cookie$, $issuer$, $triplestoreID$):
+    try:
+        authCheck($cookie$, $issuer$)
+        $role$ := $storageEngine$.getRole($issuer$)
+        if $role$ = "BASIC":
+            return :bot
+        $lockID$ := $locksClient$.acquireTriplestoreLock($issuer$, $triplestoreID$)
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = true:
+            $locksClient$.releaseTriplestoreLock($issuer$, $triplestoreID$, $lockID$)
+            return :bot
+        $storageEngine$.saveTriplestoreAccessList($triplestoreID$, $issuer$, {}, {})
+        $locksClient$.releaseTriplestoreLock($issuer$, $triplestoreID$, $lockID$)
+        return "SUCCESS"
+    catch Exception: 
+        return :bot
+
+function listTriplestores($cookie$, $issuer$, $write$, $read$, $owns$):
+    try:
+        authCheck($cookie$, $issuer$)
+        return $storageEngine$.getTriplestores($issuer$, $write$, $read$, $owns$)
+    catch Exception: 
+       return :bot
+
+function listUsersWithAccess($cookie$, $triplestoreID$, $write$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        $role$ := $storageEngine$.getRole($issuer$)
+        $isOwner$ := $storageEngine$.checkIfOwns($issuer$, $triplestoreID$)
+        if $role$ = "BASIC" or ($role$ = "PRIVILEGED" and $isOwner$ = false):
+            return :bot
+        $users_{read}$ := $storageEngine$.getUserWithReadAccess($triplestoreID$)
+        $users_{write}$ := {}
+        if $write$ = true:
+            $users_{write}$ := $storageEngine$.getUserWithWriteAccess($triplestoreID$)
+            $users_{read}$ := $users_{read}$ / $users_{write}$
+        if $isOwner$ = false:
+            return {
+                "owner": $storageEngine$.getOwner($triplestoreID$),
+                "write": $users_{write}$,
+                "read": $users_{read}$
+            }
+        return {
+            "owner": $issuer$,
+            "write": $users_{write}$,
+            "read": $users_{read}$
+        }
+    catch Exception: 
+       return :bot
+
+
+function changeTriplestoreOwner($cookie$, $triplestoreID$, $target$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        if $storageEngine$.userExists($target$) = false:
+            return :bot
+        $role_{issuer}$ := $storageEngine$.getRole($issuer$)
+        if $role_{issuer}$ = "BASIC" or ($role_{issuer}$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($target$, $triplestoreID$) = false):
+            return :bot
+        $owner$ := $storageEngine$.getOwner($triplestoreID$)
+        if $target$ = $owner$:
+            return :bot
+        $role$ := $storageEngine$.getRole($target$)
+        if $role$ = "BASIC":
+            return :bot
+        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+            return :bot
+        $storageEngine$.updateTriplestoreOwner($triplestoreID$, $owner$, $target$)
+        return "OK"
+    catch Exception: 
+       return :bot
+
+function deleteTriplestoreAccessList($cookie$, $triplestoreID$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        $role$ = $storageEngine$.getRole($username$)
+        if $role$ = "BASIC" or ($role$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false):
+            return :bot
+        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+            return :bot
+        $storageEngine$.deleteTriplestoreAccessList($owner$, $triplestoreID$)
+        $storageEngine$.deleteAccessToken($tokenID$, $lockID$, $username$, $triplestoreID_{token}$)
+        return "OK"
+    catch Exception: 
+       return :bot
+
+
+function grantAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        if $storageEngine$.userExists($target$) = false:
+            return :bot
+        $role_{issuer}$ := $storageEngine$.getRole($issuer$)
+        if $issuer$ = $target$:
+            return :bot
+        elif $role_{issuer}$ = "BASIC" or ($role_{issuer}$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($issuer$, $triplestoreID$) = false):
+            return :bot
+        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+            return :bot
+        if $storageEngine$.getRole($target$) = "ADMIN" or $storageEngine$.checkIfOwns($target$, $triplestoreID$) = true or ($storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = $write$ and $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$) = true):
+            return :bot
+        $storageEngine$.grantAccess($triplestoreID$, $target$, $write$)
+        return "OK"
+    catch Exception: 
+       return :bot
+
+function revokeAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        if $storageEngine$.userExists($target$) = false:
+            return :bot
+        $role_{issuer}$ := $storageEngine$.getRole($issuer$)
+        if $issuer$ :neq $target$:
+            if $role_{issuer}$ = "BASIC" or ($role_{issuer}$ = "PRIVILEGED" and $storageEngine$.checkIfOwns(issuer, $triplestoreID$) = false):
+                return :bot
+        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+            return :bot
+        if $storageEngine$.checkIfOwns($target$, $triplestoreID$) = true:
+            return :bot
+        $locksClient$.deleteUserTriplestoreLock($target$, $triplestoreID$)
+        if $role_{issuer}$ = "ADMIN":
+            $storageEngine$.revokeAccess($triplestoreID$, $target$, $write$)
+        return "OK"
+    catch Exception: 
+       return :bot
+
+function issueAccessRequest($cookie$, $triplestoreID$, $target$, $write$):
+    try:
+        authCheck($cookie$, $target$)
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
+            return :bot
+        $role$ := $storageEngine$.getRole($target$)
+        if $role$ = "ADMIN" or ($role$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($target$, $triplestoreID$) = true)
+            return :bot
+        if $storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = $write$ and $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$):
+            return :bot
+        $storageEngine$.saveAccessRequest($triplestoreID$, $target$, $write$)
+        return "OK"
+    catch Exception: 
+       return :bot
+    
+function getPendingAccessRequests($cookie$, $triplestoreID$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        $role$ = $storageEngine$.getRole($issuer$)
+        if $role$ = "BASIC" or ($role$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($issuer$, $triplestoreID$) = false):
+            return :bot
+        return "OK"
+    catch Exception: 
+       return :bot
+    
+function processAccessRequest($cookie$, $triplestoreID$, $requestID$, $decision$, $headers$):
+    try:
+        $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
+        authCheck($cookie$, $username$)
+        if $cookie$.getValue() :neq $sessionID$: 
+            return :bot
+        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+            return :bot
+        if $triplestore_{token}$ :neq $triplestoreID$:
+            return :bot
+        $role$ = $storageEngine$.getRole($issuer$)
+        if $role$ = "BASIC" or ($role$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($issuer$, $triplestoreID$) = false):
+            return "OK"
+        $accessRequest$ := $storageEngine$.getPendingAccessRequest($requestID$)
+        if $accessRequest$ = :bot:
+            return :bot
+        if $storageEngine$.userExists($accessRequest$.$username$) = false:
+            return :bot
+        if $decision$ = true:
+            $storageEngine$.grantAccess($triplestoreID$, $username$, $accessRequest$.$write$)
+        $storageEngine$.deleteAccessRequest($triplestoreID$, $requestID$)
+        return "OK"
+    catch Exception: 
+       return :bot

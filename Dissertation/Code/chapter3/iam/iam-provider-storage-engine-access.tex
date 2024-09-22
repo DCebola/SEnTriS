@@ -1,0 +1,43 @@
+State:
+    $locksClient$ := createLocksClient()
+    $SESSION\_LIFETIME$ := fetchConfig($SESSION\_LIFETIME$)
+    $ACCESS\_TOKEN\_LIFETIME$ := fetchConfig($ACCESS\_TOKEN\_LIFETIME$)
+    $roles$ := {}
+    $passwords$ := {}
+    $sessions$ := {}
+    $owned$ := {}
+    $acls$ := {}
+    $pendingAccessRequests$ := {}
+    $accessTokens$ := {}
+
+function revokeAccess($triplestoreID$, $username$, $write$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    if $write$ = false: 
+        $acls$[$triplestore$] := ($owner$, $read$ / { $username$ }, $write$ / { $username$ }, $acrl$)
+    else:
+        $acls$[$triplestore$] := ($owner$, $read$, $write$ / { $username$ }, $acrl$)
+
+function grantAccess($triplestoreID$, $username$, $write$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    if $write$: 
+        $acls$[$triplestore$] := ($owner$, $read$ :U { $username$ }, $write$ :U { $username$ }, $acrl$)
+    else:
+        $acls$[$triplestore$] := ($owner$, $read$ :U { $username$ }, $write$, $acrl$)   
+
+function saveAccessRequest($triplestoreID$, $username$, $write$):
+    $requestID$ := generateID()
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    $acls$[$triplestore$] := ($owner$, $read$, $write$, $acrl$ :U  { ($username$, $write$) })
+    $pendingAccessRequests$[$requestID$] := ($username$, $write$)
+
+function getPendingAccessRequest($requestID$):
+    return $pendingAccessRequests$[$requestID$]
+
+function getPendingAccessRequests($triplestoreID$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    return $acrl$
+
+function deleteAccessRequest($triplestoreID$, $requestID$):
+    $(owner, \; read, \; write, \; acrl)$ := $acls$[$triplestore$]
+    $acls$[$triplestore$] := ($owner$, $read$, $write$, $acrl$ / { ($username$, $write$) })
+    $pendingAccessRequests$[$requestID$] := :bot
