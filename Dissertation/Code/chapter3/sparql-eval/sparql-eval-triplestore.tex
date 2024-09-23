@@ -1,7 +1,7 @@
 State:
     $storageEngine$ := createStorageEngine()
     
-// {$sparqlResult$, :bot} := \textrm{SPARQL-EVAL}.evaluateQuery($triplestoreID$, $plan$):
+// {$sparqlResult$, :bot} := $\textrm{SPARQL-EVAL}$.evaluateQuery($triplestoreID$, $plan$):
 function evaluateQuery($triplestoreID$, $plan$):
     $worker$ := createQueryWorker()
     $worker$.setContext($triplestoreID$, $storageEngine$)
