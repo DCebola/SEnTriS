@@ -25,8 +25,6 @@ public interface UsersAPI {
     @Produces(TEXT_PLAIN)
     Response registerUser(@MultipartForm AuthForm credentialsForm);
 
-
-
     @DELETE
     @Path("/{username}")
     @Produces(TEXT_PLAIN)

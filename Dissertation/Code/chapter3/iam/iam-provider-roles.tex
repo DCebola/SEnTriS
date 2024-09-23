@@ -2,20 +2,6 @@ State:
     $storageEngine$ := createStorageEngine()
     $locksClient$ := createLocksClient()
 
-function checkPassword($username$, $password$):
-    $hash$ := $storageEngine$.getPassword($username$)
-    if $hash$ := :bot
-        $salt$ := extractSalt($hash$)
-        $hash_2$ := hash($password$, $salt$) // Generates a hash a one-way key derivation function, and the extracted salt
-        return $hash_2$ = $hash$ // We will assume a secure implementation of the comparison
-    return false
-
-function authCheck($cookie$, $username$):
-    if $cookie$ :neq :bot:
-        return sessionCheck($cookie$.getValue(), $username$)
-    throw AuthException()
-
-
 funciton issueGrantRoleRequest($cookie$, $username$, $issuer$, $role$) 
     try:
         authCheck($cookie$, $issuer$)
@@ -24,7 +10,7 @@ funciton issueGrantRoleRequest($cookie$, $username$, $issuer$, $role$)
         $role{issuer}$ := $storageEngine$.getRole($issuer$)
         if $storageEngine$.getRole($username$) = $role$:
             return :bot
-        if $role{issuer}$ = "BASIC" or $role{issuer}$ = "PRIVILEGED:
+        if $role{issuer}$ = "BASIC" or $role{issuer}$ = "PRIVILEGED":
             if $username$ = $issuer$:
                 $storageEngine$.saveRoleRequest($username$, $role$)
                 return "SUCCESS"

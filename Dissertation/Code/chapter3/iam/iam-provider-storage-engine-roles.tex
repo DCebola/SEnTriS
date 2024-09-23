@@ -4,32 +4,10 @@ State:
     $passwords$ := {}
     $sessions$ := {}
     $owned$ := {}
+    $roleRequests$ := {}
 
-function cacheSession($username$):
-    $sessionID$ := generateID()
-    $sessions$[$username$] := $sessionID$
-    schedule(expireSession($sessionID$, $username$), $SESSION\_LIFETIME$)
-    return createCookie($sessionID$)
-
-function getSession($username$):
-    return $sessions$[$username$]
-
-function userExists($username$):
-    return $roles$[$username$] :neq :bot and $passwords$[$username$] :neq :bot
-
-function saveUser($username$, $password$, $role$)
+function setRole($username$, $role$):
     $roles$[$username$] := $role$
-    $passwords$[$username$] := $password$
-    $owned$[$username$] := {}
-
-function getPassword($username$)
-    return $passwords$[$username$]    
-
-function getRole($username$)
-    return $roles$[$username$] 
-
-function checkIfOwnsAny($username$)
-    return $\#owned[username] > 0$ 
 
 function deleteUser($username$)
     $roles$[$username$] := :bot
@@ -40,3 +18,19 @@ function deleteUser($username$)
 function expireSession($sessionID$, $username$):
     if $sessions$[$username$] = $sessionID$:
         $sessions$[$username$] := :bot
+
+function saveRoleRequest($username$, $role$):
+    $requestID$ := generateID()
+    $roleRequests$[$requestID$] := ($username$, $role$)
+
+function getPendingRoleRequest($requestID$):
+    return $roleRequests$[$requestID$]
+
+function getPendingRoleRequests():
+    $pendingRequests$ := {}
+    foreach $(requestID, \; (username, \; role))$ in $roleRequests$:
+        $pendingRequests$ := $pendingRequests$ :U { $(requestID, \; username, \; role)$ }
+    return $pendingRequests$
+
+function deleteRoleRequest($requestID$):
+    $roleRequests$[$requestID$] := :bot

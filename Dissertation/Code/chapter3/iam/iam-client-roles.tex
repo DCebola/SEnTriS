@@ -1,0 +1,19 @@
+function issueUpgradeRequest($cookie$, $username$):
+    if $cookie$ = :bot:
+        return :bot
+    return IAM_Provider.issueGrantRoleRequest($cookie$, $username$, $username$, "PRIVILEGED") 
+    
+function issueDowngradeRequest($cookie$, $username$):
+    if $cookie$ = :bot:
+        return :bot
+    return IAM_Provider.issueGrantRoleRequest($cookie$, $username$, $username$, "BASIC") 
+    
+function listPendingRequests($cookie$, $username$) 
+    if $cookie$ = :bot:
+        return :bot
+    return IAM_Provider.listPendingRoleRequests($cookie$, $username$)
+    
+function processPendingRequest($cookie$, $username$, $requestID$, $target$, $decision$) 
+    if $cookie$ = :bot:
+        return :bot
+    return IAM_Provider.processRoleRequest($cookie$, $username$, $requestID$, $target$, $decision$)

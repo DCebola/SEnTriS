@@ -50,7 +50,7 @@ function getTriplestores($username$, $write$, $read$, $owns$)
     $res$ := $owned$[$username$]
     if $write$ = false and $read$ = false and $owns$ = true:
         return $res$
-    foreach $(owner, \; read, \; write, \; acrl)$ in $acls$:
+    foreach $(triplestoreID, \; (owner, \; read, \; write, \; acrl))$ in $acls$:
         if $write$ = true:
             if $username \in write$:
                 $res$ := $res$ :U { $triplestoreID$ }
