@@ -17,54 +17,25 @@ The current \emph{state-of-the-art} solutions solely focus on the problem of sec
 
 Considering all these limitations we developed \gls{SEnTriS}, a solution for secure and cooperative development of semantic knowledge bases.
 
+\subsection{System Model}
+\label{ch3:sec:solution-models:system-model}
+
 \gls{SEnTriS} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
 \gls{SEnTriS} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware, where storage and heavy computations are outsourced to external servers.
 
-\subsection{System Model}
-\label{ch3:sec:solution-models:system-model}
-
-\paragraph{Overview} In \gls{SEnTriS}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
+In \gls{SEnTriS}, authenticated \emph{users} are able to create \emph{encrypted triplestores}. Within a triplestore they are able to upload, modify and query semantic data. Triplestores can be shared between users with varying degrees of access.
 
 \gls{SEnTriS} follows the usual \gls{SE} schemes architecture. It is a \emph{client/server} application which outsources data storage and heavy computations to third parties. It follows the \gls{M/M} model with \emph{secrets sharing} between trusted users.
-
-\paragraph{System Architecture} \gls{SEnTriS} is a multi-party system comprised of 5 components:
-
-\begin{itemize}
-    \item \emph{Client}: a public facing component where users can authenticate themselves and create, upload, share, request or revoke access to and query triplestores.
-    \item \emph{Triplestore}: a storage component where all encrypted data is saved;
-    \item \emph{Secure Computation Proxy}: this component executes secure query plans and set operations between encrypted \emph{bindings};
-    \item \emph{\gls{IAM} Provider}: a component that handles authentication and validates access policies.
-    \item \emph{Vault}: a component to store confidential data required by the cryptographic protocols (e.g. cryptographic keys);
-\end{itemize}
-
-Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication.  Figure \mytodo{Add system architecture figure} depicts a high level architecture of the solution.
-
-\paragraph{Role-Based Access Control} In \emph{SEnTriS} roles grant different permissions to the users, which restrict the type of operations they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} and \emph{basic} user.
-
-\emph{Basic} users can only query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to existing triplestores.
-
-\emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting triplestores they own.
-
-\emph{Admin} users have all the permissions of a \emph{privileged} user but can also manage any triplestore and process role change requests.
-
-
-\paragraph{M/M setting} In \gls{SEnTriS} access to triplestores is enforced through the use of \emph{ephemeral access tokens}. These tokens are only obtainable by authenticated users that belong to the respective triplestore's read and write \gls{ACL}.
-
-These tokens ensure that the sharing of \emph{secrets}, needed for the cryptographic protocols, and that the write/read operations are only done by users that have the required permissions to do so.
-
-Correctness of concurrent write and read operations is achieved with a \emph{lock-based} approach when issuing access tokens. \emph{Read access tokens} can be issued at anytime, but only one \emph{write access token}, per triplestore, can exist at any given moment.
 
 \subsection{Security Model}
 \label{ch3:sec:solution-models:security-model}
 
-We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers and, if it has access to the external servers where the semantic data and execution logs are stored, try to infer or decrypt sensitive information.
+We will consider an \emph{honest-but-curious} adversary. This adversary will try to eavesdrop communication between servers. If it has access to the external servers where the semantic data and execution logs are stored, it will also try to infer or decrypt sensitive information. The leakage of the protocols in use will highly influence the effectiveness of the attacks.
 
-Following the architecture of \gls{SEnTriS}, this means that the \emph{Triplestore} and \emph{Proxy} components will be the targets of attacks. We will consider that the other components and communication channels are trusted, reliable and secure. We will also assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
+We will consider that communication channels are trusted, reliable and secure. Additionally, we will assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
-When targeting these components, the attackers will try to decrypt data and infer sensitive information from the leakage of the protocols in use.
-
-Additionally, we will not consider the case where attacks involve \emph{revoked users}. The role-based access controls prevent these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information. 
+Finally, we will not consider the case where attacks involve \emph{revoked users}. The role-based access controls prevent these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information. 
 
 \section{Solution Definition}
 \label{ch3:sec:solution-definition}
@@ -98,10 +69,10 @@ This data structure is a simplified version of the one defined in section \ref{c
 
 \paragraph{Triplestore Access Control List} A triplestore's \gls{ACL} $acl = (owner, \; read,\; write,\; acrl)$, is a tuple where $owner$ is the username of the owner of the triplestore, $read$ and $write$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $accessRequest = (requestID, \; username, \; write)$ is a tuple where $requestID$ is a \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
 
-\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED},\; \textrm{ADMIN}\}$.
+\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role$ is the user's role.
 
 
-\paragraph{Role Change Request} A role change request $roleRequest = (requestID, username, role)$ is a tuple where $requestID$ is a \gls{UUID} (version 4), $username$ identifies the user that this request affects and $role \in \{\textrm{BASIC}, \; \textrm{PRIVILEGED}, \textrm{ADMIN}\}$ specifies the desired new role.
+\paragraph{Role Change Request} A role change request $roleRequest = (requestID, username, role)$ is a tuple where $requestID$ is a \gls{UUID} (version 4), $username$ identifies the user that this request affects and $role$ specifies the desired new role.
 
 
 \paragraph{Sessions} A user's session $s = (sessionID,\; username)$ is a tuple, where  $sessionID$ is a \gls{UUID} (version 4), $username$ belongs to a valid registered $user$. Sessions remain active until they expire, or are terminated. The duration of a session will be configurable.
@@ -371,7 +342,7 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 %\lstinputlisting[caption={SEnTriS V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/sparql-eval/query-worker.tex}
 
-\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the $delete$ and $update$ templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
+\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the \emph{delete} and \emph{update} templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
 
 %\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-client.tex}
 
@@ -633,9 +604,20 @@ After the decryption of the results, any modifications required are executed. Li
 \label{ch3:sec:solution-definition:mm-setting}
 
 So far we have specified the building blocks for the secure evaluation of \gls{SPARQL} queries, but \gls{SEnTriS} is not uniquely a query evaluation protocol. It is also a triplestore management and sharing protocol: users can create, manage and share encrypted and non-encrypted triplestores with varying degrees of access. 
+
 To adapt the previous protocols to the \gls{M/M} setting we will require an identity and access management protocol, with secret sharing between authorized users for \gls{SEnTriS} V1 and V2.
 
-Authentication will be validated with \emph{sessions}, management of access to triplestores will be achieved with the definition of triplestore \glsxtrlong{ACL}s and strict enforcement of permissions. Finally, we will rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access is done in a controlled and safe manner.
+Authentication will be validated with \emph{sessions}, management of access to triplestores will be achieved with the definition of triplestore \glsxtrlong{ACL}s and strict enforcement of permissions. 
+Furthermore, we will rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access is done in a controlled and safe manner.
+
+Finally, roles will grant different execution rights to users, which restrict the type of operations that they can execute within the system. Users can have the \emph{ADMIN}, \emph{PRIVILEGED} and \emph{BASIC} roles. For ease of communication from now onwards, we will refer to a user with each role, respectively, as \emph{admin}, \emph{privileged} or \emph{basic} user. 
+
+\emph{Basic} users will only be able to query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to existing triplestores.
+
+\emph{Privileged} users will have all the permissions of a \emph{basic} user. Additionally, they will be able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting triplestores they own.
+
+\emph{Admin} users will possess all the permissions of a \emph{privileged} user, but they will also be able to manage any triplestore and process role change requests.
+
 
 \begin{definition}[\textbf{Identity and Access Management Protocol with Secret Sharing}]\label{ch3:definition:iam-protocol}
     Let IAM be an identity and access management protocol between authenticated users, where temporary access to triplestores is granted using ephemeral access tokens. It is a tuple of $\textrm{IAM} = (Init, \; CreateSession, \; SaveUser, \; DeleteUser, \; IssueGrantRoleRequest, \; GetPend\textrm{-}\linebreak ingRoleRequests, \; ProcessRoleRequest, \; CreateTriplestoreAccessList, \; GetTriplestores, \linebreak GetUsersWithAccess, \; ChangeTriplestoreOwner, \; DeleteTriplestoreAccessList, \; Grant\textrm{-}\linebreak TriplestoreAccess, \; RevokeTriplestoreAccess, \; IssueAccessRequest, \; GetPendingAccessRe\textrm{-}\linebreak quests, \; ProcessAccessRequest, \; CreateAccessToken, \; DeleteAccessToken, \; CheckReadAc\textrm{-}\linebreak cess, \; CheckWriteAccess, \; CheckOwnerAccess, \; CheckIfActive, \; AcquireTriplestoreLock, \linebreak ReleaseTriplestoreLock, \; Auth, \; RegisterUser, \; UnregisterUser, \; IssueUpgradeRequest, \linebreak IssueDowngradeRequest, \; ListPendingRoleRequests, \; IssueRoleDecision, \; ListTriple\textrm{-}\linebreak stores, \; UpdateTriplestoreOwner, \; GrantAccess, \; RevokeAccess, \; RequestAccess, \; ListPend\textrm{-}\linebreak ingAccessRequests, \; IssueAccessDecision, \; ListUsersWithAccess, \; CreateTriplestore, \linebreak DeleteTriplestore, \; SaveSecrets, \; DeleteSecrets, \; GetSecrets)$ of 45 algorithms where:
@@ -796,89 +778,32 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 \subsection{Definition of SEnTriS}
 \label{ch3:sec:solution-definition:formal-definition}
 
-We have now specified all the building blocks required to define \gls{SEnTriS}. We only need to adapt the SPARQL-EVAL-II and the SSE-SPARQL-EVAL protocols to function alongside the IAM protocol. 
+Now that we have explained how we manage access in the \gls{M/M} setting, we are ready to fully define \gls{SEnTriS}.
 
-\subsubsection{SEnTriS V0}
+\begin{definition}[\textbf{SEnTriS}]\label{ch3:definition:sentris}
+Let \gls{SEnTriS} be a protocol that support the collaborative development and sharing of SSE-TP encrypted triplestores and is capable of answering \gls{SPARQL} queries using the SSE-SPARQL-EVAL protocol, adapted to the \gls{M/M} setting. 
+
+\gls{SEnTriS} is distributed, multi-party protocols between a \emph{client}, a \emph{IAM provider}, a \emph{vault}, a \emph{triplestore} and a secure computation \emph{proxy} component. The client is the public facing component, that users interact with. It provides a unified view of the system (hiding the internal communication logic and interaction between the other components) and abstracts the logic for generating access tokens and locking resources. It is also responsible for the encryption and decryption of data, as well as, generation of trapdoors. During query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers if necessary). The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. The vault component stores and distributes triplestore secrets. Search and storage of encrypted data is scoped to the triplestore component. Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
+
+\end{definition}
+
+\mytodo{Add figure for SEnTriS}
 
 \subsubsection{SEnTriS V1 \& V2}
 
-\begin{definition}[\textbf{SEnTriS V1}]\label{ch3:definition:sentri-v1}
-    \gls{SEnTriS} V1 extends functionalities of \gls{SEnTriS} V0 to work with encrypted data. It is a collection of 5 protocols $(\textrm{SEnTriS-V0.IAM}, \; \textrm{CLIENT}, \; \textrm{VAULT}, \allowbreak \textrm{TRIPLESTORE}, \; \textrm{PROXY})$ where:
+These two implementations of the protocol differ uniquely on the underlying encryption scheme used with SSE-TP protocol. These two variations of the SSE-TP encryption schemes were discussed previously in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}. In summary, \gls{SEnTriS} V1 uses symmetric key encryption, whereas \gls{SEnTriS} V2 uses the \gls{DGK} cryptosystem. 
 
-    \begin{itemize}
-        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in version V0, this protocol centralizes all functionalities of \gls{SEnTriS} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V0, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
+\subsubsection{SEnTriS V0}
 
-              \begin{itemize}
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$:
+\gls{SEnTriS} V0 does not work with encrypted triplestores, it implements a simpler protocol, which consists in the adaptation of the SPARQL-EVAL-II protocol, to the \gls{M/M} setting. It continues to be a 
 
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
+\begin{definition}[\textbf{SEnTriS V0)}]\label{ch3:definition:sentri-v0}
+    Let \gls{SEnTriS} V0 be a protocol that supports the collaborative development and sharing of triplestores and is capable of answering \gls{SPARQL} queries using the SPARQL-EVAL-II protocol, adapted to the \gls{M/M} setting. 
 
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
-
-              \end{itemize}
-
-        \item VAULT is a tuple of 3 polynomial time algorithms. These algorithms are responsible for ...:
-              \begin{itemize}
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{create(triplestoreID, \; secrets, \; at)}$:
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{get(triplestoreID, \; at)}$:
-              \end{itemize}
-
-        \item TRIPLESTORE is a tuple of 6 polynomial time algorithms. These algorithms are responsible for ...:
-              \begin{itemize}
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{upload(triplestoreID, \; encNodes, \; at)}$:
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; at)}$:
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; trapdoors, \; at)}$:
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{update(triplestoreID, \; deletions, \; uploads, \; at)}$:
-                  \item $\{encBindings, \bot\} \leftarrow \mathbf{search(triplestoreID, \; trapdoors, \; at)}$:
-                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareQuery(triplestoreID, \; trapdoors, \; at)}$:
-              \end{itemize}
-
-        \item PROXY is a tuple of 2 polynomial time algorithms. These algorithms are responsible for saving the outputs of TRIPLESTORE.$search(...)$ operations, preparing this data for query evaluation, executing \gls{SPARQL} query plans and outputting valid query results:
-              \begin{itemize}
-                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareQuery(encBindings, \; at)}$: takes as input a collection of encrypted bindings and an access token. If the token is valid, and grants sufficient permissions, saves the bindings in memory and associates the data with a newly generated $searchID$, a \gls{UUID} (version 4). In case of success, outputs the identifier, $\bot$ otherwise.
-
-                  \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{RND}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
-              \end{itemize}
-    \end{itemize}
+    It is a distributed, multi-party protocol between a \emph{client}, a \emph{IAM provider} and a \emph{triplestore} component. The client retains all functionality of \gls{SEnTriS}, apart from encryption and decryption of data. The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. Finally, the triplestore component is responsible for execution of query plans and for the storage of triplestores' \emph{ABox} and \emph{TBox} data.
 \end{definition}
 
-\begin{definition}[\textbf{SEnTriS V2}]\label{ch3:definition:sentri-v2}
-    \gls{SEnTriS} V2 is a collection of 5 protocols $(\textrm{TRIPLESTORE}, \allowbreak \textrm{SEnTriS-V0.IAM}, \textrm{CLIENT}, \; \textrm{SEnTriS-V1.VAULT}, \; \textrm{PROXY})$:
-
-    \begin{itemize}
-        \item CLIENT is a tuple of 20 polynomial time algorithms. Like in previous versions, the protocol centralizes all functionalities of \gls{SEnTriS} and abstracts the communication logic with the other protocols. It retains the same functionalities, and only differs from version V1, in the algorithms for triplestore management and querying. We will only define these algorithms, and assume the others to be equal as their previous definition:
-
-              \begin{itemize}
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{createTriplestore(cookie, \; triplestoreID)}$: %same as in V1
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{uploadTriplestoreContent(cookie, \; issuer, \;  triplestoreID, }$ \linebreak $\mathbf{ schema, \; syntax, \; content)}$:
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{deleteTriplestore(cookie, \; issuer, \;  triplestoreID, \; inference)}$:
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{fetchTriplestoreSchema(cookie, \;  triplestoreID, \; inference)}$:
-
-                  \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{answerSPARQLQuery(cookie, \;  triplestoreID, \; issuer, }$\linebreak $\mathbf{ query, \; inference, \; transitivityDepth, \; expansionDepth)}$:
-
-              \end{itemize}
-
-        \item TRIPLESTORE protocol is a tuple with all \textrm{SEnTriS-V1.TRIPLESTORE} algorithms, apart from the $\textrm{TRIPLESTORE}.prepareSearch$. In this version the algorithm, we mask the bindings of a search. We will only define this algorithm, and assume the others to be equal as their previous definition:
-              \begin{itemize}
-                  \item $\{searchID, \bot\} \leftarrow \mathbf{prepareMaskedSearch(triplestoreID, \; trapdoors, \; mask, \; at)}$:
-              \end{itemize}
-
-        \item PROXY is a tuple of 2 polynomial time algorithms. Like in \gls{SEnTriS} V1 it will prepare and evaluate queries. It differs from the previous version, on query evaluation algorithm. We will only define this algorithms, and assume the others to be equal as their previous definition:
-              \begin{itemize}
-                  \item $\{sparqlResult, \bot\} \leftarrow \mathbf{answerSPARQLQuery(plan, K_{DGK_{eq}}, \; at)}$ takes as input a collection of a \gls{SPARQL} query plan, a secret key and an access token. If the token is valid, and grants sufficient permissions, executes the query plan and generates a query result. In case of success outputs the result, $\bot$ otherwise.
-              \end{itemize}
-    \end{itemize}
-\end{definition}
-
-
+\mytodo{Add figure for SEnTriS V0}
 
 \section{Summary}
 

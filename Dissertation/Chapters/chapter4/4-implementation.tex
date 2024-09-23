@@ -7,10 +7,12 @@
 \prependtographicspath{{Figures/}}
 
 \section{General Considerations}
+
 \subsection{Apache JENA Limitations}
 %Higly coupled components
 \subsection{Memory Constraints}
 \subsection{Design \& Architecture Choices}
+Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication.
 
 \section{Component Specific Implementation Details}
 \subsection{Client}

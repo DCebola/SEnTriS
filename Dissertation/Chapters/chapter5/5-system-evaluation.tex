@@ -19,10 +19,11 @@
 
 \section{Security Analysis}
 
-In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model, defined in Section \ref{ch3:sec:solution-models:security-model}. We will start by enumerating the security properties of the different versions. After
+In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model, defined in Section \ref{ch3:sec:solution-models:security-model}. We will start by enumerating the security properties of the different versions.
 
 \subsection{Security Properties}
-In conformity with the assumptions explained in ..., and based on its definition, we expect all implementations of \gls{SEnTriS} to possess the following \emph{security properties}:
+
+We expect all implementations of \gls{SEnTriS} to possess the following \emph{security properties}:
 
 \begin{enumerate}
     \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
@@ -34,7 +35,8 @@ In conformity with the assumptions explained in ..., and based on its definition
     \item An attacker will not be able to tamper with messages sent between components.
 \end{enumerate}
 
-Due to the lack of data confidentiality in \gls{SEnTriS}-V0, the following security properties are exclusive to the other two implementations:
+Due to the lack of data confidentiality in \gls{SEnTriS} V0, the following security properties are exclusive to the other two implementations:
+
 \begin{enumerate}
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
