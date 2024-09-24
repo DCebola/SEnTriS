@@ -26,7 +26,7 @@ function prepareQuery($triplestoreID$, $planner$, $plan_{rnd} = (jobs, \; rndExe
     $searchIDCollector$ := {}
     foreach $jobID$ in $planner$.getSearchJobIDs():
         $job_{SEC\_SEARCH}$ := $jobs$[$jobID$]
-        $job_{vars}$ = $job_{SEC\_SEARCH}$.getVariabless()
+        $job_{vars}$ = $job_{SEC\_SEARCH}$.getVariables()
         $keyword$ = $job_{SEC\_SEARCH}$.getSearches()[$job_{vars}$[0]]
         $searchIDs$ := $searchIDCollector$.get($keyword$);
         if $searchIDs$ == :bot:

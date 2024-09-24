@@ -7,5 +7,5 @@ function auth($username$, $password$):
         return extractCookie($response$)
     return $response$
 
-function deleteUser($cookie$, $username$):
+function unregisterUser($cookie$, $username$):
     return IAM.deleteUser($cookie$, $username$)

@@ -5,7 +5,7 @@ State:
 function createAccessToken($cookie$, $triplestoreID$, $target$):
     try: 
         authCheck($cookie$, $target$)
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         $role$ := $storageEngine$.getRole($target$)
         if $role$ :neq "ADMIN" and $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$) = false and $storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = false and $storageEngine$.checkIfOwns($target$, $triplestoreID$) = false:
@@ -18,7 +18,7 @@ function deleteAccessToken($cookie$, $triplestoreID$, $headers$):
     try: 
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         sessionCheck($sessionID$, $username$)
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -39,7 +39,7 @@ function checkReadAccess($triplestoreID$, $headers$):
     try: 
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         sessionCheck($sessionID$, $username$)
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -53,7 +53,7 @@ function checkWriteAccess($triplestoreID$, $headers$)
     try: 
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         sessionCheck($sessionID$, $username$)
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -69,13 +69,13 @@ function checkOwnerAccess($triplestoreID$, $headers$)
     try: 
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$) 
         sessionCheck($sessionID$, $username$)
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
         if $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false
             return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
         return "OK"
     catch Exception: 
@@ -87,7 +87,7 @@ function acquireTriplestoreLock($cookie$, $triplestoreID$, $headers$)
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -106,7 +106,7 @@ function releaseTriplestoreLock($cookie$, $triplestoreID$, $headers$)
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot

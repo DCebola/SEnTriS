@@ -18,20 +18,20 @@ function createTriplestoreAccessList($cookie$, $issuer$, $triplestoreID$):
     catch Exception: 
         return :bot
 
-function listTriplestores($cookie$, $issuer$, $write$, $read$, $owns$):
+function getTriplestores($cookie$, $issuer$, $write$, $read$, $owns$):
     try:
         authCheck($cookie$, $issuer$)
         return $storageEngine$.getTriplestores($issuer$, $write$, $read$, $owns$)
     catch Exception: 
        return :bot
 
-function listUsersWithAccess($cookie$, $triplestoreID$, $write$, $headers$):
+function getUsersWithAccess($cookie$, $triplestoreID$, $write$, $headers$):
     try:
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -64,7 +64,7 @@ function changeTriplestoreOwner($cookie$, $triplestoreID$, $target$, $headers$):
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -79,7 +79,7 @@ function changeTriplestoreOwner($cookie$, $triplestoreID$, $target$, $headers$):
         $role$ := $storageEngine$.getRole($target$)
         if $role$ = "BASIC":
             return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
         $storageEngine$.updateTriplestoreOwner($triplestoreID$, $owner$, $target$)
         return "OK"
@@ -92,14 +92,14 @@ function deleteTriplestoreAccessList($cookie$, $triplestoreID$, $headers$):
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
         $role$ = $storageEngine$.getRole($username$)
         if $role$ = "BASIC" or ($role$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($username$, $triplestoreID$) = false):
             return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
         $storageEngine$.deleteTriplestoreAccessList($owner$, $triplestoreID$)
         $storageEngine$.deleteAccessToken($tokenID$, $lockID$, $username$, $triplestoreID_{token}$)
@@ -107,13 +107,13 @@ function deleteTriplestoreAccessList($cookie$, $triplestoreID$, $headers$):
     catch Exception: 
        return :bot
 
-function grantAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
+function grantTriplestoreAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
     try:
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -124,7 +124,7 @@ function grantAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
             return :bot
         elif $role_{issuer}$ = "BASIC" or ($role_{issuer}$ = "PRIVILEGED" and $storageEngine$.checkIfOwns($issuer$, $triplestoreID$) = false):
             return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
         if $storageEngine$.getRole($target$) = "ADMIN" or $storageEngine$.checkIfOwns($target$, $triplestoreID$) = true or ($storageEngine$.checkIfUserHasWriteAccess($target$, $triplestoreID$) = $write$ and $storageEngine$.checkIfUserHasReadAccess($target$, $triplestoreID$) = true):
             return :bot
@@ -133,13 +133,13 @@ function grantAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
     catch Exception: 
        return :bot
 
-function revokeAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
+function revokeTriplestoreAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
     try:
         $(tokenID, \; username, \; sessionID, \; triplestoreID_{token}, \; lockID)$ := fetchAccessToken($headers$)
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -149,7 +149,7 @@ function revokeAccess($cookie$, $triplestoreID$, $target$, $write$, $headers$):
         if $issuer$ :neq $target$:
             if $role_{issuer}$ = "BASIC" or ($role_{issuer}$ = "PRIVILEGED" and $storageEngine$.checkIfOwns(issuer, $triplestoreID$) = false):
                 return :bot
-        if $lockID$ = :bot or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
+        if $lockID$ = :bot $\;$ or $locksClient$.checkIfTriplestoreLockExists($triplestoreID$, $lockID$) = false:
             return :bot
         if $storageEngine$.checkIfOwns($target$, $triplestoreID$) = true:
             return :bot
@@ -181,7 +181,7 @@ function getPendingAccessRequests($cookie$, $triplestoreID$, $headers$):
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot
@@ -198,7 +198,7 @@ function processAccessRequest($cookie$, $triplestoreID$, $requestID$, $decision$
         authCheck($cookie$, $username$)
         if $cookie$.getValue() :neq $sessionID$: 
             return :bot
-        if $storageEngine$.triplestoreAccessPolicyListExists($triplestoreID$) = false:
+        if $storageEngine$.triplestoreAccessListExists($triplestoreID$) = false:
             return :bot
         if $triplestore_{token}$ :neq $triplestoreID$:
             return :bot

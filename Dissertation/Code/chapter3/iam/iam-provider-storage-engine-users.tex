@@ -15,7 +15,7 @@ function getSession($username$):
     return $sessions$[$username$]
 
 function userExists($username$):
-    return $roles$[$username$] :neq :bot and $passwords$[$username$] :neq :bot
+    return $roles$[$username$] :neq :bot $\;$ and $passwords$[$username$] :neq :bot
 
 function saveUser($username$, $password$, $role$)
     $roles$[$username$] := $role$

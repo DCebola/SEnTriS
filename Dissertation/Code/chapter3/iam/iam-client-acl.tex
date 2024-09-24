@@ -54,10 +54,10 @@ function updateTriplestoreOwner($cookie$, $triplestoreID$, $issuer$, $target$):
     IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
     return $response$
 
-function issueAccessRequest($cookie$, $triplestoreID$, $issuer$, $write$):
+function requestAccess($cookie$, $triplestoreID$, $issuer$, $write$):
     if $cookie$ = :bot
         return :bot
-    return IAM_Provider.requestAccess($cookie$, $triplestoreID$, $issuer$, $write$)
+    return IAM_Provider.issueAccessRequest($cookie$, $triplestoreID$, $issuer$, $write$)
 
 function listPendingAccessRequests($cookie$, $triplestoreID$, $issuer$):
     if $cookie$ = :bot
@@ -69,7 +69,7 @@ function listPendingAccessRequests($cookie$, $triplestoreID$, $issuer$):
     IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
     return $response$
 
-function processPendingAccessRequest($cookie$, $triplestoreID$, $issuer$, $requestID$, $accept$):
+function issueAccessDecision($cookie$, $triplestoreID$, $issuer$, $requestID$, $accept$):
     if $cookie$ = :bot
         return :bot
     $accessToken$ := IAM_Provider.createAccessToken($cookie$, $issuer$, $triplestoreID$)
@@ -89,7 +89,7 @@ function grantAccess($cookie$, $triplestoreID$, $issuer$, $target$, $write$):
     if $response$ = :bot: 
         IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
         return :bot
-    $response$ := IAM_Provider.grantAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
+    $response$ := IAM_Provider.grantTriplestoreAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
     IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
     return $response$
 
@@ -103,7 +103,7 @@ function revokeAccess($cookie$, $triplestoreID$, $issuer$, $target$, $write$):
     if $response$ = :bot: 
         IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
         return :bot
-    $response$ := IAM_Provider.revokeAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
+    $response$ := IAM_Provider.revokeTriplestoreAccess($cookie$, $triplestoreID$, $target$, $write$, $accessToken$)
     IAM_Provider.deleteAccessToken($cookie$, $triplestoreID$, $accessToken$)
     return $response$
 

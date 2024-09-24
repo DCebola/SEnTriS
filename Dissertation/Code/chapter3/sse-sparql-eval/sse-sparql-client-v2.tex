@@ -17,7 +17,7 @@ function executeSPARQLQuery($triplestoreID$,$query$,$in\textrm{\emph{f}}erence$,
             $sparqlResult$ := Proxy.evaluateQuery($preparedPlan$, $scheme$.getEqKey())
             $inverseMask$ := generateInverseMask($mask$, $scheme$.getPubDGK())
             $deob\textrm{\emph{f}}uscationMap$ := $planner$.getDeobfuscationMap()
-            $bindings$ := decryptAndFetchBindings($triplestoreID$, $sparqlResult$.$bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$)
+            $bindings$ := fetchAndDecryptBindings($triplestoreID$, $sparqlResult$.$bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$)
             $bindings$ := applyModifiers($sparqlResult$, $deob\textrm{\emph{f}}uscationMap$, $bindings$)
         return generateFinalResult($triplestoreID$, $queryType$, $plan$.$vars$, $bindings$, $construct$, $upload$, $delete$)
     catch Exception:
