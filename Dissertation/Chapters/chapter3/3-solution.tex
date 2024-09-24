@@ -6,7 +6,8 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTriS} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we formally define the proposed solution, specify its enforcement of security guaranties and present the \gls{SPARQL} query evaluation pipeline: triple pattern encryption schemes,  high level execution pipelines and protocols, reasoning preservation techniques and list the supported query types.
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTriS} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we define the protocols for \gls{SPARQL} query evaluation, the triple pattern \gls{SSE} schemes, the \gls{SPARQL} query evaluation protocol over encrypted triplestores and how to expand such protocol to the \gls{M/M} setting. We finish with the definition of the \gls{SEnTriS} protocol.
+
 
 \section{Solution Models}
 \label{ch3:sec:solution-models}
@@ -49,19 +50,18 @@ The functioning of a query evaluation system can be described as a pipeline of s
 
 \emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{bindings tables}, which are used for the evaluation of complex \emph{graph patterns}
 
-\gls{SEnTriS} is implemented using three different approaches:
+\gls{SEnTriS} is implemented using two different approaches:
 
 \begin{itemize}
-    \item \emph{\gls{SEnTriS} V0}: Operates over plaintext data and does not provide data confidentiality, but enforces role-based access control.
-
     \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer and compare the values.
 
-    \item \emph{\gls{SEnTriS} V2}: In this last implementation, we aim to reduce the leakage produced during evaluation of queries, by using an additive homomorphic encryption scheme. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support re-encryption. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{bindings tables} are built with \emph{re-encrypted equality tags}. When doing equality checks, we decrypt the difference between \emph{equality tags}.
+    \item \emph{\gls{SEnTriS} V2}: Implemented using an additive homomorphic encryption scheme. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support re-encryption. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{bindings tables} are built with \emph{re-encrypted equality tags}. When doing equality checks, we decrypt the difference between \emph{equality tags}.
 \end{itemize}
 
-In the remainder of this section we will: 1) define the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain the \gls{IAM} protocol, how triplestores (and their secrets) are shared and how concurrent access is supported; 5) define the various implementations of \gls{SEnTriS}.
+In the remainder of this section we will: 1) define the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain the \gls{IAM} protocol, how triplestores (and their secrets) are shared and how concurrent access is supported; 5) define \gls{SEnTriS}.
 
 \subsection{Core elements}
+We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
 
 \paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTriS} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acl$ is the triplestore's \gls{ACL}.
 
@@ -69,8 +69,9 @@ This data structure is a simplified version of the one defined in section \ref{c
 
 \paragraph{Triplestore Access Control List} A triplestore's \gls{ACL} $acl = (owner, \; read,\; write,\; acrl)$, is a tuple where $owner$ is the username of the owner of the triplestore, $read$ and $write$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $accessRequest = (requestID, \; username, \; write)$ is a tuple where $requestID$ is a \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
 
-\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role$ is the user's role.
+\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acl$ is the triplestore's \gls{ACL}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
 
+\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role$ is the user's role.
 
 \paragraph{Role Change Request} A role change request $roleRequest = (requestID, username, role)$ is a tuple where $requestID$ is a \gls{UUID} (version 4), $username$ identifies the user that this request affects and $role$ specifies the desired new role.
 
@@ -83,12 +84,16 @@ This data structure is a simplified version of the one defined in section \ref{c
 
 \paragraph{Ephemeral Access tokens} An access token $at = (tokenID, \; username, \; sessionID, \linebreak triplestoreID, \; lockID)$ is a tuple, where $tokenID$ is a \gls{UUID} (version 4), $username$ is the identifier of the user who holds the token, $sessionID$ is the identifier of the token holder's active session, at the time of its creation, $triplestoreID$ is the identifier of the triplestore whose access is being requested and $lockID$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests). Access tokens are ephemeral and will expire after a certain amount of configurable time.
 
+\paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
 
 \paragraph{SPARQL queries} The definition of a \gls{SPARQL} query within \gls{SEnTriS} is equal to that provided in section \ref{ch2:sec:semantic-web:sparql}.
 
 
 \paragraph{Query Execution Plans} A query execution plan is a tuple $plan=(jobs, \;execOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $execOrder$ is a sequence of job identifiers.
 
+\paragraph{Randomized Query Execution Plans} A randomized query execution plan is a tuple $plan_{rnd}=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
+
+\paragraph{Randomized Prepared Query Execution Plans} After the query preparation phase, the $searches$ maps, in the secure search jobs, have been updated to map obfuscated variables to search identifiers. A plan where all search jobs have been updated like this is said to be \textit{prepared}.
 
 \paragraph{Query Jobs} A query job is an internal operation that is executed during the evaluation of a \gls{SPARQL} query. Query jobs can be of three types: \emph{basic}, \emph{unary} and \emph{binary} jobs. Unary and binary jobs represent operations that are executed against the \emph{bindings} of, respectively, one and two other jobs, whereas basic jobs are independent of other jobs' results. The execution of a job will always generate \emph{bindings}, even if it is an empty collection. These \emph{bindings} will be associated to the respective $jobID$.
 
@@ -102,6 +107,9 @@ There exist four unary jobs, which represent the operations that apply result mo
 
 Finally, there are four binary jobs, which represent set operations between \emph{binding}. These are tuples of type $job_{II} = ( jobID, \; jobID_l,  \; jobID_r )$, where $II \in \{ \textrm{JOIN}, \; \textrm{UNION}, \allowbreak \textrm{OPTIONAL},  \; \textrm{MINUS} \}$ and specifies which set operation will be executed between the \emph{bindings} of $jobID_l$ and $jobID_r$.
 
+\paragraph{Secure Query Jobs} These jobs have their variables obfuscated and output encrypted \emph{bindings} tables.
+
+Only the \emph{secure search job} is structurally different. It is a tuple $job_{SEC\_SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [O(var_0), ..., \allowbreak O(var_n)]$ is a collection of obfuscated variables. During the query preparation phase, $searches = \{(O(var_0), \; keyword_0), ..., $\linebreak$ (O(var_n), \; keyword_n)\}$ is a map that maps variables to the keywords to be searched, whereas, in the query evaluation phase, $searches = \{(O(var_0), \; searchID_0), ...,  (O(var_n), \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4).
 
 \paragraph{\emph{Bindings} tables} The output of a query job is a \emph{bindings} table. This data structure is a tuple $bindingsTable = (bindings, \; patterns)$ where $bindings = \{ (var_0, \; bindingsMap_0), ..., \allowbreak (var_n, \; bindingsMap_n)\}$ and $patterns = \{ (var_0, \; patternsMap_0), ...,  (var_n, \; patternsMap_n)\}$ are maps that map query variables, respectively, to \emph{bindings} and \emph{triple patterns} maps.
 
@@ -109,36 +117,6 @@ A \emph{bindings} map, $bindingsMap = \{ (binding_0, \; [pattternID_{0,0},...,pa
 
 A \emph{triple patterns} map, $patternsMap = \{ (pattternID_0, \; binding_0),..., (patternID_n, \linebreak binding_n)\}$, is a map where \emph{triple pattern} identifiers are mapped to \emph{bindings}.
 
-
-\paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; length, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection of \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $length$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
-
-Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query, a triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
-
-\paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013-hd, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type:
-\begin{itemize}
-    \item \textit{SELECT}: it will be a query result in JSON format;
-    \item \textit{ASK}: it will be a boolean;
-    \item \textit{CONSTRUCT}: it will be a set of triples;
-    \item \textit{DESCRIBE}: it will be a frequency table of the query variables;
-    \item \textit{SPARQL UPDATE}: it will be either $\textrm{SUCCESS}$, or $\bot$ in case of failure;
-\end{itemize}
-
-\subsubsection{SEnTriS V1 and V2 specific}
-
-We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
-
-\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acl$ is the triplestore's \gls{ACL}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
-
-
-\paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
-
-\paragraph{Secure Query Jobs} The only difference between jobs in \gls{SEnTriS} V1 and V2, to jobs in \gls{SEnTriS} V0, is that they operate over obfuscated variables and output encrypted \emph{bindings} tables.
-
-Only the \emph{secure search job} is structurally different. It is a tuple $job_{SEC\_SEARCH} = (jobID, \; vars, \; searches)$, where $vars = [O(var_0), ..., \allowbreak O(var_n)]$ is a collection of obfuscated variables. During the query preparation phase, $searches = \{(O(var_0), \; keyword_0), ..., $\linebreak$ (O(var_n), \; keyword_n)\}$ is a map that maps variables to the keywords to be searched, whereas, in the query evaluation phase, $searches = \{(O(var_0), \; searchID_0), ...,  (O(var_n), \; searchID_n)\}$ is a map that maps variables to the identifiers of search results. These identifiers are \gls{UUID}s (version 4).
-
-\paragraph{Randomized Query Execution Plans} A randomized query execution plan is a tuple $plan_{rnd}=(jobs, \;rndExecOrder)$, where $jobs = \{(jobID_0, \; job_0),...,(jobID_n, \; job_n)\}$ is a map that maps a query $job$ to their respective identifiers, which are \gls{UUID}s (version 4), and $rndExecOrder$ is a randomly chosen sequence of job identifiers, from the subset of valid execution sequences.
-
-\paragraph{Randomized Prepared Query Execution Plans} After the query preparation phase, the $searches$ maps, in the secure search jobs, have been updated to map obfuscated variables to search identifiers. A plan where all search jobs have been updated like this is said to be \textit{prepared}.
 
 \paragraph{Encrypted \emph{Bindings} tables} Similar to a \emph{bindings} table, an encrypted \emph{bindings} table is a tuple $E(BindingsTable) = (E(bindings), \; E(patterns))$ where $E(bindings) = \{ (O(var_0), \allowbreak E(bindingsMap_0)), ..., (O(var_n), \; E(bindingsMap_n))\}$ and $E(patterns) = \{ (O(var_0), \linebreak E(patternsMap_0)), ..., (O(var_n), \; E(patternsMap_n))\}$ are maps that map \emph{obfuscated} query variables, respectively, to encrypted \emph{bindings} and \emph{triple patterns} maps.
 
@@ -149,9 +127,22 @@ An encrypted \emph{triple patterns} map, $E(patternsMap) = \{ (pattternID_0, \; 
 We will define $E(binding)$ in Section \ref{chapter3:definition:triple-pattern-encryption-schemes} for both \gls{SEnTriS} V1 and \gls{SEnTriS} V2.
 
 
+\paragraph{SPARQL Query Result} A \gls{SPARQL} query result is a tuple $sparqlResult = (bindings, \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; length, \; \textrm{\textit{offset}})$ where $bindings = [pattern_0, ..., \allowbreak pattern_n]$ is a collection of \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $length$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \; dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
+
+Let $n \in \mathbb{Z}^{+}$ be the number of variables in a \gls{SPARQL} query, a triple pattern $pattern_i = \{(var_0, \; binding_{i,0}),...,(var_n, \; binding_{i,n})\}$ is a map where each variable is mapped to a $binding$. A $binding$ can be a plaintext value or $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
+
 \paragraph{Encrypted SPARQL Query Result} An encrypted \gls{SPARQL} query result is a tuple \linebreak $E(sparqlResult) = (E(bindings), \allowbreak distinct, \; ordered, \; sliced, \; sortConditions, \; length, \; \textrm{\textit{offset}})$ where $E(bindings) = [E(pattern_0), ..., \allowbreak E(pattern_n)]$ is a collection of encrypted \emph{triple patterns}, $ordered$, $distinct$ and $sliced$ are boolean values, $length$ and $\textrm{\textit{offset}}$ are integers and $sortConditions = [(var_0, \allowbreak dir_0), ..., (var_n, \; dir_n)]$ is a collection of variables and their respective sorting direction, which can either be $1$ or $-1$. A positive $dir$ represents an \emph{ascending} sorting whereas a negative $dir$ represents a \emph{descending} sorting condition.
 
 Let $n \in \mathbb{Z}^{+}$ be the number of variables (obfuscated) in a \gls{SPARQL} query, an encrypted triple pattern $E(pattern_i) = \{(O(var_0), \; E(binding_{i,0})),...,(O(var_n), \; E(binding_{i,n}))\}$ is a map where each obfuscated variable is mapped to an encrypted $binding$. An encrypted $binding$ can either have a value or be $\bot$ for the particular case of $\textrm{OPTIONAL}$ queries.
+
+\paragraph{SPARQL Final Query Result} A \gls{SPARQL} query result $sparqlResult$ is the result of evaluating a $WHERE$ clause. The final output of a query evaluation must respect the standards present in \cite{W3c2013-hd, W3c_undated-tw}. This final query result, $sparqlFinalResult$, will vary depending on the query type:
+\begin{itemize}
+    \item \textit{SELECT}: it will be a query result in JSON format;
+    \item \textit{ASK}: it will be a boolean;
+    \item \textit{CONSTRUCT}: it will be a set of triples;
+    \item \textit{DESCRIBE}: it will be a frequency table of the query variables;
+    \item \textit{SPARQL UPDATE}: it will be either $\textrm{SUCCESS}$, or $\bot$ in case of failure;
+\end{itemize}
 
 \subsection{Cryptographic Tools}
 
@@ -263,7 +254,7 @@ To perform an equality check, between two plaintext messages, $m_1, m_2$, we com
 
 \subsection{Evaluation of SPARQL queries}
 
-Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so over plaintext data, implemented in \gls{SEnTriS} V0. For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
+Now that we have defined all the core data structures and the cryptographic tools, we will proceed to explain how we evaluate \gls{SPARQL} queries. We will start by explaining the protocol for doing so with plaintext data. For simplicity, we will not take into consideration role based access control and permissions, as it will not alter in any way the protocol logic.
 
 \subsubsection{Storage of triple patterns}
 
@@ -271,7 +262,7 @@ The first step when designing a solution that supports \gls{SPARQL}, is to defin
 
 To achieve this, when we index data, our goal is to preserve the relationships between subjects, predicates and objects (which might appear in queries' graph patterns). In the remainder of the document we will use \emph{node} as a common term to denominate \emph{subjects}, \emph{predicates} and \emph{objects}.
 
-In \gls{SEnTriS} V0, we index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
+We will index a triple pattern, $t = (s, p, o)$ based on all of its possible variations within a \gls{SPARQL} query. For example, to answer a query where we need to search for $(?v, p, o)$ (the subject is a variable) we need an index $p,o \leftarrow [s_0, ..., s_n]$. With this index, all subjects are referenced by the predicate and object pairs in the triplestore. Applying this strategy to other possible patterns, we can index all triple pattern variations with the following 6 indexes:
 
 \begin{align}
     \begin{split}
@@ -284,19 +275,19 @@ In \gls{SEnTriS} V0, we index a triple pattern, $t = (s, p, o)$ based on all of 
     \end{split}
 \end{align}
 
-We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTriS} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries in V0 either.
+We do not index patterns with 3 variables, as a join of two complementary indexes (e.g. $s$ with $(p, o)$) can answer this kind of queries. Nonetheless, because the encryption schemes of \gls{SEnTriS} V1 and V2 do not support this kind of triple pattern, we will not support this type of queries.
 
 For patterns with 2 variables, the index consists in the concatenation of the pattern type (e.g, "PO"\space for indexes referencing predicate and object pairs) with the known value (e.g. a subject). This index will reference a set of node pairs, whose values we concatenate together.
 
 For patterns with a single variable, the index is the concatenation of the pattern type (e.g. "S" \space for indexes referencing subjects) with the concatenation of the other two known values (e.g. predicate and object). This index references a set of individual nodes (e.g. subjects).
 
-In Listing \ref{storage-engine-v0}, we define the logic for \gls{SEnTriS} V0 storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
+In Listing \ref{storage-engine}, we define the logic for triple pattern storage engine. We will assume that this engine executes write operations \emph{atomically}: it either executes all operations, or none.
 
-%\lstinputlisting[caption={Storage Engine for SEnTriS V0}, label={storage-engine-v0}]{Code/chapter3/sparql-eval/storage-engine-v0.tex}
+%\lstinputlisting[caption={Storage Engine for SEnTriS V0}, label={storage-engine}]{Code/chapter3/sparql-eval/storage-engine.tex}
 
-Notice that a search operation always produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing \ref{bindings-table-v0}, we show the underlying logic of a \emph{bindings table}.
+A search operation always produces a \emph{bindings table}. This data structure was designed to support the operations that need to be executed between intermediate collections of \emph{bindings}, during query evaluation. In Listing \ref{bindings-table}, we show the underlying logic of a \emph{bindings table}.
 
-%\lstinputlisting[caption={Bindings Table in SEnTriS V0}, label={bindings-table-v0}]{Code/chapter3/sparql-eval/bindings-table-v0.tex}
+%\lstinputlisting[caption={Bindings Table in SEnTriS V0}, label={bindings-table}]{Code/chapter3/sparql-eval/bindings-table.tex}
 
 \subsubsection{SPARQL Query Evaluation Protocol}
 
@@ -316,33 +307,33 @@ Having defined how data is stored, we will now explain the protocol for evaluati
 
 \mytodo{Add SPARQL-Eval figure}
 
-\paragraph{Query Plan Generation} In \gls{SEnTriS} we have created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
+\paragraph{Query Plan Generation} We have created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
 The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations}. We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. With the collection of \emph{operations}, we will construct a plan composed by our \emph{query jobs}. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
 
 %\lstinputlisting[caption={\gls{SEnTriS} SPARQL Query Engine}, label={sparql-engine-pseudocode}]{Code/chapter3/sparql-eval/sparql-engine.tex}
 
-One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of a simplified \gls{SEnTriS} V0 query planner (without any reasoning capabilities) is shown in Listing \ref{sparql-query-planner-pseudocode}.
+One can argue that the collection of \emph{Apache Jena} operations, created after parsing and compiling a query, are equivalent to a query execution plan: executing them by their precedence order, will generate a valid query evaluation. In Chapter \ref{cha:implementation}, we will explain why these are not compatible with our solution, and why we have decided to implement our custom query planner. The functioning of a simplified query planner (without any reasoning capabilities) is shown in Listing \ref{sparql-query-planner-pseudocode}.
 
-%\lstinputlisting[caption={\gls{SEnTriS} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-eval/sparql-planner-v0.tex}
+%\lstinputlisting[caption={\gls{SEnTriS} V0 SPARQL Query Planner (without reasoning capabilities)}, label={sparql-query-planner-pseudocode}]{Code/chapter3/sparql-eval/sparql-planner.tex}
 
 The query planner generates a query execution plan where equi-joins are randomly ordered. The basis for this decision is to not incur in any bias, when evaluating performance, by always generating a deterministic execution order. Like the parsing of a \emph{SPARQL} query, optimization of its execution plan is out of the scope of this thesis, hence this approach.
 
 We generate a random ordering of the equi-joins, by randomly sampling one of the valid execution orders. \gls{BGP}s are the only elements from a query that generate equi-joins. When we have visited all \gls{BGP} operations, we create an auxiliary graph where compatible equi-joins are neighbors. Two joins are \emph{compatible} if they have, at least, 1 common variable. We generate the execution order of the equi-joins, by exploring the graph and computing a path that contains each $job_{JOIN}$ once. To generate the random ordering, we randomly sample the origin of the path. After generating the execution order we add the query jobs to the execution plan.
 
-\paragraph{Query Evaluation} Following the dispatcher pattern, we have created two other abstractions in \gls{SEnTriS}: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
+\paragraph{Query Evaluation} Following the dispatcher pattern, we have created two other abstractions: the \emph{query execution}, and the \emph{query worker}. A query execution dispatches work, and a query worker processes pieces of work.
 
-In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. The currently \gls{SEnTriS} only supports sequential dispatching of jobs to a single worker.
+In the specific case of our query evaluation protocol, the query execution will process the query execution plan and dispatch the next available query job, to the worker. The worker has access to the stored data and will execute the assigned query job. Currently, \gls{SEnTriS} only supports sequential dispatching of jobs to a single worker.
 
 The dispatching of jobs continuous until there are no more jobs pending execution. After the last job is executed, the query result is generated and stays available to be retrieved as output.
 
-Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker for \gls{SEnTriS} V0.
+Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} specify, respectively, the functioning of the query execution and query worker.
 
 %\lstinputlisting[caption={SEnTriS V0 Query Execution}, label={query-execution-pseudocode}]{Code/chapter3/sparql-eval/query-execution.tex}
 
 %\lstinputlisting[caption={SEnTriS V0 Query Worker}, label={query-worker-pseudocode}]{Code/chapter3/sparql-eval/query-worker.tex}
 
-\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the \emph{delete} and \emph{update} templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components. These two components will serve as the base reference for the fully functional \gls{SEnTriS} components.
+\paragraph{Generating Final Result \& Applying modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the \emph{delete} and \emph{update} templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components.
 
 %\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-client.tex}
 
@@ -362,25 +353,25 @@ We will now explain how we modify the SPARQL-EVAL protocol, by applying \emph{qu
     SPARQL-EVAL-II is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTriS} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema-v0} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to \gls{SEnTriS} V0 storage engine and the extra operations of the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
+\paragraph{Storage of Schema triples} We will refer to the subset of triples containing nodes that belong to the Tbox as \emph{schema triples}. Storage of such triples will not require indexation by the pattern type. Furthermore, in \gls{SEnTriS} we will only support a single set of schema triples per triplestore, which can either be uploaded or deleted, but not modified. In Listings \ref{storage-engine-schema} and \ref{sparql-eval-ii-triplestore-pseudocode} we specify, respectively, the modifications to the triplestore storage engine and the extra operations in the SPARQL-EVAL-II triplestore component, required to support the storage and retrieval of such triples.
 
-%\lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema-v0}]{Code/chapter3/sparql-eval/storage-engine-schema-v0.tex}
+%\lstinputlisting[caption={Storage of schema triples}, label={storage-engine-schema}]{Code/chapter3/sparql-eval/storage-engine-schema.tex}
 
 %\lstinputlisting[caption={SPARQL-EVAL-II triplestore (extra operations)}, label={sparql-eval-ii-triplestore-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-ii-triplestore.tex}
 
-\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. In \gls{SEnTriS}, an ontology is an abstraction where we map class and property axioms to nodes.
+\paragraph{Query Rewriting} To rewrite the queries we first fetch the schema triples, and then instantiate the triplestore's ontology. An ontology will be an abstraction where we map class and property axioms to nodes.
 
 Using the \emph{Apache Jena} API \autocite{The_Apache_Software_Foundation_undated-wk} we create an ontological model. After the generation of the model, we load it with the schema triples. Once the triples are loaded, we iterate over all the classes and map each one to equivalent classes, subclasses, restrictions and intersections they are part of.
 
 In the next step, we iterate over all properties and map each one to their subproperties, equivalent and inverse properties. We also map the properties to two boolean parameters which are true if, respectively, the property is symmetric and transitive.
 
-All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology in \gls{SEnTriS} V0.
+All of this information is stored in adequate auxiliary data structures which will be accessible by the query planner. Listing \ref{ontology-pseudocode} provides the specification of a triplestore's ontology.
 
 %\lstinputlisting[caption={SEnTriS V0 Ontology}, label={ontology-pseudocode}]{Code/chapter3/sparql-eval/ontology.tex}
 
-During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. This expansion is done using a leveled approach and is uniquely scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting-v0} and \ref{sparql-eval-ii-client-pseudocode} respectively.
+During the creation of the query execution plan, when visiting a \gls{BGP}, the query planner consults the ontology and searches for information related with the nodes present in the triple patterns. This information is used to expand the \gls{BGP} with new patterns. This expansion is done using a leveled approach and is uniquely scoped to the query planner. All the modifications required to the query planner and client are depicted in Listings \ref{query-rewriting} and \ref{sparql-eval-ii-client-pseudocode} respectively.
 
-%\lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting-v0}]{Code/chapter3/sparql-eval/query-rewriting.tex}
+%\lstinputlisting[caption={Query Plan Generation with Query Rewriting}, label={query-rewriting}]{Code/chapter3/sparql-eval/query-rewriting.tex}
 
 %\lstinputlisting[caption={SPARQL-EVAL-II client (modified operations)}, label={sparql-eval-ii-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-ii-client.tex}
 
@@ -392,7 +383,7 @@ To conclude, this approach may also induce duplicates in the results of a query,
 
 \subsubsection{Supported Queries}
 
-The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. All versions of \gls{SEnTriS} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
+The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. \gls{SEnTriS} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
 
 \begin{equation}
     \begin{split}
@@ -405,7 +396,7 @@ All query types will be supported apart from the LOAD and CLEAR, which will be i
 \subsection{Encryption of triple patterns}
 \label{chapter3:definition:triple-pattern-encryption-schemes}
 
-In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the other two versions the protocol will be adapted to work with encrypted data. As such, the encryption schemes must encrypt data in such a way that it retains its functionality. For the subset of supported queries, data must be searchable via triple patterns and allow the equality operation, essential for the execution of equi-joins.
+So far we have only explained how to evaluate a \gls{SPARQL} query that is executed over plaintext data, but \gls{SEnTriS} operates with encrypted data. As such, the previous protocols will need to be adapted to work with encrypted data and the encryption schemes used must encrypt data in such a way that it retains its functionality. For the subset of supported queries, data must be searchable via triple patterns and allow the equality operation, essential for the execution of equi-joins.
 
 \subsubsection{Triple Pattern SSE scheme}
 
@@ -425,8 +416,8 @@ In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the
         \item $node \leftarrow \mathbf{Decrypt(E(node), \; schema)}$: Takes as input an encrypted node and a boolean parameter, which is set to true if the encrypted node belongs to the schema triples. Decrypts the node and outputs the plaintext value.
         \item $trapdoor_{n,i} \leftarrow \mathbf{Trapdoor(keyword_n, \; i)}$: Takes as input a keyword, and an integer. Generates and outputs the trapdoor that corresponds to the $i^{th}$ trapdoor of the keyword.
         \item $[E(node_0), ..., E(node_n)] \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors. Searches the encrypted triplestore for matches against the received trapdoors. Outputs a collection of encrypted nodes, where there was a match.
-        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifiers of the uploads to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes))}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifiers of the uploads to be applied during the execution of a SSE-TP.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n])}$: Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied during the execution of a SSE-TP.$Update$ operation, $\bot$ in case of an error.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n])}$: Takes as input the triplestore identifier, a collection of upload identifiers, and a collection of deletion identifiers. Outputs SUCCESS if the uploads and deletions are successfully executed, $\bot$ otherwise.
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID)}$: Takes as input the triplestore identifier. Outputs SUCCESS if the triplestore data is deleted, $\bot$ otherwise.
     \end{itemize}
@@ -435,7 +426,7 @@ In \gls{SEnTriS} V0 query evaluation is executed with plaintext data, but in the
 
 \subsubsection{Trapdoor generation}
 
-Following the \gls{SSE} approach, in \gls{SEnTriS} V1 and V2 we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the observed frequency of the index keyword.
+Following the \gls{SSE} approach, in \gls{SEnTriS} we do not reference nodes using plaintext indexes. Instead, we generate \emph{trapdoors} by deterministically encrypting the value of the indexes that would reference the node. To enforce the property that every trapdoor must uniquely reference a single node, we deterministically encrypt the index value using an incremental \emph{initialization vector}. This initialization vector is equal to the observed frequency of the index keyword.
 
 Trapdoors generated with $iv = 0$ always reference the latest value of the index keyword frequency.
 
@@ -468,13 +459,17 @@ We also reference with trapdoors the frequencies of a triple pattern, which are 
 
 Finally, uniquely to \gls{SEnTriS} V2, trapdoors generated with $iv = 0$ for the context of the parsed value of a node, reference its \emph{equality tag}. We will define equality tags in Section \ref{ch3:encryption-definition}
 
-\subsubsection{Initial setup \& re-initialization of scheme} During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, the state exclusive to each triplestore, and we might need to execute multiple operations against different triplestores.
+\subsubsection{Initial setup \& re-initialization of scheme} 
+
+During initialization, we generate all the encryption keys and security parameters of the scheme. These vary between versions the two versions. Re-initialization is required because the scheme is stateful, the state exclusive to each triplestore, and we might need to execute multiple operations against different triplestores.
 
 \paragraph{SEnTriS V1} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DET}, \; iv_{DET}, \allowbreak keyword_{schema})$ where, $K_{MASTER}$, $K_{RND}$ and $K_{DET}$ are secret keys, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
 \paragraph{SEnTriS V2} The security parameters correspond to $\lambda = (K_{MASTER}, \; K_{RND}, \; K_{DGK_{priv}}, \linebreak K_{DGK_{pub}}, \; iv_{DET}, \; keyword_{schema})$ where, $K_{MASTER}$ and $K_{RND}$ are secret keys, $K_{DGK_{priv}}$ and $K_{DGK_{pub}}$ are, respectively, a \gls{DGK} private and public key, $iv_{DET}$ is a randomly generated initialization vector and $keyword_{schema}$ is a freshly generated a \gls{UUID} (version 4).
 
-\subsubsection{Triple Pattern encryption and decryption} \label{ch3:encryption-definition} The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
+\subsubsection{Triple Pattern encryption and decryption} \label{ch3:encryption-definition} 
+
+The implementation of the scheme in both versions is very similar: the generation of trapdoors does not vary; the encryption of schema nodes and frequencies belonging to the triple patterns are probabilistically encrypted. They only differ on the encryption of nodes belonging to the \emph{ABox}. This common logic is specified in Listing \ref{encryption-scheme-base}.
 
 %\lstinputlisting[caption={Base logic for the encryption scheme}, label={encryption-scheme-base}]{Code/chapter3/sse-tp/scheme-base.tex}
 
@@ -488,7 +483,9 @@ Trapdoors index encrypted equality tags and encrypted equality tags index encryp
 
 %\lstinputlisting[caption={Triple Pattern Encryption for SEnTriS V2}, label={encryption-scheme-dgk}]{Code/chapter3/sse-tp/scheme-dgk.tex}
 
-\subsubsection{Storage, searches \& updates} When we create a triplestore, we initialize its encryption protocol by generating the security parameters. Upon successfully setting up the encryption scheme, we parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples are uploaded in separate upload operations, if required. The triplestore creation and encryption operations are handled by the client.
+\subsubsection{Storage, searches \& updates} 
+
+When we create a triplestore, we initialize its encryption protocol by generating the security parameters. Upon successfully setting up the encryption scheme, we parse its \emph{ABox} triple patterns, encrypt and upload them. The schema triples are uploaded in separate upload operations, if required. The triplestore creation and encryption operations are handled by the client.
 
 Due to the high volumes of data that can be processed during write operations, these algorithms were designed to be executed in batches. Consequently, upon receiving the encrypted data pertaining to a triplestore, the triplestore component will only store it in temporary entries. These are fully persisted when a SSE-TP.$Update$ operation is executed. We will continue to assume that the storage engine operations are atomic. In Listings \ref{sse-tp-storage-engine} and \ref{sse-tp-triplestore-component} we specify, respectively, the storage engine and the triplestore component logic.
 
@@ -520,7 +517,7 @@ Listings \ref{sse-tp-client-writes-v1} and \ref{sse-tp-client-writes-v2} show th
 
 \subsection{Evaluation of SPARQL queries over encrypted data}
 
-We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, and create a protocol capable of evaluating \gls{SPARQL} queries that works with encrypted triplestores.
+We will now explain how we adapt the SPARQL-EVAL-II to work with the SSE-TP encrypted data, and create a protocol capable of evaluating \gls{SPARQL} queries over encrypted triplestores.
 
 \begin{definition}[\textbf{Secure SPARQL Query Evaluation Protocol}]\label{ch3:definition:secure-sparql-protocol}
     Let SSE-SPARQL-EVAL be a \emph{SPARQL} query evaluation protocol, that works with SSE-TP encrypted triplestores. It is a tuple $\textrm{SSE-SPARQL-EVAL} = (\textrm{SSE-TP}.ReInitialize, \; \textrm{SSE-TP}.Encrypt, \; \textrm{SSE-TP}.Decrypt, \linebreak \textrm{SSE-TP}.PrepareUpload, \; \textrm{SSE-TP}.PrepareDelete, \; \textrm{SSE-TP}.Update, \; \textrm{SSE-TP}.Trapdoor, \; \textrm{SSE-}\linebreak \textrm{TP}.Search, \; PlanQuery, \; PrepareQuery, \; PrepareSearch, \; PrepareBindings, \; Evaluate\textrm{-}\linebreak Query, \; GenerateFinalResult)$ of 8 algorithms where:
@@ -540,7 +537,7 @@ We will now explain how we join the SPARQL-EVAL-II with the SSE-TP protocols, an
     SSE-SPARQL-EVAL is a distributed, three-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; encryption and decryption of data, query plan generation, preparation and final result generation is scoped to the \emph{client} component; the evaluation of the query execution plans are scoped to a secure computation \emph{proxy} component.
 \end{definition}
 
-\subsubsection{Query Preparation Phase} In this phase, depicted in Figure ... \mytodo{Create figure for query preparation phase}, we generate the query execution plan. We adapt the the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
+\subsubsection{Query Preparation Phase} In this phase, depicted in Figure ... \mytodo{Create figure for query preparation phase}, we generate the query execution plan. We adapt the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
 
 %\lstinputlisting[caption={SSE-SPARQL-EVAL ontology}, label={ontology-rnd}]{Code/chapter3/sse-sparql-eval/ontology-rnd.tex}
 
@@ -568,7 +565,7 @@ Finally, listings \ref{sse-sparql-proxy-prepare-bindings} and \ref{sse-proxy-sav
 
 %\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-save-bindings.tex}
 
-\subsubsection{Query Evaluation Phase} Query evaluation, illustrated in Figure ... \mytodo{Create figure for query evaluation phase}, is done in the computation proxy and retains most of the logic present in the two SPARQL-EVAL protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker.
+\subsubsection{Query Evaluation Phase} Query evaluation, illustrated in Figure ... \mytodo{Create figure for query evaluation phase}, is done in the computation proxy and retains most of the logic present in the previous \gls{SPARQL} query evaluation protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker.
 
 In \gls{SEnTriS} V1 the secret key corresponds to $K_{RND}$, and it will be used to peel the outer layer of the encrypted nodes. In \gls{SEnTriS} V2, this key corresponds to an equality key $K_{DGK_{eq}} = (p, \; vp, \; n, \; u)$, which is sufficient to compute the difference between two encrypted equality tags, but not enough to perform a decryption operation. To execute a decryption, in the \gls{DGK} cryptosystem, we require the $g$ parameter, and it is not derivable from the values that compose the $K_{DGK_{eq}}$. The only exception happens with the encryption of 0, which is always 1.
 
@@ -605,7 +602,7 @@ After the decryption of the results, any modifications required are executed. Li
 
 So far we have specified the building blocks for the secure evaluation of \gls{SPARQL} queries, but \gls{SEnTriS} is not uniquely a query evaluation protocol. It is also a triplestore management and sharing protocol: users can create, manage and share encrypted and non-encrypted triplestores with varying degrees of access.
 
-To adapt the previous protocols to the \gls{M/M} setting we will require an identity and access management protocol, with secret sharing between authorized users for \gls{SEnTriS} V1 and V2.
+To adapt the previous protocols to the \gls{M/M} setting we will require an identity and access management protocol, with secret sharing between authorized users.
 
 Authentication will be validated with \emph{sessions}, management of access to triplestores will be achieved with the definition of triplestore \glsxtrlong{ACL}s and strict enforcement of permissions.
 Furthermore, we will rely on a lock-based access strategy, and \emph{ephemeral access tokens}, to ensure that concurrent access is done in a controlled and safe manner.
@@ -620,7 +617,7 @@ Finally, roles will grant different execution rights to users, which restrict th
 
 
 \begin{definition}[\textbf{Identity and Access Management Protocol with Secret Sharing}]\label{ch3:definition:iam-protocol}
-    Let IAM be an identity and access management protocol between authenticated users, where temporary access to triplestores is granted using ephemeral access tokens. It is a tuple of $\textrm{IAM} = (Init, \; CreateSession, \; SaveUser, \; DeleteUser, \; IssueGrantRoleRequest, \; GetPend\textrm{-}\linebreak ingRoleRequests, \; ProcessRoleRequest, \; CreateTriplestoreAccessList, \; GetTriplestores, \linebreak GetUsersWithAccess, \; ChangeTriplestoreOwner, \; DeleteTriplestoreAccessList, \; Grant\textrm{-}\linebreak TriplestoreAccess, \; RevokeTriplestoreAccess, \; IssueAccessRequest, \; GetPendingAccessRe\textrm{-}\linebreak quests, \; ProcessAccessRequest, \; CreateAccessToken, \; DeleteAccessToken, \; CheckReadAc\textrm{-}\linebreak cess, \; CheckWriteAccess, \; CheckOwnerAccess, \; CheckI\textrm{\emph{f}}Active, \; AcquireTriplestoreLock, \linebreak ReleaseTriplestoreLock, \; Auth, \; RegisterUser, \; UnregisterUser, \; IssueUpgradeRequest, \linebreak IssueDowngradeRequest, \; ListPendingRoleRequests, \; IssueRoleDecision, \; ListTriple\textrm{-}\linebreak stores, \; UpdateTriplestoreOwner, \; GrantAccess, \; RevokeAccess, \; RequestAccess, \; ListPend\textrm{-}\linebreak ingAccessRequests, \; IssueAccessDecision, \; ListUsersWithAccess, \; CreateTriplestore, \linebreak DeleteTriplestore, \; SaveSecrets, \; DeleteSecrets, \; GetSecrets)$ of 45 algorithms where:
+    Let IAM be an identity and access management protocol between authenticated users, where temporary access to triplestores is granted using ephemeral access tokens. It is a tuple of $\textrm{IAM} = (Init, \; CreateSession, \; SaveUser, \; DeleteUser, \; IssueGrantRoleRequest, \; GetPend\textrm{-}\linebreak ingRoleRequests, \; ProcessRoleRequest, \; CreateTriplestoreAccessList, \; GetTriplestores, \linebreak GetUsersWithAccess, \; ChangeTriplestoreOwner, \; DeleteTriplestoreAccessList, \; Grant\textrm{-}\linebreak TriplestoreAccess, \; RevokeTriplestoreAccess, \; IssueAccessRequest, \; GetPendingAccessRe\textrm{-}\linebreak quests, \; ProcessAccessRequest, \; CreateAccessToken, \; DeleteAccessToken, \; CheckReadAc\textrm{-}\linebreak cess, \; CheckWriteAccess, \; CheckOwnerAccess, \; CheckI\textrm{\emph{f}}Active, \; AcquireTriplestoreLock, \linebreak ReleaseTriplestoreLock, \; Auth, \; RegisterUser, \; UnregisterUser, \; IssueUpgradeRequest, \linebreak IssueDowngradeRequest, \; ListPendingRoleRequests, \; IssueRoleDecision, \; ListTriple\textrm{-}\linebreak stores, \; UpdateTriplestoreOwner, \; GrantAccess, \; RevokeAccess, \; RequestAccess, \; ListPend\textrm{-}\linebreak ingAccessRequests, \; IssueAccessDecision, \; ListUsersWithAccess, \; CreateTriplestore, \linebreak DeleteTriplestore, \; SaveSecrets, \; DeleteSecrets, \; GetSecrets, \; SSE\textrm{-}TP.Setup)$ of 46 algorithms where:
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Init()}$: initializes the protocol by registering a default admin user. Outputs $\textrm{SUCCESS}$ if the user is created and registered, $\bot$ otherwise.
 
@@ -704,11 +701,11 @@ Finally, roles will grant different execution rights to users, which restrict th
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{ListUsersWithAccess(cookie, \;  triplestoreID, \; issuer, \; write)}$: takes as input a cookie, a triplestore identifier, the request issuer username and a boolean parameter specifying the type of access. Tries to create an access token. Issues a IAM.$getUsersWithAccess$ request and outputs the retrieved response.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{CreateTriplestore(cookie, \; triplestoreID)}$: takes as input a cookie and a new triplestore identifier. Issues a IAM.$createTriplestoreAccessList$ request and outputs the retrieved response. In case of SUCCESS, in \gls{SEnTriS} V1 and V2, will also try to create an access token and lock the newly created triplestore. After the setup of the encryption scheme, will try to save the generated secrets by issuing a IAM.$saveSecrets$ request. In case of error, deletes the newly generated triplestore and outputs $\bot$. Outputs SUCCESS if the triplestore \gls{ACL} is successfully created and the secrets saved correctly.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{CreateTriplestore(cookie, \; triplestoreID)}$: takes as input a cookie and a new triplestore identifier. Issues a IAM.$createTriplestoreAccessList$ request and outputs the retrieved response. In case of SUCCESS, will also try to create an access token and lock the newly created triplestore. Executes SSE-TP.$Setup$ and tries to save the generated secrets by issuing a IAM.$saveSecrets$ request. In case of error, deletes the newly generated triplestore and outputs $\bot$. Outputs SUCCESS if the triplestore \gls{ACL} is successfully created and the secrets saved correctly.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteTriplestore(cookie, \; issuer, \;  triplestoreID)}$: takes as input a cookie, a username and a triplestore identifier. Tries to create an access token and lock the triplestore. Issues a IAM.$deleteTriplestoreAccessList$ request and outputs the retrieved response. In case of \gls{SEnTriS} V1 and V2, it issues a IAM.$deleteSecrets$ request beforehand, and only continues the execution upon receiving a SUCCESS response. Outputs $\bot$ in case there is any error, and SUCCESS otherwise.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteTriplestore(cookie, \; issuer, \;  triplestoreID)}$: takes as input a cookie, a username and a triplestore identifier. Tries to create an access token and lock the triplestore. It issues a IAM.$DeleteSecrets$ request and a IAM.$DeleteTriple\textrm{-}\linebreak storeAccessList$ request. Outputs SUCCESS if the triplestore is deleted, $\bot$ otherwise.
 
-              %Vault Operations
+        %Vault Operations
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{SaveSecrets(triplestoreID, \; secrets, \; at)}$: takes as input a triplestore identifier, a collection of secrets and an access token. If the token as sufficient permissions, the secrets are saved and outputs SUCCESS, $\bot$ otherwise.
 
@@ -761,7 +758,7 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 
 %\lstinputlisting[caption={Storage of Access Requests}, label={iam-provider-storage-engine-access}]{Code/chapter3/iam/iam-provider-storage-engine-access.tex}
 
-\subsubsection{Sharing of Secrets} In \gls{SEnTriS} V1 and V2, access to a triplestore will grant permission to consult the secrets of the triplestore. Permission to modify a triplestore's secrets will only be granted to its owner. Revoking access to a triplestore, will also revoke access to its secrets. Listings \ref{iam-client-acl-secrets} and \ref{iam-vault} show, respectively, the updated client component and the vault component logic.
+\subsubsection{Sharing of Secrets} Access to a triplestore will grant permission to consult the secrets of the triplestore. Permission to modify a triplestore's secrets will only be granted to its owner. Revoking access to a triplestore, will also revoke access to its secrets. Listing \ref{iam-vault} shows the vault component logic.
 
 %\lstinputlisting[caption={Triplestore ACL management in Client (SEnTriS V1 \& V2)}, label={iam-client-acl-secrets}]{Code/chapter3/iam/iam-client-acl-secrets.tex}
 
@@ -781,10 +778,9 @@ The emission of locks and ephemeral access tokens is also scoped to the IAM prov
 Now that we have explained how we manage access in the \gls{M/M} setting, we are ready to fully define \gls{SEnTriS}.
 
 \begin{definition}[\textbf{SEnTriS}]\label{ch3:definition:sentris}
-    Let \gls{SEnTriS} be a protocol that supports the collaborative development and sharing of SSE-TP encrypted triplestores and is capable of answering \gls{SPARQL} queries using the SSE-SPARQL-EVAL protocol, adapted to the \gls{M/M} setting. It is a tuple $\textrm{SEnTriS} = (\textrm{IAM}.Init, \; \textrm{IAM}.CreateSession, \; \textrm{IAM}.SaveUser, \; \textrm{IAM}.DeleteUser, \; \textrm{IAM}.Issue\textrm{-}\linebreak GrantRoleRequest, \; \textrm{IAM}.GetPendingRoleRequests, \; \textrm{IAM}.ProcessRoleRequest, \; \textrm{IAM}.Cre\textrm{-}\linebreak ateTriplestoreAccessList, \; \textrm{IAM}.GetTriplestores, \; \textrm{IAM}.GetUsersWithAccess, \; \textrm{IAM}.\textrm{-}\linebreak ChangeTriplestoreOwner, \; \textrm{IAM}.DeleteTriplestoreAccessList, \; \textrm{IAM}.GrantTriplestoreAc\textrm{-}\linebreak cess, \; \textrm{IAM}.RevokeTriplestoreAccess, \; \textrm{IAM}.IssueAccessRequest, \; \textrm{IAM}.GetPendingAccess\textrm{-}\linebreak Requests, \; \textrm{IAM}.ProcessAccessRequest, \; \textrm{IAM}.CreateAccessToken, \; \textrm{IAM}.DeleteAccessToken, \linebreak \textrm{IAM}.CheckReadAccess, \; \textrm{IAM}.CheckWriteAccess, \; \textrm{IAM}.CheckOwnerAccess, \; \textrm{IAM}.CheckI\textrm{\emph{f}}\textrm{-}\linebreak Active, \; \textrm{IAM}.AcquireTriplestoreLock, \; \textrm{IAM}.ReleaseTriplestoreLock, \; \textrm{IAM}.Auth, \; \textrm{IAM}.\textrm{-}\linebreak RegisterUser, \; \textrm{IAM}.UnregisterUser, \; \textrm{IAM}.IssueUpgradeRequest, \; \textrm{IAM}.issueDowngrade\textrm{-}\linebreak Request, \; \textrm{IAM}.ListPendingRoleRequests, \; \textrm{IAM}.IssueRoleDecision, \; \textrm{IAM}.ListTriplestores, \linebreak \textrm{IAM}.UpdateTriplestoreOwner, \; \textrm{IAM}.GrantAccess, \; \textrm{IAM}.RevokeAccess, \; \textrm{IAM}.RequestAc\textrm{-}\linebreak cess, \; \textrm{IAM}.ListPendingAccessRequests, \; \textrm{IAM}.IssueAccessDecision, \; \textrm{IAM}.ListUsersWith\textrm{-}\linebreak Access, \; \textrm{IAM}.SaveSecrets, \; \textrm{IAM}.DeleteSecrets, \; \textrm{IAM}.GetSecrets, \; \textrm{SSE-TP}.Setup, \; \textrm{SSE-TP}.\textrm{-}\linebreak ReInitialize, \; \textrm{SSE-TP}.Encrypt, \; \textrm{SSE-TP}.Decrypt, \; \textrm{SSE-TP}.Trapdoor, \; \textrm{SSE-TP}.Upload, \; Cre\textrm{-}\linebreak ateTriplestore, \; UploadTriples, \; DeleteTriplestore, \; SearchSchema, \; ExecuteSPARQL\textrm{-}\linebreak Query, \; PrepareSearch, \; Search, \; PrepareUpload, \; PrepareDelete, \; Update, \; DeleteAll, \; Pre\textrm{-}\linebreak pareBindings, \; EvaluateQuery)$ of 62 algorithms where:
+    Let \gls{SEnTriS} be a protocol that supports the collaborative development and sharing of SSE-TP encrypted triplestores and is capable of answering \gls{SPARQL} queries using the SSE-SPARQL-EVAL protocol, adapted to the \gls{M/M} setting. It is a tuple $\textrm{SEnTriS} = (\textrm{IAM}.Init, \; \textrm{IAM}.CreateSession, \; \textrm{IAM}.SaveUser, \; \textrm{IAM}.DeleteUser, \; \textrm{IAM}.Issue\textrm{-}\linebreak GrantRoleRequest, \; \textrm{IAM}.GetPendingRoleRequests, \; \textrm{IAM}.ProcessRoleRequest, \; \textrm{IAM}.Cre\textrm{-}\linebreak ateTriplestoreAccessList, \; \textrm{IAM}.GetTriplestores, \; \textrm{IAM}.GetUsersWithAccess, \; \textrm{IAM}.\textrm{-}\linebreak ChangeTriplestoreOwner, \; \textrm{IAM}.DeleteTriplestoreAccessList, \; \textrm{IAM}.GrantTriplestoreAc\textrm{-}\linebreak cess, \; \textrm{IAM}.RevokeTriplestoreAccess, \; \textrm{IAM}.IssueAccessRequest, \; \textrm{IAM}.GetPendingAccess\textrm{-}\linebreak Requests, \; \textrm{IAM}.ProcessAccessRequest, \; \textrm{IAM}.CreateAccessToken, \; \textrm{IAM}.DeleteAccessToken, \linebreak \textrm{IAM}.CheckReadAccess, \; \textrm{IAM}.CheckWriteAccess, \; \textrm{IAM}.CheckOwnerAccess, \; \textrm{IAM}.CheckI\textrm{\emph{f}}\textrm{-}\linebreak Active, \; \textrm{IAM}.AcquireTriplestoreLock, \; \textrm{IAM}.ReleaseTriplestoreLock, \; \textrm{IAM}.Auth, \; \textrm{IAM}.\textrm{-}\linebreak RegisterUser, \; \textrm{IAM}.UnregisterUser, \; \textrm{IAM}.IssueUpgradeRequest, \; \textrm{IAM}.issueDowngrade\textrm{-}\linebreak Request, \; \textrm{IAM}.ListPendingRoleRequests, \; \textrm{IAM}.IssueRoleDecision, \; \textrm{IAM}.ListTriplestores, \linebreak \textrm{IAM}.UpdateTriplestoreOwner, \; \textrm{IAM}.GrantAccess, \; \textrm{IAM}.RevokeAccess, \; \textrm{IAM}.RequestAc\textrm{-}\linebreak cess, \; \textrm{IAM}.ListPendingAccessRequests, \; \textrm{IAM}.IssueAccessDecision, \; \textrm{IAM}.ListUsersWith\textrm{-}\linebreak Access, \; \textrm{IAM}.SaveSecrets, \; \textrm{IAM}.DeleteSecrets, \; \textrm{IAM}.GetSecrets, \; \textrm{SSE-TP}.Setup, \; \textrm{SSE-TP}.\textrm{-}\linebreak ReInitialize, \; \textrm{SSE-TP}.Encrypt, \; \textrm{SSE-TP}.Decrypt, \; \textrm{SSE-TP}.Trapdoor, \; \textrm{SSE-TP}.Upload, \linebreak IAM.CreateTriplestore, \; UploadTriples, \; DeleteTriplestore, \; SearchSchema, \; Execute\textrm{-}\linebreak SPARQLQuery, \; PrepareSearch, \; Search, \; PrepareUpload, \; PrepareDelete, \; Update, \; Delete\textrm{-}\linebreak All, \; PrepareBindings, \; EvaluateQuery)$ of 62 algorithms where:
 
     \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{CreateTriplestore(cookie, \; triplestoreID)}$: takes as input a cookie and a triplestore identifier. Issues a IAM.$CreateTriplestore$ request. If the response is positive, tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestoreLock$ request. If the access token is successfully generated and the triplestore locked, executes SSE-TP.$Setup$, issues a IAM.$SaveSecrets$ request, containing the newly generated secrets, and outputs "SUCCESS". If any error occurs, issues a IAM.$DeleteTriplestoreAccess\textrm{-}\linebreak List$ and outputs $\bot$.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{UploadTriples(cookie, \; triplestoreID, \; [t_0, t_1, ..., t_n], \; schema)}$: \linebreak Takes as input a cookie, a triplestore identifier, a set of triples and a boolean parameter, which is set to true if the triples are schema triples. If $schema$ is false generates a \gls{SPARQL} Update query with the provided triples, and executes SEnTriS.$Execute\textrm{-}\linebreak SPARQLQuery$. If $schema$ is true, tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestore\textrm{-}\linebreak Lock$ request. Upon successfully generating the token, and locking the triplestore, issues a IAM.$GetSecrets$ request and executes SSE-TP.$ReInitialize$. With the encryption scheme fully initialized, executes a modified implementation of SSE-TP.$Upload$ where the issued requests follow the definitions of SEnTriS.$PrepareDelete$, SEnTriS.-\linebreak$PrepareUpload$ and SEnTriS.$Update$. In case of any error, issues a IAM.$DeleteAc\textrm{-}\linebreak cessToken$ and outputs $\bot$.
 
@@ -821,42 +817,16 @@ Now that we have explained how we manage access in the \gls{M/M} setting, we are
 
 \mytodo{Add figure for SEnTriS}
 
-\subsubsection{SEnTriS V1 \& V2}
-
-These two implementations of the protocol differ uniquely on the underlying encryption scheme used with the SSE-TP protocol. These two variations of the SSE-TP encryption schemes were discussed previously in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}. In summary, \gls{SEnTriS} V1 uses symmetric key encryption, whereas \gls{SEnTriS} V2 uses the \gls{DGK} cryptosystem.
-
-\subsubsection{SEnTriS V0}
-
-\gls{SEnTriS} V0 does not work with encrypted triplestores, it implements a simpler protocol, which consists in the adaptation of the SPARQL-EVAL-II protocol, to the \gls{M/M} setting. It continues to be a
-
-\begin{definition}[\textbf{SEnTriS V0)}]\label{ch3:definition:sentri-v0}
-    Let \gls{SEnTriS} V0 be a protocol that supports the collaborative development and sharing of triplestores and is capable of answering \gls{SPARQL} queries using the SPARQL-EVAL-II protocol, adapted to the \gls{M/M} setting.
-
-    \begin{itemize}
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Upload(triplestoreID, \; [t_0, t_1, ..., t_n], \; schema)}$: Takes as input a triplestore identifier, a set of triples and a boolean parameter, which is set to true if the triples are schema triples. If triples are successfully encrypted and uploaded outputs SUCCESS, $\bot$ otherwise.
-
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteTriplestore(triplestoreID, \; schema)}$: Takes as input the triplestore identifier and a boolean parameter, which is set to true if only the schema triples should be deleted. Outputs SUCCESS if the requested data is deleted, $\bot$ otherwise.
-
-        \item $\{[t_0, t_1, ..., t_n], \; \bot\} \leftarrow \mathbf{SearchSchema(triplestoreID)}$: Takes as input the triplestore identifier. Searches the encrypted triplestore for its schema triples. Outputs a collection of triples, or $\bot$ if an error occurred.
-        
-        \item $\{sparqlFinalResult, \; \bot\} \leftarrow \mathbf{ExecuteSPARQLQuery(query, \; triplestoreID, \; infer\textrm{-}}$ \linebreak $\mathbf{ence, \; expansionDepth, \; transitivityDepth)}$:
-
-        %Triplestore algorithms
-
-        \item $\{SUCCESS, \bot\} \leftarrow \mathbf{upload(triplestoreID, \; [t_0, t_1, ..., t_n], \; schema, \; at)}$: Takes as input the triplestore identifier and a map of encrypted nodes, indexed by trapdoors. Temporarily saves the operation. Outputs the identifiers of the uploads to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-
-        \item $\{SUCCESS, \bot\} \leftarrow \mathbf{delete(triplestoreID, \; [t_0, t_1, ..., t_n], \; at)}$: \linebreak Takes as input the triplestore identifier and a collection of trapdoors, whose entries should be deleted. Temporarily saves the operation. Outputs the identifier of the deletions to be applied during the execution of an SSE-TP.$Update$ operation, $\bot$ in case of an error.
-
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteAll(triplestoreID, \; schema \; at)}$: Takes as input the triplestore identifier. Outputs SUCCESS if the triplestore data is deleted, $\bot$ otherwise.
-
-        \item $\{sparqlResult, \; \bot\} \leftarrow \mathbf{EvaluateQuery(plan, \; at)}$: Takes as input a randomized prepared query execution plan and a secret key. Executes the query plan and outputs the encrypted \gls{SPARQL} results. If there is an error, outputs $\bot$.
-    \end{itemize}
-
-    It is a distributed, multi-party protocol between a \emph{client}, a \emph{IAM provider} and a \emph{triplestore} component. The client retains all functionality of \gls{SEnTriS}, apart from encryption and decryption of data. The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. Finally, the triplestore component is responsible for execution of query plans and for the storage of triplestores' \emph{ABox} and \emph{TBox} data.
-\end{definition}
-
-\mytodo{Add figure for SEnTriS V0}
-
 \section{Summary}
 
+In this Chapter we have explained all the building blocks that compose \gls{SEnTriS}. 
 
+We started by giving an overview of the system model, and the security model. We continued by specifying the core elements that are part of the various protocols, as well as, introducing the cryptographic tools used. 
+
+Furthermore, we defined two \gls{SPARQL} query evaluation protocols, SPARQL-EVAL and SPARQL-EVAL-II, and how we can apply query rewriting techniques to retain reasoning capabilities. 
+
+Additionally, we defined a \gls{SSE} scheme for encrypting triple patterns, SSE-TP, and how to adapt the SPARQL-EVAL-II protocol to work with SSE-TP encrypted triplestores, defining the SSE-SPARQL-EVAL protocol.
+
+Finally, we specified a \gls{IAM} protocol, necessary for the functioning of the SSE-SPARQL-EVAL protocol in a \gls{M/M} setting. 
+
+We concluded with the definition of the \gls{SEnTriS} protocol.

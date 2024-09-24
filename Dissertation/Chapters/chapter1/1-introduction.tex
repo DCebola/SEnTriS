@@ -85,26 +85,22 @@ In this thesis we aim to develop a practical and secure solution for the collabo
 
 
 \begin{description}
-    \item \textbf{SPARQL-EVAL \& SPARQL-EVAL-II - Distributed two-party \gls{SPARQL} query}\linebreak \textbf{ evaluation protocol:} We developed two \gls{SPARQL} query evaluation protocols. The former applies query rewriting techniques to retain reasoning capabilities. They support a subset of queries: queries target solely the default graph; the allowed modifier are DISTINCT, ORDERBY and LIMIT; graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables.
+    \item \textbf{SPARQL-EVAL \& SPARQL-EVAL-II - Distributed two-party \gls{SPARQL} query evalua-}\linebreak \textbf{tion protocol:} We developed two \gls{SPARQL} query evaluation protocols. The former applies query rewriting techniques to retain reasoning capabilities. They support a subset of queries: queries target solely the default graph; the allowed modifier are DISTINCT, ORDERBY and LIMIT; graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables.
     
-    \item [SSE-TP - A distributed two-party triple pattern \gls{SSE} protocol:] 
+    \item \textbf{SSE-TP - A distributed two-party triple pattern \gls{SSE} protocol:} 
     SSE-TP is protocol for encrypting \gls{RDF} data in a way that the data remains searchable via the specification of triple patterns. 
-    It is implemented with two different encryption schemes. In the first implementation, encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. 
-    In the second implementation, data is encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}, an additive homomorphic scheme developed for secure integer comparison. The value of a subject, predicate or object is mapped to an \emph{equality tags}. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects.
 
     \item \textbf{SSE-SPARQL-EVAL - A distributed three-party \gls{SPARQL} query evaluation protocol} \linebreak \textbf{ for SSE-TP encrypted triplestores:}   
-    SSE-SPARQL-EVAL is an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted triplestores. It was implemented in two versions, each one modified to work with one of the two implementations of the SSE-TP protocol. 
-    The main distinction between them is in the equality function used during set operations. In the first version, when equality checks are required, we peel the outer layer of the encryption onions and compare the values. In the second version, we mask the values of the equality tags, via re-encryption. When doing equality checks, we decrypt the \emph{blinded equality tags} and compare the values. These remain deterministic, but different for every query evaluation.
+    SSE-SPARQL-EVAL is an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted triplestores. 
 
-    \item [\gls{SEnTriS} - A multiparty searchable encrypted triplestore sharing protocol:] 
+    \item \textbf{\gls{SEnTriS} - A multiparty searchable encrypted triplestore sharing protocol:}
     
-    \gls{SEnTriS} is \linebreak an adaptation of the SPARQL-EVAL-II and SSE-SPARQL-EVAL protocols for a multiuser setting. Encrypted triplestores are shareable, remain queryable, possess reasoning capabilities and support role based access control. Access to triplestores is controlled with the usage of ephemeral access tokens. Concurrent writes are resolved with a lock-based strategy. The triplestores' encryption scheme secrets are distributed among user with access to the triplestores. The protocol is implemented in three versions:
-    \begin{itemize}
-        \item \emph{\gls{SEnTriS} V0}: It is an adaptation of the SPARQL-EVAL-II protocol. Operates over plaintext data and does not provide data confidentiality, but enforces role-based access control. 
+    \gls{SEnTriS} is an adaptation of the SSE-SPARQL-EVAL protocol for a multiuser setting. Encrypted triplestores are shareable, remain queryable, possess reasoning capabilities and support role based access control. Access to triplestores is controlled with the usage of ephemeral access tokens. Concurrent writes are resolved with a lock-based strategy. Secrets are distributed among user with access to the triplestores. The protocol is implemented in two versions:
+    \begin{itemize} 
     
-        \item \emph{\gls{SEnTriS} V1}: It is an adaptation of the first implementation of SSE-SPARQL-EVAL. Retains data confidentiality and enforces role-based access control.
+        \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer of the encryption onions and compare the values.
     
-        \item \emph{\gls{SEnTriS} V2}: It is an adaptation of the second implementation of SSE-SPARQL-EVAL. Retains data confidentiality, enforces role-based access control. It aims to have a reduced the leakage profile, compared to \gls{SEnTriS} V1.
+        \item \emph{\gls{SEnTriS} V2}: Data is encrypted using the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}, an additive homomorphic scheme developed for secure integer comparison. The value of a subject, predicate or object is mapped to an \emph{equality tags}. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. During query evaluation, we mask the values of the equality tags, via re-encryption. When doing equality checks, we decrypt the equality tags and compare the values. These remain deterministic, but different for every query evaluation.
     \end{itemize}
 \end{description}
 

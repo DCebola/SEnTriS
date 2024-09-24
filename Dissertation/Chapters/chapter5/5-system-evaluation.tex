@@ -33,11 +33,6 @@ We expect all implementations of \gls{SEnTriS} to possess the following \emph{se
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component.
     \item An attacker will not be able to tamper with messages sent between components.
-\end{enumerate}
-
-Due to the lack of data confidentiality in \gls{SEnTriS} V0, the following security properties are exclusive to the other two implementations:
-
-\begin{enumerate}
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
         \begin{enumerate}
@@ -60,21 +55,17 @@ Due to the lack of data confidentiality in \gls{SEnTriS} V0, the following secur
 
 \subsection{Storage Complexity}
 %Space complexity in terms of RDF terms
-\subsubsection{SEnTriS V0}
 \subsubsection{SEnTriS V1}
 \subsubsection{SEnTriS V2}
 
 \subsection{Query Evaluation Complexity}
 %Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
-\subsubsection{SEnTriS V0}
 \subsubsection{SEnTriS V1}
 \subsubsection{SEnTriS V2}
 
 \section{Final Discussion}
 
-All implementations come with a trade-off between data confidentiality, query evaluation leakage and performance.
-
-\gls{SEnTriS} V0 only provides access control, trading data confidentiality for performance.
+Both implementations come with a trade-off between query evaluation leakage and performance.
 
 \gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
 
