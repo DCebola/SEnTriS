@@ -5,7 +5,7 @@
 \chapter{Related Work}
 \label{cha:related-work}
 
-In this chapter, we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: on Section \ref{ch2:sec:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; Section \ref{ch2:sec:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, on Section \ref{ch2:sec:summary} we summarize and discuss which work is relevant.
+In this chapter, we will discuss the architecture and design of the \emph{Semantic Web} as well as analyzing work already done in the fields of \emph{Secure Computations}. The remaining of the chapter is organized as follows: in Section \ref{ch2:sec:semantic-web} we discuss the \emph{Semantic Web} stack, languages and tools; Section \ref{ch2:sec:secure-computations} describes work on \emph{Secure Computation}, with particular attention regarding \gls{HE} and \gls{SE}; finally, in Section \ref{ch2:sec:summary} we summarize and discuss which work is relevant.
 
 \prependtographicspath{{Figures/}}
 
@@ -27,11 +27,11 @@ In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and
 \end{figure}
 
 
-Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
+Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (Figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
 Briefly describing this layered architecture, at the root level, we have the \gls{IRI}s and a character set providing the baseline of communication, with distinguishable identification of resources and an agreed encoding.
 
-At the syntax level we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
+At the syntax level, we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
 From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With a \gls{XML} like syntax, we can write statements about resources, thus embedding  \emph{semantics} within the information, as \emph{metadata}.
 
@@ -39,7 +39,7 @@ The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to
 
 Ontologies are defined with \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
 
-\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. There exist various languages, such as the \gls{SWRL} \autocite{W3c2004-rn}, that allow us to express rules as well as logic.
+\gls{RDF} triples can be interpreted as logical binary predicates, making reasoning possible over \gls{RDF}-based data. This allows us to infer and validate ontologies, and also provide explanations on operations' results. The rules layer is a reference to this specific part of the architecture stack. There exist various languages, such as the \gls{SWRL} \autocite{W3c2004-rn}, that allow us to express rules.
 
 To query and retrieve any data based on \gls{RDF} we use \gls{SPARQL}.
 
@@ -49,7 +49,7 @@ Only with secure cryptographic schemes can we reach the trust layer. The securit
 
 The top layer, references all the applications and interfaces that use this new paradigm of data representation.
 
-In the following of this Section we will describe, in more detail, some languages and tools. We will focus on \gls{RDF} in Section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in Section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in Section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in Section \ref{ch2:sec:semantic-web:sparql}; on common tools and software, in Section \ref{ch2:sec:semantic-web:tools}.
+In the following of this section we will describe, in more detail, some languages and tools. We will focus on \gls{RDF} in Section \ref{ch2:sec:semantic-web:rdf}; on \gls{RDFS}, in Section \ref{ch2:sec:semantic-web:rdf-schema}; on \gls{OWL2}, in Section \ref{ch2:sec:semantic-web:owl}; on \gls{SPARQL}, in Section \ref{ch2:sec:semantic-web:sparql}; on common tools and software, in Section \ref{ch2:sec:semantic-web:tools}.
 
 \subsection{RDF: Resource Description Framework}
 \label{ch2:sec:semantic-web:rdf}
@@ -110,7 +110,7 @@ The \emph{rdfs:subClassOf} is used to define that all the instances of a class a
 
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
-In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In Figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
 
 \begin{table}[h]
     \begin{center}
@@ -515,7 +515,7 @@ A general model, for the index-based \gls{SE} schemes was defined in \autocite{B
     \end{array}
 \end{equation}
 
-To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{j}))$, for a predicate $f$ a keyword $w_{j}$. With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. If there is a keyword $w$ that satisfies the predicate $f$, it returns to the client the corresponding ciphertexts associated with $i$ or $\bot$ if no match was found. In figure \ref{fig:se-general} we demonstrate the interaction between client and server.
+To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{j}))$, for a predicate $f$ a keyword $w_{j}$. With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. If there is a keyword $w$ that satisfies the predicate $f$, it returns to the client the corresponding ciphertexts associated with $i$ or $\bot$ if no match was found. In Figure \ref{fig:se-general} we demonstrate the interaction between client and server.
 
 \begin{figure}[H]
     \centering

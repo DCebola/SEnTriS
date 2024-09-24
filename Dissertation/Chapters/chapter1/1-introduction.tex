@@ -5,6 +5,8 @@
 \chapter{Introduction}
 \label{cha:introduction}
 
+In this chapter we will contextualize and define the research problem. In Section \ref{ch1:sec:context} we introduce the research context: explaining the concept of the \emph{Semantic Web}, analyzing the industry landscape, enumerate security concerns, that the usage of cloud technologies poses, and show mitigation approaches.  In Section \ref{ch1:sec:problem} we define the problem and research questions. Finally, In Section \ref{ch1:sec:contributions} we present the main contributions from our work.
+
 \section{Context}
 \label{ch1:sec:context}
 
@@ -19,9 +21,9 @@ Semantic data is specified using a stack of different language specifications. T
 
 
 \paragraph{Industry Landscape} Knowledge representation is essential in the industry \autocite{Noy2019-lj} and ontologies help remove ambiguity in terminology.
-Nowadays, they are being developed and applied in a variety of domains \autocite{W3c_undated-pd} ranging from the health sector\footnote{The NCI Thesaurus \autocite{Sioutos2007-ep}, developed by the \gls{NCI} or the \gls{GO} \autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, are some existing applications.}, to linguistics \footnote{The WordNet \autocite{Miller1995-ic} is a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA\footnote{Observing the visual representation provided by the Linked Open Data Cloud \autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.} \autocite{Ashish2005-qz}.
+Nowadays, they are being developed and applied in a variety of domains \autocite{W3c_undated-pd} ranging from the health sector\footnote{The NCI Thesaurus, \autocite{Sioutos2007-ep}, developed by the \gls{NCI}, the \gls{GO} \autocite{Harris2004-tf}, the world’s largest source of information on the functions of genes, or the \gls{SNOMED CT} \autocite{SNOMED-gi}, the most comprehensive, multilingual clinical healthcare terminology in the world, are some existing applications.}, to linguistics \footnote{The WordNet \autocite{Miller1995-ic} is a lexical database for English where related words and concepts are semantically linked.} and even being used by companies like NASA\footnote{Observing the visual representation provided by the Linked Open Data Cloud \autocite{McCrae_undated-or} is a good exercise to perceive the dimension of adoption of this new paradigm.} \autocite{Ashish2005-qz}.
 
-To developed and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design; debugging tools; query answering; graphic visualization of data and knowledge).
+To develop and maintain ontologies, advanced semantic editors are the standard tool for professionals, with Protégé \autocite{Musen2015-kh} being a very popular example. These provide numerous functionalities, usually based on plugins (e.g. automatic verification of errors and consistency in the design, debugging tools, query answering and graphic visualization of data and knowledge).
 
 With datasets gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, present new security concerns and engineering challenges.
 
@@ -39,11 +41,11 @@ Although we can observe some major database services, like MongoDB, starting to 
 
 Currently, active research is being done in the fields of \gls{SE} and \gls{HE}.
 
-\glsxtrlong{HE} is based on the concept of algebra homomorphisms, where both decryption and encryption can be seen as an homomorphism of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \glsxtrlong{HE}, based on the type and number of operations supported (e.g. addition or multiplication of encrypted values), can be classified as: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any type of operations, but with a pre-determined expected depth-$L$ (can be executed up to $L$ times).
+\glsxtrlong{HE} is based on the concept of algebra homomorphisms, where both decryption and encryption can be seen as a homomorphism of the relations between the plaintext and the ciphertext \autocite{Acar2018-mp, Fontaine2007-sv}. \glsxtrlong{HE}, based on the type and number of operations supported (e.g. addition or multiplication of encrypted values), can be classified as: \gls{FHE} supporting any number of operations with no restriction on the number of times; \gls{SHE} permitting some types of operations, a limited number of times; \gls{PHE} allowing one type of operation with no restriction on the number of times; and \gls{LFHE} \autocite{Brakerski2014-nm} supporting any type of operations, but with a pre-determined expected depth-$L$ (can be executed up to $L$ times).
 
-\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries, sequentially over the ciphertext \autocite{Song2000-hu}, or through the generation of searchable \emph{encrypted indexes} accessible with \emph{tokens}, generated via \emph{trapdoor} functions. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when asymmetric key algorithms are used. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. Most approaches leak, at least, the \emph{search} and \emph{access patterns} \autocite{Bosch2014-eb}. Recently, to mitigate information leakage, \emph{hybrid} solutions combining the software approach of \gls{SE} with \emph{trusted hardware} have been proposed \autocite{Ferreira2020-ze}.
+\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries, sequentially over the ciphertext \autocite{Song2000-hu}, or through the generation of searchable \emph{encrypted indexes} accessible with \emph{tokens}, generated via \emph{trapdoor} functions. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when asymmetric key algorithms are used. \gls{SSE} is often more practical than \gls{PEKS}, as symmetric cryptographic schemes tend to be more efficient than their asymmetric counterparts \autocite{Pearson2017-ve}. These techniques may leak some information about the \emph{indexes}, \emph{search pattern}, and \emph{access pattern} during execution. Most approaches leak, at least, the \emph{search} and \emph{access patterns} \autocite{Bosch2014-eb}. Recently, to mitigate information leakage, \emph{hybrid} solutions combining the software approach of \gls{SE} with \emph{trusted hardware} have been proposed \autocite{Ferreira2020-ze}.
 
-Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theoretically be used as an alternative. However, \gls{ORAM} and \gls{HE} continue to be too inefficient for  real world applications, when considered as an exclusive solution \autocite{Bosch2014-eb}. Furthermore, \gls{SSE} is often more practical than \gls{PEKS}, as asymmetric cryptographic schemes tend to be more efficient than their symmetric counterparts \autocite{Pearson2017-ve}. 
+Besides \gls{HE} and \gls{SE}, \gls{ORAM} \autocite{Goldreich1996-yb} could theoretically be used as an alternative. However, \gls{ORAM} and \gls{HE} continue to be too inefficient for real world applications, when considered as an exclusive solution \autocite{Bosch2014-eb}.
 
 \section{Problem}
 \label{ch1:sec:problem}
@@ -112,7 +114,7 @@ The prototype will be available as open-source code in a public repository, alon
 The remaining of the document will be organized as follows:
 
 \begin{description}
-    \item [Chapter 2] discusses related work on \emph{Semantic Web} and \emph{Secure Computations} and compares existing solution for secure semantic data outsourcing and \gls{SPARQL} evaluation.
+    \item [Chapter 2] discusses related work on \emph{Semantic Web} and \emph{Secure Computations} and compares existing solutions for secure semantic data outsourcing and \gls{SPARQL} evaluation.
     \item [Chapter 3] presents the solution.
     \item [Chapter 4] describes the implementation details of each of the system's components.
     \item [Chapter 5] presents the experimental evaluation procedures, describes and discusses the obtained results.
