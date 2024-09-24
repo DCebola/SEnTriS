@@ -6,7 +6,7 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTriS} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we define the protocols for \gls{SPARQL} query evaluation, the triple pattern \gls{SSE} schemes, the \gls{SPARQL} query evaluation protocol over encrypted triplestores and how to expand such protocol to the \gls{M/M} setting. We finish with the definition of the \gls{SEnTriS} protocol.
+In this chapter we will present the main contribution of our research. In Section \ref{ch3:sec:solution-models}, we introduce \gls{SEnTriS} and define the system and adversary model. In Section \ref{ch3:sec:solution-definition} we define: 1) two protocols for \gls{SPARQL} query evaluation, SPARQL-EVAL and SPARQL-EVAL-II; 2) a triple pattern \gls{SSE} scheme, SSE-TP; 3) a \gls{SPARQL} query evaluation protocol that functions with encrypted triplestores, SSE-SPARQL-EVAL; a IAM protocol used to adapt the solution to the \gls{M/M} setting; 4) the \gls{SEnTriS} protocol.
 
 
 \section{Solution Models}
@@ -58,7 +58,7 @@ The functioning of a query evaluation system can be described as a pipeline of s
     \item \emph{\gls{SEnTriS} V2}: Implemented using an additive homomorphic encryption scheme. The value of a subject, predicate or object is mapped to an \emph{equality tags}. These values are homomorphically encrypted and support re-encryption. Trapdoors index the \emph{equality tags} and equality tags reference the probabilistically encrypted subjects, predicates and objects. The \emph{bindings tables} are built with \emph{re-encrypted equality tags}. When doing equality checks, we decrypt the difference between \emph{equality tags}.
 \end{itemize}
 
-In the remainder of this section we will: 1) define the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocol; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocol in order for it to work with encrypted data; 3) explain the \gls{IAM} protocol, how triplestores (and their secrets) are shared and how concurrent access is supported; 5) define \gls{SEnTriS}.
+In the remainder of this section we will: 1) define the core data elements and cryptographic tools; 2) specify the \gls{SPARQL} query evaluation protocols; 3) define the triple pattern \gls{SSE} schemes, and the adaptations done to the \gls{SPARQL} query evaluation protocols; 3) define the \gls{IAM} protocol, explaining how triplestores (and their secrets) are shared and how to support concurrent access; 5) define the \gls{SEnTriS} protocol.
 
 \subsection{Core elements}
 We will denote $E(m)$ as the encryption of $m$, $O(m)$ as the obfuscation of $m$, mapping it to a random value.
@@ -821,11 +821,11 @@ Now that we have explained how we manage access in the \gls{M/M} setting, we are
 
 In this Chapter we have explained all the building blocks that compose \gls{SEnTriS}. 
 
-We started by giving an overview of the system model, and the security model. We continued by specifying the core elements that are part of the various protocols, as well as, introducing the cryptographic tools used. 
+We gave an overview of the system model, and the security model. We specified the core elements that are part of the various protocols and explained the cryptographic tools used. 
 
-Furthermore, we defined two \gls{SPARQL} query evaluation protocols, SPARQL-EVAL and SPARQL-EVAL-II, and how we can apply query rewriting techniques to retain reasoning capabilities. 
+Furthermore, we defined two \gls{SPARQL} query evaluation protocols, SPARQL-EVAL and SPARQL-EVAL-II. In the latter we apply query rewriting techniques to retain reasoning capabilities. 
 
-Additionally, we defined a \gls{SSE} scheme for encrypting triple patterns, SSE-TP, and how to adapt the SPARQL-EVAL-II protocol to work with SSE-TP encrypted triplestores, defining the SSE-SPARQL-EVAL protocol.
+Additionally, we defined a \gls{SSE} scheme for encrypting triple patterns, SSE-TP, and explained how to adapt the SPARQL-EVAL-II protocol to work with SSE-TP encrypted triplestores, defining the SSE-SPARQL-EVAL protocol.
 
 Finally, we specified a \gls{IAM} protocol, necessary for the functioning of the SSE-SPARQL-EVAL protocol in a \gls{M/M} setting. 
 
