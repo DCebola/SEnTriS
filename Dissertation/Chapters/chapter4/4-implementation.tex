@@ -6,13 +6,41 @@
 
 \prependtographicspath{{Figures/}}
 
+In this chapter we will present the implementation details of the various components of \gls{SEnTriS}. We will explain general considerations regarding technology limitations, challenges, design and architectural choices. Furthermore, for each component, we will specify their internal architecture, exposed API and relevant details on component specific challenges were resolved.
+
+
 \section{General Considerations}
 
-\subsection{Apache JENA Limitations}
-%Higly coupled components
-\subsection{Memory Constraints}
+%Requirements
+%SPARQL query parser, RDF parser, must support owl and have reasoners
+%Server client architecture, security libraries must support encryption schemes required, mutual tls
+%Simple key value store, can be in memory for testing
+%Dependency management maven
+
+
+\subsection{Technology Stack}
+
+\paragraph{Semantic Web Development Framework}
+%RDF4J vs Jena framework (both java), Jena more popular
+
+\paragraph{Language}
+%Java
+
+\paragraph{Security Libraries}
+%Bouncy castle & lazysodium
+
+\paragraph{Storage Engine Libraries}
+
+\subsection{Challenges}
+%JENA: high coupling of classes, some were not serializable. Dificult to modify the query evaluation procedure which was higly coupled with the storage engines
+%Adapted the dgk solution developed by ...
+
 \subsection{Design \& Architecture Choices}
+%Standardized architecture and organization
+%Standardized deployment using Docker
+%Configs/secrets via configuration files
 Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication.
+
 
 \section{Component Specific Implementation Details}
 \subsection{Client}
