@@ -300,7 +300,7 @@ Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variable
 Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $op = \{ \textrm{UNION}, \allowbreak \textrm{OPTIONAL}, \; \textrm{MINUS}, \; . \}$ represents a set operation between two graph patterns, $R$ is a \gls{SPARQL} filter constraint, $i \in I$, $?v \in V$ and the keyword \emph{Graph} is used to specify which dataset to match the pattern against \footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we will define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
 \end{definition}
 
-\paragraph{How do SPARQL queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
+\paragraph{How Do SPARQL Queries Work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
 
 The basis of \gls{SPARQL} queries is finding matches with \emph{graph patterns} in the \gls{RDF} dataset \autocite{Ladwig2013-xp, Cure2014-vm}. This problem is equivalent to the \emph{subgraph isomorphism problem}, a generalization of the graph isomorphism problem: given two graphs $G_1$ and $G_2$, we try to find if $G_1$ contains a subgraph that is isomorphic to $G_2$. 
 
@@ -370,7 +370,7 @@ Besides read operations, \emph{\gls{SPARQL} Update} \autocite{W3c_undated-tw}, p
     \item \emph{CLEAR}: this operation removes all the triples in the specified graphs. 
 \end{itemize}
 
-\subsubsection{Preserving reasoning}
+\subsubsection{Preserving Reasoning}
 
 In a \emph{knowledge base} we can distinguish two sets of statements: the \emph{TBox} and the \emph{ABox}. The \emph{TBox} set contains terminology data (e.g. ontologies) which we can define using \gls{RDFS} or \gls{OWL2}. The \emph{ABox} set refers to assertions.
 
@@ -449,7 +449,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js, Da
     E(m_{1}) \, * \, E(m_{2}) = E(m_{1} + m_{2})
 \end{equation}
 
-\paragraph{Multiplication with constants} Multiplication by a constant $k > 0$ can be performed on an encrypted value, by raising it to the power of $k$. This is equivalent to performing $k - 1$ multiplications:
+\paragraph{Multiplication with Constants} Multiplication by a constant $k > 0$ can be performed on an encrypted value, by raising it to the power of $k$. This is equivalent to performing $k - 1$ multiplications:
 
 \begin{equation}\label{ch2:sec:homomorphic-encryption:def-eq-additive-mul-positive}
     E(m)^k = \underbrace{E(m) \; * \; ... \; *  \; E(m)}_{k \text{ times}} = E(\underbrace{m \; + \; ... \; + \; m}_{k \text{ times}}) = E(k * m)
@@ -477,7 +477,7 @@ Considering that the plaintext space is $M \in \mathbb{Z}_n$ and that messages a
 
 \end{definition}
 
-\subsection{Property-preserving Encryption}
+\subsection{Property-Preserving Encryption}
 \label{ch2:sec:property-preserving-encryption}
 
 \subsubsection{Overview}
@@ -687,7 +687,7 @@ Consider $\Sigma^+= \{a, a^- \;\vert\; a \in \Sigma \}$, $a^-$ denotes the inver
 
 A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with the same \emph{arity}. The answer of a query $q$ evaluated against a graph $G$, using standard \gls{SPARQL} semantics, is denoted as $ans(G, q)$.
 
-\paragraph{Graph outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. The owner then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
+\paragraph{Graph Outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. The owner then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
 
 \paragraph{Query Evaluation} In \gls{GOOSE}, query evaluation is a four-step process: 
 
@@ -710,7 +710,7 @@ A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with t
 \subsection{Discussion}
 \label{ch2:sec:semantic-data:discussion}
 
-\paragraph{Current solutions limitations} In this section we covered a few solutions for secure outsourcing of semantic data.
+\paragraph{Current Solutions Limitations} In this section we covered a few solutions for secure outsourcing of semantic data.
 
 The \emph{CryptGraphDB} \autocite{Aburawi2018-pq} was not designed to support the \emph{SPARQL} query language and suffers from the same security leakage problems inherent to \emph{CryptDB}. Some authors argue that the usage of deterministic encryption to support join operations leaks too much information (e.g. frequency information about the encrypted items) and is vulnerable to \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}.
 
@@ -720,7 +720,7 @@ The \gls{GOOSE} \autocite{Ciucanu2020-lx} solution can answer \gls{SPARQL} queri
 
 Furthermore, none of these solutions offer reasoning capabilities, and it is not clear whether they support write operations besides a single initial upload of the data.
 
-\paragraph{Orthogonal security research} Like the previous solutions, the main focus of our thesis will be on data \emph{confidentiality}. Nonetheless, we will briefly mention the research that is being done in other security fields regarding \gls{RDF} graphs.  
+\paragraph{Orthogonal Security Research} Like the previous solutions, the main focus of our thesis will be on data \emph{confidentiality}. Nonetheless, we will briefly mention the research that is being done in other security fields regarding \gls{RDF} graphs.  
 
 One of those fields is ensuring \emph{integrity} and \emph{authenticity} of \gls{RDF} data. Various signage schemes \autocite{Carroll2003-zi, Tummarello2005-qb,Kasten2013-rf, Kasten2014-ru, Kasten2014-ny, Sutton2018-ya} and even one service-oriented solution \autocite{Mana2011-bm} have been proposed. 
 
