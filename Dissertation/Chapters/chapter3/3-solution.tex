@@ -383,11 +383,11 @@ To conclude, this approach may also induce duplicates in the results of a query,
 
 \subsubsection{Supported Queries}
 
-The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. \gls{SEnTriS} will only be capable of evaluating a subset of queries with a few restrictions. Queries will solely be evaluated against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
+The two protocols defined for query evaluation do not offer full \gls{SPARQL} support. \gls{SEnTriS} will only be capable of evaluating a subset of queries with a few restrictions. We will only match patterns against the default graph. Only the DISTINCT, ORDERBY and LIMIT modifiers are allowed. Finally, graph patterns must not contain property paths, nested subqueries queries, graph selection, nor triple patterns composed solely by variables. Following the grammar used in Definition \ref{ch2:definition:sparql-graph-pattern}, a graph pattern will be defined as:
 
 \begin{equation}
     \begin{split}
-        P ::= \;\; & tp \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; P_1\; \textrm{MINUS}\; P_2
+        P ::= \;\; & tp \;\;\vert\;\; P_1\; op\; P_2
     \end{split}
 \end{equation}
 

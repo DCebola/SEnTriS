@@ -288,17 +288,16 @@ Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edg
 \end{definition}
 
 \begin{definition}[\textbf{Graph pattern}]\label{ch2:definition:sparql-graph-pattern}
-Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. We will denote the set of variables in $P$ as $vars(P)$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
+Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variables, disjoint from $I$, $B$, and $L$. A triple pattern is a tuple $tp = (s', p', o')$ such that $s' \in I \cup V$, $p' \in I \cup V$ and $o' \in I \cup L \cup V$. A set of triple patterns is usually referred as a \gls{BGP}. A \emph{property path pattern} $pp$ can be inductively defined as an element of $(I \cup B \cup V) \times pp \times (I \cup B \cup L \cup V)$. Finally, a \emph{graph pattern} is an expression specified by the following grammar:
 
 \begin{equation}
     \begin{split} 
-    P ::= \;\; & tp \;\;\vert\;\; pp \;\;\vert\;\; q \;\;\vert\;\; P_1\; .\; P_2 \;\;\vert\;\; P\; \textrm{FILTER}\; R \;\;\vert\;\; P_1\; \textrm{UNION}\; P_2 \;\;\vert\;\; P_1\; \textrm{OPTIONAL}\; P_2 \;\;\vert\;\; \\ 
-    & P_1\; \textrm{MINUS}\; P_2 \;\;\vert\;\; \textrm{Graph}\; i\; P \;\;\vert\;\; \textrm{Graph}\; v?\; P
+    P ::= \;\; & tp \;\;\vert\;\; pp \;\;\vert\;\; q \;\;\vert\;\; P_1\; op \; P_2 \;\;\vert\;\; P\; \textrm{FILTER}\; R \;\;\vert\;\; \textrm{Graph}\; i\; P \;\;\vert\;\; \textrm{Graph}\; v?\; P
     \end{split}
 \end{equation}
 
 
-Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint, $P_1\; .\; P_2$ represents an equality join operation between two patterns \footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we will define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
+Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $op = \{ \textrm{UNION}, \allowbreak \textrm{OPTIONAL}, \; \textrm{MINUS}, \; . \}$ represents a set operation between two graph patterns, $R$ is a \gls{SPARQL} filter constraint, $i \in I$, $?v \in V$ and the keyword \emph{Graph} is used to specify which dataset to match the pattern against \footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we will define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
 \end{definition}
 
 \paragraph{How do SPARQL queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
@@ -352,7 +351,7 @@ The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides 
     \item \emph{DESCRIBE}: results depend on implementation \autocite{Picalausa2011-ca}, but usually returns a set of RDF triples describing the matching patterns. 
 \end{itemize}
 
-In the following listings \ref{listing-sparql-example}, \ref{listing-sparql-modifiers-example} and \ref{listing-sparql-complex-example} we show a few query examples.
+In the following Listings, we present a few query examples. Listing \ref{listing-sparql-example} shows a query with a conjunction, Listing \ref{listing-sparql-modifiers-example} specifies a query with filters and result modifiers and Listing \ref{listing-sparql-complex-example} shows a query with result modifiers and a disjunction.
 
 \lstinputlisting[language=XML, caption={\gls{SPARQL} query with a conjuntion pattern}, label={listing-sparql-example}]{Code/chapter2/sparql-example.xml}
 
@@ -379,7 +378,7 @@ In a \emph{knowledge base} we can distinguish two sets of statements: the \emph{
 
 Two popular techniques for preserving reasoning capabilities are \emph{materialization} and \emph{query rewriting}.
 
-\paragraph{Materialization} In this approach, we derive all the implicit information, from the original data, and persist it. This solution insures fast query evaluation that requires no inference, but suffers from high storage costs. Additionally, write operations are more complex, due to the problem of \emph{truth maintenance}. After each update, we need to maintain the materialized data in a consistent state. 
+\paragraph{Materialization} In this approach, we derive any implicit information and store it alongside the original data. This solution insures fast query evaluation that requires no inference, but suffers from high storage costs. Additionally, write operations are more complex, due to the problem of \emph{truth maintenance}. After each update, we need to maintain the materialized data in a consistent state. 
 
 Insertions are fairly simple, we just need to compute new implicit triples from the data already saved in the system.
 
@@ -387,7 +386,7 @@ Deletions, however, are more complex. We need to compute the set of triples to b
 
 \paragraph{Query Rewriting} This technique consists in deriving a complete answer set at query time. Before evaluating a query, the system modifies it according to the statements in the \emph{TBox}. Query evaluation is slower: rewriting the queries requires communication with a reasoner and the reformulated queries tend to be larger.
 
-Contrary to the first solution, there is no problem with \emph{truth maintenance}. Writes operations can be processed without any additional computations. 
+Contrary to the first solution, there is no problem with \emph{truth maintenance}. Write operations can be processed without any additional computations. 
 
 
 \subsection{Industry solutions}
@@ -402,19 +401,17 @@ To store \gls{RDF} data, popular solutions are: \emph{MarkLogic} \autocite{MarkL
 
 To test their capability to handle \gls{SPARQL} queries, the \gls{BSBM} is a standard benchmark \autocite{Chris_undated-hq}. The \gls{LUBM} is another benchmark, which is tailored for \gls{OWL2} data \autocite{Guo2005-ja}. It provides synthetic data generation for a single realistic ontology.
 
-\mytodo{Add queries in annex, explain evaluation metrics in experimental evaluation chapter}
-
 \section{Secure Computations}
 \label{ch2:sec:secure-computations}
-In Section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over cloud or other distributed networks.
+In Section \ref{ch1:sec:context}, we have contextualized the motivations behind the need for secure computation when sharing ontologies over the cloud or other distributed networks.
 
-In this setting we consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. As such an adversary will follow the protocol properly but keep a record of all intermediate computations \autocite{Goldreich2001-sr} in an attempt to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. Security concerns should take into account the operation history, data stored in the server and also the memory access pattern, as the adversary will have access to all of this information.
+In this setting it is common to consider the \emph{honest-but-curious}, or \emph{passive}, adversary model. Such an adversary will follow the protocol properly but keep a record of all intermediate computations \autocite{Goldreich2001-sr} in an attempt to learn private information while observing views of the protocol execution \autocite{Evans2018-it}. Security concerns should take into account the operation history, data stored in the server and also the memory access pattern, as the adversary will have access to all of this information.
 
-The \emph{Encryption at Rest} approach encrypts all data stored in the untrusted server. To perform computations we need to download the full dataset, decrypt it, and only then can we execute operations on the data. This is too inflexible and computationally expensive. 
+The most common approach to secure data in outsourced servers is \emph{Encryption at Rest}. In this approach we encrypt all data that will be stored in the untrusted server. To perform computations we need to download the full dataset, decrypt it, and only then can we execute operations on the data. This is too inflexible and computationally expensive. 
 
-\gls{ORAM} \autocite{Goldreich1996-yb} fits well this adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
+Another approach, using \gls{ORAM} \autocite{Goldreich1996-yb,} fits well against this adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
 
-When used exclusively, \glsxtrlong{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they are applied in conjunction with other security schemes, such as in some \glsxtrlong{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, in the following Sections we will discuss related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}.
+Finally, when used exclusively, \gls{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they can be applied in conjunction with other security schemes, such as in some \gls{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, we will analyze related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}. In Section \ref{ch2:sec:property-preserving-encryption}, we will cover property-preserving encryption, as it is useful for the implementation of equality joins and sorting operations.
 
 
 \subsection{Homomorphic Encryption}
@@ -446,7 +443,7 @@ Some \gls{HE} schemes preserve additive properties \autocite{Paillier1999-js, Da
     \item \emph{\glsxtrlong{LFHE}} \autocite{Brakerski2014-nm}: which supports any type of operations for a limited, and expected, number of $L$ times (referred to as depth-$L$).
 \end{itemize}
 
-\begin{definition}[\textbf{Additive Homomorphic Encryption}]\label{ch2:definition:he-additive} An encryption scheme is as an additive homomorphic scheme if Equation \ref{ch2:sec:homomorphic-encryption:def-eq} holds for the $+$ operator. In this thesis, we will uniquely consider schemes that respect this condition, if $\bullet_1$ is an addition and $\bullet_2$ is a multiplication:
+\begin{definition}[\textbf{Additive Homomorphic Encryption}]\label{ch2:definition:he-additive} An encryption scheme is as an additive homomorphic scheme if Equation \ref{ch2:sec:homomorphic-encryption:def-eq} holds for the $+$ operator. In this thesis, we will uniquely consider schemes that respect this condition, when $\bullet_1$ is an addition and $\bullet_2$ is a multiplication:
 
 \begin{equation}\label{ch2:sec:homomorphic-encryption:def-eq-additive}
     E(m_{1}) \, * \, E(m_{2}) = E(m_{1} + m_{2})
@@ -489,17 +486,17 @@ Considering that the plaintext space is $M \in \mathbb{Z}_n$ and that messages a
 
 \subsubsection{Deterministic Encryption} 
 
-Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guaranties are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
+Deterministic encryption is type of property-preserving encryption scheme. Contrary to a probabilistic scheme, it will always generate the same ciphertext for each plaintext. This allows equality checks to be performed on the encrypted data. Naturally, its security guarantees are weakened. Deterministic ciphertexts are vulnerable to statistical analysis attacks.
 
 \subsubsection{Order-Preserving Encryption} 
 
-\gls{OPE} schemes preserve the order guaranties of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
+\gls{OPE} schemes preserve the order guarantees of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
 
 \subsubsection{Overview}
-\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries. While the first approach implemented it via a searchable ciphertext \autocite{Song2000-hu}, most modern schemes do it using encrypted searchable indexes. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. We will focus on index-based \gls{SE} schemes, more specifically in index-based \gls{SSE} ones, due to their higher efficiency compared to \gls{PEKS} approaches.
+\glsxtrlong{SE} uses classical encryption schemes to perform encrypted search queries. While the first approach implemented it via a searchable ciphertext \autocite{Song2000-hu}, most modern schemes do it using encrypted searchable indexes. \glsxtrlong{SE} can be divided in \gls{SSE}, when it is based on symmetric key cryptography, and \gls{PEKS}, when public key algorithms are used. We will focus on index-based \gls{SE} schemes, more specifically on index-based \gls{SSE} ones, due to their higher efficiency compared to \gls{PEKS} approaches.
 
 
 %Generic model
@@ -526,7 +523,7 @@ To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{
 
 \subsubsection{Client/Server Model}
 
-In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data in a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures: \gls{S/S}; \gls{S/M}; \gls{M/S}; \gls{M/M}.
+In \gls{SE} schemes, one or various clients, the \emph{writers} store encrypted data on a server. To issue a query request to the server, one or multiple clients, the  \emph{readers}, generate trapdoors. There are four possible \gls{SE} scheme architectures: \gls{S/S}; \gls{S/M}; \gls{M/S}; \gls{M/M}.
 
 The \gls{S/S} architecture is usually used for \emph{data outsourcing} and \gls{M/S}, \gls{S/M} and \gls{M/M} employed in \emph{data sharing} scenarios \autocite{Bosch2014-eb}. Symmetric key schemes are typically \gls{S/S}, while public key schemes \gls{M/S} (multiple users can write using a \emph{public key}, but only the owner of the \emph{private} key can generate trapdoors).
 Extension of the single reader schemes to multiple reader schemes can be done with \emph{key sharing} or with the usage of \emph{proxy re-encryption}. 
@@ -538,9 +535,9 @@ In proxy re-encryption cryptography, a proxy is used to re-encrypt a ciphertext,
 Almost all \gls{SE} techniques have privacy issues because they leak some information \autocite{Bosch2014-eb}. This leakage can be \emph{index} information, the \emph{search pattern}, or \emph{access pattern} during execution:
 
 \begin{itemize}
-    \item \emph{Index Information}: refers to the information about the index keywords. It may include the number of keywords per document or database, the total of documents, document similarity, their length and metadata;
+    \item \emph{Index Information}: refers to the information about the index keywords. It may include the number of keywords per document or database, the total number of documents, document similarity, their length and metadata;
     \item \emph{Search Pattern}: includes the information about keywords, and predicates, that is inferred by correlating equal results from different searches. The search pattern can be targeted using statistical analysis;
-    \item \emph{Access Pattern}: includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total of documents retrieved; or if some files are more accessed than others). 
+    \item \emph{Access Pattern}: includes the information that may be derived from the query results, based on the memory accesses needed to retrieve the documents. (e.g. one can infer whether a query is more restrictive than another, based on the total number of documents retrieved; or if some files are more frequently accessed than others). 
 \end{itemize}
 
 \subsection{Symmetric Searchable Encryption}
@@ -581,13 +578,13 @@ document. It is also susceptible to statistical attacks (e.g. after various sear
 
 \emph{Non-Adaptive Scheme} Considering a database with $n$ documents, we define two data structures: an array $A$, where each position of the array contains a node $n_{i,j}$ which belongs to the linked list $L_{i}$ associated to the keyword $w_{i}$; a look-up table $T$ to identify the first node of a linked list associated with a keyword.
 
-To build $A$, we start by constructing the nodes. These nodes are encrypted, stored in random order (using permutations) and augmented with information do find and decrypt the next node in the list. The augmentation step happens before the encryption of the node. Each node $n_{i,j} = \langle id_{m}, k_{next}, p_{next} \, || \, \varnothing \rangle$, includes information about the $id$ of document $m$ ($0 \leq m \leq n$) which contains the keyword, a randomly generated key used to encrypt the next node and a pointer to the next node in the list, or $\varnothing$ if it is the last one. The randomized disposition of the nodes, hides the length of the lists.
+To build $A$, we start by constructing the nodes. These nodes are encrypted, stored in random order (using permutations) and augmented with information to find and decrypt the next node in the list. The augmentation step happens before the encryption of the node. Each node $n_{i,j} = \langle id_{m}, k_{next}, p_{next} \, || \, \varnothing \rangle$, includes information about the $id$ of document $m$ ($0 \leq m \leq n$) which contains the keyword, a randomly generated key used to encrypt the next node and a pointer to the next node in the list, or $\varnothing$ if it is the last one. The randomized disposition of the nodes hides the length of the lists.
 
 The look-up table $I$ associates each keyword $w_{i}$ with the node $n_{i,0} = \langle k_{i,1}, p_{i,1} \rangle \oplus PRF_{k}(w_{i})$ stored in a random position using a \gls{PRP}, \linebreak$PRP_{k'}(w_{i})$, where $k \neq k'$. This node contains the encryption key and the pointer to the first node of the linked list $L_{i}$.
 
 To search, we generate trapdoor $T_{w}=\langle PRF_{k}(w), PRP_{k'}(w)\rangle$. The server uses the trapdoor to find the correct node $n_{i,0} = T[PRP_{k'}(w)]$ and then retrieve all the identifiers of the documents that contain the keyword.
 
-\emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing the $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
+\emph{Adaptive Scheme}  Considering a database with $n$ documents, we now define only a look-up table $I$, but instead of generating the index for a single keyword $w$, we generate it for the family of the keyword. The family of a keyword is defined as a set of labels $F_{w} = \{w \, | \, str(j) \, : 1 \leq j \leq t\}$ where $j$ is an integer converted to string, using $str$, $t$ is the number of identifiers of documents containing $w$, and the label is the result of concatenating $w$ with $j$. The look-up table associates each label with the identifier of a document containing $w$, in a random position, using $PRP_{k'}(w_{i} \, | \, str(j))$. To hide differences in the number of labels per keyword, extra entries are padded.
 
 We generate the trapdoor $T_{w}= (t_{1},\;\cdots,\;t{n}) = (PRP_{k}(w \; | \; str(1)),\;\cdots,\;PRP_{k}(w \;|\; str(n)))$ to search. The server uses the trapdoor values to find valid index positions in $I$ and outputs the set of identifiers.
 
@@ -607,7 +604,7 @@ Finally, in \autocite{Suntaxi2021-sj} they combine an index-based \gls{SSE} with
 \section{Secure Semantic Data Solutions}
 \label{ch2:secure-semantic-data}
 
-One of the simplest works in the field focuses solely on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, uniquely encrypting their values and leaving the rest of the data in plaintext. This approach aimed at retaining functionality but leaks too much information. The following solutions try to achieve more robust security guaranties.
+One of the simplest works in the field focuses solely on protecting individuals in \gls{OWL2} ontologies \autocite{Nejjahi2019-ig}, uniquely encrypting their values and leaving the rest of the data in plaintext. This approach aimed at retaining functionality but leaks too much information. The following solutions try to achieve more robust security guarantees.
 
 \subsection{Self-Enforcing Access Control for Encrypted RDF}
 
@@ -627,23 +624,23 @@ Only if the result of the inner product is 0 can we decrypt the seed, derive the
 
 \paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
 
-The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$ (unbound values correspond to $h(?)$). Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding ID.
+The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$. The hash function does not hash unbound values, and treats them as a wildcard. Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding identifier.
 
-The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each ID is indexed by a $("so"\;\vert\;"os",\;s,\;o)$.
+The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each identifier is indexed by a $("so"\;\vert\;"os",\;s,\;o)$.
 
 \mytodo{Add image with both index schemes}
 
 \subsection{CryptGraphDB}
 
-\emph{CryptGraphDB} \autocite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \autocite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guaranties, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
+\emph{CryptGraphDB} \autocite{Aburawi2018-pq} is an adaptation of the \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci} system to graph-structured data. It is capable of answering cypher \autocite{Neo4j_Inc_undated-ft} queries over conceptual graphs. We will start by describing the \emph{CryptDB} architecture, security guarantees, query execution pipeline and encryption schemes. We will then explain the adaptations employed by \emph{CryptGraphDB}.
 
 \paragraph{System Architecture} \emph{CryptDB} is a practical solution for processing \gls{SQL} queries over encrypted relational datasets. This solution leverages onion-encryption to support various primitive operations necessary to answer a \gls{SQL} query (equality checks, order comparisons, aggregates and joins).
 
-The system is composed by an application server, a proxy and an unmodified \gls{DBMS}. The proxy intercepts all queries, encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
+The system is composed of an application server, a proxy and an unmodified \gls{DBMS}. The proxy intercepts all queries, encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
 
 \mytodo{Add image of Cryptdb system}
 
-\paragraph{Security Threats} \emph{CryptDB} addresses two security threats. The first threat, consists in a passive attacker (e.g. database administrator), which only observes confidential data in the \gls{DBMS} server. Against this attacker \emph{CryptDB} provides a few security guaranties: sensitive data is always encrypted; the \gls{DBMS} server cannot generate results for queries whose primitives do not belong in the subset of supported operations; information leakage depends on the types of computations that will be executed over the data - if no relational predicate filtering is needed, nothing more than the data's length is leaked; on equality checks, it reveals the histogram of encrypted values in the respective columns; in order checks, the system reveals the order between the encrypted values in the column.
+\paragraph{Security Threats} \emph{CryptDB} addresses two security threats. The first threat, consists in a passive attacker (e.g. database administrator), which only observes confidential data in the \gls{DBMS} server. Against this attacker \emph{CryptDB} provides a few security guarantees: sensitive data is always encrypted; the \gls{DBMS} server cannot generate results for queries whose primitives do not belong to the subset of supported operations; information leakage depends on the types of computations that will be executed over the data - if no relational predicate filtering is needed, nothing more than the data's length is leaked; on equality checks, it reveals the histogram of encrypted values in the respective columns; in order checks, the system reveals the order between the encrypted values in the column.
 
 The second threat is an attacker that gains control over the proxy, application server and \gls{DBMS} server. Against this adversary, \emph{CryptDB} provides confidentiality of data belonging to users not logged in during the period of the compromise (until it has been fixed). The adversary can, however, delete data stored in the database.
 
@@ -651,7 +648,7 @@ Besides confidentiality, \emph{CryptDB} does not ensure integrity, freshness, or
 
 \paragraph{Query Execution Pipeline} For executing a query issued by the application server, a sequence of steps are necessary: i) the proxy intercepts and rewrites the query, anonymizing the table and column names and encrypting each constant present with the adequate encryption scheme for the desired operation, using a master key; ii) the proxy checks whether it should provide keys to the \gls{DBMS} server, so that adjustments can be done on the encryption layers of the targeted data, if the check is positive it issues an UPDATE query that triggers a custom function to adjust the encryption of the selected columns; iii) the encrypted query is forwarded to the \gls{DBMS} server and is executed using plain \gls{SQL}; iv) the encrypted results are sent to the proxy, which are then decrypted and forwarded to the application server.
 
-\paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guaranties, the data encryption layers are pealed. For each layer, per onion, per column, the proxy uses the same encryption key, derived from a master key, $MK$. This reduces the leakage of relations between columns and avoids the complexity of having different keys for each row in a column. For table $t$, column $c$, onion $o$, and encryption layer $l$, the proxy would use the encryption key $K_{t,c,o,l} = PRP_{MK}(t,c,o,l)$.
+\paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guarantees, the data encryption layers are pealed. For each layer, per onion, per column, the proxy uses the same encryption key, derived from a master key, $MK$. This reduces the leakage of relations between columns and avoids the complexity of having different keys for each row in a column. For table $t$, column $c$, onion $o$, and encryption layer $l$, the proxy would use the encryption key $K_{t,c,o,l} = PRP_{MK}(t,c,o,l)$.
 
 We now present the different encryption schemes supported by \emph{CryptDB}:
 
@@ -660,7 +657,7 @@ We now present the different encryption schemes supported by \emph{CryptDB}:
     \item \emph{Deterministic (DET)}:  A deterministic encryption scheme which allows equality checks to be executed over ciphertexts.
     \item \emph{Order-Preserving (OPE)}: An encryption scheme that preserves order between the ciphertexts in a column. This allows the server to execute range queries.
     \item \emph{Homomorphic encryption (HOM)}: The Paillier cryptosystem \autocite{Paillier1999-js} is used to probabilistically encrypt numeric values. This scheme allows additive operations to be executed with ciphertexts.
-    \item \emph{Join (equi-JOIN)}: In \emph{CryptDB} columns are encrypted with a different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
+    \item \emph{Join (equi-JOIN)}: In \emph{CryptDB} columns are encrypted with different encryption keys. Essentially, joins can not be performed between columns until the encryption keys of the columns coincide. To support join operations between different columns a new primitive is introduced JOIN-ADJ. It can be interpreted as a \emph{keyed random hash} with the property that the hashes can be adjusted to modify their key without access to the plaintext, using an adjustment key $\Delta K = {k_{c_1}/k_{c_2}}$. The adjustment of the columns is done only on one of the two (the first column in lexicographic order). The information leakage is similar to that of the DET layer.
     \item \emph{OPE-JOIN}: \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
     \item \emph{Word search (SEARCH)}: This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \autocite{Song2000-hu}. The information leakage is similar to that of the RND layer.
 \end{itemize}
@@ -670,7 +667,7 @@ The following images provide, respectively, an overview of the different onions 
 \mytodo{Add query flow image}
 \mytodo{Add onion encryption image}
 
-\emph{CryptGraphDB} constructs upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
+\emph{CryptGraphDB} builds upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
 \subsection{GOOSE}
 
@@ -686,13 +683,13 @@ Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} 
 
 Let the outsourced \gls{RDF} graph be $G = (N, E)$ where $N$ is a set of nodes and $E \in N \times \Sigma \times N$ is a set of directed edges between the nodes, labeled using the alphabet $\Sigma$. Let $\sigma_N: N \to \{0,\:\cdots,\: \vert N \vert - 1\}$ and $\sigma_\Sigma : \Sigma \to \{0,\;\cdots,\; \vert \Sigma \vert - 1\}$ be two random bijections, respectively, for the edges and nodes, and let $\sigma^{-1}$ represent the inverse of $\sigma$. The hidden set of edges from $E$ is defined as $\hat{E} = \{(\sigma_N(s), \sigma_\Sigma(p), \sigma_N(o)) \;\vert\; (s, p, o) \in E\}$.
 
-Consider $\Sigma^+= \{a, a^- \;\vert\; a \in \Sigma \}$, $a^-$ denotes the inverse of the edge label $a$. Let $V = \{?v_0,...,?v_ n\}$, with $n \in \mathbb{Z}^{+}$, be a set of variables. A \emph{query rule} is an expression of the form \emph{head} $\leftarrow$ \emph{body} defined as $(\overline{?v}) \leftarrow (?v_0, r_0, ?v_1),\cdots,(?v_{n+1}, r_n, ?v_{n+2} )$, where, for every $i \in \mathbb{Z}_0^{+}$, $r_i$ is a regular expression over $\Sigma^+$ using $\{\cdot, + , \ast\}$ and $\overline{?v}$ is a vector composed by a subset of the variables from the \emph{body}. The length of this vector is the \emph{arity} of the rule. 
+Consider $\Sigma^+= \{a, a^- \;\vert\; a \in \Sigma \}$, $a^-$ denotes the inverse of the edge label $a$. Let $V = \{?v_0,...,?v_ n\}$, with $n \in \mathbb{Z}^{+}$, be a set of variables. A \emph{query rule} is an expression of the form \emph{head} $\leftarrow$ \emph{body} defined as $(\overline{?v}) \leftarrow (?v_0, r_0, ?v_1),\cdots,(?v_{n+1}, r_n, ?v_{n+2} )$, where, for every $i \in \mathbb{Z}_0^{+}$, $r_i$ is a regular expression over $\Sigma^+$ using $\{\cdot, + , \ast\}$ and $\overline{?v}$ is a vector composed of a subset of the variables from the \emph{body}. The length of this vector is the \emph{arity} of the rule. 
 
 A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with the same \emph{arity}. The answer of a query $q$ evaluated against a graph $G$, using standard \gls{SPARQL} semantics, is denoted as $ans(G, q)$.
 
-\paragraph{Graph outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. It then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
+\paragraph{Graph outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. The owner then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
 
-\paragraph{Query Evaluation} In \gls{GOOSE}, query evaluation is a four steps process: 
+\paragraph{Query Evaluation} In \gls{GOOSE}, query evaluation is a four-step process: 
 
 \begin{enumerate}
     \item First, the \emph{user} generates a query $q$ and sends $\textrm{ENC}_{U\_QT}(q)$ to the \emph{query translator}. 
@@ -747,6 +744,6 @@ We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathema
 
 In Section \ref{ch2:sec:searchable-encryption}, we explained the difference between \gls{SSE} and \gls{PEKS}. We then described the general model for index-based \gls{SE}, as well as the \emph{Client/Server} architecture of \gls{SE} systems. We continued by discussing how to extend \gls{S/S} architectures, covered the types of privacy leakage.
 
-In Section \ref{ch2:sec:symmetric-searchable-encryption} we specified the standard security definitions in use, and gave an in depth explanation of reference \gls{SSE} schemes. We finished the \gls{SSE} Section by showing recent generalizations, focusing on dynamic solutions and schemes that support structured data.
+In Section \ref{ch2:sec:symmetric-searchable-encryption} we specified the standard security definitions in use, and gave an in depth explanation of reference \gls{SSE} schemes. We finished this section by showing recent generalizations, focusing on dynamic solutions and schemes that support structured data.
 
 In Section \ref{ch2:secure-semantic-data}, we mentioned related research on the topic of secure semantic data sharing, discussing the trade-off of each approach. Additionally, we briefly covered parallel work in the fields of data \emph{integrity}, \emph{authenticity} and \emph{access control}. 
