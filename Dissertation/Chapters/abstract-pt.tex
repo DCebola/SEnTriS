@@ -3,11 +3,22 @@
 
 As ontologias fornecem conhecimento partilhado referente a um domínio. Fazem-no através da especificação dos conceitos relevantes, e suas relações, num dado domínio.
 
-Em geral, contêm apenas dados públicos e não sensíveis mas, por vezes, podem ser usadas em conjunto de sistemas de apoio à decisão clínica e repositórios de dados médicos. Nestes sistemas existe manipulação frequente de dados pessoais, de carácter sensível.
+Estas são frequentemente usadas no campo da medicina, juntamente com sistemas de apoio à decisão clínica e repositórios de dados médicos. Sistemas estes que manipulam dados pessoais e de carácter sensível. 
+
+Adicionalmente, devido aos elevados investimentos monetários e laborais que podem estar associados ao seu desenvolvimente, ou devido à natureza dos seus conteúdos, as ontologias podem ter um valor privado, e monetário, associado, necessitando de serem protegidas.
 
 Atualmente, com o gradual aumento da dimensão das ontologia, a indústria está evoluir no sentido da utilização de ferramentas colaborativas e \emph{outsourcing} de computações pesadas, recorrendo a infrastruturas \emph{cloud} e outras plataformas de computação partilhada. Estas soluções, embora inevitáveis, apresentam novas questões de segurança.
 
-Nesta tese, investigamos técnicas existentes de computação seguras e propomos a definição de um novo protocolo de Encriptação Simétrica Pesquisável, que suporta \emph{queries} SPARQL expressivas sobre ontologias encriptadas.
+Nesta tese, investigamos técnicas existentes de computação seguras, protocolos de encriptação e sistemas de armazenamento de dados semânticos com a finalidade de desenvolver uma solução prática e segura para o desenvolvimento colaborativo e distribuição de fontes de conhecimento semânticas.
+
+As principais contribuições da investigação são: (i) SPARQL-EVAL e SPARQL-EVAL-II, dois protocolos para a avaliação de queries \gls{SPARQL}, no segundo utilizamos técnicas de rescrita das queries; (ii) SSE-TP, um protocolo de encriptação simétrica pesquisável de padrões de triplos \gls{RDF}; (iii) SSE-SPARQL-EVAL, uma adaptação do protocolo SPARQL-EVAL-II que funciona com dados encriptados via o protocolo SSE-TP; (iv) \gls{SEnTriS}, uma adaptação do protocolo SSE-SPARQL-EVAL para um contexto de multiutilizador, com escritas e leituras concorrentes, e que oferece confidencialidade de dados e \gls{RBAC}.
+
+O sistema foi avaliado com o \emph{benchmark} \gls{LUBM}.
+
+
+
+
+
 
 \begin{keywords}
 Ontologias, Encriptação Pesquisável, Computação Segura, SPARQL

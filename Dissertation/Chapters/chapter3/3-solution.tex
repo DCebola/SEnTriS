@@ -21,7 +21,7 @@ Considering all these limitations we developed \gls{SEnTriS}, a solution for sec
 \subsection{System Model}
 \label{ch3:sec:solution-models:system-model}
 
-\gls{SEnTriS} possesses role-based \emph{access control} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
+\gls{SEnTriS} possesses \gls{RBAC} and can execute secure read and write operations. \mytodo{Do not forget to mention verification of authenticity and data integrity as future work} It supports most \gls{SPARQL} operations and retains reasoning capabilities while evaluating queries.
 
 \gls{SEnTriS} is designed for a multi-user setting. It is purely a software solution, not requiring any special hardware, where storage and heavy computations are outsourced to external servers.
 
@@ -36,7 +36,7 @@ We will consider an \emph{honest-but-curious} adversary. This adversary will try
 
 We will consider that communication channels are trusted, reliable and secure. Additionally, we will assume that authenticated users are trusted and non-malicious. Such users can read sensitive information and security parameters of the triplestores they have created or have been given access to.
 
-Finally, we will not consider the case where attacks involve \emph{revoked users}. The role-based access controls prevent these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information.
+Finally, we will not consider the case where attacks involve \emph{revoked users}. The \gls{RBAC} prevents these users from interacting (via client) with triplestores they do not have permissions to. Nevertheless, we have not implemented a key rotation, or re-encryption protocol for data. As such, an adversary collaborating with these users, or an attack from such users, will always succeed in the decryption the data of all the triplestores they used to have access to. They can still possess the cryptographic secrets used by the protocols, which makes it trivial to decrypt leaked information.
 
 \section{Solution Definition}
 \label{ch3:sec:solution-definition}

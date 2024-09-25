@@ -33,9 +33,9 @@ Briefly describing this layered architecture, at the root level, we have the \gl
 
 At the syntax level, we find the \gls{XML} \autocite{W3c_undated-ep}. \gls{XML} supports the definition of unlimited \emph{tags}, that can be placed in the text of a document. These \emph{tags} facilitate the creation of hierarchy and give \emph{structure} to the information.
 
-From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With a \gls{XML} like syntax, we can write statements about resources, thus embedding  \emph{semantics} within the information, as \emph{metadata}.
+From structured data we then define the basic data model using \gls{RDF} \autocite{W3c_undated-vq}. With \gls{XML} like syntax, we can write statements about resources, thus embedding  \emph{semantics} within the information, as \emph{metadata}.
 
-The \gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to organize \gls{RDF} resources into hierarchies, based on primitives such as \emph{classes} and \emph{properties}. It can be seen as a rudimentary \emph{ontology language} \autocite{Antoniou2012-nj}.
+\gls{RDFS} \autocite{W3c_undated-mp} is a vocabulary description language to organize \gls{RDF} resources into hierarchies, based on primitives such as \emph{classes} and \emph{properties}. It can be seen as a rudimentary \emph{ontology language} \autocite{Antoniou2012-nj}.
 
 Ontologies are defined with \gls{OWL2} \autocite{W3c_undated-dr}. Like \gls{RDFS}, it is also a vocabulary description language, but provides more expressiveness (e.g. relations between classes, \emph{cardinality}, \emph{equality}, richer properties with characteristics).
 
@@ -63,7 +63,7 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 
 \subsubsection{Syntax}
 
-\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources \gls{IRI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties \gls{IRI}s. The arcs are directed from subject to object of a statement. Figure \ref{fig:rdf-grafical-example} provides an example of a \gls{RDF} graph.
+\paragraph{Graphical} \gls{RDF} being a data model, can be written using different syntaxes. Graphically we can represent statements as a labeled and directed graph. The \emph{nodes} are labelled with the resources' \gls{IRI}s, a literal value or left blank, whereas \emph{arcs} are labelled with the properties' \gls{IRI}s. The arcs are directed from subject to object of a statement. Figure \ref{fig:rdf-grafical-example} provides an example of a \gls{RDF} graph.
 
 
 \begin{figure}[H]
@@ -76,7 +76,7 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 \paragraph{Text-Based}
 
 
-There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (listing \ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
+There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (Listing\ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
 In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with an \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
 \lstinputlisting[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]{Code/chapter2/turtle-example.xml}
@@ -91,7 +91,7 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 \gls{RDF} is a flexible data-model. However, for interconnectivity of different \gls{RDF} knowledge bases, semantics for restricting meaning in a specific domain are needed.
 
-\gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under the \url{http://www.w3.org/2000/01/rdf-schema#}{}.
+\gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under \url{http://www.w3.org/2000/01/rdf-schema#}{}.
 
 \begin{figure}[H]
     \centering
@@ -106,11 +106,11 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 To state that a resource is an instance of a class we use the \emph{rdf:type} property.
 
-The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances of its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$.The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
+The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances of its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$. The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
 
 The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
 
-In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In Figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In Figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical Example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
 
 \begin{table}[h]
     \begin{center}
@@ -177,13 +177,13 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
 
 An \emph{ontology} was defined by Studer et al. as "a formal, explicit specification of a shared conceptualisation" \autocite{Studer1998-kp}. An ontology should specify consensual and machine-readable knowledge by means of a formal definition of concepts, where concepts have explicit types and restrictions. Therefore, an \emph{ontology language} should provide a well-defined syntax, formal semantics, convenient and sufficient expressiveness and efficient reasoning support. 
 
-\gls{RDFS} can be considered a very limited \emph{ontology language}. \gls{OWL2} \autocite{W3c_undated-dr} provides a number of additional features (e.g. cardinality constraints, class equivalence, intersection and disjunction). \gls{OWL2} does not simply extend \gls{RDFS}, because \gls{RDFS} primitives are too expressive. This would make reasoning undecidable \autocite{Antoniou2012-nj}. As such, \gls{OWL2} is divided in two sublanguages: \emph{OWL2 Full} \autocite{W3c_undated-ae}, a direct extension of \gls{RDFS} with all \gls{OWL2} semantics; \emph{OWL2 DL} \autocite{W3c_undated-xs}, a language with some restrictions on the way \gls{OWL2}, \gls{RDF} and \gls{RDFS} primitives may be used. 
+\gls{RDFS} can be considered a very limited \emph{ontology language}. \gls{OWL2} \autocite{W3c_undated-dr} provides a number of additional features (e.g. cardinality constraints, class equivalence, intersection and disjunction). \gls{OWL2} is divided in two sublanguages: \emph{OWL2 Full} \autocite{W3c_undated-ae}, a direct extension of \gls{RDFS} with all \gls{OWL2} semantics, which is undecidable \autocite{Antoniou2012-nj}; \emph{OWL2 DL} \autocite{W3c_undated-xs}, a language with some restrictions on the way \gls{OWL2}, \gls{RDF} and \gls{RDFS} primitives may be used.
 
 The correspondence theorem of \autocite{W3c_undated-xs} states that: given an \emph{OWL2 DL} ontology, inferences drawn using its \emph{Direct Semantics} will still be valid if the ontology is mapped into an RDF graph and interpreted using the \emph{RDF-Based Semantics}, the semantics of \emph{OWL2 Full}.
 
 \gls{OWL2} can be expressed with any valid \gls{RDF} syntax, however there are various specific syntaxes: the Functional-Style Syntax \autocite{W3c_undated-xm}, which is very compact and was the language used in the formal specification of the language; the Manchester Syntax \autocite{W3c_undated-dg}, designed to be human-readable (it is very popular in user interfaces of semantic editors); and the OWL/XML Syntax \autocite{W3c_undated-gr}, which allows easier processing with \gls{XML} tools.
 
-Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \emph{OWL2} can have different specification, called profiles \autocite{W3c_undated-jk}, which provide reasoning in polynomial time. The coverage of \gls{OWL2} profiles is not on the scope of this work.
+Figure \ref{fig:owl2-structure} details the structure of \gls{OWL2}. Finally, \emph{OWL2} can have different specifications, called profiles \autocite{W3c_undated-jk}, which provide reasoning in polynomial time. The coverage of \gls{OWL2} profiles is not in the scope of this work.
 
 \begin{figure}[H]
     \centering
@@ -210,8 +210,8 @@ In \gls{OWL2} the term individual is equivalent to instance in \gls{RDFS}. An \e
     \item\emph{Enumerations}, a type of class definition via explicitly stating all individuals who belong to the class membership;
     \item\emph{Intersection}, in a class described as the intersection of various classes, all of its members must be also individuals belonging to the membership of each of those classes;
     \item \emph{Union and Disjoint Union}, in a class described as the union of various classes, every individual belonging to its membership must also belong to the membership of at least one of those classes. In the particular case of disjoint union, the intersection of the classes is equivalent to owl:Nothing;
-    \item\emph{Disjoint Classes}, in disjoint classes no individual can be a member of both class (the intersection of the classes is equivalent to owl:Nothing);
-    \item\emph{Complement}, complement classes contain all the individual such that the union of both classes is equivalent to owl:Thing.
+    \item\emph{Disjoint Classes}, in disjoint classes no individual can be a member of both classes (the intersection of the classes is equivalent to owl:Nothing);
+    \item\emph{Complement}, complement classes contain all the individuals such that the union of both classes is equivalent to owl:Thing.
 \end{itemize}
 
 
@@ -272,7 +272,7 @@ Contrary to \emph{OWL2 Full}, \emph{OWL2 DL}, being less expressive, retains \em
 
 \subsubsection{Overview}
 
-In the previous Section we've discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
+In the previous section we have discussed the structure of \gls{OWL2}. \gls{OWL2} documents have a direct mapping to \gls{RDF} documents. As such, we can publish and query \gls{OWL2} ontologies using the standard approach for \gls{RDF} data. 
 
 \gls{RDF} triples are stored in \emph{triple stores}, specialized databases for this type of data. The underlying architecture of such databases varies, from relational to NoSQL approaches \autocite{Cure2014-vm, Modoni2014-cz}. The recommended query language to use is \gls{SPARQL} \autocite{W3c2013-hd}. It provides a range of operations over published \gls{RDF} graphs, accessible via SPARQL endpoints: from read queries \autocite{W3c2008-vf} to write operations \autocite{W3c_undated-tw, W3c2013-rr}. 
 
@@ -281,7 +281,7 @@ In this section we will mathematically define core components of \emph{SPARQL}, 
 
 \begin{definition}[\textbf{RDF dataset}] Let $I$, $B$, $L$ be disjoint sets of \gls{IRI}s, blank nodes, and literals, respectively. \gls{RDF} data is a set of subject, predicate and object triples $t = (s,p,o)$, where $s \in I \cup B$, $p \in I$ and $o \in I \cup B \cup L$. 
 
-Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G, \gamma\}$, where $\gamma$ is a function which assigns a named graph $\gamma(i)$ to each $i$ in a finite set $dom(\gamma) \in I \cup B$ \autocite{Picalausa2011-ca, noauthor_undated-ev}.
+Let $V$ be a set of nodes formed by subjects and objects and $E$ be a set of edges, labeled by the corresponding predicate. A set of \gls{RDF} triples can be represented as a directed, edge-labeled, graph $G = (V, E)$. An \gls{RDF} dataset is a set of \emph{named} graphs and the \emph{default} unnamed graph. We will define such dataset as $D = \{G, \gamma\}$, where $\gamma$ is a function which assigns a named graph $\gamma(i)$ to each $i$ in a finite set $dom(\gamma) \in I \cup B$ \autocite{Picalausa2011-ca, noauthor_undated-ev}.
 \end{definition}
 
 \begin{definition}[\textbf{SPARQL Query}] Let $T = \{\textrm{SELECT},\; \textrm{ASK},\; \textrm{CONSTRUCT},\;\textrm{DESCRIBE}\}$, a \gls{SPARQL} query can be defined as a tuple $q = (t_q,d,m,P_q)$ where $t_q \in T$ is the \emph{query type}, $d \in I \cup B$ is an optional term identifying the \gls{RDF} graph to be queried, $m$ is a set of \emph{solution modifiers} and $P_q$ is a \emph{graph pattern}.               
@@ -298,7 +298,7 @@ Let $V = \{?v_0,...,?v_ n\}$, where $n \in \mathbb{Z}^{+}$, be a set of variable
 \end{equation}
 
 
-Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint\footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we'll define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
+Here $tp$ is a triple pattern, $pp$ is a \emph{property path pattern}, $q$ is a subquery, $i \in I$, $?v \in V$ and $R$ is a \gls{SPARQL} filter constraint, $P_1\; .\; P_2$ represents an equality join operation between two patterns \footnote{For a detailed explanation of the syntax and semantics, we recommend the reader to consult section 17 of \autocite{W3c2008-vf}}. To remove ambiguities parentheses can be added to a pattern. Finally, we will define the set of variables that occur in a pattern $P$ as $vars(P)$ \autocite{Picalausa2011-ca}.
 \end{definition}
 
 \paragraph{How do SPARQL queries work?} An isomorphism of two graphs is an adjacency preserving bijection between their vertex sets \autocite{McKay2014-zb}.
@@ -739,7 +739,7 @@ Additionally, we specified the structure of \gls{OWL2}, focusing on the mechanis
 
 Furthermore, we explained \gls{SPARQL}, providing mathematical definitions, defining its semantics, describing the syntax, enumerating a few examples of queries and reasoning preservation techniques.
 
-We finished Section \ref{ch2:sec:semantic-web} by listing a few of the tools, software, storage solutions and evaluation benchmarks used in this field of research.
+We finished Section \ref{ch2:sec:semantic-web} by Listinga few of the tools, software, storage solutions and evaluation benchmarks used in this field of research.
 
 In Section \ref{ch2:sec:secure-computations}, we discussed various solutions to execute secure computations in untrusted servers. We started by describing the \emph{honest-but-curious}, or \emph{passive}, adversary model and explained why \emph{Encryption at Rest} and \gls{ORAM} are not practical approaches. 
 

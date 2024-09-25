@@ -1,16 +1,18 @@
 %!TEX root = ../template.tex
 \typeout{NT FILE abstract-en.tex}%
 
-Ontologies provide a shared understanding of a domain and, in general, only contain public, and non-sensitive data, but sometimes they are used alongside electronic health records and clinical decision systems. These systems heavily manipulate personal data, which is sensitive. Additionally, ontologies themselves have an inherent private value, due to the investment of time and money in their development.  
+Ontologies provide a shared understanding of a domain. They are often used in the medical field, alongside electronic health records and clinical decision systems. These systems heavily manipulate personal data, which is sensitive.
+
+Additionally, due to the investment of time and money in their development, or due to the nature of their data, ontologies themselves can have an inherent private, and monetary, value, and need to be secured.
 
 With ontologies gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions and the outsourcing of heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, present new security concerns.
 
-In this thesis, we investigate existing secure computation techniques, encryption protocols and storage systems with the finality of developing a practical and secure solution for the collaborative development, distribution and usage of semantic data knowledge bases.
+In this thesis, we investigate existing secure computation techniques, encryption protocols and semantic data storage systems with the finality of developing a practical and secure solution for the collaborative development and distribution of semantic data knowledge bases.
 
-Our main contributions from this research are: (i) SPARQL-EVAL and SPARQL-EVAL-II, two \gls{SPARQL} query evaluation protocols, the former applies query rewriting techniques to retain reasoning capabilities; (ii) SSE-TP, a triple pattern \gls{SSE} protocol, where encrypted \gls{RDF} data remains searchable via triple patterns; (iii) SSE-SPARQL-EVAL, an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted data; (iv) \gls{SEnTriS} protocol, an adaptation of the SSE-SPARQL-EVAL protocol for a multiuser setting that offers data confidentiality and role-based access controls.
+Our main contributions from this research are: (i) SPARQL-EVAL and SPARQL-EVAL-II, two \gls{SPARQL} query evaluation protocols, in the former we apply query rewriting techniques; (ii) SSE-TP, a triple pattern \gls{SSE} protocol, where encrypted \gls{RDF} data remains searchable via triple patterns; (iii) SSE-SPARQL-EVAL, an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted data; (iv) \gls{SEnTriS}, an adaptation of SSE-SPARQL-EVAL for a \gls{M/M} setting which offers data confidentiality and \gls{RBAC}.
 
-The solution has been evaluated using the LUBM benchmark under different configurations with varying security and performance trade-offs. \mytodo{Summarize experimental evaluation results}
+The solution has been evaluated using the \gls{LUBM}. \mytodo{Summarize experimental evaluation results}
 
 \begin{keywords}
-Ontologies, Searchable Encryption, Secure Computing, SPARQL, Secure Equality Join
+Ontologies, Knowledge Bases, SPARQL, Searchable Encryption, Homomorphic Encryption
 \end{keywords} 
