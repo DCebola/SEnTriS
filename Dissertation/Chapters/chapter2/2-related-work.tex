@@ -503,23 +503,24 @@ Deterministic encryption is type of property-preserving encryption scheme. Contr
 
 \subsubsection{General Index-Based Model}
 
-A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=(M_{1},...,M_{n})$ consisting in a set of $n$ plaintext documents $M$, some data items (e.g, keywords in the documents) $W=(w_{1},...,w_{m})$ are extracted from the documents and encrypted using a key $K$, using an encryption algorithm $Enc$. The documents may be encrypted too, generating a collection of ciphertexts $C$, usually with a different key $K'$. A client generates an encrypted index $I$, for the database $DB$, using a \emph{BuildIndex} function. The client stores the following information in an \emph{honest-but-curious} untrusted server:
+A general model, for the index-based \gls{SE} schemes was defined in \autocite{Bosch2014-eb}. Given a database $DB=[m_{0},...,m_{n}]$ consisting of a set of $n$ plaintext documents, we build an encrypted searchable index $I=[i_0,...,i_n]$, for the database $DB$, using a \emph{BuildIndex} function. This function extracts some data items (e.g, keywords in the documents) $W=[w_{0},...,w_{m}]$ from the documents and encrypts them under key $K$. The documents are also encrypted, generating a collection of ciphertexts $C=[c_1,...,c_n]$, usually with a different key $K'$. The client then stores the following information in an \emph{honest-but-curious} untrusted server:
 
 \begin{equation}
-    \begin{array}{l}
-    I = \textrm{BuildIndex}_{K}(\, DB=(M_{1},...,M_{n}), W=(w_{1},...,w_{m}))\\
-    C = Enc_{K'}(DB) 
-    \end{array}
+    \begin{split}
+    &I = BuildIndex_{K}(DB, \; W) \\
+    &C = E_{K'}(DB) 
+    \end{split}
 \end{equation}
 
-To perform search queries, the client generates a trapdoor $T=Trapdoor_{K}(f(w_{j}))$, for a predicate $f$ a keyword $w_{j}$. With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. If there is a keyword $w$ that satisfies the predicate $f$, it returns to the client the corresponding ciphertexts associated with $i$ or $\bot$ if no match was found. In Figure \ref{fig:se-general} we demonstrate the interaction between client and server.
+To perform searches, the client generates a trapdoor $T = Trapdoor_{K}(p)$, for a predicate $p$ (e.g. a keyword $w$). With trapdoor $T$, the server performs the search over $I$, using a $Search$ algorithm, by checking for an encrypted index $i = Search(I,T)$. All documents referenced by index $i$ (which satisfy predicate $p$) are returned to the client. In the client, these are decrypted using key $K$. If no match is found, the server returns $\bot$.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{se-general.png}
-    \caption{Interaction between client and server.}
-    \label{fig:se-general}
-\end{figure}
+\begin{equation}
+    \begin{split}
+    &T = Trapdoor_{K}(p) \\
+    &\{ C_i = [c_{i,0}, ..., c_{i,n}], \; \bot\} = Search(I, \; T) \\
+    &M_p = [m_{p,0},...,m_{p,n}] = D_{K'}(C_i) 
+    \end{split}
+\end{equation}
 
 \subsubsection{Client/Server Model}
 
@@ -622,13 +623,25 @@ Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (
 
 Only if the result of the inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
 
-\paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer IDs and the values correspond to the encrypted triples. The IDs are indexed using two strategies. 
+\paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer identifiers and the values correspond to the encrypted triples. The identifiers are indexed using two strategies.
 
-The first strategy is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each $s$, $p$, $o$. The hash function does not hash unbound values, and treats them as a wildcard. Then, we generate three index tables \emph{SPO}, \emph{POS} and \emph{OSP} where we store all triple pattern combinations and associate each value to the corresponding identifier.
+\begin{figure}[!h]
+    \begin{minipage}[c]{0.495\textwidth}
+        \includegraphics[width=\textwidth]{3-Index.png}
+        \caption{3-Index}
+        \label{fig:3-index}
+    \end{minipage}
+    \begin{minipage}[c]{0.495\textwidth}
+        \includegraphics[width=\textwidth]{Vertical-Partitioning.png}
+        \caption{Vertical Partitioning}
+        \label{fig:vertical-partitioning}
+    \end{minipage}
+\end{figure}
 
-The second strategy is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each identifier is indexed by a $("so"\;\vert\;"os",\;s,\;o)$.
 
-\mytodo{Add image with both index schemes}
+The first strategy, illustrated in Figure \ref{fig:3-index}, is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each triple $t = (s, p, o)$ (unbound values are treated as wildcards). Then, we generate three index tables with the permutations of $h(s)$, $h(p)$ and $h(o)$ and associate the permutations with the identifier of the triple.
+
+The second strategy, illustrated in Figure \ref{fig:vertical-partitioning}, is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each identifier is indexed by $("so",\;s,\;o)$ and $("os",\;s,\;o)$
 
 \subsection{CryptGraphDB}
 
@@ -638,7 +651,7 @@ The second strategy is \emph{vertical partitioning}. Instead of indexing the per
 
 The system is composed of an application server, a proxy and an unmodified \gls{DBMS}. The proxy intercepts all queries, encrypts and decrypts all data, and changes query operators while preserving the semantics of the original query. 
 
-\mytodo{Add image of Cryptdb system}
+
 
 \paragraph{Security Threats} \emph{CryptDB} addresses two security threats. The first threat, consists in a passive attacker (e.g. database administrator), which only observes confidential data in the \gls{DBMS} server. Against this attacker \emph{CryptDB} provides a few security guarantees: sensitive data is always encrypted; the \gls{DBMS} server cannot generate results for queries whose primitives do not belong to the subset of supported operations; information leakage depends on the types of computations that will be executed over the data - if no relational predicate filtering is needed, nothing more than the data's length is leaked; on equality checks, it reveals the histogram of encrypted values in the respective columns; in order checks, the system reveals the order between the encrypted values in the column.
 
@@ -646,11 +659,28 @@ The second threat is an attacker that gains control over the proxy, application 
 
 Besides confidentiality, \emph{CryptDB} does not ensure integrity, freshness, or completeness of results.
 
+Figure \ref{fig:cryptdb-system-model} shows the system model for CryptDB and illustrates the scope of the two security threats. In the image, rectangular boxes represent components and processes whereas round boxes represent data. The gray shading represents CryptDB specific elements and the vertical striped lines separate the components, which run in isolated hardware.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{CryptDB-system-model.png}
+    \caption{CryptDB System Model.}
+    \label{fig:cryptdb-system-model}
+\end{figure}
+
+
 \paragraph{Query Execution Pipeline} For executing a query issued by the application server, a sequence of steps are necessary: i) the proxy intercepts and rewrites the query, anonymizing the table and column names and encrypting each constant present with the adequate encryption scheme for the desired operation, using a master key; ii) the proxy checks whether it should provide keys to the \gls{DBMS} server, so that adjustments can be done on the encryption layers of the targeted data, if the check is positive it issues an UPDATE query that triggers a custom function to adjust the encryption of the selected columns; iii) the encrypted query is forwarded to the \gls{DBMS} server and is executed using plain \gls{SQL}; iv) the encrypted results are sent to the proxy, which are then decrypted and forwarded to the application server.
 
 \paragraph{Adjustable Encryption Schemes} To avoid unnecessary leakage of information data is encrypted with different layers, like an onion. When operations need encryption schemes with lower security guarantees, the data encryption layers are pealed. For each layer, per onion, per column, the proxy uses the same encryption key, derived from a master key, $MK$. This reduces the leakage of relations between columns and avoids the complexity of having different keys for each row in a column. For table $t$, column $c$, onion $o$, and encryption layer $l$, the proxy would use the encryption key $K_{t,c,o,l} = PRP_{MK}(t,c,o,l)$.
 
-We now present the different encryption schemes supported by \emph{CryptDB}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{CryptDB-onions.png}
+    \caption{CryptDB Encryption Onions.}
+    \label{fig:cryptdb-onions}
+\end{figure}
+
+Figure \ref{fig:cryptdb-onions} provides an overview of the different onions types in \emph{CryptDB} and how different encryption schemes are layered. The supported encryption schemes are:
 
 \begin{itemize}
     \item \emph{Random (RND)}: A probabilistic encryption scheme that provides the most security but does not allow any computations on the ciphertexts.
@@ -661,11 +691,6 @@ We now present the different encryption schemes supported by \emph{CryptDB}:
     \item \emph{OPE-JOIN}: \emph{CryptDB} does not provide a construct to dynamically modify the keys of columns encrypted with the \gls{OPE} scheme. To support range joins, these columns have to be specified before, so that they are encrypted under the same key.
     \item \emph{Word search (SEARCH)}: This encryption scheme allows queries with the LIKE keyword. In \emph{CryptDB} they used the scheme by Song et al. \autocite{Song2000-hu}. The information leakage is similar to that of the RND layer.
 \end{itemize}
-
-The following images provide, respectively, an overview of the different onions types in \emph{CryptDB} and an example a query execution where layer adjustments are needed.
-
-\mytodo{Add query flow image}
-\mytodo{Add onion encryption image}
 
 \emph{CryptGraphDB} builds upon the approach of \emph{CryptDB}, adapting the solution to be able to answer \emph{cypher} queries \autocite{Neo4j_Inc_undated-ft}. The proxy is implemented to handle \emph{cypher} queries instead of \gls{SQL} queries, but keeps the same functionality. Furthermore, as the \emph{cypher} language does not require the join operator, \emph{CryptGraphDB} only maintains the RND, DET, OPE, HOM and SEARCH encryption schemes.
 
