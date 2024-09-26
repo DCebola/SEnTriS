@@ -623,25 +623,26 @@ Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (
 
 Only if the result of the inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
 
+
 \paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer identifiers and the values correspond to the encrypted triples. The identifiers are indexed using two strategies.
 
-\begin{figure}[!h]
-    \begin{minipage}[c]{0.495\textwidth}
-        \includegraphics[width=\textwidth]{3-Index.png}
-        \caption{3-Index}
-        \label{fig:3-index}
-    \end{minipage}
-    \begin{minipage}[c]{0.495\textwidth}
-        \includegraphics[width=\textwidth]{Vertical-Partitioning.png}
-        \caption{Vertical Partitioning}
-        \label{fig:vertical-partitioning}
-    \end{minipage}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{3-Index.png}
+    \caption{3-Index Indexing}
+    \label{fig:3-index}
 \end{figure}
-
 
 The first strategy, illustrated in Figure \ref{fig:3-index}, is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each triple $t = (s, p, o)$ (unbound values are treated as wildcards). Then, we generate three index tables with the permutations of $h(s)$, $h(p)$ and $h(o)$ and associate the permutations with the identifier of the triple.
 
 The second strategy, illustrated in Figure \ref{fig:vertical-partitioning}, is \emph{vertical partitioning}. Instead of indexing the permutations of subjects, predicates and objects. We create one table per predicate, indexing the subject, object pairs that are related via that predicate. Each identifier is indexed by $("so",\;s,\;o)$ and $("os",\;s,\;o)$
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Vertical-Partitioning.png}
+    \caption{Vertical Partitioning Indexing}
+    \label{fig:vertical-partitioning}
+\end{figure}
 
 \subsection{CryptGraphDB}
 
@@ -700,8 +701,6 @@ Figure \ref{fig:cryptdb-onions} provides an overview of the different onions typ
 
 \gls{GOOSE} was designed as a distributed system with 5 participants: a \emph{data owner} (DO), who owns the outsourced graph $G$; a \emph{user} (U), who submits graph queries against $G$ and receives query answers; a \emph{query translator} (QT); \emph{answer translator} (AT); and a \emph{\gls{SPARQL} engine} (SE).
 
-\mytodo{Add protocol image}
-
 \paragraph{Preliminaries}
 
 Let $\textrm{ENC}_{A\_B}$ or $\textrm{ENC}_{B\_A}$ denote \glsxtrshort{AES-CBC} encryption using a shared key between participants A and B. 
@@ -712,7 +711,7 @@ Consider $\Sigma^+= \{a, a^- \;\vert\; a \in \Sigma \}$, $a^-$ denotes the inver
 
 A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with the same \emph{arity}. The answer of a query $q$ evaluated against a graph $G$, using standard \gls{SPARQL} semantics, is denoted as $ans(G, q)$.
 
-\paragraph{Graph Outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. The owner then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine.
+\paragraph{Graph Outsourcing} To outsource a graph, the \emph{data owner} generates $\sigma_V$, $\sigma_\Sigma$ and $\hat{E}$. The owner then sends $\textrm{ENC}_{DO\_QT}(\sigma_\Sigma)$ to the \emph{query translator}, $\textrm{ENC}_{DO\_AT}(\sigma_V)$ to the \emph{answer translator} and $\textrm{ENC}_{DO\_SE}(\hat{E})$ to the \gls{SPARQL} engine. 
 
 \paragraph{Query Evaluation} In \gls{GOOSE}, query evaluation is a four-step process: 
 
@@ -722,6 +721,15 @@ A \gls{UCRPQ} query $q$ is finite and non-empty set of \emph{query rules} with t
     \item The \emph{\gls{SPARQL} engine} evaluates $\hat{q}$ over $\hat{G} = (\bigcup_{(\hat{s},\hat{p}, \hat{o}) \in \hat{E}} \{\hat{s},\hat{o}\}, \hat{E})$ obtaining the answer $ans(\hat{G}, \hat{q})$. It then sends $\textrm{ENC}_{SE\_AT}(ans(\hat{G}, \hat{q}))$ to the \emph{answer translator}.
     \item The \emph{answer translator} deobfuscates $ans(\hat{G}, \hat{q})$ using ${\sigma_V}^{-1}$ and generates the final answer $ans(G, q)$. It then sends $\textrm{ENC}_{AT\_U}(ans(G, q))$ to the \emph{user}.
 \end{enumerate}
+
+Figure \ref{fig:goose} shows both the graph outsourcing (step 0) and the query evaluation (steps 1-4) processes:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Goose.png}
+    \caption{Graph Outsourcing and Query Evaluation, in \gls{GOOSE}.}
+    \label{fig:goose}
+\end{figure}
 
 \paragraph{Security Model}
 \gls{GOOSE} is designed to be secure against \emph{honest-but-curious} adversaries. It is assumed that data and computations are outsourced to external servers. The solution is expected to have the following security properties, which have been formally proven by the authors: 
