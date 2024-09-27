@@ -543,7 +543,7 @@ We will now explain how we adapt the SPARQL-EVAL-II to work with the SSE-TP encr
     SSE-SPARQL-EVAL is a distributed, three-party protocol: search and storage of encrypted data is scoped to the \emph{triplestore} component; encryption and decryption of data, query plan generation, preparation and final result generation is scoped to the \emph{client} component; the evaluation of the query execution plans are scoped to a secure computation \emph{proxy} component.
 \end{definition}
 
-\subsubsection{Query Preparation Phase} In this phase, depicted in Figure ... \mytodo{Create figure for query preparation phase}, we generate the query execution plan. We adapt the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
+\subsubsection{Query Preparation Phase} In this phase, we generate the query execution plan. We adapt the SPARQL-EVAL-II protocol in two ways. Firstly, we obfuscate the variables. Secondly, to introduce extra randomness in the query plan structure, the ontology and the expansion algorithm are randomized. Listing \ref{ontology-rnd} and \ref{secure-sparql-planner} specify the modifications to the \gls{SPARQL} planner and ontology logic.
 
 %\lstinputlisting[caption={SSE-SPARQL-EVAL ontology}, label={ontology-rnd}]{Code/chapter3/sse-sparql-eval/ontology-rnd.tex}
 
@@ -567,11 +567,20 @@ Listings \ref{sse-sparql-triplestore} and \ref{sse-sparql-triplestore-storage} s
 
 Finally, listings \ref{sse-sparql-proxy-prepare-bindings} and \ref{sse-proxy-save-bindings} provide the logic for the proxy component and how the bindings are temporarily stored. We have only highlighted the algorithms that differ from the previous protocols.
 
+Figure \ref{fig:sse-sparql-eval-query-preparation} shows a simplified sequence diagram of the query preparation phase.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{SSE-SPARQL-EVAL-query-preparation.png}
+    \caption{SSE-SPARQL-EVAL Sequence Diagram (query preparation).}
+    \label{fig:sse-sparql-eval-query-preparation}
+\end{figure}
+
 %\lstinputlisting[caption={Query Preparation in SSE-SPARQL-EVAL Proxy}, label={sse-sparql-proxy-prepare-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-prepare-bindings.tex}
 
 %\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-save-bindings.tex}
 
-\subsubsection{Query Evaluation Phase} Query evaluation, illustrated in Figure ... \mytodo{Create figure for query evaluation phase}, is done in the computation proxy and retains most of the logic present in the previous \gls{SPARQL} query evaluation protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker.
+\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the previous \gls{SPARQL} query evaluation protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker.
 
 In \gls{SEnTriS} V1 the secret key corresponds to $K_{RND}$, and it will be used to peel the outer layer of the encrypted nodes. In \gls{SEnTriS} V2, this key corresponds to an equality key $K_{DGK_{eq}} = (p, \; vp, \; n, \; u)$, which is sufficient to compute the difference between two encrypted equality tags, but not enough to perform a decryption operation. To execute a decryption, in the \gls{DGK} cryptosystem, we require the $g$ parameter, and it is not derivable from the values that compose the $K_{DGK_{eq}}$. The only exception happens with the encryption of 0, which is always 1.
 
@@ -590,6 +599,15 @@ In \gls{SEnTriS} V2, the values are always probabilistic. Consequently, as shown
 Before constructing the encryption tables we will need to group the bindings, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
 
 Listings \ref{construct-bindings-tables-sentris-v2} and \ref{bindings-tables-sentris-v2} provide the logic for the construction of bindings tables, in \gls{SEnTriS} V2, and their respective modifications.
+
+Figure \ref{fig:sse-sparql-eval-query-evaluation} shows a simplified sequence diagram of the query evaluation phase.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{SSE-SPARQL-EVAL-query-evaluation.png}
+    \caption{SSE-SPARQL-EVAL Sequence Diagram (query evaluation).}
+    \label{fig:sse-sparql-eval-query-evaluation}
+\end{figure}
 
 %\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V2)}, label={construct-bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-construct-bindings-tables-v2.tex}
 
@@ -820,8 +838,6 @@ Now that we have explained how we manage access in the \gls{M/M} setting, we are
     \gls{SEnTriS} is distributed, multi-party protocols between a \emph{client}, a \emph{IAM provider}, a \emph{vault}, a \emph{triplestore} and a secure computation \emph{proxy} component. The client is the public facing component, that users interact with. It provides a unified view of the system (hiding the internal communication logic and interaction between the other components) and abstracts the logic for generating access tokens and locking resources. It is also responsible for the encryption and decryption of data, as well as, generation of trapdoors. During query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers if necessary). The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. The vault component stores and distributes triplestore secrets. Search and storage of encrypted data is scoped to the triplestore component. Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
 
 \end{definition}
-
-\mytodo{Add figure for SEnTriS}
 
 \section{Summary}
 
