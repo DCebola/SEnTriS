@@ -332,7 +332,7 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 \paragraph{Generating Final Result \& Applying Modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the \emph{delete} and \emph{update} templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components.
 
-Figure \ref{fig:sparql-eval} shows a simplified sequence diagram for the query evaluation logic (only considers the happy path).
+To conclude, Figure \ref{fig:sparql-eval} shows a simplified sequence diagram for the query evaluation logic (only considers the happy path).
 
 %\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-client.tex}
 
