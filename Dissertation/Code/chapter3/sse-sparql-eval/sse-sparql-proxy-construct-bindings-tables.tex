@@ -2,7 +2,7 @@ State:
     $TIMEOUT$ := fetchConfig($TIMEOUT$)
     $bindings$ := {}
 
-function search($K_{RND}$, $variables$, $searches$):
+function search($K$, $variables$, $searches$):
     $table$ := createBindingsTable()
     $table$.setVariables($variables$)
     $searchResults$ := {}
@@ -11,5 +11,5 @@ function search($K_{RND}$, $variables$, $searches$):
     for $i$ in range(0, $\#searchResults$[$variables$[0]]):
         $patternID$ := generateID()
         foreach $variable$ in $variables$:
-            $table$.add($patternID$, $variable$, D($K_{RND}$, $searchResults$[$variable$][$i$]))
+            $table$.add($patternID$, $variable$, D($K$, $searchResults$[$variable$][$i$]))
     return $table$
