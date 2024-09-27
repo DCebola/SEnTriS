@@ -595,7 +595,17 @@ Let $m \in \mathbb{Z}^*_n$ be a masking value and $eqTag$ the plaintext value of
 
 %\lstinputlisting[caption={SSE-SPARQL-EVAL Query Worker}, label={query-worker-v1}]{Code/chapter3/sse-sparql-eval/query-worker-v1.tex}
 
-As seen in Listing \ref{construct-bindings-tables-sentris}, the deterministic values allow the bindings tables to operate as normal.
+As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} V1, before constructing the bindings tables, the probabilistic encryption layer of the bindings will be decrypted. The deterministic values allow the bindings tables to operate as normal.
+
+%\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V1)}, label={construct-bindings-tables-sentris-v1}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-construct-bindings-tables-v1.tex}
+
+In \gls{SEnTriS} V2, although we can remove the randomness of the values to do equality checks, we will need to return to the client unmodified, otherwise we will not be able to unmask the equality tags. Consequently, we will need to construct the binding tables with probabilistic values. To do so, we will group the bindings, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
+
+Listings \ref{construct-bindings-tables-sentris-v2} and \ref{bindings-tables-sentris-v2} provide the logic for the construction of bindings tables, in \gls{SEnTriS} V2, and their respective modifications.
+
+As shown in Listing \ref{query-worker-v2}, equality checks and set operations that require this operation, will have to be keyed.
+
+%\lstinputlisting[caption={Keyed set operations in SSE-SPARQL-EVAL Query Worker (SEnTriS V2)}, label={query-worker-v2}]{Code/chapter3/sse-sparql-eval/query-worker-v2.tex}
 
 Figure \ref{fig:sse-sparql-eval-query-evaluation} shows a simplified sequence diagram of the query evaluation phase.
 

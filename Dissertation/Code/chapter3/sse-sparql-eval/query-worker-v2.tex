@@ -1,0 +1,18 @@
+State:
+    $searchIDs$ := {}
+    $key$ := :bot
+    $sparqlResult$ := ({}, false, false, false, :bot, :bot)
+    $storageEngine$ := :bot
+
+function setContext($k$, $storage$):
+    $key$ := $k$
+    $storageEngine$ := $storage$
+
+function execJoin($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.join($right$, $key$)
+
+function execOptional($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.leftOuterJoin($right$, $key$)
+
+function execMinus($le\textrm{\emph{f}}t$, $right$):
+    return $le\textrm{\emph{f}}t$.minus($right$, $key$)
