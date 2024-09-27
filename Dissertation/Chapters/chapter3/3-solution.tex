@@ -46,7 +46,6 @@ Finally, we will not consider the case where attacks involve \emph{revoked users
 The functioning of a query evaluation system can be described as a pipeline of sequential operations. Firstly, if the system supports authentication, there is an authentication step. An authenticated user will be able to submit a series of queries while their session is active. A submitted query is parsed, and given the specified heuristics, the system generates a series of query execution plans, which consist in sequences of logical operations (e.g. data retrieval, update or execution of an equijoin). After a query plan is chosen and executed, the final results are sent to the user, with the applied solution modifiers.
 
 \emph{SEnTriS} follows a similar logic, for query evaluation, with a few modifications to enhance security. The system works with data that is encrypted in a manner that allows for search and set operations to remain executable. Additionally, before each step of the pipeline, access checks are performed against the users' ephemeral access tokens, to ensure that only the right actors are performing actions within the system.
-\mytodo{Add pipeline figure to illustrate differences}
 
 \emph{SSE} techniques are used during query evaluation: we generate trapdoors to search encrypted subjects, predicates and objects present in \emph{triple patterns}. With these, we build \emph{bindings tables}, which are used for the evaluation of complex \emph{graph patterns}
 
@@ -305,8 +304,6 @@ Having defined how data is stored, we will now explain the protocol for evaluati
     SPARQL-EVAL is a distributed, two-party protocol: the query plan generation and final result generation are executed by a \emph{client} component; whereas the query evaluation and data updates are executed by a \emph{triplestore} component.
 \end{definition}
 
-\mytodo{Add SPARQL-Eval figure}
-
 \paragraph{Query Plan Generation} We have created two abstractions to separate the logic for parsing a query from the logic for generating a query execution plan. Respectively, we denominate them as the \emph{SPARQL} \emph{query engine} and \emph{query planner}. The query engine will parse the query into processable operations. These operations will be consumed by the query planner, which will create a query execution plan.
 
 The parsing of a \gls{SPARQL} query is out of the scope of this thesis. We've based our solution in \emph{Apache Jena} \autocite{The_Apache_Software_Foundation_undated-wk}. We will utilize the solution provided by the API to parse a query and decompose it into a collection of \emph{operations}. We will not formally define these data structures, but we will assume that their implementation is correct and sufficient to generate valid query jobs. With the collection of \emph{operations}, we will construct a plan composed by our \emph{query jobs}. All of this logic is scoped to the query engine, and it is specified in Listing \ref{sparql-engine-pseudocode}.
@@ -335,9 +332,18 @@ Listings \ref{query-execution-pseudocode} and \ref{query-worker-pseudocode} spec
 
 \paragraph{Generating Final Result \& Applying Modifications} After the evaluation of a query's $\textrm{WHERE}$ clause, or the generation of the \emph{delete} and \emph{update} templates, there is still one final phase to execute. During this phase we generate the correct final query answer, which matches the query type, and update the triplestore data, upon the presence of an update query. Listings \ref{sparql-eval-client-pseudocode} and \ref{sparql-eval-triplestore-pseudocode} present, respectively, the logic of the SPARQL-EVAL \emph{client} and \emph{triplestore} components.
 
+Figure \ref{fig:sparql-eval} shows a simplified sequence diagram for the query evaluation logic (only considers the happy path).
+
 %\lstinputlisting[caption={SPARQL-EVAL client}, label={sparql-eval-client-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-client.tex}
 
 %\lstinputlisting[caption={SPARQL-EVAL triplestore}, label={sparql-eval-triplestore-pseudocode}]{Code/chapter3/sparql-eval/sparql-eval-triplestore.tex}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{SPARQL-EVAL.png}
+    \caption{SPARQL-EVAL Sequence Diagram (query evaluation).}
+    \label{fig:sparql-eval}
+\end{figure}
 
 \subsubsection{SPARQL Query Evaluation Protocol with Reasoning}
 
