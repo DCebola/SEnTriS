@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application.query.execution;
 
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
-import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.JobInstanceException;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.query.jobs.EmptyResJob;
@@ -85,22 +84,18 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
     @Override
     public BindingsTableV2 exec(Job2 job, BindingsTableV2 left, BindingsTableV2 right) throws SPARQLExecutionException {
-        try {
-            if (job instanceof JoinJob)
-                return execJoin(left, right);
-            else if (job instanceof UnionJob)
-                return execUnion(left, right);
-            else if (job instanceof OptionalJob)
-                return execOptional(left, right);
-            else if (job instanceof MinusJob)
-                return execMinus(left, right);
-        } catch (HomomorphicException e) {
-            throw new SPARQLExecutionException(e.getMessage());
-        }
+        if (job instanceof JoinJob)
+            return execJoin(left, right);
+        else if (job instanceof UnionJob)
+            return execUnion(left, right);
+        else if (job instanceof OptionalJob)
+            return execOptional(left, right);
+        else if (job instanceof MinusJob)
+            return execMinus(left, right);
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private BindingsTableV2 execJoin(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
+    private BindingsTableV2 execJoin(BindingsTableV2 left, BindingsTableV2 right) {
         BindingsTableV2 join = left.join(right, key);
         System.out.println("JOIN: " + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
@@ -116,7 +111,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         return union;
     }
 
-    private BindingsTableV2 execOptional(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
+    private BindingsTableV2 execOptional(BindingsTableV2 left, BindingsTableV2 right) {
         BindingsTableV2 optional = left.leftOuterJoin(right, key);
         System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
@@ -124,7 +119,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         return optional;
     }
 
-    private BindingsTableV2 execMinus(BindingsTableV2 left, BindingsTableV2 right) throws HomomorphicException {
+    private BindingsTableV2 execMinus(BindingsTableV2 left, BindingsTableV2 right) {
         BindingsTableV2 minus = left.minus(right, key);
         System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));

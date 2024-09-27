@@ -20,18 +20,50 @@ public class DGKUtils {
         return keyPairGenerator.generateKeyPair();
     }
 
-    public static BigInteger generateRandom(DGKPublicKey k) {
-        return NTL.generateXBitRandom(3 * k.getT());
-    }
+    public static BigInteger generateMask(DGKPublicKey pub, DGKPrivateKey priv) {
+        BigInteger n = pub.getN();
+        BigInteger vp = priv.getVp();
+        BigInteger p = priv.getP();
+        BigInteger vq = priv.getVp();
+        BigInteger q = priv.getQ();
+        BigInteger u = pub.getBigU();
+        BigInteger r;
+        while (true) {
+            //Generate n bit random number
+            r = NTL.generateXBitRandom(n.bitCount()).mod(n);
+            if (r.equals(BigInteger.ONE) || r.equals(BigInteger.ZERO)) {
+                continue;
+            }
 
-    public static BigInteger generateMask(BigInteger r, DGKPublicKey k, boolean negate) {
-        if (negate)
-            return k.getH().modPow(r.negate(), k.getN());
-        return k.getH().modPow(r, k.getN());
-    }
+            if (r.modPow(vp, p).equals(BigInteger.ONE)) {
+                continue;//h^{vp}(mod p) = 1
+            }
 
-    public static BigInteger unmask(DGKPublicKey k, BigInteger r, BigInteger ciphertext) throws HomomorphicException {
-        return k.reencrypt(r, ciphertext);
+            if (r.modPow(vq, q).equals(BigInteger.ONE)) {
+                continue;//h^{vq}(mod q) = 1
+            }
+
+            if (r.modPow(vp, n).equals(BigInteger.ONE)) {
+                continue;//r^{vp} (mod n) = 1
+            }
+
+            if (r.modPow(vq, n).equals(BigInteger.ONE)) {
+                continue;//r^{vq} (mod n) = 1
+            }
+
+            if (r.modPow(vp.multiply(vq), n).equals(BigInteger.ONE)) {
+                continue;//r^{vq*vq} (mod n) = 1
+            }
+
+            if (r.modPow(vp.multiply(vq).multiply(u), n).equals(BigInteger.ONE)) {
+                continue;//r^{u*vq*vq} (mod n) = 1
+            }
+
+            if (r.gcd(n).equals(BigInteger.ONE)) {
+                break;//(r, n) = 1
+            }
+        }
+        return r;
     }
 
     public static KeyPair parseKeyPair(byte[] contents) throws IOException, ClassNotFoundException {
