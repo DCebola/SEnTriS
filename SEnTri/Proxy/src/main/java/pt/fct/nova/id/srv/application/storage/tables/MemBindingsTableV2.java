@@ -4,7 +4,6 @@ import org.apache.jena.sparql.algebra.JoinType;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
-import pt.fct.nova.id.srv.application.crypto.dgk.HomomorphicException;
 import pt.fct.nova.id.srv.application.storage.Bytes;
 
 import java.math.BigInteger;
@@ -133,14 +132,14 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     @Override
-    public BindingsTableV2 join(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
+    public BindingsTableV2 join(BindingsTableV2 other, DGKEqKey key) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         return join(key, mutual_vars, this, other, INNER);
     }
 
 
-    private BindingsTableV2 join(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, BindingsTableV2 right, JoinType joinType) throws HomomorphicException {
+    private BindingsTableV2 join(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, BindingsTableV2 right, JoinType joinType) {
         Set<Var> l_vars = new HashSet<>(left.getVars());
         Set<Var> r_vars = new HashSet<>(right.getVars());
 
@@ -175,7 +174,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     private void joinPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Set<Var> leftVars, Set<Bytes> leftPatternIdxs,
-                              BindingsTableV2 right, Set<Var> rightVars, Set<Bytes> rightPatternIdxs, BindingsTableV2 res, JoinType joinType) throws HomomorphicException {
+                              BindingsTableV2 right, Set<Var> rightVars, Set<Bytes> rightPatternIdxs, BindingsTableV2 res, JoinType joinType) {
         Bytes p;
         boolean foundMatch;
         for (Bytes l : leftPatternIdxs) {
@@ -198,7 +197,7 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         }
     }
 
-    private boolean equalPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Bytes leftPattern, BindingsTableV2 right, Bytes rightPattern) throws HomomorphicException {
+    private boolean equalPatterns(DGKEqKey key, Set<Var> mutualVars, BindingsTableV2 left, Bytes leftPattern, BindingsTableV2 right, Bytes rightPattern) {
         BigInteger l_binding, r_binding;
         for (Var v : mutualVars) {
             l_binding = left.getPatternIdxs(v).get(leftPattern);
@@ -239,14 +238,14 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
     }
 
     @Override
-    public BindingsTableV2 leftOuterJoin(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
+    public BindingsTableV2 leftOuterJoin(BindingsTableV2 other, DGKEqKey key) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
         return join(key, mutual_vars, this, other, LEFT);
     }
 
     @Override
-    public BindingsTableV2 minus(BindingsTableV2 other, DGKEqKey key) throws HomomorphicException {
+    public BindingsTableV2 minus(BindingsTableV2 other, DGKEqKey key) {
         Set<Var> mutual_vars = new HashSet<>(this.getVars());
         mutual_vars.retainAll(other.getVars());
 
@@ -274,15 +273,9 @@ public class MemBindingsTableV2 implements BindingsTableV2 {
         return res;
     }
 
-    private Set<Bytes> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<Bytes>> bindings, BigInteger target) throws HomomorphicException {
+    private Set<Bytes> searchVarBindings(DGKEqKey key, Map<BigInteger, Set<Bytes>> bindings, BigInteger target) {
         BigInteger res = bindings.keySet().parallelStream()
-                .filter(item -> {
-                    try {
-                        return DGKEqUtils.equals(key, item, target);
-                    } catch (HomomorphicException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .filter(item -> DGKEqUtils.equals(key, item, target))
                 .findAny()
                 .orElse(null);
         if (res == null)

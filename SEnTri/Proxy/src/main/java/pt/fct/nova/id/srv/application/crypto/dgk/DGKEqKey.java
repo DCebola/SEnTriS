@@ -10,7 +10,7 @@ public class DGKEqKey implements DGK_Key, Serializable {
     private final BigInteger p;
     private final BigInteger vp;
 
-    public DGKEqKey(BigInteger p, BigInteger vp, BigInteger n, long u) {
+    public DGKEqKey(BigInteger p, BigInteger vp) {
         this.p = p;
         this.vp = vp;
     }

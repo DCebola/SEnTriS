@@ -760,18 +760,18 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     private HTTPResponse fetchAndDecryptBindings(CloseableHttpClient httpClient, String triplestoreID,
                                                  Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> deobfuscationMap,
                                                  EncryptionSchemeV2 protocol, Collection<Binding> bindingsCollector,
-                                                 BigInteger r, String accessToken) throws AEADBadTagException, IOException, HomomorphicException, ClassNotFoundException {
+                                                 BigInteger mask, String accessToken) throws AEADBadTagException, IOException, ClassNotFoundException {
         Map<BigInteger, Integer> eqTagsOrder = new HashMap<>();
         List<String> eqTags = new ArrayList<>();
         BigInteger eqTag;
         int i = 0;
-        DGKPublicKey k = (DGKPublicKey) protocol.getPubDGK();
         for (SerializableBinding<byte[]> binding : bindings) {
             for (Iterator<Var> it = binding.vars(); it.hasNext(); ) {
                 eqTag = new BigInteger(binding.get(it.next()));
                 if (!eqTagsOrder.containsKey(eqTag)) {
                     eqTagsOrder.put(eqTag, i);
-                    eqTags.add(ParsingUtils.eqTagToString(DGKUtils.unmask(k, r, eqTag)));
+                    System.out.println(eqTag.divide(mask));
+                    eqTags.add(ParsingUtils.eqTagToString(eqTag.divide(mask)));
                     i++;
                 }
             }
