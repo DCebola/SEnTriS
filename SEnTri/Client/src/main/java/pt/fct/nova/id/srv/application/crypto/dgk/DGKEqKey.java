@@ -9,14 +9,10 @@ public class DGKEqKey implements DGK_Key {
 
     private final BigInteger p;
     private final BigInteger vp;
-    private final BigInteger n;
-    private final long u;
 
-    public DGKEqKey(BigInteger p, BigInteger vp, BigInteger n, long u) {
+    public DGKEqKey(BigInteger p, BigInteger vp) {
         this.p = p;
         this.vp = vp;
-        this.n = n;
-        this.u = u;
     }
 
     public BigInteger getP() {
@@ -27,11 +23,4 @@ public class DGKEqKey implements DGK_Key {
         return vp;
     }
 
-    public BigInteger getN() {
-        return n;
-    }
-
-    public long getU() {
-        return u;
-    }
 }
