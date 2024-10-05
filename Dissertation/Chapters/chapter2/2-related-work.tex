@@ -411,7 +411,7 @@ The most common approach to secure data in outsourced servers is \emph{Encryptio
 
 Another approach, using \gls{ORAM} \autocite{Goldreich1996-yb,} fits well against this adversary model, as it allows for the concealment of memory access patterns by shuffling and continuously re-encrypting data on memory, but it is still impractical.
 
-Finally, when used exclusively, \gls{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they can be applied in conjunction with other security schemes, such as in some \gls{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, we will analyze related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}. In Section \ref{ch2:sec:property-preserving-encryption}, we will cover property-preserving encryption, as it is useful for the implementation of equality joins and sorting operations.
+Finally, when used exclusively, \gls{HE} \autocite{Acar2018-mp, Fontaine2007-sv} schemes are not efficient enough to be feasible in real-world applications \autocite{Bosch2014-eb}. However, they can be applied in conjunction with other security schemes, such as in some \gls{SE} schemes \autocite{Bosch2014-eb, Chase2010-xx}. For this reason, we will analyze related work in the fields of \gls{HE}, in Section \ref{ch2:sec:homomorphic-encryption}, and \gls{SE}, in Section \ref{ch2:sec:searchable-encryption}. In Section \ref{ch2:sec:property-preserving-encryption}, we will cover property-preserving encryption, as it is useful for the implementation of equality joins and sorting operations. Lastly, in Section \ref{ch2:sec:blinding-techniques}, we will present two secret sharing techniques, used for the obfuscation of values shared between two parties.
 
 
 \subsection{Homomorphic Encryption}
@@ -491,6 +491,25 @@ Deterministic encryption is type of property-preserving encryption scheme. Contr
 \subsubsection{Order-Preserving Encryption} 
 
 \gls{OPE} schemes preserve the order guarantees of the plaintext data. Naturally, the order relations between the ciphertext are leaked. Some implementations can leak as much as half of the data bits of the ciphertexts \autocite{Popa2012-bw}.
+
+\subsection{Blinding Techniques}
+\label{ch2:sec:blinding-techniques}
+
+\subsubsection{Overview} In this thesis we will consider two types of secret sharing techniques, \emph{additive} and \emph{multiplicative blinding}. These are used to obfuscate values shared between parties (e.g. during the execution of a protocol). 
+
+In the following sections we will present how these techniques are implemented. As in \autocite{Franz2011-sm}, we will consider that all computation are done in a modular group $\mathbb{Z}_n$. Additionally, we will denote $P(X = x)$ as the probability that a random variable $X \in \mathbb{Z}_n$ takes on the value $x$.
+
+\subsubsection{Additive Blinding} 
+
+Let $x$ be a fixed value in $\mathbb{Z}_n$. To obfuscate $x$, firstly, we randomly sample $r \in \mathbb{Z}_n$, where the distribution of $r$ is the discrete uniform distribution, thus $P(R = r) = \frac{1}{n}, \forall r \in \mathbb{Z}_n$. After sampling $r$, we compute $y = r + x \; \textrm{mod} \; n$. 
+
+This method generates a uniformly random element $y \in \mathbb{Z}_n$ which does not reveal any information about the value $x$ nor the distribution of $X$.
+
+\subsubsection{Multiplicative Blinding}
+
+We will now assume that $X$ takes on values from a field $\mathbb{Z}_p$, where $p$ is a prime number. Multiplicative blinding is usually used when we want to obfuscate a value $x$, where $x \neq 0$ (if $x$ where to be 0, we would only be able to produce 0 via multiplication).
+
+Let $x \in \mathbb{Z}_p$, and $r \in \mathbb{Z}_p \backslash \{0\}$, we obfuscate $x$ by computing $y = r + x \; \textrm{mod} \; p$. The value of $y$ is equal to 0 if and only if $x = 0$. If $x \neq 0$, then $y$ is a uniformly random element of $\mathbb{Z}_p \backslash \{0\}$ and does not reveal any information about $x$ (a proof is presented in \autocite{Franz2011-sm}). 
 
 \subsection{Searchable Encryption}
 \label{ch2:sec:searchable-encryption}
@@ -773,7 +792,7 @@ We finished Section \ref{ch2:sec:semantic-web} by Listinga few of the tools, sof
 
 In Section \ref{ch2:sec:secure-computations}, we discussed various solutions to execute secure computations in untrusted servers. We started by describing the \emph{honest-but-curious}, or \emph{passive}, adversary model and explained why \emph{Encryption at Rest} and \gls{ORAM} are not practical approaches. 
 
-We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathematical basis of \gls{HE} and enumerating the type of schemes available, and property-preserving encryption schemes.
+We proceeded to cover \glsxtrlong{HE} schemes, informally mentioning the mathematical basis of \gls{HE} and enumerating the type of schemes available, explaining property-preserving encryption schemes and blinding techniques.
 
 In Section \ref{ch2:sec:searchable-encryption}, we explained the difference between \gls{SSE} and \gls{PEKS}. We then described the general model for index-based \gls{SE}, as well as the \emph{Client/Server} architecture of \gls{SE} systems. We continued by discussing how to extend \gls{S/S} architectures, covered the types of privacy leakage.
 

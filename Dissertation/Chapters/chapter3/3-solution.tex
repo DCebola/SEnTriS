@@ -543,9 +543,10 @@ We will now explain how we adapt the SPARQL-EVAL-II to work with the SSE-TP encr
 
 %\lstinputlisting[caption={SSE-SPARQL-EVAL SPARQL Planner}, label={secure-sparql-planner}]{Code/chapter3/sse-sparql-eval/sparql-planner-secure.tex}
 
-Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value is generated and sent alongside each of the previous requests.
+Upon the generation of a randomized query execution plan, the client component processes the secure search jobs and requests the necessary SSL-SPARQL-EVAL.$PrepareSearch$ operations. In \gls{SEnTriS} V2, a masking value $mask = (m, \; n)$ is generated and sent alongside each of the previous requests. 
+The $n$ parameter is part of the scheme's public key, whereas the $m$ value is a randomly sampled in $\mathbb{Z}^*_n$.
 
-After receiving the collections of trapdoors, the triplestore component matches them against the triplestore's data. The bindings found are sent to the computation proxy, to be temporarily persisted and used during the query evaluation phase. In \gls{SEnTriS} V2, before sending the data to the proxy, the bindings are multiplied with the $mask$ value.
+After receiving the collections of trapdoors, the triplestore component matches them against the triplestore's data. The bindings found are sent to the computation proxy, to be temporarily persisted and used during the query evaluation phase. In \gls{SEnTriS} V2, before sending the data to the proxy, the bindings are blinded, with a \emph{multiplicative blinding} technique. Thus, an encrypted binding will correspond to $E(binding) = E(eqTag) * m \; \textrm{mod} \; n$.
 
 After receiving the search identifiers, the client substitutes the search jobs keywords with the respective values. After all search jobs have been successfully updated, the plan is said to be prepared and ready to be sent to the proxy component. Listings \ref{sse-sparql-client-v1} and \ref{sse-sparql-client-v2} show the logic of the client for \gls{SEnTriS} V1 and V2 respectively.
 
@@ -574,17 +575,16 @@ Figure \ref{fig:sse-sparql-eval-query-preparation} shows a simplified sequence d
 
 %\lstinputlisting[caption={Persisting Bindings in SSE-SPARQL-EVAL Proxy Storage Engine}, label={sse-proxy-save-bindings}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-save-bindings.tex}
 
-\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the previous \gls{SPARQL} query evaluation protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{sse-query-worker} specifies the modifications to the query worker.
+\subsubsection{Query Evaluation Phase} Query evaluation is done in the computation proxy and retains most of the logic present in the previous \gls{SPARQL} query evaluation protocols. The only difference is in the query worker. This worker will have access to a secret key and will operate with encrypted bindings tables. Listing \ref{sse-sparql-proxy-query-eval} shows the query evaluation logic in the proxy component. Listing \ref{query-worker-v1} specifies the modifications to the query worker.
 
 In \gls{SEnTriS} V1 the secret key corresponds to $K_{RND}$, and it will be used to peel the outer layer of the encrypted nodes. In \gls{SEnTriS} V2, this key corresponds to the private key $K_{DGK_{priv}} = (p, \; vp)$. With the private key we will be able to strip the randomness of the blinded equality tags, but not decrypt the values, due to the previous multiplication. 
 
-Let $m \in \mathbb{Z}^*_n$ be a masking value and $eqTag$ the plaintext value of an equality tag. In Equation \ref{equation:dgk-equality}, we show how we remove the randomness of the blinded equality tag $blind(EqTag) = m * E(eqTag)$:
+Let $m \in \mathbb{Z}^*_n$ be the masking value, in Equation \ref{equation:dgk-equality}, we show how we remove the randomness of a blinded encrypted binding:
 
 \begin{align}
     \label{equation:dgk-equality}
     \begin{split}
-        D(blind(eqTag)) &= D(m * E(eqTag)) \\
-        &= (m * g^{eqTag}h^r)^{v_p} \; \textrm{mod} \; p \\
+        D(E(binding)) &= (m * g^{eqTag}h^r)^{v_p} \; \textrm{mod} \; p \\
         &= (m * g^{eqTag})^{v_p}(h^r)^{v_p} \; \textrm{mod} \; p \\
         &= (m * g^{eqTag})^{v_p}*1 \; \textrm{mod} \; p \\
         &= (m * g^{eqTag})^{v_p} \; \textrm{mod} \; p
@@ -599,7 +599,7 @@ As seen in Listing \ref{construct-bindings-tables-sentris-v1}, in \gls{SEnTriS} 
 
 %\lstinputlisting[caption={Constructing Bindings Tables (SEnTriS V1)}, label={construct-bindings-tables-sentris-v1}]{Code/chapter3/sse-sparql-eval/sse-sparql-proxy-construct-bindings-tables-v1.tex}
 
-In \gls{SEnTriS} V2, although we can remove the randomness of the values to do equality checks, we will need to return to the client unmodified, otherwise we will not be able to unmask the equality tags. Consequently, we will need to construct the binding tables with probabilistic values. To do so, we will group the bindings, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
+In \gls{SEnTriS} V2, although we can remove the randomness of the values to do equality checks, we will need to return to the client unmodified, otherwise we will not be able to revert the blinding of the equality tags. Consequently, we will need to construct the binding tables with probabilistic values. To do so, we will group the bindings, keeping track of pattern indexes but retaining one unique value, per distinct group of equal equality tags. This will enable us to construct the encryption tables without altering their data structures. The non-deterministic nature of the data will result in an increase of complexity for internal searches, as they will have to be done using sequential scans. In Chapter \ref{cha:implementation}, we will explain how we mitigate this impact using parallelism.
 
 Listings \ref{construct-bindings-tables-sentris-v2} and \ref{bindings-tables-sentris-v2} provide the logic for the construction of bindings tables, in \gls{SEnTriS} V2, and their respective modifications.
 
@@ -620,7 +620,7 @@ Figure \ref{fig:sse-sparql-eval-query-evaluation} shows a simplified sequence di
 
 %\lstinputlisting[caption={Bindings Tables (SEnTriS V2)}, label={bindings-tables-sentris-v2}]{Code/chapter3/sse-sparql-eval/bindings-table-v2.tex}
 
-\subsubsection{Decryption of SPARQL Query Results} Upon receiving the results from the query evaluation, the client component will decrypt them and construct the final results. This final step will require an extra communication round for \gls{SEnTriS} V2, because the returned values are encrypted equality tags. These will need to be unmasked, and used to search for the encrypted nodes.
+\subsubsection{Decryption of SPARQL Query Results} Upon receiving the results from the query evaluation, the client component will decrypt them and construct the final results. This final step will require an extra communication round for \gls{SEnTriS} V2, because the returned values are encrypted equality tags. These will need to be unmasked, and used to search for the encrypted nodes. To unmask a blinded encrypted binding we compute $E(binding) * m^{-1} \; \textrm{mod} \; n$.
 
 After the decryption of the results, any modifications required are executed. Listings \ref{sse-sparql-final-results-v1} and \ref{sse-sparql-final-results-v2} illustrate this logic for \gls{SEnTriS} V1 and V2, respectively.
 

@@ -3,7 +3,7 @@ State:
     $secrets$ := {}
     $planner$ := :bot
 
-function fetchAndDecryptBindings($triplestoreID$, $mask$, $bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$):
+function fetchAndDecryptBindings($triplestoreID$, $inverseMask$, $bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$):
     $decryptedBindings$ := createLinkedList()
     $eqTagsOrder$ := {}
     $eqTags$ := createArrayList()
@@ -13,7 +13,7 @@ function fetchAndDecryptBindings($triplestoreID$, $mask$, $bindings$, $deob\text
         foreach ($ob\textrm{\emph{f}}uscatedVar$, $eqTag$) in $binding$:
             if $eqTag \notin eqTagsOrder$: 
                 $eqTagsOrder$[$eqTag$] := $i$
-                $eqTags$.add($eqTag \; / \; mask$)
+                $eqTags$.add($eqTag \; * \; inverseMask \; \textrm{mod} \; n$)
                 $i$++
     $encryptedBindings$ := Triplestore.search($triplestoreID$, $eqTags$)
     $decryptedNodes$ := {}
