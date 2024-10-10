@@ -11,7 +11,7 @@ import java.util.*;
 public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
 
-    public List<byte[]> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask) {
+    public List<byte[]> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask, BigInteger n) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Pipeline p = jedis.pipelined();
             List<Response<String>> responses = new ArrayList<>(trapdoors.size());
@@ -23,7 +23,7 @@ public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine i
             for (Response<String> r : responses) {
                 b64value = r.get();
                 if (b64value != null)
-                    res.add(new BigInteger(base64Decoder.decode(b64value)).multiply(mask).toByteArray());
+                    res.add(new BigInteger(base64Decoder.decode(b64value)).multiply(mask).mod(n).toByteArray());
             }
             return res;
         }

@@ -150,11 +150,12 @@ public class ParsingUtils {
 
     }
 
-    public static HttpEntity generateV2SearchRequest(List<String> trapdoors, BigInteger mask) throws IOException {
+    public static HttpEntity generateV2SearchRequest(List<String> trapdoors, BigInteger mask, BigInteger n) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(trapdoors);
             return MultipartEntityBuilder.create()
                     .addBinaryBody("mask", mask.toByteArray())
+                    .addBinaryBody("n", n.toByteArray())
                     .addBinaryBody("trapdoors", bos.toByteArray())
                     .build();
         }

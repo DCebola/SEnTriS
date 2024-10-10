@@ -424,8 +424,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return response.build();
         }
         BigInteger mask = DGKUtils.generateMask((DGKPublicKey) protocol.getPubDGK(), (DGKPrivateKey) protocol.getPrivDGK());
+        BigInteger n = ((DGKPublicKey) protocol.getPubDGK()).getN();
+        BigInteger inverseMask = mask.modPow(BigInteger.valueOf(-1), n);
         response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency,
-                mask, accessToken);
+                mask, n, accessToken);
         if (response != null && response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
@@ -444,7 +446,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 vars.add(deobfuscationMap.get(var));
             Collection<Binding> bindings = new LinkedList<>();
             response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), deobfuscationMap, protocol, bindings,
-                    mask, accessToken);
+                    inverseMask, n, accessToken);
             if (response != null && response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
@@ -484,8 +486,10 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 }
 
                 BigInteger mask = DGKUtils.generateMask((DGKPublicKey) protocol.getPubDGK(), (DGKPrivateKey) protocol.getPrivDGK());
+                BigInteger n = ((DGKPublicKey) protocol.getPubDGK()).getN();
+                BigInteger inverseMask = mask.modPow(BigInteger.valueOf(-1), n);
                 response = prepareSearches(httpClient, protocol, triplestoreID, planner.getSearchJobsIDs(), plan.getJobs(), keywordsFrequency,
-                        mask, accessToken);
+                        mask, n, accessToken);
                 if (response != null && response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
@@ -499,7 +503,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 Map<Var, Var> deobfuscationMap = planner.getDeobfuscationMap();
                 Collection<Binding> bindings = new LinkedList<>();
                 response = fetchAndDecryptBindings(httpClient, triplestoreID, sparqlResult.getBindings(), deobfuscationMap, protocol, bindings,
-                        mask, accessToken);
+                        inverseMask, n, accessToken);
                 if (response != null && response.getStatus() != OK) {
                     deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                     return response.build();
@@ -714,7 +718,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     private HTTPResponse prepareSearches(CloseableHttpClient httpClient, EncryptionSchemeV2 protocol,
                                          String triplestoreID, Set<String> jobIDs, Map<String, Job> jobs,
-                                         Map<String, Integer> keywordsFrequency, BigInteger mask, String accessToken) throws
+                                         Map<String, Integer> keywordsFrequency, BigInteger mask, BigInteger n, String accessToken) throws
             IOException {
         HTTPResponse response;
         String keyword;
@@ -738,7 +742,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 for (int i = 0; i < keywordFrequency; i++)
                     trapdoors.get(i % vars.length).add(protocol.generateTrapdoorAndIncrementIV(keyword));
                 for (int i = 0; i < vars.length; i++) {
-                    response = prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors.get(i), mask, accessToken);
+                    response = prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors.get(i), mask, n, accessToken);
                     if (response.getStatus() != OK)
                         return response;
                     String searchID = response.getBody();
@@ -760,7 +764,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     private HTTPResponse fetchAndDecryptBindings(CloseableHttpClient httpClient, String triplestoreID,
                                                  Collection<SerializableBinding<byte[]>> bindings, Map<Var, Var> deobfuscationMap,
                                                  EncryptionSchemeV2 protocol, Collection<Binding> bindingsCollector,
-                                                 BigInteger mask, String accessToken) throws AEADBadTagException, IOException, ClassNotFoundException {
+                                                 BigInteger inverseMask, BigInteger n, String accessToken) throws AEADBadTagException, IOException, ClassNotFoundException {
         Map<BigInteger, Integer> eqTagsOrder = new HashMap<>();
         List<String> eqTags = new ArrayList<>();
         BigInteger eqTag;
@@ -770,8 +774,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 eqTag = new BigInteger(binding.get(it.next()));
                 if (!eqTagsOrder.containsKey(eqTag)) {
                     eqTagsOrder.put(eqTag, i);
-                    System.out.println(eqTag.divide(mask));
-                    eqTags.add(ParsingUtils.eqTagToString(eqTag.divide(mask)));
+                    eqTags.add(ParsingUtils.eqTagToString(eqTag.multiply(inverseMask).mod(n)));
                     i++;
                 }
             }
@@ -805,9 +808,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     }
 
     public HTTPResponse prepareSearch(CloseableHttpClient httpClient, String protocolVersion, String
-            triplestoreID, List<String> trapdoors, BigInteger mask,
+            triplestoreID, List<String> trapdoors, BigInteger mask, BigInteger n,
                                       String accessToken) throws IOException {
-        try (CloseableHttpResponse response = EncryptedTriplestoreV2Client.prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors, mask, accessToken)) {
+        try (CloseableHttpResponse response = EncryptedTriplestoreV2Client.prepareSearch(httpClient, protocolVersion, triplestoreID, trapdoors, mask, n, accessToken)) {
             return new HTTPResponse(response);
         }
     }
