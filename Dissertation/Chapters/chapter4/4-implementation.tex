@@ -11,6 +11,10 @@ In this chapter we will present the implementation details of the various compon
 
 \section{General Considerations}
 
+\gls{SEnTriS} is a complex multi-party and distributed system that operates in a domain still in development. Its components have a set of requirements for their functioning but, due to the limited set of available technologies their implementation posed a few challenges.
+
+We will start by presenting the chosen technology stack and limitations that it has. Finally, we will explain the design and architecture choices.
+
 %Requirements
 %SPARQL query parser, RDF parser, must support owl and have reasoners
 %Server client architecture, security libraries must support encryption schemes required, mutual tls
@@ -20,16 +24,20 @@ In this chapter we will present the implementation details of the various compon
 
 \subsection{Technology Stack}
 
-\paragraph{Semantic Web Development Framework}
-%RDF4J vs Jena framework (both java), Jena more popular
+\paragraph{Semantic Web Development Framework} Most of \gls{SEnTriS} components need to handle \gls{RDF} data. Additionally, some components, like the client, are also required to parse \gls{SPARQL} queries and create reasoning models that respect \gls{OWL2} semantics.
 
-\paragraph{Language}
-%Java
+The two most popular and mature semantic web development frameworks are Jena ... and RDF4J ... . Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
+
 
 \paragraph{Security Libraries}
 %Bouncy castle & lazysodium
+%Openssl
 
-\paragraph{Storage Engine Libraries}
+\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) ... .
+
+\paragraph{Build \& Deployment} We used Maven ... to manage software dependencies, build and compile the components. The components were deployed and run as containerized Docker ... applications.
+
+\paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java 17 ... . Furthermore, we used Lua ... for writing scripts that operate in the Redis servers. Finally, build and deployment scripts are written in Bash ... .
 
 \subsection{Challenges}
 %JENA: high coupling of classes, some were not serializable. Dificult to modify the query evaluation procedure which was higly coupled with the storage engines
