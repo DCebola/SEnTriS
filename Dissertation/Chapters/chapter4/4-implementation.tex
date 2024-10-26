@@ -26,18 +26,18 @@ We will start by presenting the chosen technology stack and limitations that it 
 
 \paragraph{Semantic Web Development Framework} Most of \gls{SEnTriS} components need to handle \gls{RDF} data. Additionally, some components, like the client, are also required to parse \gls{SPARQL} queries and create reasoning models that respect \gls{OWL2} semantics.
 
-The two most popular and mature semantic web development frameworks are Jena ... and RDF4J ... . Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
+The two most popular and mature semantic web development frameworks are Jena \autocite{The_Apache_Software_Foundation_undated-wk} and RDF4J \autocite{Eclipse-RDF4J-developersUnknown-uu}. Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
 
 
 \paragraph{Security Libraries}
 %Bouncy castle & lazysodium
 %Openssl
 
-\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) ... .
+\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) \autocite{Redis-xq, Redis-rq}.
 
-\paragraph{Build \& Deployment} We used Maven ... to manage software dependencies, build and compile the components. The components were deployed and run as containerized Docker ... applications.
+\paragraph{Build \& Deployment} We used Maven \autocite{PorterUnknown-fs} to manage software dependencies, build and compile the components. The components were deployed and run as containerized Docker \autocite{Ratliff2022-ae} applications.
 
-\paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java 17 ... . Furthermore, we used Lua ... for writing scripts that operate in the Redis servers. Finally, build and deployment scripts are written in Bash ... .
+\paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java \autocite{Java-wf}. Furthermore, we used Lua \autocite{Lua-gq} for writing scripts that operate in the Redis servers \autocite{Redis-vf}. Finally, build and deployment scripts are written in Bash \autocite{Bash-ud}.
 
 \subsection{Challenges}
 %JENA: high coupling of classes, some were not serializable. Dificult to modify the query evaluation procedure which was higly coupled with the storage engines
