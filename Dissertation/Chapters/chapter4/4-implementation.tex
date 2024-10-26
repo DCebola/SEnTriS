@@ -11,15 +11,9 @@ In this chapter we will present the implementation details of the various compon
 
 \section{General Considerations}
 
-\gls{SEnTriS} is a complex multi-party and distributed system that operates in a domain still in development. Its components have a set of requirements for their functioning but, due to the limited set of available technologies their implementation posed a few challenges.
+The Semantic Web domain is still in development, as such the choice of the technology available is limited. This created a few challenges during the implementation of \gls{SEnTriS} components.
 
-We will start by presenting the chosen technology stack and limitations that it has. Finally, we will explain the design and architecture choices.
-
-%Requirements
-%SPARQL query parser, RDF parser, must support owl and have reasoners
-%Server client architecture, security libraries must support encryption schemes required, mutual tls
-%Simple key value store, can be in memory for testing
-%Dependency management maven
+We will start by presenting the chosen technology stack and its limitations. Finally, we will explain the design and architecture choices.
 
 
 \subsection{Technology Stack}
@@ -28,10 +22,8 @@ We will start by presenting the chosen technology stack and limitations that it 
 
 The two most popular and mature semantic web development frameworks are Jena \autocite{The_Apache_Software_Foundation_undated-wk} and RDF4J \autocite{Eclipse-RDF4J-developersUnknown-uu}. Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
 
-
-\paragraph{Security Libraries}
-%Bouncy castle & lazysodium
-%Openssl
+\paragraph{Cryptography Libraries} For the cryptography operations we utilized a variety of well known libraries. We choose the Bouncy Castle library \autocite{BouncyCastle2023-og} for the key derivation operations and Lazysodium \autocite{Lazysodium-vo}, a Java wrapper of the Libsodium library \autocite{Libsodium-hk}, because it provides support for XChaCha20-Poly1305 encryption \autocite{NirUnknown-mk, XChaCha20-ur}. The \gls{DGK} encryption library used is an adaptation of the one developed by Andrew Quijano \autocite{DGKLibrary-ln}, where we removed the unused methods and implemented the abstractions used in the \gls{SEnTriS} protocol (e.g. equality check operation).
+For \gls{SSL} certificate generation and management we used the OpenSSL library \autocite{OpenSSL-jb}.
 
 \paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) \autocite{Redis-xq, Redis-rq}.
 
@@ -40,14 +32,17 @@ The two most popular and mature semantic web development frameworks are Jena \au
 \paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java \autocite{Java-wf}. Furthermore, we used Lua \autocite{Lua-gq} for writing scripts that operate in the Redis servers \autocite{Redis-vf}. Finally, build and deployment scripts are written in Bash \autocite{Bash-ud}.
 
 \subsection{Challenges}
-%JENA: high coupling of classes, some were not serializable. Dificult to modify the query evaluation procedure which was higly coupled with the storage engines
-%Adapted the dgk solution developed by ...
+The main limitation we found, was the high coupling and lack of serialization support for some classes provided by JENA. The query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes, or procedures. Furthermore, the final solution would inherit this complexity and would also be difficult to extend, which goes against the design principles of \gls{SEnTriS}.
 
 \subsection{Design \& Architecture Choices}
-%Standardized architecture and organization
-%Standardized deployment using Docker
-%Configs/secrets via configuration files
-Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication.
+
+Our aim is to develop and implement an extensible and flexible solution. As such, the implementation of the components must be portable (not dependent on specific hardware), and easy to modify or extend.
+
+To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Furthermore, the components are deployed as containerized applications. Figure ..., shows the architectural scheme of a generic component.
+
+\mytodo{Create architecture scheme}
+
+Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM} because the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. 
 
 
 \section{Component Specific Implementation Details}

@@ -13,3 +13,4 @@ rdfs
 subproperty
 cryptosystem
 generateIndex
+archictural
