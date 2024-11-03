@@ -16,7 +16,7 @@ import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine;
-import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.apis.TriplestoreAPI;
 
 import java.io.*;
 import java.util.*;

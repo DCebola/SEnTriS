@@ -20,9 +20,9 @@ import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.schemes.*;
 import pt.fct.nova.id.srv.application.schemes.exceptions.*;
-import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.Role;
+import pt.fct.nova.id.srv.presentation.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.dtos.RequestDecisionForm;
+import pt.fct.nova.id.srv.presentation.dtos.Role;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.SecretKey;

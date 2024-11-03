@@ -5,9 +5,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 import org.apache.http.client.utils.URIBuilder;
-import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.Role;
+import pt.fct.nova.id.srv.presentation.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.dtos.RequestDecisionForm;
+import pt.fct.nova.id.srv.presentation.dtos.Role;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;

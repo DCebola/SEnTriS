@@ -14,8 +14,8 @@ import pt.fct.nova.id.srv.application.query.execution.*;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV2;
-import pt.fct.nova.id.srv.presentation.api.QueriesAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.SecureSPARQLQueryForm;
+import pt.fct.nova.id.srv.presentation.apis.QueriesAPI;
+import pt.fct.nova.id.srv.presentation.dtos.SecureSPARQLQueryForm;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

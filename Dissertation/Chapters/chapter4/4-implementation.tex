@@ -32,17 +32,22 @@ For \gls{SSL} certificate generation and management we used the OpenSSL library 
 \paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java \autocite{Java-wf}. Furthermore, we used Lua \autocite{Lua-gq} for writing scripts that operate in the Redis servers \autocite{Redis-vf}. Finally, build and deployment scripts are written in Bash \autocite{Bash-ud}.
 
 \subsection{Challenges}
-The main limitation we found, was the high coupling and lack of serialization support for some classes provided by JENA. The query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes, or procedures. Furthermore, the final solution would inherit this complexity and would also be difficult to extend, which goes against the design principles of \gls{SEnTriS}.
+The main limitation we found, was the high coupling and lack of serialization support for some classes provided by JENA. The query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes, or procedures.
 
 \subsection{Design \& Architecture Choices}
 
-Our aim is to develop and implement an extensible and flexible solution. As such, the implementation of the components must be portable (not dependent on specific hardware), and easy to modify or extend.
+Our aim is to develop and implement an extensible and flexible solution. As such, the implementation of the components must be portable (not dependent on specific hardware), and easy to modify.
 
-To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a web server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Furthermore, the components are deployed as containerized applications. Figure ..., shows the architectural scheme of a generic component.
+To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Furthermore, the components are deployed as containerized applications. Figure \ref{fig:generic-component-architecture} shows the architectural scheme of a generic component.
 
-\mytodo{Create architecture scheme}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{generic-component-architecture.png}
+    \caption{...}
+    \label{fig:generic-component-architecture}
+\end{figure}
 
-Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM} because the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. 
+Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. 
 
 
 \section{Component Specific Implementation Details}

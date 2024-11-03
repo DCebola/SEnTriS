@@ -10,9 +10,9 @@ import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.clients.ProxyClient;
 import pt.fct.nova.id.srv.application.storage.EncryptedStorageEngineV2;
 import pt.fct.nova.id.srv.application.storage.redis.RedisEncryptedStorageEngineV2;
-import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreV2API;
-import pt.fct.nova.id.srv.presentation.api.dtos.PrepareSearchV2Form;
-import pt.fct.nova.id.srv.presentation.api.dtos.UpdateForm;
+import pt.fct.nova.id.srv.presentation.apis.EncryptedTriplestoreV2API;
+import pt.fct.nova.id.srv.presentation.dtos.PrepareSearchV2Form;
+import pt.fct.nova.id.srv.presentation.dtos.UpdateForm;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;

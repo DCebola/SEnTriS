@@ -5,7 +5,7 @@ import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
-import pt.fct.nova.id.srv.presentation.api.ControlAPI;
+import pt.fct.nova.id.srv.presentation.apis.ControlAPI;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;

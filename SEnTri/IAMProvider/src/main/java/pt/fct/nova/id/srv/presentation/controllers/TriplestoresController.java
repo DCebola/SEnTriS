@@ -10,9 +10,9 @@ import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.presentation.Utils;
-import pt.fct.nova.id.srv.presentation.api.TriplestoresAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.Role;
-import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
+import pt.fct.nova.id.srv.presentation.apis.TriplestoresAPI;
+import pt.fct.nova.id.srv.presentation.dtos.Role;
+import pt.fct.nova.id.srv.presentation.dtos.TriplestoreForm;
 import pt.fct.nova.id.srv.presentation.exceptions.SessionException;
 
 import java.util.*;
@@ -21,7 +21,7 @@ import static jakarta.ws.rs.core.Response.Status.*;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static pt.fct.nova.id.srv.application.IAMStorage.*;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
-import static pt.fct.nova.id.srv.presentation.api.dtos.Role.*;
+import static pt.fct.nova.id.srv.presentation.dtos.Role.*;
 import static pt.fct.nova.id.srv.presentation.controllers.UsersController.UNKNOWN_USER;
 
 @Path("/triplestores")

@@ -36,18 +36,17 @@ import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.SecureSPARQLPlanner;
 import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.schemes.EncryptionSchemeV2;
-import pt.fct.nova.id.srv.presentation.api.EncryptedTriplestoreAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.SchemaForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
+import pt.fct.nova.id.srv.presentation.apis.EncryptedTriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.dtos.QueryForm;
+import pt.fct.nova.id.srv.presentation.dtos.SchemaForm;
+import pt.fct.nova.id.srv.presentation.dtos.TriplestoreForm;
+import pt.fct.nova.id.srv.presentation.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.util.*;
 

@@ -10,9 +10,9 @@ import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPResponse;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.presentation.api.UsersAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.AuthForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.RequestDecisionForm;
+import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
+import pt.fct.nova.id.srv.presentation.dtos.AuthForm;
+import pt.fct.nova.id.srv.presentation.dtos.RequestDecisionForm;
 
 import java.io.IOException;
 

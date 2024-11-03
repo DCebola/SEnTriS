@@ -9,8 +9,8 @@ import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
 import pt.fct.nova.id.srv.presentation.Utils;
-import pt.fct.nova.id.srv.presentation.api.UsersAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.*;
+import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
+import pt.fct.nova.id.srv.presentation.dtos.*;
 import pt.fct.nova.id.srv.presentation.exceptions.InvalidPasswordException;
 import pt.fct.nova.id.srv.presentation.exceptions.SessionException;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownUserException;
@@ -25,8 +25,8 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static pt.fct.nova.id.srv.application.IAMStorage.TOKEN_SESSION_FIELD;
 import static pt.fct.nova.id.srv.application.IAMStorage.TOKEN_USER_FIELD;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
-import static pt.fct.nova.id.srv.presentation.api.dtos.Role.*;
-import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
+import static pt.fct.nova.id.srv.presentation.dtos.Role.*;
+import static pt.fct.nova.id.srv.presentation.dtos.Role.ADMIN;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoresController.*;
 
 @Path("/users")

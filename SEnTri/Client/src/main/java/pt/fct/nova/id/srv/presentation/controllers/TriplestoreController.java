@@ -29,11 +29,11 @@ import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.application.query.plans.DefaultSPARQLPlanner;
-import pt.fct.nova.id.srv.presentation.api.TriplestoreAPI;
-import pt.fct.nova.id.srv.presentation.api.dtos.QueryForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.SchemaForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.TriplestoreForm;
-import pt.fct.nova.id.srv.presentation.api.dtos.UploadForm;
+import pt.fct.nova.id.srv.presentation.apis.TriplestoreAPI;
+import pt.fct.nova.id.srv.presentation.dtos.QueryForm;
+import pt.fct.nova.id.srv.presentation.dtos.SchemaForm;
+import pt.fct.nova.id.srv.presentation.dtos.TriplestoreForm;
+import pt.fct.nova.id.srv.presentation.dtos.UploadForm;
 import pt.fct.nova.id.srv.presentation.exceptions.UnknownRDFLanguageException;
 
 import java.io.ByteArrayOutputStream;

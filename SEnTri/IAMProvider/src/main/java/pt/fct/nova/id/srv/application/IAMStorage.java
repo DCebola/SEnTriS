@@ -5,7 +5,7 @@ import jakarta.ws.rs.core.NewCookie;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.redis.Redis;
 
-import pt.fct.nova.id.srv.presentation.api.dtos.Role;
+import pt.fct.nova.id.srv.presentation.dtos.Role;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -14,7 +14,7 @@ import redis.clients.jedis.Transaction;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static pt.fct.nova.id.srv.presentation.api.dtos.Role.ADMIN;
+import static pt.fct.nova.id.srv.presentation.dtos.Role.ADMIN;
 
 public class IAMStorage {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
