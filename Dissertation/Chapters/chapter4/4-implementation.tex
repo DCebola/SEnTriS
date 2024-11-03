@@ -43,9 +43,11 @@ To respect such requirements, we standardized the base architecture of the \gls{
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{generic-component-architecture.png}
-    \caption{...}
+    \caption{Generic Component Architecture.}
     \label{fig:generic-component-architecture}
 \end{figure}
+
+We separate the component logic between two layers, the presentation and application layer. The first layer encompasses the definition of the \gls{API}s for various different \gls{REST} resources (e.g. triplestores and users), the \gls{DTO}s, and the controllers which implement a specific \gls{API} and serve as a bridge between the presentation and application logic. In the second layer we define the storage clients, which handle the communication logic with the component's storage solutions, the communication clients, that handle the communication logic between \gls{SEnTriS} components and any other component specific internal abstraction (e.g. cryptography, query parsers).
 
 Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. 
 
