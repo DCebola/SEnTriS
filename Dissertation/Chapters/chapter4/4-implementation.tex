@@ -11,9 +11,9 @@ In this chapter we will present the implementation details of the various compon
 
 \section{General Considerations}
 
-The Semantic Web domain is still in development, as such the choice of the technology available is limited. This created a few challenges during the implementation of \gls{SEnTriS} components.
+The Semantic Web domain is still in development, as such the choice of available technology is limited. This created a few challenges during the implementation of \gls{SEnTriS}.
 
-We will start by presenting the chosen technology stack and its limitations. Finally, we will explain the design and architecture choices.
+In this section, we will start by presenting the chosen technology stack and its limitations. Finally, we will explain the design and architecture choices.
 
 
 \subsection{Technology Stack}
@@ -38,7 +38,7 @@ The main limitation we found, was the high coupling and lack of serialization su
 
 Our aim is to develop and implement an extensible and flexible solution. As such, the implementation of the components must be portable (not dependent on specific hardware), and easy to modify.
 
-To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Furthermore, the components are deployed as containerized applications. Figure \ref{fig:generic-component-architecture} shows the architectural scheme of a generic component.
+To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. Furthermore, the components are deployed as containerized applications. Figure \ref{fig:generic-component-architecture} shows the architectural scheme of a generic component.
 
 \begin{figure}[H]
     \centering
@@ -47,40 +47,45 @@ To respect such requirements, we standardized the base architecture of the \gls{
     \label{fig:generic-component-architecture}
 \end{figure}
 
-We separate the component logic between two layers, the presentation and application layer. The first layer encompasses the definition of the \gls{API}s for various different \gls{REST} resources (e.g. triplestores and users), the \gls{DTO}s, and the controllers which implement a specific \gls{API} and serve as a bridge between the presentation and application logic. In the second layer we define the storage clients, which handle the communication logic with the component's storage solutions, the communication clients, that handle the communication logic between \gls{SEnTriS} components and any other component specific internal abstraction (e.g. cryptography, query parsers).
-
-Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. 
+We separate the component logic between two layers, the presentation and application layer. The first layer encompasses the definition of the \gls{API}s for various different \gls{REST} resources (e.g. triplestores and users), the \gls{DTO}s, and the controllers which implement a specific \gls{API} and serve as a bridge between the presentation and application logic. In the second layer we define the storage clients, which handle the communication with the component's storage solutions, the communication clients, that handle the communication between \gls{SEnTriS} components, and any other component specific internal abstraction (e.g. cryptography, query parsers).
 
 
 \section{Component Specific Implementation Details}
-\subsection{Client}
-\subsubsection{Exposed API}
-\subsubsection{Architecture}
-\subsubsection{Implementation Details}
 
-\subsection{Triplestore}
+In this section, we will dive into the \gls{SEnTriS} component's implementation. For each of the components, we will describe their architecture, provide detailed explanation about relevant implementation details and document their \gls{REST} \gls{API} (mapping the \gls{SEnTriS} protocol functions against the exposed endpoints).
+   
+
+\subsection{Client}
+
+The client is the public facing component of \gls{SEnTriS}. It provides a unified view of the system and abstracts any internal logic from the underlying protocol. It is responsible for the encryption and decryption of data, and generation of trapdoors. Furthermore, during query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers when necessary).
+
+\subsubsection{Architecture} 
+\subsubsection{Implementation Details} 
 \subsubsection{Exposed API}
+
+\subsection{Triplestore} Search and storage of encrypted data is scoped to the triplestore component.
 \subsubsection{Architecture}
+\subsubsection{Exposed API}
 \subsubsection{Implementation Details}
 \paragraph*{Redis (Key Structure \& Lua Scripts)}
 \paragraph*{Atomicity}
 
-\subsection{IAM Provider}
-\subsubsection{Exposed API}
+\subsection{IAM Provider} The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
 \subsubsection{Architecture}
+\subsubsection{Exposed API}
 \subsubsection{Implementation Details}
 \paragraph*{Redis (Key Structure \& Lua Scripts)}
-
-\subsection{Proxy}
-\subsubsection{Exposed API}
+ 
+\subsection{Proxy}  Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
 \subsubsection{Architecture}
+\subsubsection{Exposed API}
 \subsubsection{Implementation Details}
 \paragraph*{Redis (Key Structure)}
 \paragraph*{Parallelization (SEnTriS V2)}
 
-\subsection{Vault}
-\subsubsection{Exposed API}
+\subsection{Vault} The vault component stores and distributes triplestore secrets.
 \subsubsection{Architecture}
+\subsubsection{Exposed API}
 \subsubsection{Implementation Details}
 \paragraph*{Redis (Key Structure)}
 
