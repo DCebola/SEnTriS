@@ -2,9 +2,8 @@ State:
     $bindings$ := {}
     $patterns$ := {}
 
-function equals($K_{DGK_{priv}} = (p, \; vp, \; n, \; u)$, $ct_1$, $ct_2$):
-    $\Delta$ := $ct_1 \; * \; ct_2\;^{(u - 1)} \; \textrm{mod} \; n$
-    if $\Delta^{vp} \; \textrm{mod} \; p$ = 1:
+function equals($K_{DGK_{priv}} = (vp, \; p)$, $ct_1$, $ct_2$):
+    if $ct_1^{vp} \; \textrm{mod} \; p$ = $ct_2^{vp} \; \textrm{mod} \; p$:
         return true
     return false
 

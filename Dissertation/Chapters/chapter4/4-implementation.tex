@@ -22,17 +22,19 @@ In this section, we will start by presenting the chosen technology stack and its
 
 The two most popular and mature semantic web development frameworks are Jena \autocite{The_Apache_Software_Foundation_undated-wk} and RDF4J \autocite{Eclipse-RDF4J-developersUnknown-uu}. Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
 
+Parsing utilities and the creation of ontological models worked as expected. However, one limitation that we found was the high coupling and punctual lack of serialization support for a few classes. Furthermore, the query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes and procedures. As such, we implemented our custom data structures and query evaluation procedure (which were defined in the previous chapter). 
+
 \paragraph{Cryptography Libraries} For the cryptography operations we utilized a variety of well known libraries. We choose the Bouncy Castle library \autocite{BouncyCastle2023-og} for the key derivation operations and Lazysodium \autocite{Lazysodium-vo}, a Java wrapper of the Libsodium library \autocite{Libsodium-hk}, because it provides support for XChaCha20-Poly1305 encryption \autocite{NirUnknown-mk, XChaCha20-ur}. The \gls{DGK} encryption library used is an adaptation of the one developed by Andrew Quijano \autocite{DGKLibrary-ln}, where we removed the unused methods and implemented the abstractions used in the \gls{SEnTriS} protocol (e.g. equality check operation).
 For \gls{SSL} certificate generation and management we used the OpenSSL library \autocite{OpenSSL-jb}.
 
 \paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) \autocite{Redis-xq, Redis-rq}.
 
+To guarantee atomicity in the creation of locks, updates and full deletions of triplestores, we implemented these operations using Lua scripts \autocite{Lua-qq}, which are executed directly in the Redis servers. This approach ensured that the logic was either fully executed server side, or not executed at all. 
+
 \paragraph{Build \& Deployment} We used Maven \autocite{PorterUnknown-fs} to manage software dependencies, build and compile the components. The components were deployed and run as containerized Docker \autocite{Ratliff2022-ae} applications.
 
-\paragraph{Programming Languages} The choice of programming language was influenced by the semantic web development framework that we chose to work with. As such, the implementation of the components is written in Java \autocite{Java-wf}. Furthermore, we used Lua \autocite{Lua-gq} for writing scripts that operate in the Redis servers \autocite{Redis-vf}. Finally, build and deployment scripts are written in Bash \autocite{Bash-ud}.
+\paragraph{Programming Languages} The choice of main programming language was influenced by the semantic web development framework adopted. As such, the implementation of the components is written in Java \autocite{Java-wf}. Furthermore, we used Lua \autocite{Lua-gq} for writing scripts that operate in the Redis servers \autocite{Redis-vf}. Finally, build and deployment scripts are written in Bash \autocite{Bash-ud}.
 
-\subsection{Challenges}
-The main limitation we found, was the high coupling and lack of serialization support for some classes provided by JENA. The query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes, or procedures.
 
 \subsection{Design \& Architecture Choices}
 
@@ -52,7 +54,7 @@ We separate the component logic between two layers, the presentation and applica
 
 \section{Component Specific Implementation Details}
 
-In this section, we will dive into the \gls{SEnTriS} component's implementation. For each of the components, we will describe their architecture, provide detailed explanation about relevant implementation details and document their \gls{REST} \gls{API} (mapping the \gls{SEnTriS} protocol functions against the exposed endpoints).
+In this section, we will dive into the \gls{SEnTriS} component's implementation. For each of the components, we will describe their architecture, provide explanation about relevant implementation details and document their \gls{REST} \gls{API} (mapping the \gls{SEnTriS} protocol functions against the exposed endpoints).
    
 
 \subsection{Client}
@@ -63,7 +65,8 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 \subsubsection{Implementation Details} 
 \subsubsection{Exposed API}
 
-\subsection{Triplestore} Search and storage of encrypted data is scoped to the triplestore component.
+\subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations over the stored data. 
+
 \subsubsection{Architecture}
 \subsubsection{Exposed API}
 \subsubsection{Implementation Details}
@@ -76,7 +79,8 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 \subsubsection{Implementation Details}
 \paragraph*{Redis (Key Structure \& Lua Scripts)}
  
-\subsection{Proxy}  Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
+\subsection{Proxy}  The secure computation proxy evaluates query execution plans over encrypted bindings.
+
 \subsubsection{Architecture}
 \subsubsection{Exposed API}
 \subsubsection{Implementation Details}

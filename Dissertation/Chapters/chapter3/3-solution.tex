@@ -151,7 +151,7 @@ For the remainder of the document, the function $E(K, \; m, \; iv)$ denotes the 
 
 \subsubsection{DGK Encryption}
 
-\gls{SEnTriS} V2 can be implemented with any additive homomorphic encryption scheme, but we have chosen to use the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains. It also permits us to employ more efficient equality checks, which is a very common operation when evaluating \gls{SPARQL} queries.
+\gls{SEnTriS} V2 is implemented with the \gls{DGK} encryption scheme \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Compared to other schemes (e.g. Paillier \autocite{Paillier1999-js}) it produces smaller ciphertexts, and the reduced plaintext and ciphertext spaces result in large performance gains.
 
 \begin{definition}[\textbf{DGK Encryption}]\label{ch3:definition:dgk} Let $k$, $t$, and $l$ be public parameters. Parameter $k$ determines the size of a \gls{RSA} modulus, $l$ is the bit length of the messages to encrypt and $t$ should be large enough so that exhaustive search is infeasible.
 
