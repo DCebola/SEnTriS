@@ -44,12 +44,12 @@ To respect such requirements, we standardized the base architecture of the \gls{
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{generic-component-architecture.png}
+    \includegraphics[width=0.8\textwidth]{chapter4/generic-component-architecture.png}
     \caption{Generic Component Architecture.}
     \label{fig:generic-component-architecture}
 \end{figure}
 
-We separate the component logic between two layers, the presentation and application layer. The first layer encompasses the definition of the \gls{API}s for various different \gls{REST} resources (e.g. triplestores and users), the \gls{DTO}s, and the controllers which implement a specific \gls{API} and serve as a bridge between the presentation and application logic. In the second layer we define the storage clients, which handle the communication with the component's storage solutions, the communication clients, that handle the communication between \gls{SEnTriS} components, and any other component specific internal abstraction (e.g. cryptography, query parsers).
+We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
 
 
 \section{Component Specific Implementation Details}

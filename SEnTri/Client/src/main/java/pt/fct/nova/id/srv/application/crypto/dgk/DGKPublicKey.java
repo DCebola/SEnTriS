@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.HashMap;
 
-public final class DGKPublicKey implements DGK_Key, PublicKey, CipherConstants {
+public final class DGKPublicKey implements DGKKey, PublicKey, CipherConstants {
 
     @Serial
     private static final long serialVersionUID = -1613333167285302035L;
