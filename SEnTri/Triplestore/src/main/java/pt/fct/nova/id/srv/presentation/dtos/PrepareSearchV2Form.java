@@ -8,7 +8,6 @@ public class PrepareSearchV2Form {
     @FormParam("mask")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final byte[] mask;
-
     @FormParam("n")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     private final byte[] n;
