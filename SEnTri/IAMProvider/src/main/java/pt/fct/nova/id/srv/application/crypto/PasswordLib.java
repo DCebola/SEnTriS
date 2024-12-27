@@ -11,7 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 
-public final class PasswordUtils {
+public final class PasswordLib {
     private static final int s = Integer.parseInt(System.getenv("SALT_LENGTH")); //32
     private static final int k = Integer.parseInt(System.getenv("PASSWORD_HASH_LENGTH")); //256
     private static final int i = Integer.parseInt(System.getenv("PASSWORD_HASHING_ITERATIONS")); //10000

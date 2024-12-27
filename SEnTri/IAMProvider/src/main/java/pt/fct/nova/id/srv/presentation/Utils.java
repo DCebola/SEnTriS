@@ -4,7 +4,7 @@ import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.IAMStorage;
-import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
+import pt.fct.nova.id.srv.application.crypto.PasswordLib;
 import pt.fct.nova.id.srv.presentation.exceptions.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +44,7 @@ public class Utils {
         byte[] hash = Base64.decodeBase64(IAMStorage.getPassword(username));
         if (hash == null)
             throw new UnknownUserException();
-        if (!PasswordUtils.verify(password, hash))
+        if (!PasswordLib.verify(password, hash))
             throw new InvalidPasswordException();
     }
 

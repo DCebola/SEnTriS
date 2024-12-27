@@ -7,7 +7,7 @@ import pt.fct.nova.id.srv.application.IAMStorage;
 import pt.fct.nova.id.srv.application.RoleRequest;
 import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.clients.exception.TooManyLockRetriesException;
-import pt.fct.nova.id.srv.application.crypto.PasswordUtils;
+import pt.fct.nova.id.srv.application.crypto.PasswordLib;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
 import pt.fct.nova.id.srv.presentation.dtos.*;
@@ -68,7 +68,7 @@ public class UsersController implements UsersAPI {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
-            String passwordHash = Base64.encodeBase64URLSafeString(PasswordUtils.hash(credentials.getPassword()));
+            String passwordHash = Base64.encodeBase64URLSafeString(PasswordLib.hash(credentials.getPassword()));
             IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
             //TODO: Error messages should be equal... difference leak info about usernames/pass, triplestores
