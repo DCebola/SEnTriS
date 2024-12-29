@@ -8,7 +8,7 @@ import redis.clients.jedis.Response;
 import java.math.BigInteger;
 import java.util.*;
 
-public class RedisEncryptedStorageEngineV2 extends RedisEncryptedStorageEngine implements EncryptedStorageEngineV2 {
+public class EncryptedTriplestoreStorageEngineV2 extends EncryptedTriplestoreStorageEngine implements EncryptedStorageEngineV2 {
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
 
     public List<byte[]> maskedSearch(String triplestoreID, List<String> trapdoors, BigInteger mask, BigInteger n) {

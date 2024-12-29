@@ -1,7 +1,7 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.storage.redis;
 
-import pt.fct.nova.id.srv.application.exceptions.TooManyLockRetriesException;
-import pt.fct.nova.id.srv.application.redis.Redis;
+import pt.fct.nova.id.srv.application.storage.UUIDUtils;
+import pt.fct.nova.id.srv.application.storage.redis.exceptions.TooManyLockRetriesException;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 

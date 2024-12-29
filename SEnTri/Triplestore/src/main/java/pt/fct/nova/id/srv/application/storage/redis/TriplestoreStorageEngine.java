@@ -20,7 +20,7 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
 import static pt.fct.nova.id.srv.application.storage.redis.Redis.SCAN_COUNT;
 
-public class RedisDefaultStorageEngine implements StorageEngine {
+public class TriplestoreStorageEngine implements StorageEngine {
 
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     private static final String NODE_SEPARATOR = System.getenv("NODE_SEPARATOR");

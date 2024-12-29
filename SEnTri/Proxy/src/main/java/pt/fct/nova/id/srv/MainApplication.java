@@ -3,8 +3,8 @@ package pt.fct.nova.id.srv;
 import pt.fct.nova.id.srv.presentation.controllers.ControlController;
 
 import jakarta.ws.rs.core.Application;
-import pt.fct.nova.id.srv.presentation.controllers.QueriesControllerV1;
-import pt.fct.nova.id.srv.presentation.controllers.QueriesControllerV2;
+import pt.fct.nova.id.srv.presentation.controllers.QueriesV1Controller;
+import pt.fct.nova.id.srv.presentation.controllers.QueriesV2Controller;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,8 +14,8 @@ public class MainApplication extends Application {
 
     public MainApplication() {
         resources.add(ControlController.class);
-        resources.add(QueriesControllerV1.class);
-        resources.add(QueriesControllerV2.class);
+        resources.add(QueriesV1Controller.class);
+        resources.add(QueriesV2Controller.class);
     }
 
     @Override

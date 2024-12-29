@@ -3,10 +3,10 @@ package pt.fct.nova.id.srv.presentation.controllers;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.*;
 import org.apache.commons.codec.binary.Base64;
-import pt.fct.nova.id.srv.application.DefaultStorage;
-import pt.fct.nova.id.srv.application.RoleRequest;
-import pt.fct.nova.id.srv.application.LocksClient;
-import pt.fct.nova.id.srv.application.exceptions.TooManyLockRetriesException;
+import pt.fct.nova.id.srv.application.storage.redis.IAMStorage;
+import pt.fct.nova.id.srv.application.storage.RoleRequest;
+import pt.fct.nova.id.srv.application.storage.redis.LocksClient;
+import pt.fct.nova.id.srv.application.storage.redis.exceptions.TooManyLockRetriesException;
 import pt.fct.nova.id.srv.application.crypto.PasswordLib;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
@@ -22,8 +22,8 @@ import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static pt.fct.nova.id.srv.application.DefaultStorage.TOKEN_SESSION_FIELD;
-import static pt.fct.nova.id.srv.application.DefaultStorage.TOKEN_USER_FIELD;
+import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.TOKEN_SESSION_FIELD;
+import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.TOKEN_USER_FIELD;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
 import static pt.fct.nova.id.srv.presentation.dtos.Role.*;
 import static pt.fct.nova.id.srv.presentation.dtos.Role.ADMIN;
@@ -48,7 +48,7 @@ public class UsersController implements UsersAPI {
         try {
             String username = credentials.getUsername();
             Utils.checkPassword(username, credentials.getPassword());
-            NewCookie cookie = DefaultStorage.cacheSession(credentials.getUsername());
+            NewCookie cookie = IAMStorage.cacheSession(credentials.getUsername());
             return Response.ok(SUCCESSFUL_AUTH).cookie(cookie).build();
         } catch (UnknownUserException e) {
             return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
@@ -64,12 +64,12 @@ public class UsersController implements UsersAPI {
         try {
             String username = credentials.getUsername();
             String lockID = LocksClient.acquireUserLock(username);
-            if (DefaultStorage.userExists(username)) {
+            if (IAMStorage.userExists(username)) {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
             }
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordLib.hash(credentials.getPassword()));
-            DefaultStorage.saveUser(username, passwordHash, BASIC);
+            IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
             //TODO: Error messages should be equal... difference leak info about usernames/pass, triplestores
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
@@ -85,11 +85,11 @@ public class UsersController implements UsersAPI {
         try {
             Utils.authCheck(cookie, username);
             String lockID = LocksClient.acquireUserLock(username);
-            if (DefaultStorage.checkIfOwnsAny(username)) {
+            if (IAMStorage.checkIfOwnsAny(username)) {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(CAN_NOT_DELETE_STORE_OWNER).build();
             }
-            DefaultStorage.deleteUser(username);
+            IAMStorage.deleteUser(username);
             LocksClient.deleteAllUserLocks(username);
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_DELETE).build();
@@ -107,21 +107,21 @@ public class UsersController implements UsersAPI {
         try {
             String issuerUsername = roleForm.getIssuer();
             Utils.authCheck(cookie, issuerUsername);
-            if (!DefaultStorage.userExists(username))
+            if (!IAMStorage.userExists(username))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-            Role issuerRole = DefaultStorage.getRole(issuerUsername);
+            Role issuerRole = IAMStorage.getRole(issuerUsername);
             Role role = roleForm.getRole();
-            if (DefaultStorage.getRole(username).equals(role))
+            if (IAMStorage.getRole(username).equals(role))
                 return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
             if (issuerRole.equals(BASIC) || issuerRole.equals(PRIVILEGED)) {
                 if (username.equals(issuerUsername)) {
-                    DefaultStorage.saveRoleRequest(username, role);
+                    IAMStorage.saveRoleRequest(username, role);
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else
                     return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
             } else {
                 String lockID = LocksClient.acquireUserLock(username);
-                DefaultStorage.setRole(username, role);
+                IAMStorage.setRole(username, role);
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
             }
@@ -138,10 +138,10 @@ public class UsersController implements UsersAPI {
     public Response getPendingRoleRequests(Cookie cookie, String username) {
         try {
             Utils.authCheck(cookie, username);
-            Role role = DefaultStorage.getRole(username);
+            Role role = IAMStorage.getRole(username);
             if (!role.equals(ADMIN))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            return Response.ok(DefaultStorage.getPendingRoleRequests()).build();
+            return Response.ok(IAMStorage.getPendingRoleRequests()).build();
         } catch (SessionException e) {
             return handleSessionException(e);
         }
@@ -153,14 +153,14 @@ public class UsersController implements UsersAPI {
 
             String targetUser = requestDecisionForm.getTarget();
             Utils.authCheck(cookie, username);
-            Role issuerRole = DefaultStorage.getRole(username);
+            Role issuerRole = IAMStorage.getRole(username);
             if (!issuerRole.equals(ADMIN))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
-            if (!DefaultStorage.userExists(targetUser))
+            if (!IAMStorage.userExists(targetUser))
                 return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
 
             String lockID = LocksClient.acquireUserLock(targetUser);
-            RoleRequest req = DefaultStorage.getPendingRoleRequest(requestID);
+            RoleRequest req = IAMStorage.getPendingRoleRequest(requestID);
             if (req == null) {
                 LocksClient.releaseUserLock(targetUser, lockID);
                 return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
@@ -170,14 +170,14 @@ public class UsersController implements UsersAPI {
                 return Response.ok(REQUEST_DECISION_MALFORMED).status(BAD_REQUEST).build();
             }
             if (requestDecisionForm.isAccept()) {
-                if (DefaultStorage.getRole(targetUser).equals(req.role())) {
-                    DefaultStorage.deleteRoleRequest(requestID);
+                if (IAMStorage.getRole(targetUser).equals(req.role())) {
+                    IAMStorage.deleteRoleRequest(requestID);
                     LocksClient.releaseUserLock(targetUser, lockID);
                     return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
                 }
-                DefaultStorage.setRole(targetUser, req.role());
+                IAMStorage.setRole(targetUser, req.role());
             }
-            DefaultStorage.deleteRoleRequest(requestID);
+            IAMStorage.deleteRoleRequest(requestID);
             LocksClient.releaseUserLock(targetUser, lockID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
@@ -196,7 +196,7 @@ public class UsersController implements UsersAPI {
         String tokenID = extractAccessToken(authorizationHeaders);
         if (tokenID == null)
             return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
-        Map<String, String> token = DefaultStorage.getToken(tokenID);
+        Map<String, String> token = IAMStorage.getToken(tokenID);
         if (token == null || token.isEmpty())
             return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
 

@@ -10,7 +10,7 @@ import redis.clients.jedis.Transaction;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
+public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine {
 
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
@@ -59,7 +59,7 @@ public class RedisEncryptedStorageEngine implements EncryptedStorageEngine {
     @Override
     public void delete(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            RedisDefaultStorageEngine.deleteAll(triplestoreID, jedis, TRIPLESTORE_DATA_PATTERN);
+            TriplestoreStorageEngine.deleteAll(triplestoreID, jedis, TRIPLESTORE_DATA_PATTERN);
         }
     }
 

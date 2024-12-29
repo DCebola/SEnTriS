@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.storage;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;

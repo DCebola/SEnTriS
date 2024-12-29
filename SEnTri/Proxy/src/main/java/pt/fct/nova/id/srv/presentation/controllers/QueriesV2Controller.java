@@ -9,17 +9,14 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
-import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
-import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecutionV1;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLExecutionV1;
-import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorkerV1;
+import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
+import pt.fct.nova.id.srv.application.query.execution.*;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
-import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV1;
+import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV2;
 import pt.fct.nova.id.srv.presentation.apis.QueriesAPI;
 import pt.fct.nova.id.srv.presentation.dtos.SecureSPARQLQueryForm;
 
-import javax.crypto.SecretKey;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -27,15 +24,12 @@ import java.io.ObjectOutputStream;
 import java.util.Base64;
 import java.util.List;
 
-import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
+import static pt.fct.nova.id.srv.presentation.controllers.QueriesV1Controller.*;
 
-@Path("/queries/v1")
-public class QueriesControllerV1 implements QueriesAPI {
-    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
-    public static final String INTERNAL_ERROR = "Internal error.";
-    public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-
+@Path("/queries/v2")
+public class QueriesV2Controller implements QueriesAPI {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     @Override
@@ -47,16 +41,18 @@ public class QueriesControllerV1 implements QueriesAPI {
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
              ByteArrayInputStream plan_is = new ByteArrayInputStream(form.getQueryExecutionPlan());
-             ObjectInputStream plan_ois = new ObjectInputStream(plan_is)) {
+             ObjectInputStream plan_ois = new ObjectInputStream(plan_is);
+             ByteArrayInputStream eqKey_is = new ByteArrayInputStream(form.getKey());
+             ObjectInputStream eqKey_ois = new ObjectInputStream(eqKey_is)) {
 
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
 
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
-            SecretKey secretKey = SymmetricEncryptionUtils.parseKey(form.getKey());
+            DGKEqKey eqKey = (DGKEqKey) eqKey_ois.readObject();
 
-            SPARQLExecutionV1 execution = new DefaultSPARQLExecutionV1(executionPlan);
-            SecureSPARQLWorkerV1 worker = new SecureSPARQLWorkerV1(secretKey);
+            SPARQLExecutionV2 execution = new DefaultSPARQLExecutionV2(executionPlan);
+            SecureSPARQLWorkerV2 worker = new SecureSPARQLWorkerV2(eqKey);
             execution.exec(worker);
             ProxyStorage.delete(worker.getAllSearchIDs());
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -83,7 +79,7 @@ public class QueriesControllerV1 implements QueriesAPI {
              ObjectInputStream ois = new ObjectInputStream(is)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
-            return Response.ok(base64Encoder.encodeToString(ProxyStorageV1.save((List<byte[]>) ois.readObject()))).build();
+            return Response.ok(base64Encoder.encodeToString(ProxyStorageV2.save((List<byte[]>) ois.readObject()))).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();

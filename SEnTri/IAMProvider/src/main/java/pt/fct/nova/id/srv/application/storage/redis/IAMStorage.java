@@ -1,8 +1,10 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.storage.redis;
 
 import jakarta.ws.rs.core.NewCookie;
 
-import pt.fct.nova.id.srv.application.redis.Redis;
+import pt.fct.nova.id.srv.application.storage.AccessRequest;
+import pt.fct.nova.id.srv.application.storage.RoleRequest;
+import pt.fct.nova.id.srv.application.storage.UUIDUtils;
 
 import pt.fct.nova.id.srv.presentation.dtos.Role;
 import redis.clients.jedis.Jedis;
@@ -15,7 +17,7 @@ import java.util.stream.Collectors;
 
 import static pt.fct.nova.id.srv.presentation.dtos.Role.ADMIN;
 
-public class DefaultStorage {
+public class IAMStorage {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int SESSION_LIFETIME = Integer.parseInt(System.getenv("SESSION_LIFETIME"));

@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.storage;
 
 import pt.fct.nova.id.srv.presentation.dtos.Role;
 

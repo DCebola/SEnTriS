@@ -15,7 +15,7 @@ import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLWorker;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
-import pt.fct.nova.id.srv.application.storage.redis.RedisDefaultStorageEngine;
+import pt.fct.nova.id.srv.application.storage.redis.TriplestoreStorageEngine;
 import pt.fct.nova.id.srv.presentation.apis.TriplestoreAPI;
 
 import java.io.*;
@@ -31,7 +31,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String SUCCESSFUL_UPLOAD = "Successful upload.";
     public static final String SUCCESSFUL_DELETION = "Successful deletion.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-    private static final StorageEngine storageEngine = new RedisDefaultStorageEngine();
+    private static final StorageEngine storageEngine = new TriplestoreStorageEngine();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
 

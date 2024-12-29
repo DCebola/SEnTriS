@@ -1,11 +1,10 @@
-package pt.fct.nova.id.srv.application;
+package pt.fct.nova.id.srv.application.storage.redis;
 
-import pt.fct.nova.id.srv.application.redis.Redis;
 import redis.clients.jedis.Jedis;
 
 import java.util.Map;
 
-public class DefaultStorage {
+public class VaultStorage {
 
     public static void saveSecrets(String storeID, Map<String, String> secrets) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
