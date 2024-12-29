@@ -22,7 +22,7 @@ import pt.fct.nova.id.srv.application.ontologies.DefaultOntology;
 import pt.fct.nova.id.srv.application.ontologies.Ontology;
 import pt.fct.nova.id.srv.application.query.SPARQLQueryEngine;
 import pt.fct.nova.id.srv.application.clients.*;
-import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.crypto.schemes.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.query.QueryType;
 import pt.fct.nova.id.srv.application.query.QueryUtils;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;

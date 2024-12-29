@@ -1,11 +1,11 @@
-package pt.fct.nova.id.srv.application.schemes;
+package pt.fct.nova.id.srv.application.crypto.schemes;
 
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.*;
-import pt.fct.nova.id.srv.application.schemes.exceptions.InvalidNodeException;
+import pt.fct.nova.id.srv.application.crypto.schemes.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import javax.crypto.*;

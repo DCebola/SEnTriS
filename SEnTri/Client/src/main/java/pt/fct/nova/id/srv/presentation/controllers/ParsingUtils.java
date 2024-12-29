@@ -18,8 +18,8 @@ import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLResult;
 import pt.fct.nova.id.srv.application.query.execution.SPARQLResult;
 import pt.fct.nova.id.srv.application.query.jobs.VariablesPattern;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
-import pt.fct.nova.id.srv.application.schemes.*;
-import pt.fct.nova.id.srv.application.schemes.exceptions.*;
+import pt.fct.nova.id.srv.application.crypto.schemes.*;
+import pt.fct.nova.id.srv.application.crypto.schemes.exceptions.*;
 import pt.fct.nova.id.srv.presentation.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.dtos.Role;
@@ -32,7 +32,7 @@ import java.security.KeyPair;
 import java.util.*;
 
 import static pt.fct.nova.id.srv.application.query.jobs.VariablesPattern.*;
-import static pt.fct.nova.id.srv.application.schemes.EncryptionScheme.*;
+import static pt.fct.nova.id.srv.application.crypto.schemes.EncryptionScheme.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV1Controller.*;
 import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2Controller.*;
 
