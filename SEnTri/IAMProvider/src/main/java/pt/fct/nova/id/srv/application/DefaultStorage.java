@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.application;
 
 import jakarta.ws.rs.core.NewCookie;
 
-import pt.fct.nova.id.srv.application.clients.LocksClient;
 import pt.fct.nova.id.srv.application.redis.Redis;
 
 import pt.fct.nova.id.srv.presentation.dtos.Role;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static pt.fct.nova.id.srv.presentation.dtos.Role.ADMIN;
 
-public class IAMStorage {
+public class DefaultStorage {
     private static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String COOKIE_PARAM = "session";
     private static final int SESSION_LIFETIME = Integer.parseInt(System.getenv("SESSION_LIFETIME"));

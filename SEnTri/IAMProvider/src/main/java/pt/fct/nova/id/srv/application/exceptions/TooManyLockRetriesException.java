@@ -1,4 +1,4 @@
-package pt.fct.nova.id.srv.application.clients.exception;
+package pt.fct.nova.id.srv.application.exceptions;
 
 public class TooManyLockRetriesException extends Exception {
 }
