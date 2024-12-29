@@ -5,7 +5,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.Map;
 
-public class Vault {
+public class DefaultStorage {
 
     public static void saveSecrets(String storeID, Map<String, String> secrets) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
