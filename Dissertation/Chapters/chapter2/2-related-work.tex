@@ -353,11 +353,11 @@ The basic \emph{\gls{SPARQL} 1.1 Query Language} \autocite{W3c2008-vf} provides 
 
 In the following Listings, we present a few query examples. Listing \ref{listing-sparql-example} shows a query with a conjunction, Listing \ref{listing-sparql-modifiers-example} specifies a query with filters and result modifiers and Listing \ref{listing-sparql-complex-example} shows a query with result modifiers and a disjunction.
 
+\pagebreak
+
 \lstinputlisting[language=XML, caption={\gls{SPARQL} query with a conjuntion pattern}, label={listing-sparql-example}]{Code/chapter2/sparql-example.xml}
 
 \lstinputlisting[language=XML, caption={\gls{SPARQL} query with filters and modifiers}, label={listing-sparql-modifiers-example}]{Code/chapter2/sparql-modifiers-example.xml}
-
-\pagebreak
 
 \lstinputlisting[language=XML, caption={\gls{SPARQL} query with a disjunction pattern}, label={listing-sparql-complex-example}]{Code/chapter2/sparql-complex-example.xml}
 
@@ -642,15 +642,14 @@ Finally, to decrypt a triple $t = (s_t,p_t,o_t)$, given a triple pattern $tp = (
 
 Only if the result of the inner product is 0 can we decrypt the seed, derive the correct \gls{AES} key and decrypt the triple.
 
-
-\paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer identifiers and the values correspond to the encrypted triples. The identifiers are indexed using two strategies.
-
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\textwidth]{chapter2/3-Index.png}
+    \includegraphics[width=0.6\textwidth]{chapter2/3-Index.png}
     \caption{3-Index Indexing}
     \label{fig:3-index}
 \end{figure}
+
+\paragraph{Data Structure} The data is stored in a key-value structure where the keys are unique integer identifiers and the values correspond to the encrypted triples. The identifiers are indexed using two strategies.
 
 The first strategy, illustrated in Figure \ref{fig:3-index}, is a \emph{3-Index} approach. We compute secure hashes $h(s)$, $h(p)$ and $h(o)$ for each triple $t = (s, p, o)$ (unbound values are treated as wildcards). Then, we generate three index tables with the permutations of $h(s)$, $h(p)$ and $h(o)$ and associate the permutations with the identifier of the triple.
 
@@ -658,7 +657,7 @@ The second strategy, illustrated in Figure \ref{fig:vertical-partitioning}, is \
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.75\textwidth]{chapter2/Vertical-Partitioning.png}
+    \includegraphics[width=0.6\textwidth]{chapter2/Vertical-Partitioning.png}
     \caption{Vertical Partitioning Indexing}
     \label{fig:vertical-partitioning}
 \end{figure}
