@@ -71,7 +71,9 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 
 \paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{User API}; the \emph{Triplestore API}; and the \emph{Encrypted Triplestore API}.
 
-The \emph{User API} contains the endpoints related to authentication and user  management. The \emph{Triplestore API} is composed by the endpoints related to triplestore access management and sharing. Finally, the \emph{Encrypted Triplestore API} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
+We can associate these three \gls{API}s directly to the \gls{SEnTriS} protocol. The first two expose the entry points for the \gls{IAM} algorithms, whereas the latter is scoped to the data management and query algorithms.
+
+More specifically, the \emph{User API} contains the endpoints related to authentication and user  management. The \emph{Triplestore API} is composed by the endpoints related to triplestore access management and sharing. Finally, the \emph{Encrypted Triplestore API} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 
 \begin{figure}[H]
