@@ -60,14 +60,19 @@ In this section, we will dive into the \gls{SEnTriS} component's implementation.
 
 The client is the public facing component of \gls{SEnTriS}. It provides a unified view of the system and abstracts any internal logic from the underlying protocol. It is responsible for the encryption and decryption of data, and generation of trapdoors. Furthermore, during query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers when necessary).
 
-\subsubsection{Architecture} 
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{chapter4/client-presentation.png}
     \caption{Client Presentation Layer.}
     \label{fig:client-presentation-layer}
 \end{figure}
+
+\subsubsection{Architecture} 
+
+\paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{User API}; the \emph{Triplestore API}; and the \emph{Encrypted Triplestore API}.
+
+The \emph{User API} contains the endpoints related to authentication and user  management. The \emph{Triplestore API} is composed by the endpoints related to triplestore access management and sharing. Finally, the \emph{Encrypted Triplestore API} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
+
 
 \begin{figure}[H]
     \centering
