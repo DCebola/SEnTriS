@@ -51,7 +51,7 @@ To respect such requirements, we standardized the base architecture of the \gls{
 We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
 
 
-\section{Component Specific Implementation Details}
+\section{Component Architecture \& Implementation Details}
 
 In this section, we will dive into the \gls{SEnTriS} component's implementation. For each of the components, we will describe their architecture and provide explanation about relevant implementation details.
    
@@ -69,12 +69,11 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 
 \subsubsection{Architecture} 
 
-\paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{User API}; the \emph{Triplestore API}; and the \emph{Encrypted Triplestore API}.
+\paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{UserAPI}; the \emph{TriplestoreAPI}; and the \emph{EncryptedTriplestoreAPI}.
 
 We can associate these three \gls{API}s directly to the \gls{SEnTriS} protocol. The first two expose the entry points for the \gls{IAM} algorithms, whereas the latter is scoped to the data management and query algorithms.
 
-More specifically, the \emph{User API} contains the endpoints related to authentication and user  management. The \emph{Triplestore API} is composed by the endpoints related to triplestore access management and sharing. Finally, the \emph{Encrypted Triplestore API} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
-
+More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 \begin{figure}[H]
     \centering
@@ -83,7 +82,15 @@ More specifically, the \emph{User API} contains the endpoints related to authent
     \label{fig:client-application-layer}
 \end{figure}
 
-\subsubsection{Implementation Details}
+\paragraph*{Application Layer} Figure \ref{fig:client-application-layer} shows the Client application layer, where we implement all the internal components and libraries. These are grouped into four domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Query} and \emph{Ontologies}.
+
+Under the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between \gls{SEnTriS} components. Compared to the other three components, which have a single \gls{API} each, the Triplestore component exposes three. One is used for querying plaintext triplestores (during testing) and the other two for querying encrypted triplestores (following the two different versions of the \gls{SEnTriS} protocol, respectively). This is the reason why we have three Triplestore clients and one \gls{IAM}, one Vault, and one Proxy client.
+
+In the \emph{Cryptography} domain we implement the encryption libraries and encryption schemes. The \emph{SymmetricEncryption} library is where we group all auxiliary operations related to symmetric encryption. The \emph{DGK} library is an adaption of a public\footnote{Source code shared at https://github.com/AndrewQuijano/Homomorphic Encryption} solution \autocite{Quijano2019-au} where we introduce the abstractions used by the \gls{SEnTriS} protocol (e.g. the \emph{equality key}). The two \emph{EncryptionSchemes} implement the \emph{SSE-TP} protocol variations. The \emph{EncryptionSchemeV1} is used in \gls{SEnTriS} V1, whereas the \emph{EncryptionSchemeV2} is used in \gls{SEnTriS} V2.
+
+Under the \emph{Query} domain we implement all logical components scoped to query parsing and planning: the query engine, plan, result, jobs and planners. The \emph{DefaultSPARQLPlanner} is used for testing and generates plaintext query plans, to be executed against plaintext triplestores. The \emph{SecureSPARQLPlanner} generates query plans following the \gls{SEnTriS} protocol, to be executed against encrypted triplestores.
+
+Finally, in the \emph{Ontologies} domain we implement the ontology abstractions, used for query rewriting. The \emph{DefaultOntology} is used by the \emph{DefaultSPARQLPlanner}, whereas the \emph{SecureOntology} is used by the \emph{SecureSPARQLPlanner}.
 
 \subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations over the stored data. 
 
@@ -95,6 +102,12 @@ More specifically, the \emph{User API} contains the endpoints related to authent
     \caption{Triplestore Presentation Layer.}
     \label{fig:triplestore-presentation-layer}
 \end{figure}
+
+\paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
+
+The \emph{Triplestore API} is used for testing and 
+
+More specifically, the \emph{User API} contains the endpoints related to authentication and user  management. The \emph{Triplestore API} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{Encrypted Triplestore API} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 \begin{figure}[H]
     \centering
