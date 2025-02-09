@@ -702,9 +702,9 @@ Finally, roles will grant different execution rights to users, which restrict th
 
               %Client operations
 
-        \item $\{cookie, \bot\} \leftarrow \mathbf{Auth(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.auth$ request and outputs the result of the algorithm.
+        \item $\{cookie, \bot\} \leftarrow \mathbf{Auth(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.CreateSession$ request and outputs the result of the algorithm.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{RegisterUser(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.registerUser$ request and outputs the result of the algorithm.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{RegisterUser(username, \; password)}$: takes as input a pair of user credentials, issues a $\textrm{IAM}.saveUser$ request and outputs the result of the algorithm.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{UnregisterUser(cookie, \; username)}$: takes as input a cookie and the username of the user to delete, issues a $\textrm{IAM}.deleteUser$ request and outputs the result of the algorithm.
 
