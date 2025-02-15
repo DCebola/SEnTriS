@@ -66,7 +66,7 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 
 We can associate these three \gls{API}s directly to the \gls{SEnTriS} protocol. The first two expose the entry points for the \gls{IAM} algorithms, whereas the latter is scoped to the data management and query algorithms.
 
-More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
+More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores, following the $SPARQL-EVAL$ protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 A more direct mapping of each \gls{API} to the formal algorithms from the \gls{SEnTriS} protocol is the following:
 
@@ -107,20 +107,18 @@ Finally, in the \emph{Ontologies} domain we implement the ontology abstractions,
 
 \subsubsection{Architecture}
 
+\paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
+
+The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch, Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEnTriS.$DeleteAll$ algorithms. 
+
+The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL protocol.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{chapter4/triplestore-presentation.png}
     \caption{Triplestore Presentation Layer.}
     \label{fig:triplestore-presentation-layer}
 \end{figure}
-
-\paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
-
-The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch, Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEnTriS.$DeleteAll$ algorithms. 
-
-The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user (with access to the triplestore) to upload, delete and execute \gls{SPARQL} queries, following a similar evaluation logic than that of the
-
-
 
 \begin{figure}[H]
     \centering
@@ -129,9 +127,15 @@ The \emph{Triplestore API} is used only for testing. It has endpoints that allow
     \label{fig:triplestore-application-layer}
 \end{figure}
 
-\subsubsection{Implementation Details}
-\paragraph*{Redis (Key Structure \& Lua Scripts)}
-\paragraph*{Atomicity}
+\paragraph*{Application Layer} Figure \ref{fig:triplestore-application-layer} shows the Triplestore application layer, where we implement its internal components and libraries. These are grouped into three domains: \emph{Communication Clients}; \emph{Storage} and \emph{Query}.
+
+In the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between the Triplestore, the IAM Provider and the secure computation Proxy.
+
+Under the \emph{Query} domain we implement the logical components scoped to plaintext \gls{SPARQL} query evaluation: the query plan, execution, worker, jobs and result. The \emph{DefaultSPARQLExecution} implements the plan execution and work delegation logic. The \emph{DefaultSPARQLWorker} implements the execution of query jobs.
+
+Finally, in the \emph{Storage} domain we implement the storage components for both the SPARQL-EVAL and \gls{SEnTriS} protocols. The \emph{TriplestoreStorageEngine} implements the indexing and storage algorithms of SPARQL-EVAL. Additionally, the \emph{MemBindingsTable} is the auxiliary data structure against which the query worker executes set operations.
+The \emph{EncryptedTriplestoreStorageEngineV1} and \emph{EncryptedTriplestoreStorageEngineV2} implement, respectively, the data storage and retrieval algorithms of \gls{SEnTriS} V1 and \gls{SEnTriS} V2.
+
 
 \subsection{IAM Provider} The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
 
