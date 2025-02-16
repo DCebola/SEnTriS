@@ -29,7 +29,7 @@ For \gls{SSL} certificate generation and management we used the OpenSSL library 
 
 \paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) \autocite{Redis-xq, Redis-rq}.
 
-To guarantee atomicity in the creation of locks, updates and full deletions of triplestores, we implemented these operations using Lua scripts \autocite{Lua-qq}, which are executed directly in the Redis servers. This approach ensured that the logic was either fully executed server side, or not executed at all. 
+To guarantee atomicity in the creation of locks, updates and full deletions of triplestores, we implemented these operations using Lua scripts \autocite{Lua-gq}, which are executed directly in the Redis servers. This approach ensured that the logic was either fully executed server side, or not executed at all. 
 
 \paragraph{Build \& Deployment} We used Maven \autocite{PorterUnknown-fs} to manage software dependencies, build and compile the components. The components were deployed and run as containerized Docker \autocite{Ratliff2022-ae} applications.
 
@@ -66,7 +66,7 @@ The client is the public facing component of \gls{SEnTriS}. It provides a unifie
 
 We can associate these three \gls{API}s directly to the \gls{SEnTriS} protocol. The first two expose the entry points for the \gls{IAM} algorithms, whereas the latter is scoped to the data management and query algorithms.
 
-More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores, following the $SPARQL-EVAL$ protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
+More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints to querying plaintext triplestores, following the SPARQL-EVAL protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 A more direct mapping of each \gls{API} to the formal algorithms from the \gls{SEnTriS} protocol is the following:
 
@@ -139,16 +139,20 @@ The \emph{EncryptedTriplestoreStorageEngineV1} and \emph{EncryptedTriplestoreSto
 
 \subsection{IAM Provider} The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
 
-
-%Operations: Init, CreateSession, SaveUser, DeleteUser, IssueGrantRoleRequest, GetPendingRoleRequests, ProcessRoleRequest, CreateTriplestoreAccessList, GetTriplestores, GetUsersWithAccess, ChangeTriplestoreOwner, DeleteTriplestoreAccessList, GrantTriplestoreAccess, RevokeTriplestoreAccess, IssueAccessRequest, GetPendingAccessRequests, ProcessAccessRequest, CreateAccessToken, DeleteAccessToken, CheckReadAccess, CheckWriteAccess, CheckOwnerAccess, CheckIfActive, AcquireTriplestoreLock, ReleaseTriplestoreLock
-
 \subsubsection{Architecture}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{chapter4/iam-presentation.png}
     \caption{IAM Provider Presentation Layer.}
     \label{fig:iam-presentation-layer}
 \end{figure}
+
+\paragraph*{Presentation Layer} Figure \ref{fig:iam-presentation-layer} shows the IAM provider presentation layer. It exposes two different \gls{API}s: the \emph{UserAPI}; and the \emph{TriplestoreAPI}.
+
+The \emph{UserAPI} contains the endpoints for the IAM.$Init$, IAM.$CreateSession$, IAM.\linebreak$SaveUser$, IAM.$DeleteUser$, IAM.$IssueGrantRoleRequest$, IAM.$GetPendingRoleRequests$, IAM.$ProcessRoleRequest$, IAM.$CheckI\textrm{\emph{f}}Active$.
+
+The \emph{TriplestoreAPI API} contains the endpoints for the IAM.$CreateTriplestoreAccessList$, IAM.$GetTriplestores$, IAM.$GetUsersWithAccess$, IAM.$ChangeTriplestoreOwner$, IAM.\linebreak$DeleteTriplestoreAccessList$, IAM.$GrantTriplestoreAccess$, IAM.$RevokeTriplestoreAc$\textrm{-}\linebreak$cess$, IAM.$IssueAccessRequest$, IAM.$GetPendingAccessRequests$, IAM.$ProcessAccessRe$\textrm{-}\linebreak$quest$, IAM.$CreateAccessToken$, IAM.$DeleteAccessToken$, IAM.$CheckReadAccess$, IAM.\linebreak$CheckWriteAccess$, IAM.$CheckOwnerAccess$, IAM.$AcquireTriplestoreLock$ and IAM.$Re$\textrm{-}\linebreak$leaseTriplestoreLock$ algorithms.
 
 \begin{figure}[H]
     \centering
