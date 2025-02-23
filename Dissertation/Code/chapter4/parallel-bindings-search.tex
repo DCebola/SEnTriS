@@ -1,0 +1,10 @@
+import java.math.BigInteger;
+import java.util.*;
+
+// Create parallel stream from set of encrypted bindings. 
+// Filter by value, if any item matches the value return it. 
+// Return null, otherwise.
+BigInteger res = bindings.parallelStream()
+        .filter(item -> DGKEquals(DGKkey, item, value))
+        .findAny()
+        .orElse(null);                                        
