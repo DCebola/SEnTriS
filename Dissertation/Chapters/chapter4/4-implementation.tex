@@ -60,8 +60,6 @@ In this section, we will dive into the \gls{SEnTriS} component's implementation.
 
 The client is the public facing component of \gls{SEnTriS}. It provides a unified view of the system and abstracts any internal logic from the underlying protocol. It is responsible for the encryption and decryption of data, and generation of trapdoors. Furthermore, during query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers when necessary).
 
-\subsubsection{Architecture} 
-
 \paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{UserAPI}; the \emph{TriplestoreAPI}; and the \emph{EncryptedTriplestoreAPI}.
 
 
@@ -106,8 +104,6 @@ Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions
 
 \subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations over the stored data. 
 
-\subsubsection{Architecture}
-
 \paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
 
 The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL protocol.
@@ -139,8 +135,6 @@ The \emph{EncryptedTriplestoreStorageEngineV1} and \emph{EncryptedTriplestoreSto
 
 
 \subsection{IAM Provider} The \gls{IAM} provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
-
-\subsubsection{Architecture}
 
 \begin{figure}[H]
     \centering
@@ -177,8 +171,6 @@ Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} a
     \label{fig:proxy-presentation-layer}
 \end{figure}
 
-\subsubsection{Architecture}
-
 \paragraph*{Presentation Layer} Figure \ref{fig:proxy-presentation-layer} shows the Proxy presentation layer. It exposes one single \gls{API}: the \emph{QueriesAPI}. This \gls{API} contains the endpoints for the SEnTriS.$PrepareBindings$ and SEnTriS.$EvaluateQuery$ algorithms.
 
 \begin{figure}[H]
@@ -198,15 +190,11 @@ Under the \emph{Query} domain, we implement the logical components scoped to the
 
 Finally, in the \emph{Storage} domain, we implement the storage components and in-memory binding tables. The \emph{ProxyStorage} contains the logic for common storage functionalities: data saving and deletion. The data encryption differs between the protocol versions, as such, the data retrieval and binding tables creation logic varies. We implement this in the \emph{ProxyStorageV1} and \emph{ProxyStorageV2}, which are extensions of the \emph{ProxyStorage}. The implementation of the binding tables is scoped to the \emph{MemBindingsTableV1} and \emph{MemBindingsTableV2}
 
-\subsubsection{Implementation Details}
-
 \paragraph*{Parallelization (SEnTriS V2)} Due to the properties of the encrypted data in \gls{SEnTriS} V2, search operations over sets of encrypted bindings have linear complexity. Has shown in Listing \ref{parallel-bindings-search}, to speed up such heavy operation, we parallelize it using \emph{parallelStreams}, from the \emph{java.util} package, in the \emph{java.base} module:
 
 \lstinputlisting[caption={Parallelization of Encrypted Binding Searches}, label={parallel-bindings-search}]{Code/chapter4/parallel-bindings-search.tex}
 
 \subsection{Vault} The vault component stores and distributes triplestore secrets.
-
-\subsubsection{Architecture}
 
 \paragraph*{Presentation Layer} Figure \ref{fig:vault-presentation-layer} shows the Vault presentation layer. It exposes one single \gls{API}: the \emph{SecretsAPI}. This \gls{API} contains the endpoints for the IAM.$SaveSecrets$, IAM.$DeleteSecrets$ and IAM.$GetSecrets$ algorithms.
 
