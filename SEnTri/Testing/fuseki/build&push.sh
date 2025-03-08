@@ -5,25 +5,30 @@ if [ $# -ne 1  ]; then
     exit 1
 fi
 
-
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/fuseki*")) &> /dev/null
-wait
-docker rmi $(docker image ls "$1/fuseki*") &> /dev/null
-wait
-
+for i in 1 5 10 20 develop
+do
+    for j in $(docker ps -a --filter="ancestor=$1/fuseki-$i" --format "{{.ID}}")
+    do
+        docker rm $(docker stop $j) &> /dev/null
+        wait
+    done
+done
+for j in $(docker image ls "$1/fuseki*" --format "{{.ID}}")
+do
+    docker rmi $j &> /dev/null
+    wait
+done
 
 cd ./fuseki
-cp -r ../LUBM/datasets ./datasets
+cp -r ../Data/datasets ./datasets
 wait
-for i in 1 5 10 20
+cp ../Data/ontologies/lubm-ontology.owl ./datasets
+wait
+for i in 1 5 10 20 develop
 do
    docker build --build-arg dataset=$i -t $1/fuseki-$i .
    wait
    docker push $1/fuseki-$i
    wait
 done
-docker build --build-arg dataset=develop -t $1/fuseki-develop .
-wait
-docker push $1/fuseki-develop
-wait
 rm -rf ./datasets

@@ -5,7 +5,10 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-echo "Stoping running instances..."
-docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/fuseki*")) &> /dev/null
-wait
-docker run -d -p 3030:3030 $1/fuseki-$2
+echo "Stopping running instances..."
+for i in $(docker container ps -a --filter="ancestor=$1/fuseki-$2" --format "{{.ID}}")
+do
+    docker rm $(docker stop $i) &> /dev/null
+    wait
+done
+docker run --name lubm-$2 -d -p 3030:3030 $1/fuseki-$2 

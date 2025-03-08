@@ -11,6 +11,9 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
      :service
    ) .
 
+[] rdf:type fuseki:Server ;
+        .
+
 :service rdf:type fuseki:Service ;
     fuseki:name   "lubm" ;
     fuseki:endpoint [ 
@@ -36,6 +39,8 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
      ja:reasoner [ ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner> ];
      ja:baseModel <#baseModel>;
      .
+     
 <#baseModel> rdf:type ja:MemoryModel ;
-    ja:content [ja:externalContent <./data/dataset.owl> ] ;
+    ja:content [ja:externalContent <./data/abox.owl> ] ;
+    ja:content [ja:externalContent <./data/tbox.owl> ] ;
     .

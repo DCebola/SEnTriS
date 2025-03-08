@@ -71,8 +71,6 @@ INSERT DATA {
   ub:advisor <http://www.Department0.University0.edu/AssistantProfessor4> .
 }
 
-
-
 #Query20: DELETE DATA
 #Delete data of a the new graduate student.
 PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>

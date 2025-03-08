@@ -57,7 +57,6 @@ function loadData() {
 	if (fs.existsSync('./Data/LUBM/queries.json')) {
 		JSON.parse(fs.readFileSync('./Data/LUBM/queries.json', 'utf8')).forEach(q => { queries.push(q) })
 	}
-
 }
 loadData()
 

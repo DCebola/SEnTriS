@@ -6,7 +6,10 @@ if [ $# -ne 0 ]; then
 fi
 
 echo "Resetting system..."
-docker rm $(docker stop $(docker ps -q -f "name=sentri")) &> /dev/null
-wait
-docker network rm $(docker network ls -q -f 'name=sentri')
+for i in $(docker ps -q -f "name=sentri" --format "{{.ID}}")
+do
+    docker rm $(docker stop $i) &> /dev/null
+    wait
+done
+docker network rm $(docker network ls -q -f 'name=sentri' --format "{{.ID}}")
 wait
