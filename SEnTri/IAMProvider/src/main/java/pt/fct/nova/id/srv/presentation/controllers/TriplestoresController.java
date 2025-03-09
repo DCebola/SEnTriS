@@ -22,30 +22,18 @@ import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.*;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
 import static pt.fct.nova.id.srv.presentation.dtos.Role.*;
-import static pt.fct.nova.id.srv.presentation.controllers.UsersController.UNKNOWN_USER;
 
 @Path("/triplestores")
 public class TriplestoresController implements TriplestoresAPI {
-    private static final String TRIPLESTORE_ALREADY_EXISTS = "Triplestore already exists.";
-    public static final String UNKNOWN_TRIPLESTORE = "Triplestore not found.";
-    private static final String ALREADY_OWNS = "Already owns triplestore.";
     private static final String SUCCESSFUL_TRIPLESTORE_OWNER_CHANGE = "Successful change of triplestore ownership.";
     private static final String SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_CREATION = "Successful creation of triplestore access policy.";
     private static final String SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_DELETION = "Successful deletion of triplestore access policy.";
     private static final String SUCCESSFUL_ACCESS_REVOCATION = "Access revoked.";
     private static final String SUCCESSFUL_ACCESS_GRANT = "Access granted.";
     private static final String SUCCESSFUL_ACCESS_REQUEST_ISSUED = "Successful issued access request.";
-    private static final String ALREADY_HAS_ACCESS = "Already has access to triplestore.";
-    private static final String UNKNOWN_OR_EXPIRED_TOKEN = "Token not found or expired.";
-    private static final String LOCK_NOT_FOUND = "Lock not found.";
-    private static final String LOCK_NOT_FOUND_OR_EXPIRED = "Lock not found or expired.";
-    private static final String EXPIRED_TOKEN = "Token expired.";
     private static final String SUCCESSFUL_ACCESS_TOKEN_DELETION = "Successful deletion of access token.";
     private static final String SUCCESSFUL_LOCK_RELEASE = "Successful lock release.";
-    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
     public static final String ACCESS_ALLOWED = "Access allowed.";
-    public static final String ACCESS_FORBIDDEN = "Access forbidden.";
-    private static final String CANNOT_REVOKE_OWNER_OR_ADMIN_ACCESS = "Cannot revoke admin or owner access.";
 
     @Override
     public Response createTriplestoreAccessList(Cookie cookie, TriplestoreForm form) {
@@ -55,21 +43,21 @@ public class TriplestoresController implements TriplestoresAPI {
             Role role = IAMStorage.getRole(owner);
 
             if (role.equals(BASIC))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String triplestoreID = form.getTriplestoreID();
             String lockID = LocksClient.acquireTriplestoreLock(owner, triplestoreID);
             if (IAMStorage.triplestoreAccessListExists(triplestoreID)) {
                 LocksClient.releaseTriplestoreLock(owner, triplestoreID, lockID);
-                return Response.ok(TRIPLESTORE_ALREADY_EXISTS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
             }
             IAMStorage.saveTriplestoreAccessList(triplestoreID, owner, new HashSet<>(), new HashSet<>());
             LocksClient.releaseTriplestoreLock(owner, triplestoreID, lockID);
             return Response.ok(SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_CREATION).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(REQUEST_TIMEOUT).build();
         } catch (InterruptedException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -81,7 +69,7 @@ public class TriplestoresController implements TriplestoresAPI {
             Utils.authCheck(cookie, issuer);
             return Response.ok(IAMStorage.getTriplestores(issuer, write, read, owns)).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -90,29 +78,29 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD))) 
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
             
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role issuerRole = IAMStorage.getRole(issuer);
             boolean isOwner = IAMStorage.checkIfOwns(issuer, triplestoreID);
             if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !isOwner))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             JSONObject responseBody = new JSONObject();
             Set<String> readUsers = IAMStorage.getUserWithReadAccess(triplestoreID);
             Set<String> writeUsers = new HashSet<>();
@@ -130,7 +118,7 @@ public class TriplestoresController implements TriplestoresAPI {
                     .put("read", new JSONArray(readUsers));
             return Response.ok(responseBody).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -140,55 +128,55 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD))) 
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             if (!IAMStorage.userExists(target))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
 
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role issuerRole = IAMStorage.getRole(issuer);
 
             if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(target, triplestoreID)))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String owner = IAMStorage.getOwner(triplestoreID);
             System.out.println("T: " + target);
             System.out.println("O: " + owner);
 
             if (target.equals(owner))
-                return Response.ok(ALREADY_OWNS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(target);
 
             if (role.equals(BASIC))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
-                return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-                return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             IAMStorage.updateTriplestoreOwner(triplestoreID, owner, target);
             return Response.ok(SUCCESSFUL_TRIPLESTORE_OWNER_CHANGE).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -197,41 +185,41 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(username);
 
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(username, triplestoreID)))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             String owner = IAMStorage.getOwner(triplestoreID);
             IAMStorage.deleteTriplestoreAccessList(owner, triplestoreID);
             IAMStorage.deleteAccessToken(tokenID, token);
             return Response.ok(SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_DELETION).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -240,49 +228,49 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             if (!IAMStorage.userExists(target))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             Role issuerRole = IAMStorage.getRole(issuer);
 
             if (issuer.equals(target))
-                return Response.ok(ALREADY_HAS_ACCESS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
             else if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(issuer, triplestoreID)))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
-                return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-                return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             if (IAMStorage.getRole(target).equals(ADMIN) ||
                     IAMStorage.checkIfOwns(target, triplestoreID) ||
                     (IAMStorage.checkIfUserHasWriteAccess(target, triplestoreID) == write && IAMStorage.checkIfUserHasReadAccess(target, triplestoreID)))
-                return Response.ok(ALREADY_HAS_ACCESS).status(BAD_REQUEST).build();
+                return Response.ok(FORBIDDEN).build();
 
             IAMStorage.grantAccess(triplestoreID, target, write);
             return Response.ok(SUCCESSFUL_ACCESS_GRANT).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -291,49 +279,49 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             if (!IAMStorage.userExists(target))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             Role issuerRole = IAMStorage.getRole(issuer);
 
             if (!issuer.equals(target)) {
                 if (issuerRole.equals(BASIC) || (issuerRole.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(issuer, triplestoreID)))
-                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                    return Response.status(FORBIDDEN).build();
             }
 
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
-                return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-                return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             if (IAMStorage.checkIfOwns(target, triplestoreID))
-                return Response.ok(CANNOT_REVOKE_OWNER_OR_ADMIN_ACCESS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
 
             LocksClient.deleteUserTriplestoreLock(target, triplestoreID);
             if (!issuerRole.equals(ADMIN))
                 IAMStorage.revokeAccess(triplestoreID, target, write);
             return Response.ok(SUCCESSFUL_ACCESS_REVOCATION).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -342,20 +330,20 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             Utils.authCheck(cookie, target);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(target);
 
             if (role.equals(ADMIN) || (role.equals(PRIVILEGED) && IAMStorage.checkIfOwns(target, triplestoreID)))
-                return Response.ok(ALREADY_HAS_ACCESS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
             if (IAMStorage.checkIfUserHasWriteAccess(target, triplestoreID) == write &&
                     IAMStorage.checkIfUserHasReadAccess(target, triplestoreID))
-                return Response.ok(ALREADY_HAS_ACCESS).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
 
             IAMStorage.saveAccessRequest(triplestoreID, target, write);
             return Response.ok(SUCCESSFUL_ACCESS_REQUEST_ISSUED).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -364,31 +352,31 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(issuer);
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(issuer, triplestoreID)))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             return Response.ok(IAMStorage.getPendingAccessRequests(triplestoreID)).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -397,36 +385,38 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String issuer = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, issuer);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(issuer);
             if (role.equals(BASIC) || (role.equals(PRIVILEGED) && !IAMStorage.checkIfOwns(issuer, triplestoreID)))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             AccessRequest req = IAMStorage.getPendingAccessRequest(requestID);
             if (req == null)
                 return Response.ok(REQUEST_NOT_FOUND).status(NOT_FOUND).build();
 
             String username = req.username();
-            if (!IAMStorage.userExists(username))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+            if (!IAMStorage.userExists(username)) {
+                IAMStorage.deleteAccessRequest(triplestoreID, requestID);
+                return Response.status(NOT_FOUND).build();
+            }
 
             if (decision)
                 IAMStorage.grantAccess(triplestoreID, username, req.write());
@@ -434,7 +424,7 @@ public class TriplestoresController implements TriplestoresAPI {
             IAMStorage.deleteAccessRequest(triplestoreID, requestID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -445,7 +435,7 @@ public class TriplestoresController implements TriplestoresAPI {
             System.out.println("Acquire access token: (" + target + ", " + triplestoreID + ")");
 
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(target);
 
@@ -453,11 +443,11 @@ public class TriplestoresController implements TriplestoresAPI {
                     !IAMStorage.checkIfUserHasReadAccess(target, triplestoreID) &&
                     !IAMStorage.checkIfUserHasWriteAccess(target, triplestoreID) &&
                     !IAMStorage.checkIfOwns(target, triplestoreID))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             return Response.ok(IAMStorage.saveToken(target, cookie.getValue(), triplestoreID)).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -466,26 +456,26 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
             System.out.println("Trying to deleted access token [" + tokenID + "]: (" + triplestoreID + ")");
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(UNKNOWN_OR_EXPIRED_TOKEN).status(NOT_FOUND).build();
+                return Response.status(UNAUTHORIZED).build();
             System.out.println("Found token to delete [" + tokenID + "]: (" + triplestoreID + ")");
             String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             IAMStorage.deleteAccessToken(tokenID, token);
             System.out.println("Deleted access token [" + tokenID + "]: (" + username + ", " + triplestoreID + ")");
             return Response.ok(SUCCESSFUL_ACCESS_TOKEN_DELETION).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 
@@ -493,31 +483,31 @@ public class TriplestoresController implements TriplestoresAPI {
     public Response checkReadAccess(String triplestoreID, List<String> authorizationHeaders) {
         String tokenID = extractAccessToken(authorizationHeaders);
         if (tokenID == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Check read access [" + tokenID + "]:" + triplestoreID);
         Map<String, String> token = IAMStorage.getToken(tokenID);
         if (token == null || token.isEmpty())
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
 
         String username = token.get(TOKEN_USER_FIELD);
         try {
             Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
 
         String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
         if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-            return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+            return Response.status(FORBIDDEN).build();
 
         if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
 
         if (!IAMStorage.checkIfUserHasReadAccess(username, triplestoreID) &&
                 !IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
                 !IAMStorage.checkIfOwns(username, triplestoreID)) {
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
         }
         return Response.ok(ACCESS_ALLOWED).build();
     }
@@ -527,38 +517,38 @@ public class TriplestoresController implements TriplestoresAPI {
     public Response checkWriteAccess(String triplestoreID, List<String> authorizationHeaders) {
         String tokenID = extractAccessToken(authorizationHeaders);
         if (tokenID == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Check write access [" + tokenID + "]:" + triplestoreID);
         Map<String, String> token = IAMStorage.getToken(tokenID);
         if (token == null || token.isEmpty())
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
 
         String username = token.get(TOKEN_USER_FIELD);
         try {
             Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
 
         String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
         if (!IAMStorage.triplestoreAccessListExists(triplestoreID)) {
             if (triplestoreID.equals(tokenTriplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
         }
 
         if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
 
         String lockID = token.get(TOKEN_LOCK_FIELD);
         if (lockID == null)
-            return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
         else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-            return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
 
         if (!IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
                 !IAMStorage.checkIfOwns(username, triplestoreID)) {
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
         }
         return Response.ok(ACCESS_ALLOWED).build();
 
@@ -568,35 +558,35 @@ public class TriplestoresController implements TriplestoresAPI {
     public Response checkOwnerAccess(String triplestoreID, List<String> authorizationHeaders) {
         String tokenID = extractAccessToken(authorizationHeaders);
         if (tokenID == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Check owner access [" + tokenID + "]:" + triplestoreID);
         Map<String, String> token = IAMStorage.getToken(tokenID);
         if (token == null || token.isEmpty())
-            return Response.ok(UNKNOWN_OR_EXPIRED_TOKEN).status(NOT_FOUND).build();
+            return Response.status(UNAUTHORIZED).build();
         System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
 
         String username = token.get(TOKEN_USER_FIELD);
         try {
             Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
 
         String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
         if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-            return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+            return Response.status(FORBIDDEN).build();
 
         if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
 
         if (!IAMStorage.checkIfOwns(username, triplestoreID))
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
 
         String lockID = token.get(TOKEN_LOCK_FIELD);
         if (lockID == null)
-            return Response.ok(LOCK_NOT_FOUND).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
         else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-            return Response.ok(LOCK_NOT_FOUND_OR_EXPIRED).status(FORBIDDEN).build();
+            return Response.status(FORBIDDEN).build();
         return Response.ok(ACCESS_ALLOWED).build();
     }
 
@@ -605,36 +595,36 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(UNKNOWN_OR_EXPIRED_TOKEN).status(NOT_FOUND).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
 
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             Role role = IAMStorage.getRole(username);
             if (!role.equals(ADMIN) && !IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) && !IAMStorage.checkIfOwns(username, triplestoreID))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
             String lockID = LocksClient.acquireTriplestoreLock(username, triplestoreID);
             IAMStorage.addLockToToken(tokenID, lockID);
             return Response.ok(lockID).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(REQUEST_TIMEOUT).build();
         } catch (InterruptedException e) {
             return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
         }
@@ -645,35 +635,35 @@ public class TriplestoresController implements TriplestoresAPI {
         try {
             String tokenID = extractAccessToken(authorizationHeaders);
             if (tokenID == null)
-                return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
 
             Map<String, String> token = IAMStorage.getToken(tokenID);
             if (token == null || token.isEmpty())
-                return Response.ok(UNKNOWN_OR_EXPIRED_TOKEN).status(NOT_FOUND).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String username = token.get(TOKEN_USER_FIELD);
             Utils.authCheck(cookie, username);
 
             if (!Objects.equals(cookie.getValue(), token.get(TOKEN_SESSION_FIELD)))
-                return Response.ok(EXPIRED_TOKEN).status(BAD_REQUEST).build();
+                return Response.status(UNAUTHORIZED).build();
 
             String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
 
             if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-                return Response.ok(UNKNOWN_TRIPLESTORE).status(NOT_FOUND).build();
+                return Response.status(FORBIDDEN).build();
 
             if (!tokenTriplestoreID.equals(triplestoreID))
-                return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+                return Response.status(FORBIDDEN).build();
 
             String lockID = token.get(TOKEN_LOCK_FIELD);
             if (lockID == null)
-                return Response.ok(LOCK_NOT_FOUND).status(BAD_REQUEST).build();
+                return Response.status(FORBIDDEN).build();
             System.out.println("Release lock [" + tokenID + "]: (" + username + ", " + triplestoreID + ", " + lockID + ")");
             IAMStorage.deleteLockFromToken(tokenID);
             LocksClient.releaseTriplestoreLock(username, triplestoreID, lockID);
             return Response.ok(SUCCESSFUL_LOCK_RELEASE).build();
         } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.status(UNAUTHORIZED).build();
         }
     }
 

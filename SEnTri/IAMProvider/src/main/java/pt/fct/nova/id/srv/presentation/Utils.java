@@ -18,11 +18,7 @@ public class Utils {
     public static final String INTERNAL_ERROR = "Internal error.";
     public static final String SUCCESSFUL_REQUEST_PROCESSING = "Successful request processing.";
     public static final String REQUEST_NOT_FOUND = "Request not found.";
-    public static final String INSUFFICIENT_PERMISSIONS = "Insufficient permissions to execute request.";
     public static final String OPERATION_TIMEOUT = "Operation timeout.";
-    private static final String INVALID_COOKIE = "Malformed cookie.";
-    private static final String NO_SESSION_OR_EXPIRED = "User not authenticated or session has expired.";
-    private static final String SESSION_VALUE_MISMATCH = "Invalid session for user.";
 
     public static void authCheck(Cookie cookie, String username) throws InvalidCookieException, NoSessionFoundException, InvalidSessionException {
         if (cookie == null)
@@ -54,15 +50,6 @@ public class Utils {
                 return val.split(" ")[1];
         }
         return null;
-    }
-
-    public static Response handleSessionException(SessionException e) {
-        if (e instanceof InvalidCookieException)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
-        else if (e instanceof NoSessionFoundException)
-            return Response.ok(NO_SESSION_OR_EXPIRED).status(NOT_FOUND).build();
-        else
-            return Response.ok(SESSION_VALUE_MISMATCH).status(UNAUTHORIZED).build();
     }
 
 }

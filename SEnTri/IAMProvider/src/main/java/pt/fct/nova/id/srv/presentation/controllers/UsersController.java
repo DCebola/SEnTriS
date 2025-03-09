@@ -32,9 +32,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoresController
 @Path("/users")
 public class UsersController implements UsersAPI {
     private static final String SUCCESSFUL_AUTH = "Successful authentication.";
-    private static final String INVALID_PASSWORD = "Password mismatch.";
-    public static final String UNKNOWN_USER = "User not found.";
-    private static final String USER_ALREADY_EXISTS = "User already exists.";
     private static final String CAN_NOT_DELETE_STORE_OWNER = "Can not delete store owners.";
     private static final String SUCCESSFUL_USER_REGISTER = "Successful user registration.";
     private static final String SUCCESSFUL_USER_DELETE = "Successful user deletion.";
@@ -50,10 +47,8 @@ public class UsersController implements UsersAPI {
             Utils.checkPassword(username, credentials.getPassword());
             NewCookie cookie = IAMStorage.cacheSession(credentials.getUsername());
             return Response.ok(SUCCESSFUL_AUTH).cookie(cookie).build();
-        } catch (UnknownUserException e) {
-            return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
-        } catch (InvalidPasswordException e) {
-            return Response.ok(INVALID_PASSWORD).status(UNAUTHORIZED).build();
+        } catch (UnknownUserException | InvalidPasswordException e) {
+            return Response.status(UNAUTHORIZED).build();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -66,12 +61,11 @@ public class UsersController implements UsersAPI {
             String lockID = LocksClient.acquireUserLock(username);
             if (IAMStorage.userExists(username)) {
                 LocksClient.releaseUserLock(username, lockID);
-                return Response.ok(USER_ALREADY_EXISTS).status(BAD_REQUEST).build();
+                return Response.status(BAD_REQUEST).build();
             }
             String passwordHash = Base64.encodeBase64URLSafeString(PasswordLib.hash(credentials.getPassword()));
             IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
-            //TODO: Error messages should be equal... difference leak info about usernames/pass, triplestores
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {
             return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
@@ -108,7 +102,7 @@ public class UsersController implements UsersAPI {
             String issuerUsername = roleForm.getIssuer();
             Utils.authCheck(cookie, issuerUsername);
             if (!IAMStorage.userExists(username))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+                return Response.status(NOT_FOUND).build();
             Role issuerRole = IAMStorage.getRole(issuerUsername);
             Role role = roleForm.getRole();
             if (IAMStorage.getRole(username).equals(role))
@@ -157,7 +151,7 @@ public class UsersController implements UsersAPI {
             if (!issuerRole.equals(ADMIN))
                 return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
             if (!IAMStorage.userExists(targetUser))
-                return Response.ok(UNKNOWN_USER).status(NOT_FOUND).build();
+                return Response.status(NOT_FOUND).build();
 
             String lockID = LocksClient.acquireUserLock(targetUser);
             RoleRequest req = IAMStorage.getPendingRoleRequest(requestID);
