@@ -39,7 +39,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response upload(String triplestoreID, byte[] triplesData, boolean schema, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
@@ -67,7 +67,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response fetchInfo(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
@@ -85,7 +85,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response fetchSchema(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
@@ -105,7 +105,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response answerSPARQLQuery(String triplestoreID, byte[] queryExecutionPlan, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
@@ -134,7 +134,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response delete(String triplestoreID, boolean isSchema, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
             if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
@@ -151,7 +151,7 @@ public class TriplestoreController implements TriplestoreAPI {
     public Response delete(String triplestoreID, byte[] triplesData, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {

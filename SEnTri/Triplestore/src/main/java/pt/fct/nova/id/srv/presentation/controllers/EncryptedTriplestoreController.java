@@ -29,7 +29,7 @@ public class EncryptedTriplestoreController {
     public static Response upload(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
@@ -48,7 +48,7 @@ public class EncryptedTriplestoreController {
     public static Response search(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken);
@@ -71,7 +71,7 @@ public class EncryptedTriplestoreController {
     public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
@@ -88,7 +88,7 @@ public class EncryptedTriplestoreController {
     public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
@@ -107,7 +107,7 @@ public class EncryptedTriplestoreController {
                                   byte[] uploads, byte[] deletions, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);

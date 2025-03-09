@@ -19,8 +19,7 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.List;
 
-import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.NO_ACCESS_TOKEN;
@@ -40,7 +39,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
     public Response prepareMaskedSearch(String triplestoreID, PrepareSearchV2Form form, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              ByteArrayInputStream trapdoors_is = new ByteArrayInputStream(form.getTrapdoors());

@@ -33,7 +33,7 @@ public class SecretsController implements SecretsAPI {
     public Response createSecrets(String triplestoreID, byte[] secrets, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken);
              ByteArrayInputStream is = new ByteArrayInputStream(secrets);
@@ -53,7 +53,7 @@ public class SecretsController implements SecretsAPI {
     public Response getSecrets(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken);
@@ -75,7 +75,7 @@ public class SecretsController implements SecretsAPI {
     public Response deleteSecrets(String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {

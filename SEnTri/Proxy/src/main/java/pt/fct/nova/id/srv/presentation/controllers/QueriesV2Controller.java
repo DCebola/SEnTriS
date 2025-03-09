@@ -36,7 +36,7 @@ public class QueriesV2Controller implements QueriesAPI {
     public Response answerSPARQLQuery(SecureSPARQLQueryForm form, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
@@ -72,7 +72,7 @@ public class QueriesV2Controller implements QueriesAPI {
     public Response prepareSearch(byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
              ByteArrayInputStream is = new ByteArrayInputStream(encryptedNodes);
