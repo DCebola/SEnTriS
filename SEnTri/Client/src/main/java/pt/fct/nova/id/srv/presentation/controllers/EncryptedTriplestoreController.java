@@ -42,8 +42,6 @@ public class EncryptedTriplestoreController {
     public static final String EMPTY_UPLOAD = "No content to upload.";
     public static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NO_UPDATES = "No content to update.";
-    public static final int MIN_TRAPDOORS = Integer.parseInt(System.getenv("MINIMUM_TRAPDOORS_PER_SEARCH"));
-    public static final int MAX_TRAPDOORS = Integer.parseInt(System.getenv("MAXIMUM_TRAPDOORS_PER_SEARCH"));
     public static final int BATCH_SIZE = Integer.parseInt(System.getenv("BATCH_SIZE"));
 
     public static HTTPResponse deleteEncryptedTriplestore(CloseableHttpClient httpClient, Cookie cookie, String protocolVersion, String triplestoreID, String issuer) throws IOException {

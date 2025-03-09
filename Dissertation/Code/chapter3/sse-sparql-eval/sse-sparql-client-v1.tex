@@ -46,3 +46,12 @@ function prepareQuery($triplestoreID$, $planner$, $plan_{rnd} = (jobs, \; rndExe
             for $i$ in range(0, $\#job_{vars}$)
                 $job_{SEC\_SEARCH}$.getSearches()[$job_{vars}$[i]] := $searchIDs$.get($i$)
     return $plan_{rnd}$
+
+function planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$):
+    $planner$ := createSecureSPARQLQueryPlanner()
+    if $in\textrm{\emph{f}}erence$ == true:
+        $schema$ := searchSchema($triplestoreID$)
+        $ontology$ := createOntology()
+        $ontology$ := execInference($schema$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$)
+        $planner$.setOntology($ontology$)   
+    return ($queryEngine$.getQueryPlan($planner$, $query$), $planner$.getConstructTemplate(), $planner$.getUploadTemplate(), $planner$.getDeleteTemplate())

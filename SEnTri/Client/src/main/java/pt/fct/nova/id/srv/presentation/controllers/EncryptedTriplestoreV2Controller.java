@@ -47,12 +47,10 @@ import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
-import static pt.fct.nova.id.srv.application.query.QueryUtils.generateID;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
@@ -64,13 +62,12 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
     public static final String SECRETS_LAST_EQ_TAG = System.getenv("SECRETS_LAST_EQ_TAG");
 
-    private static final SecureRandom rnd = new SecureRandom();
     private static final String protocolVersion = "v2";
 
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
@@ -112,7 +109,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     @Override
     public Response delete(Cookie cookie, String triplestoreID, String issuer) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = deleteEncryptedTriplestore(httpClient, cookie, protocolVersion, triplestoreID, issuer);
             if (response.getStatus() != OK)
@@ -126,7 +123,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     @Override
     public Response upload(Cookie cookie, boolean schema, UploadForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
@@ -180,22 +177,14 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                           LinkedList<Triple> triples, String accessToken) throws IOException {
         try {
             String schemaKeyword = protocol.getSchemaKeyword();
-            int numTrapdoors = rnd.nextInt(MIN_TRAPDOORS, MAX_TRAPDOORS);
-            List<String> trapdoors = new ArrayList<>(numTrapdoors);
-            int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
-            for (int i = 0; i < numTrapdoors; i++) {
-                if (i == rndIndex)
-                    trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
-                else
-                    trapdoors.add(protocol.generateTrapdoor(generateID()));
-            }
+            List<String> trapdoors = List.of(protocol.generateTrapdoor(schemaKeyword));
             HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
             System.out.println("Searched contents.");
             if (response.getStatus() != OK) {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
                 return response.build();
             }
-            byte[] encryptedFrequency = ParsingUtils.parseListOfBytes(response.getBody()).get(rndIndex);
+            byte[] encryptedFrequency = ParsingUtils.parseListOfBytes(response.getBody()).get(0);
             int schemaFrequency = 0;
             if (encryptedFrequency != null)
                 schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedFrequency));
@@ -220,6 +209,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                     offset += batch.size();
                     batch.clear();
                 }
+                protocol.clearFrequencies();
             }
             Set<Triple> batch = new HashSet<>();
             while (!triples.isEmpty()) {
@@ -253,7 +243,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     @Override
     public Response fetchSchema(Cookie cookie, boolean inference, SchemaForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             Lang lang = ParsingUtils.parseRDFLanguage(form.getSyntax());
             String triplestoreID = form.getTriplestoreID();
@@ -288,20 +278,11 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                                              String triplestoreID, EncryptionSchemeV2 protocol,
                                              Ontology ontology, boolean inference, String accessToken) throws IOException, AEADBadTagException, ClassNotFoundException {
         String schemaKeyword = protocol.getSchemaKeyword();
-        int numTrapdoors = rnd.nextInt(MIN_TRAPDOORS, MAX_TRAPDOORS);
-        List<String> trapdoors = new ArrayList<>(numTrapdoors);
-        int rndIndex = rnd.nextInt(0, numTrapdoors - 1);
-        for (int i = 0; i < numTrapdoors; i++) {
-            if (i == rndIndex)
-                trapdoors.add(protocol.generateTrapdoor(schemaKeyword));
-            else
-                trapdoors.add(protocol.generateTrapdoor(generateID()));
-        }
+        List<String> trapdoors = List.of(protocol.generateTrapdoor(schemaKeyword));
         HTTPResponse response = searchEncryptedTriplestoreContents(httpClient, protocolVersion, triplestoreID, trapdoors, accessToken);
         if (response.getStatus() != OK)
             return response;
-
-        byte[] encryptedFrequency = ParsingUtils.parseListOfBytes(response.getBody()).get(rndIndex);
+        byte[] encryptedFrequency = ParsingUtils.parseListOfBytes(response.getBody()).get(0);
         int schemaFrequency = 0;
         if (encryptedFrequency != null)
             schemaFrequency = ParsingUtils.byteArrayToInteger(protocol.decryptRNDLayer(encryptedFrequency));
@@ -334,7 +315,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     @Override
     public Response answerSPARQLQuery(Cookie cookie, QueryForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();

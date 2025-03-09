@@ -126,7 +126,7 @@ function deleteTBox($triplestoreID$, $triples$, $scheme$):
     $deletionIDs$ := {}
     if $\textrm{\emph{f}}requencies[keyword] > 0$:
         $deletionIDs$ := batchExecuteDeleteTBox($triplestoreID$, $keyword$, $\textrm{\emph{f}}requencies$[$keyword$], $scheme$)
-    return Triplestore.update($triplestoreID$, $uploadIDs$, $deleteIDs$)
+    return Triplestore.update($triplestoreID$, createLinkedList(), $deleteIDs$)
 
 function batchExecuteDeleteTBox($triplestoreID$, $\textrm{\emph{f}}requency$, $keyword$, $scheme$):
     $batchIDs$ := createLinkedList()
@@ -150,6 +150,7 @@ function batchExecuteDeleteTBox($triplestoreID$, $\textrm{\emph{f}}requency$, $k
                     $o\textrm{\emph{ff}}set$ := $o\textrm{\emph{ff}}set$$ + $$BATCH\_SIZE$
                 else:
                     break
+    $scheme$.clearFrequencies()
     return $batchIDs$
 
 function batchExecuteUploadTBox($triplestoreID$, $triples$, $scheme$):

@@ -82,6 +82,7 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
             Transaction t = jedis.multi();
             String id = Utils.generateID();
             trapdoors.forEach(trapdoor -> t.lpush(id, String.format(KEY_FORMAT, triplestoreID, trapdoor, StandardCharsets.UTF_8)));
+            System.out.println("Deletions:" + trapdoors.size() + " | " + id);
             t.expire(id, COMMIT_LIFETIME);
             t.exec();
             return id;

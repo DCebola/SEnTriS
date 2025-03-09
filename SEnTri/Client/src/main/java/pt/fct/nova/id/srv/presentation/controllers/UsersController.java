@@ -19,7 +19,6 @@ import java.io.IOException;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.INTERNAL_ERROR;
-import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INVALID_COOKIE;
 
 @Path("users")
 public class UsersController implements UsersAPI {
@@ -47,7 +46,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response deleteUser(Cookie cookie, String username) {
         if(cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.deleteUser(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
@@ -59,7 +58,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response issueUpgradeRequest(Cookie cookie, String username) {
         if(cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.issueUpgradeRequest(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
@@ -71,7 +70,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response issueDowngradeRequest(Cookie cookie, String username) {
         if(cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.issueDowngradeRequest(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
@@ -83,7 +82,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response listPendingRequests(Cookie cookie, String username) {
         if(cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.listPendingRoleRequests(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
@@ -95,7 +94,7 @@ public class UsersController implements UsersAPI {
     @Override
     public Response processPendingRequest(Cookie cookie, String username, String requestID, RequestDecisionForm decisionForm) {
         if(cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             try (CloseableHttpResponse response = IAMClient.processRoleRequest(httpClient, cookie, username, requestID, decisionForm)) {
                 return new HTTPResponse(response).build();

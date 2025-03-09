@@ -55,13 +55,12 @@ public class TriplestoreController implements TriplestoreAPI {
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
-    public static final String INVALID_COOKIE = "Malformed cookie.";
     public static final String SUCCESSFUL_UPDATE = "Successful update.";
 
     @Override
     public Response create(Cookie cookie, TriplestoreForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createTriplestoreAccessList(httpClient, cookie, form.getTriplestoreID(), form.getIssuer());
             if (response.getStatus() != OK)
@@ -75,7 +74,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response fetchSchema(Cookie cookie, boolean inference, SchemaForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             Lang lang = ParsingUtils.parseRDFLanguage(form.getSyntax());
             String triplestoreID = form.getTriplestoreID();
@@ -104,7 +103,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response listTriplestores(Cookie cookie, String issuer, boolean write, boolean read, boolean owns) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             return listTriplestores(httpClient, cookie, issuer, write, read, owns).build();
         } catch (Exception e) {
@@ -115,7 +114,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response info(Cookie cookie, String triplestoreID, String issuer) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -134,7 +133,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response upload(Cookie cookie, boolean schema, UploadForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             InputStream contents = form.getContent();
@@ -173,7 +172,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response delete(Cookie cookie, String triplestoreID, String issuer, boolean schema) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -209,7 +208,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response answerSPARQLQuery(Cookie cookie, QueryForm form) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             String triplestoreID = form.getTriplestoreID();
             String issuer = form.getIssuer();
@@ -362,7 +361,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response updateTriplestoreOwner(Cookie cookie, String triplestoreID, String issuer, String target) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -386,7 +385,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response issueAccessRequest(Cookie cookie, String triplestoreID, String issuer, boolean write) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             return requestAccess(httpClient, cookie, triplestoreID, issuer, write).build();
         } catch (Exception e) {
@@ -397,7 +396,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response listPendingAccessRequests(Cookie cookie, String triplestoreID, String issuer) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -416,7 +415,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response processPendingAccessRequest(Cookie cookie, String triplestoreID, String issuer, String requestID, boolean accept) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -433,7 +432,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response grantAccess(Cookie cookie, String triplestoreID, String issuer, String target, boolean write) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -456,7 +455,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response revokeAccess(Cookie cookie, String triplestoreID, String issuer, String target, boolean write) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -479,7 +478,7 @@ public class TriplestoreController implements TriplestoreAPI {
     @Override
     public Response listUsersWithAccess(Cookie cookie, String triplestoreID, String issuer, boolean write) {
         if (cookie == null)
-            return Response.ok(INVALID_COOKIE).status(BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
