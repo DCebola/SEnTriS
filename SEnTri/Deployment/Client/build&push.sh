@@ -22,6 +22,6 @@ do
 done
 
 cd ../Deployment/Client
-docker buildx build -t $1/sentri-client-api .
+docker build -t $1/sentri-client-api .
 wait
 docker push $1/sentri-client-api

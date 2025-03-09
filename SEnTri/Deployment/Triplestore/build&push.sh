@@ -22,6 +22,6 @@ do
 done
 
 cd ../Deployment/Triplestore
-docker buildx build -t $1/sentri-triplestore-api .
+docker build -t $1/sentri-triplestore-api .
 wait
 docker push $1/sentri-triplestore-api

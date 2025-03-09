@@ -22,6 +22,6 @@ do
 done
 
 cd ../Deployment/IAMProvider
-docker buildx build -t $1/sentri-iam-provider-api .
+docker build -t $1/sentri-iam-provider-api .
 wait
 docker push $1/sentri-iam-provider-api

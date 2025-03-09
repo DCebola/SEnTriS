@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-    echo "Usage: start <docker-registry> <dataset>"
+if [ $# -ne 1 ]; then
+    echo "Usage: stop <docker-registry>"
     exit 1
 fi
 
@@ -14,4 +14,3 @@ do
         wait
     done
 done
-docker run --name lubm-$2 -d -p 3030:3030 $1/fuseki-$2 

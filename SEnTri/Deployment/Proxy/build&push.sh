@@ -22,6 +22,6 @@ do
 done
 
 cd ../Deployment/Proxy
-docker buildx build -t $1/sentri-proxy-api .
+docker build -t $1/sentri-proxy-api .
 wait
 docker push $1/sentri-proxy-api

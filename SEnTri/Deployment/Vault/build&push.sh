@@ -22,6 +22,6 @@ do
 done
 
 cd ../Deployment/Vault
-docker buildx build -t $1/sentri-vault-api .
+docker build -t $1/sentri-vault-api .
 wait
 docker push $1/sentri-vault-api
