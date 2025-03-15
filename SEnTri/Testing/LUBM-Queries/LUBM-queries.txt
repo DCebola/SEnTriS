@@ -193,6 +193,3 @@ PREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>
 SELECT DISTINCT ?X
 WHERE {?X rdf:type ub:UndergraduateStudent}
 ORDER BY ASC(?X)
-
-
-

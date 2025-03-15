@@ -1,0 +1,27 @@
+{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\t\nWHERE\n{?X rdf:type ub:GraduateStudent .\n  ?X ub:takesCourse\n<http://www.Department0.University0.edu/GraduateCourse0>}\nORDER BY ASC(?X)",
+    "transitivityDepth": 2,
+    "expansionDepth": 2,
+    "referenceAnswer": {
+        "head": {
+          "vars": ["X"]
+        },
+        "results": {
+          "bindings": [
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/GraduateStudent101" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/GraduateStudent124" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/GraduateStudent142" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/GraduateStudent44" }
+            }
+          ]
+        }
+      }
+      
+}

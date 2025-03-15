@@ -1,0 +1,32 @@
+{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:Publication .\n  ?X ub:publicationAuthor \n        <http://www.Department0.University0.edu/AssistantProfessor0>}\nORDER BY ASC(?X)",
+    "transitivityDepth": 2,
+    "expansionDepth": 2,
+    "referenceAnswer": {
+        "head": {
+          "vars": ["X"]
+        },
+        "results": {
+          "bindings": [
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication0" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication1" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication2" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication3" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication4" }
+            },
+            {
+              "X": { "type": "uri", "value": "http://www.Department0.University0.edu/AssistantProfessor0/Publication5" }
+            }
+          ]
+        }
+      }          
+}

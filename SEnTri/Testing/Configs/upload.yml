@@ -4,12 +4,13 @@ config:
     timeout: 3600 #1hour timeout
   plugins:
     metrics-by-endpoint: 
-      useOnlyRequestNames: true
   processor: "./processor.js"
   variables:
-    SEnTriVersion:
+    version:
       - "v1"
       - "v2"
+    
+
   phases:
   - name: "Create users"   
     duration: 1
@@ -118,42 +119,62 @@ scenarios:
               cookie: "[{{ session_cookie }}]"
           
           whileTrue: "hasDataset"
-        over: "SEnTriVersion"
+        over: "version"
 
       #Loop over datasets (lubm-1, lubm-5, lubm-10, lubm-20)
         #Loop over protocols
           #Repeat 10
-            #Upload triplestore + ontology
+            #Create triplestore
+            #Upload dataset
+            #Upload ontology
             #Get info (size expansion)
             #Delete triplestore
       
+      #@Before create 1 priviledged user 
       #Loop over datasets (lubm-1, lubm-5)
         #Loop over protocols
-          #Loop over queries (normal & extra)
+          #Loop over queries
               #Repeat 10
-                #Normal 
-                #Inference
 
+      #@Before create 5 priviledged users 
       #Loop over protocols
-        #Loop over 5 users
-          # Create triplestore + Upload (no ontology, lubm-1)
-          # Loop over: [No access, read access, write access, remove write access, remove read access]
-            # Share w/ access policy
-            # Read          (test-name :is x?) expect :bot
-            # Insert        (test-name :is :user-insert)
-            # Read          (test-name :is x?) expect :user-insert
-            # Delete        (test-name :is :user-insert)
-            # Read          (test-name :is x?) expect :bot
-            # Insert        (test-name :is :user-insert-2)
-            # Read          (test-name :is x?) expect :user-insert-2
-            # Delete/Insert (test-name :is :user-insert-2 ; :user-insert-3)
-            # Read          (test-name :is x?) expect :user-insert-3
-            #Delete where   (test-name :is :user-insert-3)
-            # Read          (test-name :is x?) expect :bot
-          # Transfer ownership to next user
-        # Delete triplestore
-                
+        #Loop over 5 users (owner)
+          # Create triplestore
+          # [owner-write] test_owner_access :check pass | http_200
+          # [owner-read]  (test_owner_access :check x?) | x? -> pass
+          # [owner-write] test_shared_read_access :check pass | http_200
+          # Loop over [No access, read access, write access, remove write access, remove read access]
+            # Loop over other 4 other users
+              # Give access to user, respecting the current access policy
+              # [user-read] (test_shared_read_access :check x?) | x? -> pass or http_403
+              # [user-write] (test_shared_write_access :check pass) | http_200 or http_403
+              # If http_200, [user-read] (test_shared_write_access :check x?) | x? -> pass
+          # Transfer ownership to rnd user
+          # [rnd-user-delete] Delete transfered triplestore
+      #Set BASIC role to 4 users, keep 1 privileged
+      #Loop over protocols
+        # [priviledged]Create triplestore
+        # [owner-write] test_owner_access :check pass | http_200
+        # [owner-read]  (test_owner_access :check x?) | x? -> pass
+        # [owner-write] test_shared_read_access :check pass | http_200
+        # Loop over [No access, read access, write access, remove write access, remove read access]
+          # Loop over other 4 basic users
+            # Issue access request to triplestore, respecting the current access policy
+            # Owner validates access request
+            # [user-read] (test_shared_read_access :check x?) | x? -> pass or http_403
+            # [user-write] (test_shared_write_access :check pass) | http_200 or http_403
+            # If http_200, [user-read] (test_shared_write_access :check x?) | x? -> pass
+            # Transfer ownership to user | expect error
 
-# Upload test: 4 * 3 * 10 = 60uploads
-# Lubm queries test: 12 * 10 * 20 = 2400 queries
-# M/M setting test: 2 * 5 * 5 * 7 = 350 queries
+      #@Before create 25 priviledged users, 1 triplestore
+      #@Before create 1 triplestore
+# Parallel test
+# 5 users, 1 triplestore
+# Try to write, if success no timeout, assert write succeeded 
+
+
+# LUBM - Upload: 4 datasets * 2 protocols * 10 repetitions = 80 creation, 80 dataset upload, 80 ontology uploads, 80 deletions
+# LUBM - Latency: 2 datasets * 2 protocols * 14 queries * 10 repetitions = 560 queries
+# LUBM - Correcteness & Soundness: 1 dataset * 2 protocols * 14 queries * 3 repetitions = 140 queries
+# RBAC - Sharing Triplestores: 
+# M/M Setting (10 users, 1 triplestore concurrent read & write)

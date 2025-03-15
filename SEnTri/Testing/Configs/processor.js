@@ -22,8 +22,6 @@ module.exports = {
 	uploadOntology,
 
 	genSPARQLQuery,
-	processSPARQLQueryControlAnswer,
-	processSPARQLQueryAnswer
 
 }
 
@@ -187,37 +185,6 @@ function selectTriplestoreFromList(context, events, done) {
 	else
 		delete context.vars.triplestoreID
 	return done()
-}
-
-
-function processSPARQLQueryControlAnswer(response, context, events, next) {
-	let dataset = context.vars.dataset
-	let inference = context.vars.inference
-	if (response.statusCode >= 200 && response.statusCode < 300) {
-		let answerHash = crypto.createHmac('sha256', secret).update(response.body).digest('hex')
-		let query = context.vars.query
-		if (inference)
-			saveSPARQLControlAnswer(events, dataset, answers, query, answerHash, JSON.parse(response.body))
-		else
-			saveSPARQLControlAnswer(events, dataset, nonEntailedAnswers, query, answerHash, JSON.parse(response.body))
-	}
-	return next()
-}
-
-function saveSPARQLControlAnswer(events, dataset, collection, query, answerHash, sparqlResults) {
-	let datasetQueryAnswers = collection.get(dataset)
-	if (datasetQueryAnswers == undefined)
-		datasetQueryAnswers = new Map()
-	let answer = datasetQueryAnswers.get(query)
-	if (answer == undefined) {
-		datasetQueryAnswers.set(query, {
-			"hash": answerHash,
-			"vars": sparqlResults.head.vars,
-			"bindings": sparqlResults.results.bindings.map((binding) => JSON.stringify(binding))
-		})
-		collection.set(datasetQueryAnswers)
-	} else if (answer.hash != answerHash)
-		events.emit("counter", "diff_control", 1);
 }
 
 /**
