@@ -129,10 +129,10 @@ function genTriplestore(context, done) {
 }
 
 /**
- * Copies datasetNames into current context
+ * Copies datasets into current context
  */
 function setDatasets(context, done) {
-	context.vars.datasetNames = datasetNames.map((x) => x)
+	context.vars.datasets = datasetNames.map((x) => x)
 	return done()
 }
 
@@ -192,41 +192,44 @@ function selectTriplestoreFromList(context, next) {
  * Select a the LUBM query to send
  */
 function selectLUBMQuery(context, next) {
-	
+
 	return next()
 }
 
 /**
- * Processes SPARQL query answer\
+ * Processes SPARQL query answer
  * Assertion: Bindings are sorted w/ no duplicate bindings
  */
 function processLUBMQueryAnswer(response, context, events, next) {
 	let queryName = context.vars.queryName
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		let completeness, soundness
 		let referenceAnswer = answers.get(queryName)
 		let receivedAnswer = JSON.parse(response.body)
-		if (hasEqualVars(referenceAnswer.head.vars, receivedAnswer.head.vars))
-
-
-			
-			[completeness, soundness] = calculateCompletnessAndSoundness(
-				nonEntailedBindings,
-				referenceAnswer.bindings,
-				receivedAnswer.results.bindings.map((binding) => JSON.stringify(binding))
-			);
-		if (completeness != undefined && soundness != undefined) {
-			events.emit("histogram", "completeness", completeness);
-			events.emit("histogram", "soundness", soundness);
+		if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
+			let correctSet = extractBindings(referenceAnswer);
+			let receivedSet = extractBindings(receivedAnswer);
+			let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
+			let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
+			let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
+			events.emit("histogram", queryName + ".completeness", completeness);
+			events.emit("histogram", queryName + ".soundness", soundness);
 		} else
-			events.emit("counter", "wrong", 1);
-	}
+			events.emit("counter", queryName + ".wrong", 1);
+	} else
+		events.emit("counter", queryName + ".wrong", 1);
 	return next()
 }
 
-function hasEqualVars(vars, receveivedVars) {
-	return vars.length == receveivedVars.length && vars.every((v, i) => v == receveivedVars[i]);
+function extractBindings(result) {
+	return new Set(result.results.bindings.map(binding =>
+		JSON.stringify(binding)
+	));
 }
+
+function hasEqualVars(vars, receveivedVars) {
+	return vars.difference(receveivedVars).length == 0;
+}
+
 
 function calculateCompletnessAndSoundness(nonEntailedBindings, expectedBindings, receivedBindings) {
 	let completeness, soundness

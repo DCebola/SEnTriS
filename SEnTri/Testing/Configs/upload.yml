@@ -9,10 +9,12 @@ config:
     version:
       - "v1"
       - "v2"
-    
-
-  phases:
-  - name: "Create users"   
+    datasets:
+      - "lubm-1"
+      - "lubm-5"
+      - "lubm-10"
+      - "lubm-20"
+  phases:  
     duration: 1
     arrivalCount: 1
 
@@ -45,30 +47,11 @@ before:
         #List upgrade requests
         #Accept upgrade request
 
-after:
-  flow:
-    - function: "selectUser"        
-    - post:                          
-        url: ":8080/Client/api/users/auth"
-        name: "auth"
-        headers:
-          Content-Type: multipart/form-data
-        json:
-          username: "{{ username }}"
-          password: "{{ password }}"
-        afterResponse: "extractCookie"
-    - delete:
-        url: ":8080/Client/api/users/{{ username }}"
-        name: "delete-user"
-        headers:
-          cookie: "[{{ session_cookie }}]"
-
 scenarios:
  - name: 'Experimental evaluation'
    weight: 1
    flow:                         
       - loop:
-        - function: "setDatasets"
         - function: "selectUser"
         - log: "Authenticating user"
         - post:                          
@@ -81,44 +64,48 @@ scenarios:
               password: "{{ password }}"
             afterResponse: "extractCookie"
         loop:
-          - log: "Create triplestore"
-          - post:                          
-            url: ":8080/Client/api/triplestores/encrypted/{{ $loopElement }}"
-            name: "create-triplestore"
-            headers:
-              Content-Type: multipart/form-data
-              cookie: "[{{ session_cookie }}]"
-            formData:
-              issuer: "{{ username }}"
-              triplestoreID: "{{ triplestoreID }}"
-            beforeRequest: genTriplestore
+          loop:
+            loop:
+              - log: "Create triplestore: {{ $dataset }}"
+              - post:                          
+                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}"
+                name: "create-triplestore-{{ $dataset }}"
+                headers:
+                  Content-Type: multipart/form-data
+                  cookie: "[{{ session_cookie }}]"
+                formData:
+                  issuer: "{{ username }}"
+                  triplestoreID: "{{ triplestoreID }}"
+                beforeRequest: genTriplestore
 
-          - log: "Uploading dataset"
-          - post:                          
-            url: ":8080/Client/api/triplestores/encrypted/{{ $loopElement }}/upload?schema=false"
-            name: "upload-dataset"
-            headers:
-              Content-Type: multipart/form-data
-              cookie: "[{{ session_cookie }}]"
-            beforeRequest: uploadDataset
+              - log: "Uploading dataset: {{ $dataset }}"
+              - post:                          
+                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=false"
+                name: "upload-dataset-{{ $dataset }}"
+                headers:
+                  Content-Type: multipart/form-data
+                  cookie: "[{{ session_cookie }}]"
+                beforeRequest: uploadDataset
 
-          - log: "Uploading ontology"
-          - post:                          
-            url: ":8080/Client/api/triplestores/encrypted/{{ $loopElement }}/upload?schema=true"
-            name: "upload-ontology"
-            headers:
-              Content-Type: multipart/form-data
-              cookie: "[{{ session_cookie }}]"
-            beforeRequest: uploadOntology
+              - log: "Uploading ontology: {{ $dataset }}"
+              - post:                          
+                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=true"
+                name: "upload-ontology-{{ $dataset }}"
+                headers:
+                  Content-Type: multipart/form-data
+                  cookie: "[{{ session_cookie }}]"
+                beforeRequest: uploadOntology
 
-          - log: "Deleting triplestore"
-          - delete:                          
-            url: ":8080/Client/api/triplestores/encrypted/{{ $loopElement }}/{{ triplestoreID }}/{{ username }}"
-            name: "delete-triplestore"
-            headers:
-              cookie: "[{{ session_cookie }}]"
-          
-          whileTrue: "hasDataset"
+              - log: "Deleting triplestore: {{ $dataset }}"
+              - delete:                          
+                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/{{ triplestoreID }}/{{ username }}"
+                name: "delete-triplestore-{{ $dataset }}"
+                headers:
+                  cookie: "[{{ session_cookie }}]"
+            count: 10
+          loopElement: "$dataset"
+          over: "datasets"
+        loopElement: "$version"
         over: "version"
 
       #Loop over datasets (lubm-1, lubm-5, lubm-10, lubm-20)
