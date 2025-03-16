@@ -1,99 +1,86 @@
 [
-
+    {
+        "name": "lubm-1",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\t\nWHERE\n{?X rdf:type ub:GraduateStudent .\n  ?X ub:takesCourse\n<http://www.Department0.University0.edu/GraduateCourse0>}\nORDER BY ASC(?X)",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-2",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y ?Z\nWHERE\n{?X rdf:type ub:GraduateStudent .\n  ?Y rdf:type ub:University .\n  ?Z rdf:type ub:Department .\n  ?X ub:memberOf ?Z .\n  ?Z ub:subOrganizationOf ?Y .\n  ?X ub:undergraduateDegreeFrom ?Y}\nORDER BY ASC(?X) ASC(?Y) ASC(?Z)",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-3",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:Publication .\n  ?X ub:publicationAuthor \n        <http://www.Department0.University0.edu/AssistantProfessor0>}\nORDER BY ASC(?X)",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-4",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y1 ?Y2 ?Y3\nWHERE\n{?X rdf:type ub:Professor .\n  ?X ub:worksFor <http://www.Department0.University0.edu> .\n  ?X ub:name ?Y1 .\n  ?X ub:emailAddress ?Y2 .\n  ?X ub:telephone ?Y3}\nORDER BY ASC(?X) ASC(?Y1) ASC(?Y2) ASC(?Y3)",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-5",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:Person .\n  ?X ub:memberOf <http://www.Department0.University0.edu>}\nORDER BY ASC(?X)\n",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
+    {
+        "name": "lubm-6",
+        "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X WHERE {?X rdf:type ub:Student}\nORDER BY ASC(?X)",
+        "transitivityDepth": 2,
+        "expansionDepth": 2
+    },
     {
         "name": "lubm-7",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y\nWHERE \n{?X rdf:type ub:Student .\n  ?Y rdf:type ub:Course .\n  ?X ub:takesCourse ?Y .\n  <http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y}\nORDER BY ASC(?X) ASC(?Y)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-8",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y ?Z\nWHERE\n{?X rdf:type ub:Student .\n  ?Y rdf:type ub:Department .\n  ?X ub:memberOf ?Y .\n  ?Y ub:subOrganizationOf <http://www.University0.edu> .\n  ?X ub:emailAddress ?Z}\nORDER BY ASC(?X) ASC(?Y) ASC(?Z)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-9",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y ?Z\nWHERE\n{?X rdf:type ub:Student .\n  ?Y rdf:type ub:Faculty .\n  ?Z rdf:type ub:Course .\n  ?X ub:advisor ?Y .\n  ?Y ub:teacherOf ?Z .\n  ?X ub:takesCourse ?Z}\nORDER BY ASC(?X) ASC(?Y) ASC(?Z)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-10",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:Student .\n  ?X ub:takesCourse\n<http://www.Department0.University0.edu/GraduateCourse0>}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-11",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:ResearchGroup .\n  ?X ub:subOrganizationOf <http://www.University0.edu>}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-12",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X ?Y\nWHERE\n{?X rdf:type ub:Chair .\n  ?Y rdf:type ub:Department .\n  ?X ub:worksFor ?Y .\n  ?Y ub:subOrganizationOf <http://www.University0.edu>}\nORDER BY ASC(?X) ASC(?Y)",
         "transitivityDepth": 2,
-        "expansionDepth": 3,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 3
     },
     {
         "name": "lubm-13",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE\n{?X rdf:type ub:Person .\n  <http://www.University0.edu> ub:hasAlumnus ?X}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     },
     {
         "name": "lubm-14",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X\nWHERE {?X rdf:type ub:UndergraduateStudent}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
-        "expansionDepth": 2,
-        "referenceAnswer": {
-            "vars": [],
-            "bindings": {
-                
-            }
-        }
+        "expansionDepth": 2
     }
 ]

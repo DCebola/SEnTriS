@@ -1,0 +1,35 @@
+{
+  "head": {
+    "vars": [
+      "X"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "X": {
+          "type": "uri",
+          "value": "http://www.Department0.University0.edu/GraduateStudent101"
+        }
+      },
+      {
+        "X": {
+          "type": "uri",
+          "value": "http://www.Department0.University0.edu/GraduateStudent124"
+        }
+      },
+      {
+        "X": {
+          "type": "uri",
+          "value": "http://www.Department0.University0.edu/GraduateStudent142"
+        }
+      },
+      {
+        "X": {
+          "type": "uri",
+          "value": "http://www.Department0.University0.edu/GraduateStudent44"
+        }
+      }
+    ]
+  }
+}

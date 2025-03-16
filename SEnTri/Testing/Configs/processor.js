@@ -39,21 +39,22 @@ var datasetNames = []
 var datasets = new Map()
 var ontologyNames = []
 var ontologies = new Map()
+var queries = []
 var answers = new Map()
-var nonEntailedAnswers = new Map()
 
 // Loads dataset from disk
 function loadData() {
-	if (fs.existsSync('./Data/LUBM/datasets.json')) {
+	if (fs.existsSync('./Data/datasets.json')) {
 		JSON.parse(fs.readFileSync('./Data/datasets.json', 'utf8')).forEach(i => { datasetNames.push(i) })
-		fs.readdirSync('./Data/LUBM/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
+		fs.readdirSync('./Data/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
 	}
-	if (fs.existsSync('./Data/LUBM/ontologies.json')) {
+	if (fs.existsSync('./Data/ontologies.json')) {
 		JSON.parse(fs.readFileSync('./Data/ontologies.json', 'utf8')).forEach(i => { ontologyNames.push(i) })
-		fs.readdirSync('./Data/LUBM/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
+		fs.readdirSync('./Data/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
 	}
-	if (fs.existsSync('./Data/LUBM/queries.json')) {
-		JSON.parse(fs.readFileSync('./Data/LUBM/queries.json', 'utf8')).forEach(q => { queries.push(q) })
+	if (fs.existsSync('./Data/queries.json')) {
+		JSON.parse(fs.readFileSync('./Data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
+		fs.readdirSync('./Data/answers').forEach((data, i) => { answers.set(queries[i].name, data) })
 	}
 }
 loadData()
@@ -240,28 +241,3 @@ function calculateCompletnessAndSoundness(nonEntailedBindings, expectedBindings,
 	return [completeness, soundness]
 }
 
-function generateLUBMNonEntailedMetrics(events, responseBody, expectedAnswer, receivedAnswerHash) {
-	let completeness
-	if (expectedAnswer.hash == receivedAnswerHash)
-		completeness = 1
-	else {
-		let receivedAnswer = JSON.parse(responseBody)
-		if (hasEqualVars(expectedAnswer.vars, receivedAnswer.head.vars))
-			completeness = calculateCompletness(
-				expectedAnswer.bindings,
-				receivedAnswer.results.bindings.map((binding) => JSON.stringify(binding))
-			);
-	}
-	if (completeness != undefined)
-		events.emit("histogram", "completeness", completeness);
-	else
-		events.emit("counter", "wrong", 1);
-}
-
-//Assertion: Bindings are sorted w/ no duplicate bindings
-function calculateCompletness(expectedBindings, receivedBindings) {
-	let completeness
-	if (expectedBindings.length >= receivedBindings.length)
-		completeness = expectedBindings.filter(x => receivedBindings.includes(x)) / expectedBindings.length
-	return completeness
-}

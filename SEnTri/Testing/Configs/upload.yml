@@ -168,9 +168,9 @@ scenarios:
 
       #@Before create 25 priviledged users, 1 triplestore
       #@Before create 1 triplestore
-# Parallel test
-# 5 users, 1 triplestore
-# Try to write, if success no timeout, assert write succeeded 
+      # Parallel test
+      # 5 users, 1 triplestore
+      # Try to write, if success no timeout, assert write succeeded 
 
 
 # LUBM - Upload: 4 datasets * 2 protocols * 10 repetitions = 80 creation, 80 dataset upload, 80 ontology uploads, 80 deletions
