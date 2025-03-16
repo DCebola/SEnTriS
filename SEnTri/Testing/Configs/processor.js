@@ -139,7 +139,7 @@ function setDatasets(context, done) {
 /**
  * Prepares dataset upload
  */
-function uploadDataset(requestParams, context, ee, next) {
+function uploadDataset(requestParams, context, next) {
 	const form = new FormData()
 	form.append('issuer', context.vars.username)
 	form.append('triplestoreID', context.vars.triplestoreID)
@@ -152,7 +152,7 @@ function uploadDataset(requestParams, context, ee, next) {
 /**
  * Prepares ontology upload
  */
-function uploadOntology(requestParams, context, ee, next) {
+function uploadOntology(requestParams, context, next) {
 	const form = new FormData()
 	form.append('issuer', context.vars.username)
 	form.append('triplestoreID', context.vars.triplestoreID)
@@ -180,58 +180,54 @@ function extractTriplestoreList(response, context, next) {
 /**
  * Select a random triplestore from the list of available
  */
-function selectTriplestoreFromList(context, events, done) {
+function selectTriplestoreFromList(context, next) {
 	if (typeof context.vars.triplestoreList !== 'undefined' && context.vars.triplestoreList.length > 0)
 		context.vars.triplestoreID = context.vars.triplestoreList.sample()
 	else
 		delete context.vars.triplestoreID
-	return done()
-}
-
-/**
- * Processes SPARQL query answer
- */
-function processSPARQLQueryAnswer(response, context, events, next) {
-	let dataset = context.vars.dataset
-	let query = context.vars.query
-	let inference = context.vars.inference
-	if (response.statusCode >= 200 && response.statusCode < 300) {
-		let nonEntailedAnswer = nonEntailedAnswers.get(dataset).get(query)
-		let receivedAnswerHash = crypto.createHmac('sha256', secret).update(response.body).digest('hex')
-		if (inference)
-			generateLUBMMetrics(events, response.body, nonEntailedAnswer.bindings, answers.get(dataset).get(query), receivedAnswerHash)
-		else
-			generateLUBMNonEntailedMetrics(events, response.body, nonEntailedAnswer, receivedAnswerHash)
-	}
 	return next()
 }
 
-function generateLUBMMetrics(events, responseBody, nonEntailedBindings, expectedAnswer, receivedAnswerHash) {
-	let completeness, soundness
-	if (expectedAnswer.hash == receivedAnswerHash) {
-		completeness = 1
-		soundness = expectedAnswer.soundness
-	} else {
-		let receivedAnswer = JSON.parse(responseBody)
-		if (hasEqualVars(expectedAnswer.vars, receivedAnswer.head.vars))
+/**
+ * Select a the LUBM query to send
+ */
+function selectLUBMQuery(context, next) {
+	
+	return next()
+}
+
+/**
+ * Processes SPARQL query answer\
+ * Assertion: Bindings are sorted w/ no duplicate bindings
+ */
+function processLUBMQueryAnswer(response, context, events, next) {
+	let queryName = context.vars.queryName
+	if (response.statusCode >= 200 && response.statusCode < 300) {
+		let completeness, soundness
+		let referenceAnswer = answers.get(queryName)
+		let receivedAnswer = JSON.parse(response.body)
+		if (hasEqualVars(referenceAnswer.head.vars, receivedAnswer.head.vars))
+
+
+			
 			[completeness, soundness] = calculateCompletnessAndSoundness(
 				nonEntailedBindings,
-				expectedAnswer.bindings,
+				referenceAnswer.bindings,
 				receivedAnswer.results.bindings.map((binding) => JSON.stringify(binding))
 			);
+		if (completeness != undefined && soundness != undefined) {
+			events.emit("histogram", "completeness", completeness);
+			events.emit("histogram", "soundness", soundness);
+		} else
+			events.emit("counter", "wrong", 1);
 	}
-	if (completeness != undefined && soundness != undefined) {
-		events.emit("histogram", "completeness", completeness);
-		events.emit("histogram", "soundness", soundness);
-	} else
-		events.emit("counter", "wrong", 1);
+	return next()
 }
 
 function hasEqualVars(vars, receveivedVars) {
 	return vars.length == receveivedVars.length && vars.every((v, i) => v == receveivedVars[i]);
 }
 
-//Assertion: Bindings are sorted w/ no duplicate bindings
 function calculateCompletnessAndSoundness(nonEntailedBindings, expectedBindings, receivedBindings) {
 	let completeness, soundness
 	if (expectedBindings.length >= receivedBindings.length) {
