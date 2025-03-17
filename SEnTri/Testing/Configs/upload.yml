@@ -10,11 +10,13 @@ config:
       - "v1"
       - "v2"
     datasets:
+      - "lubm-0"
       - "lubm-1"
-      - "lubm-5"
-      - "lubm-10"
-      - "lubm-20"
+      #- "lubm-5"
+      #- "lubm-10"
+      #- "lubm-20"
   phases:  
+    name: "test"
     duration: 1
     arrivalCount: 1
 
@@ -22,8 +24,7 @@ before:
   flow:
     - log: "Initializing SEnTri IAM provider"
     - post:
-        url: ":8081/IAMProvider/api/ctrl/init"
-    - function: "genUser"        
+        url: ":8081/IAMProvider/api/ctrl/init"      
     - post:
         url: ":8080/Client/api/users"
         name: "create-user"
@@ -33,6 +34,7 @@ before:
           username: "{{ username }}"
           password: "{{ password }}"
         afterResponse: "processGenUserReply"
+        beforeRequest: "genUser"
     - post:                          
         url: ":8080/Client/api/users/auth"
         name: "auth"
@@ -42,17 +44,42 @@ before:
           username: "{{ username }}"
           password: "{{ password }}"
         afterResponse: "extractCookie"
-        #Send user upgrade request
-        #Auth w/ Admin
-        #List upgrade requests
-        #Accept upgrade request
+    - post:                          
+        url: ":8080/Client/api/users/{{ username }}/upgrade"
+        name: "issue-upgrade-role-request"
+        headers:
+          cookie: "[{{ session_cookie }}]"
+        json:
+          username: "{{ username }}"
+          password: "{{ password }}"     
+    - post:                          
+        url: ":8080/Client/api/users/auth"
+        name: "auth"
+        headers:
+          Content-Type: multipart/form-data
+        json:
+          username: "admin"
+          password: "admin"
+        afterResponse: "extractAdminCookie"
+    - get:                          
+        url: ":8080/Client/api/users/admin/requests"
+        name: "list-role-request"
+        headers:
+          cookie: "[{{ admin_session_cookie }}]"
+        afterResponse: "selectRoleRequest"
+    - post:                          
+        url: ":8080/Client/api/users/admin/requests/{{ role_request_id }}"
+        ifTrue: 'role_request_id'
+        name: "process-role-request"
+        headers:
+          Content-Type: multipart/form-data
+          cookie: "[{{ admin_session_cookie }}]"
 
 scenarios:
  - name: 'Experimental evaluation'
    weight: 1
    flow:                         
       - loop:
-        - function: "selectUser"
         - log: "Authenticating user"
         - post:                          
             url: ":8080/Client/api/users/auth"
@@ -63,45 +90,43 @@ scenarios:
               username: "{{ username }}"
               password: "{{ password }}"
             afterResponse: "extractCookie"
+            beforeRequest: "selectUser"
         loop:
           loop:
             loop:
               - log: "Create triplestore: {{ $dataset }}"
               - post:                          
-                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}"
-                name: "create-triplestore-{{ $dataset }}"
-                headers:
-                  Content-Type: multipart/form-data
-                  cookie: "[{{ session_cookie }}]"
-                formData:
-                  issuer: "{{ username }}"
-                  triplestoreID: "{{ triplestoreID }}"
-                beforeRequest: genTriplestore
-
+                  url: ":8080/Client/api/triplestores/encrypted/{{ $version }}"
+                  name: "create-triplestore-{{ $dataset }}"
+                  headers:
+                    Content-Type: multipart/form-data
+                    cookie: "[{{ session_cookie }}]"
+                  formData:
+                    issuer: "{{ username }}"
+                    triplestoreID: "{{ triplestoreID }}"
+                  beforeRequest: genTriplestore
               - log: "Uploading dataset: {{ $dataset }}"
               - post:                          
-                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=false"
-                name: "upload-dataset-{{ $dataset }}"
-                headers:
-                  Content-Type: multipart/form-data
-                  cookie: "[{{ session_cookie }}]"
-                beforeRequest: uploadDataset
-
+                  url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=false"
+                  name: "upload-dataset-{{ $dataset }}"
+                  headers:
+                    Content-Type: multipart/form-data
+                    cookie: "[{{ session_cookie }}]"
+                  beforeRequest: uploadDataset
               - log: "Uploading ontology: {{ $dataset }}"
               - post:                          
-                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=true"
-                name: "upload-ontology-{{ $dataset }}"
-                headers:
-                  Content-Type: multipart/form-data
-                  cookie: "[{{ session_cookie }}]"
-                beforeRequest: uploadOntology
-
+                  url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=true"
+                  name: "upload-ontology-{{ $dataset }}"
+                  headers:
+                    Content-Type: multipart/form-data
+                    cookie: "[{{ session_cookie }}]"
+                  beforeRequest: uploadOntology
               - log: "Deleting triplestore: {{ $dataset }}"
               - delete:                          
-                url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/{{ triplestoreID }}/{{ username }}"
-                name: "delete-triplestore-{{ $dataset }}"
-                headers:
-                  cookie: "[{{ session_cookie }}]"
+                  url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/{{ triplestoreID }}/{{ username }}"
+                  name: "delete-triplestore-{{ $dataset }}"
+                  headers:
+                    cookie: "[{{ session_cookie }}]"
             count: 10
           loopElement: "$dataset"
           over: "datasets"

@@ -6,7 +6,7 @@ if [ $# -ne 1 ]; then
 fi
 
 echo "Resetting system..."
-for i in $(docker ps -f "name=sentri" --format "{{.ID}}")
+for i in $(docker ps -a -f "name=sentri" --format "{{.ID}}")
 do
     docker rm $(docker stop $i) &> /dev/null
     wait
@@ -15,18 +15,18 @@ docker network rm $(docker network ls -f 'name=sentri' --format "{{.ID}}")
 wait
 export var DOCKER_REGISTRY=$1
 cd ./IAMProvider 
-docker-compose up --force-recreate --remove-orphans --detach
+docker compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Vault 
-docker-compose up --force-recreate --remove-orphans --detach
+docker compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Proxy 
-docker-compose up --force-recreate --remove-orphans --detach
+docker compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Triplestore 
-docker-compose up --force-recreate --remove-orphans --detach
+docker compose up --force-recreate --remove-orphans --detach
 wait
 cd ../Client 
-docker-compose up --force-recreate --remove-orphans --detach
+docker compose up --force-recreate --remove-orphans --detach
 wait
 unset DOCKER_REGISTRY

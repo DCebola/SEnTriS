@@ -5,11 +5,14 @@
  */
 module.exports = {
 	extractCookie,
+	extractAdminCookie,
 
 	genUser,
 	genRoleUpgradeRequest,
 	selectUser,
+	selectAdminUser,
 	processGenUserReply,
+	selectRoleRequest,
 
 	genTriplestore,
 	extractTriplestoreList,
@@ -27,13 +30,13 @@ module.exports = {
 
 const Faker = require('faker')
 const fs = require('fs')
-const crypto = require('crypto');
 const FormData = require('form-data');
-const secret = crypto.randomBytes(64).toString('hex');
 
 setTimeout(console.log, +Infinity)
 
 var users = []
+var admin_cookie = ""
+var sessions = new Map()
 var queries = []
 var datasetNames = []
 var datasets = new Map()
@@ -76,10 +79,27 @@ function random(context, next) {
  * Extracts the session cookie.
  */
 function extractCookie(response, context, next) {
+	console.log(JSON.stringify(context))
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
 				context.vars.session_cookie = header.split(';')[0];
+				sessions.set(context.vars.username, context.vars.session_cookie)
+			}
+		}
+	}
+	return next()
+}
+
+/**
+ * Extracts the session cookie.
+ */
+function extractAdminCookie(response, context, next) {
+	if (response.statusCode >= 200 && response.statusCode < 300) {
+		for (let header of response.rawHeaders) {
+			if (header.startsWith("session")) {
+				admin_cookie = header.split(';')[0];
+				context.vars.admin_session_cookie = admin_cookie
 			}
 		}
 	}
@@ -109,6 +129,21 @@ function processGenUserReply(response, context, next) {
 }
 
 /**
+ * Extracts the role request id
+ */
+function selectRoleRequest(response, next) {
+	if (response.statusCode >= 200 && response.statusCode < 300) {
+		requestID = JSON.parse(response.body).filter(r => {
+			if (r.username === context.vars.username)
+				return r.requestID
+		});
+		if (requestID != undefined)
+			context.vars.role_request_id = requestID
+	}
+	return next()
+}
+
+/**
  * Select an user.
  */
 function selectUser(context, done) {
@@ -116,6 +151,8 @@ function selectUser(context, done) {
 		let user = users.sample()
 		context.vars.username = user.username
 		context.vars.password = user.password
+		if (sessions.has(username))
+			context.vars.session_cookie = sessions.get(user.username)
 	}
 	return done()
 }
@@ -124,15 +161,8 @@ function selectUser(context, done) {
  * Generate data for a new triplestore
  */
 function genTriplestore(context, done) {
-	context.vars.name = `${Faker.string.nanoid()}`
-	return done()
-}
-
-/**
- * Copies datasets into current context
- */
-function setDatasets(context, done) {
-	context.vars.datasets = datasetNames.map((x) => x)
+	context.vars.
+	context.vars.triplestoreID = `${Faker.string.nanoid()}`
 	return done()
 }
 
