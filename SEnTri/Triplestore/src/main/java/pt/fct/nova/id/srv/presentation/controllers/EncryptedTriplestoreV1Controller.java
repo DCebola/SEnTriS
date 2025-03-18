@@ -19,8 +19,6 @@ import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
-import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
-import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.NO_ACCESS_TOKEN;
 
 @Path("/encrypted/v1")
 public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1API {
@@ -36,7 +34,7 @@ public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1A
     public Response prepareSearch(String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              ByteArrayInputStream is = new ByteArrayInputStream(trapdoors);
@@ -52,7 +50,7 @@ public class EncryptedTriplestoreV1Controller implements EncryptedTriplestoreV1A
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 

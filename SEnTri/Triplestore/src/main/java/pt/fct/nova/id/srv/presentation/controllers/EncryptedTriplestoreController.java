@@ -29,7 +29,7 @@ public class EncryptedTriplestoreController {
     public static Response upload(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
@@ -41,14 +41,14 @@ public class EncryptedTriplestoreController {
             return Response.ok(storageEngine.commitUpload(triplestoreID, (Map<String, String>) ois.readObject())).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
     public static Response search(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken);
@@ -63,7 +63,7 @@ public class EncryptedTriplestoreController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -71,7 +71,7 @@ public class EncryptedTriplestoreController {
     public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
@@ -81,14 +81,14 @@ public class EncryptedTriplestoreController {
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
     public static Response delete(EncryptedStorageEngine storageEngine, String triplestoreID, byte[] trapdoors, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
@@ -99,7 +99,7 @@ public class EncryptedTriplestoreController {
             return Response.ok(storageEngine.commitDelete(triplestoreID, (Set<String>) ois.readObject())).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -107,7 +107,7 @@ public class EncryptedTriplestoreController {
                                   byte[] uploads, byte[] deletions, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
@@ -121,7 +121,7 @@ public class EncryptedTriplestoreController {
             return Response.ok(SUCCESSFUL_UPDATE).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 }

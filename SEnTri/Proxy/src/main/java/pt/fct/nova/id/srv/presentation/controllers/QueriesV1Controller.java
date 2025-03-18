@@ -3,6 +3,7 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -27,13 +28,11 @@ import java.io.ObjectOutputStream;
 import java.util.Base64;
 import java.util.List;
 
-import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 import static jakarta.ws.rs.core.Response.Status.*;
+import static pt.fct.nova.id.srv.application.clients.HTTPUtils.extractAccessToken;
 
 @Path("/queries/v1")
 public class QueriesV1Controller implements QueriesAPI {
-    public static final String NO_ACCESS_TOKEN = "Malformed request: bearer token required.";
-    public static final String INTERNAL_ERROR = "Internal error.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
 
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
@@ -42,7 +41,7 @@ public class QueriesV1Controller implements QueriesAPI {
     public Response answerSPARQLQuery(SecureSPARQLQueryForm form, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
@@ -68,7 +67,7 @@ public class QueriesV1Controller implements QueriesAPI {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(NOT_IMPLEMENTED).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -76,7 +75,7 @@ public class QueriesV1Controller implements QueriesAPI {
     public Response prepareSearch(byte[] encryptedNodes, List<String> authorizationHeaders) {
         String accessToken = extractAccessToken(authorizationHeaders);
         if (accessToken == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
              ByteArrayInputStream is = new ByteArrayInputStream(encryptedNodes);
@@ -86,7 +85,7 @@ public class QueriesV1Controller implements QueriesAPI {
             return Response.ok(base64Encoder.encodeToString(ProxyStorageV1.save((List<byte[]>) ois.readObject()))).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 }
