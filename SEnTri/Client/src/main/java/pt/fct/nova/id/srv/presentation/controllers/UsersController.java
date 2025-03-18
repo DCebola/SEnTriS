@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.INTERNAL_ERROR;
 
 @Path("users")
 public class UsersController implements UsersAPI {
@@ -29,7 +28,7 @@ public class UsersController implements UsersAPI {
             NewCookie cookie = HTTPUtils.extractCookie(response);
             return new HTTPResponse(cookie, response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -39,7 +38,7 @@ public class UsersController implements UsersAPI {
              CloseableHttpResponse response = IAMClient.registerUser(httpClient, credentialsForm)) {
             return new HTTPResponse(response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -51,7 +50,7 @@ public class UsersController implements UsersAPI {
              CloseableHttpResponse response = IAMClient.deleteUser(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -63,7 +62,7 @@ public class UsersController implements UsersAPI {
              CloseableHttpResponse response = IAMClient.issueUpgradeRequest(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -75,7 +74,7 @@ public class UsersController implements UsersAPI {
              CloseableHttpResponse response = IAMClient.issueDowngradeRequest(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -87,7 +86,7 @@ public class UsersController implements UsersAPI {
              CloseableHttpResponse response = IAMClient.listPendingRoleRequests(httpClient, cookie, username)) {
             return new HTTPResponse(response).build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -101,7 +100,7 @@ public class UsersController implements UsersAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 }

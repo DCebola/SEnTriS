@@ -18,9 +18,9 @@ import pt.fct.nova.id.srv.presentation.exceptions.SessionException;
 import java.util.*;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.*;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
+import static pt.fct.nova.id.srv.presentation.controllers.UsersController.LOCKED;
 import static pt.fct.nova.id.srv.presentation.dtos.Role.*;
 
 @Path("/triplestores")
@@ -57,9 +57,9 @@ public class TriplestoresController implements TriplestoresAPI {
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
         } catch (TooManyLockRetriesException e) {
-            return Response.status(REQUEST_TIMEOUT).build();
-        } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(LOCKED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -70,6 +70,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(IAMStorage.getTriplestores(issuer, write, read, owns)).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -119,6 +121,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(responseBody).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -177,6 +181,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_TRIPLESTORE_OWNER_CHANGE).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -220,6 +226,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_TRIPLESTORE_ACCESS_POLICY_DELETION).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -271,6 +279,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_ACCESS_GRANT).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -322,6 +332,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_ACCESS_REVOCATION).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -344,6 +356,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_ACCESS_REQUEST_ISSUED).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -377,6 +391,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(IAMStorage.getPendingAccessRequests(triplestoreID)).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -425,6 +441,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -448,6 +466,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(IAMStorage.saveToken(target, cookie.getValue(), triplestoreID)).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -476,118 +496,131 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_ACCESS_TOKEN_DELETION).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @Override
     public Response checkReadAccess(String triplestoreID, List<String> authorizationHeaders) {
-        String tokenID = extractAccessToken(authorizationHeaders);
-        if (tokenID == null)
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Check read access [" + tokenID + "]:" + triplestoreID);
-        Map<String, String> token = IAMStorage.getToken(tokenID);
-        if (token == null || token.isEmpty())
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
-
-        String username = token.get(TOKEN_USER_FIELD);
         try {
-            Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
-        } catch (SessionException e) {
-            return Response.status(UNAUTHORIZED).build();
+            String tokenID = extractAccessToken(authorizationHeaders);
+            if (tokenID == null)
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Check read access [" + tokenID + "]:" + triplestoreID);
+            Map<String, String> token = IAMStorage.getToken(tokenID);
+            if (token == null || token.isEmpty())
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
+
+            String username = token.get(TOKEN_USER_FIELD);
+            try {
+                Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
+            } catch (SessionException e) {
+                return Response.status(UNAUTHORIZED).build();
+            }
+
+            String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
+            if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
+                return Response.status(FORBIDDEN).build();
+
+            if (!tokenTriplestoreID.equals(triplestoreID))
+                return Response.status(FORBIDDEN).build();
+
+            if (!IAMStorage.checkIfUserHasReadAccess(username, triplestoreID) &&
+                    !IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
+                    !IAMStorage.checkIfOwns(username, triplestoreID)) {
+                return Response.status(FORBIDDEN).build();
+            }
+            return Response.ok(ACCESS_ALLOWED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
-
-        String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
-        if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        if (!IAMStorage.checkIfUserHasReadAccess(username, triplestoreID) &&
-                !IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
-                !IAMStorage.checkIfOwns(username, triplestoreID)) {
-            return Response.status(FORBIDDEN).build();
-        }
-        return Response.ok(ACCESS_ALLOWED).build();
     }
 
 
     @Override
     public Response checkWriteAccess(String triplestoreID, List<String> authorizationHeaders) {
-        String tokenID = extractAccessToken(authorizationHeaders);
-        if (tokenID == null)
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Check write access [" + tokenID + "]:" + triplestoreID);
-        Map<String, String> token = IAMStorage.getToken(tokenID);
-        if (token == null || token.isEmpty())
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
-
-        String username = token.get(TOKEN_USER_FIELD);
         try {
-            Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
-        } catch (SessionException e) {
-            return Response.status(UNAUTHORIZED).build();
-        }
+            String tokenID = extractAccessToken(authorizationHeaders);
+            if (tokenID == null)
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Check write access [" + tokenID + "]:" + triplestoreID);
+            Map<String, String> token = IAMStorage.getToken(tokenID);
+            if (token == null || token.isEmpty())
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
 
-        String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
-        if (!IAMStorage.triplestoreAccessListExists(triplestoreID)) {
-            if (triplestoreID.equals(tokenTriplestoreID))
+            String username = token.get(TOKEN_USER_FIELD);
+            try {
+                Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
+            } catch (SessionException e) {
+                return Response.status(UNAUTHORIZED).build();
+            }
+
+            String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
+            if (!IAMStorage.triplestoreAccessListExists(triplestoreID)) {
+                if (triplestoreID.equals(tokenTriplestoreID))
+                    return Response.status(FORBIDDEN).build();
+            }
+
+            if (!tokenTriplestoreID.equals(triplestoreID))
                 return Response.status(FORBIDDEN).build();
+
+            String lockID = token.get(TOKEN_LOCK_FIELD);
+            if (lockID == null)
+                return Response.status(FORBIDDEN).build();
+            else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
+                return Response.status(FORBIDDEN).build();
+
+            if (!IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
+                    !IAMStorage.checkIfOwns(username, triplestoreID)) {
+                return Response.status(FORBIDDEN).build();
+            }
+            return Response.ok(ACCESS_ALLOWED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
-
-        if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        String lockID = token.get(TOKEN_LOCK_FIELD);
-        if (lockID == null)
-            return Response.status(FORBIDDEN).build();
-        else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-            return Response.status(FORBIDDEN).build();
-
-        if (!IAMStorage.checkIfUserHasWriteAccess(username, triplestoreID) &&
-                !IAMStorage.checkIfOwns(username, triplestoreID)) {
-            return Response.status(FORBIDDEN).build();
-        }
-        return Response.ok(ACCESS_ALLOWED).build();
-
     }
 
     @Override
     public Response checkOwnerAccess(String triplestoreID, List<String> authorizationHeaders) {
-        String tokenID = extractAccessToken(authorizationHeaders);
-        if (tokenID == null)
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Check owner access [" + tokenID + "]:" + triplestoreID);
-        Map<String, String> token = IAMStorage.getToken(tokenID);
-        if (token == null || token.isEmpty())
-            return Response.status(UNAUTHORIZED).build();
-        System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
-
-        String username = token.get(TOKEN_USER_FIELD);
         try {
-            Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
-        } catch (SessionException e) {
-            return Response.status(UNAUTHORIZED).build();
+            String tokenID = extractAccessToken(authorizationHeaders);
+            if (tokenID == null)
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Check owner access [" + tokenID + "]:" + triplestoreID);
+            Map<String, String> token = IAMStorage.getToken(tokenID);
+            if (token == null || token.isEmpty())
+                return Response.status(UNAUTHORIZED).build();
+            System.out.println("Token: " + Arrays.toString(token.entrySet().toArray()));
+
+            String username = token.get(TOKEN_USER_FIELD);
+            try {
+                Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
+            } catch (SessionException e) {
+                return Response.status(UNAUTHORIZED).build();
+            }
+
+            String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
+            if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
+                return Response.status(FORBIDDEN).build();
+
+            if (!tokenTriplestoreID.equals(triplestoreID))
+                return Response.status(FORBIDDEN).build();
+
+            if (!IAMStorage.checkIfOwns(username, triplestoreID))
+                return Response.status(FORBIDDEN).build();
+
+            String lockID = token.get(TOKEN_LOCK_FIELD);
+            if (lockID == null)
+                return Response.status(FORBIDDEN).build();
+            else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
+                return Response.status(FORBIDDEN).build();
+            return Response.ok(ACCESS_ALLOWED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
-
-        String tokenTriplestoreID = token.get(TOKEN_TRIPLESTORE_FIELD);
-        if (!IAMStorage.triplestoreAccessListExists(triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        if (!tokenTriplestoreID.equals(triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        if (!IAMStorage.checkIfOwns(username, triplestoreID))
-            return Response.status(FORBIDDEN).build();
-
-        String lockID = token.get(TOKEN_LOCK_FIELD);
-        if (lockID == null)
-            return Response.status(FORBIDDEN).build();
-        else if (!LocksClient.checkIfTriplestoreLockExists(triplestoreID, lockID))
-            return Response.status(FORBIDDEN).build();
-        return Response.ok(ACCESS_ALLOWED).build();
     }
 
     @Override
@@ -624,9 +657,9 @@ public class TriplestoresController implements TriplestoresAPI {
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
         } catch (TooManyLockRetriesException e) {
-            return Response.status(REQUEST_TIMEOUT).build();
-        } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(LOCKED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -664,7 +697,8 @@ public class TriplestoresController implements TriplestoresAPI {
             return Response.ok(SUCCESSFUL_LOCK_RELEASE).build();
         } catch (SessionException e) {
             return Response.status(UNAUTHORIZED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
-
 }

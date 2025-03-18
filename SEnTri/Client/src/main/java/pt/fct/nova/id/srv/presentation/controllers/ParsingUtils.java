@@ -38,7 +38,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.EncryptedTriplestoreV2
 
 public class ParsingUtils {
     public static final String COOKIE_PARAM = "session";
-    public static final String INTERNAL_ERROR = "Internal error.";
     public static final String BASIC_SEPARATOR = System.getenv("BASIC_SEPARATOR");
     public static final String NODE_SEPARATOR = System.getenv("NODE_SEPARATOR");
     private static final String BLANK_PREFIX = "B";

@@ -51,7 +51,6 @@ import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
 @Path("triplestores")
 public class TriplestoreController implements TriplestoreAPI {
     public static final String SUCCESSFUL_DELETION = "Successful deletion.";
-    public static final String INTERNAL_ERROR = "Internal error.";
     public static final String INVALID_SYNTAX = "Invalid syntax.";
     static final String BAD_NODE = "Data must only contain concrete nodes: IRI, Blank, Literal.";
     public static final String NOT_IMPLEMENTED_ERROR = "Operation not yet supported.";
@@ -67,7 +66,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 return response.build();
             return Response.ok(SUCCESSFUL_CREATION).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -96,7 +95,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(INVALID_SYNTAX).status(BAD_REQUEST).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -107,7 +106,7 @@ public class TriplestoreController implements TriplestoreAPI {
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             return listTriplestores(httpClient, cookie, issuer, write, read, owns).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -125,7 +124,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return response.build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -152,7 +151,7 @@ public class TriplestoreController implements TriplestoreAPI {
         } catch (InvalidNodeException e) {
             return Response.ok(BAD_NODE).status(BAD_REQUEST).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -200,7 +199,7 @@ public class TriplestoreController implements TriplestoreAPI {
                 deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -242,7 +241,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.ok(NOT_IMPLEMENTED_ERROR).status(INTERNAL_SERVER_ERROR).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -378,7 +377,7 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -389,7 +388,7 @@ public class TriplestoreController implements TriplestoreAPI {
         try (CloseableHttpClient httpClient = HTTPClient.buildClient()) {
             return requestAccess(httpClient, cookie, triplestoreID, issuer, write).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -407,7 +406,7 @@ public class TriplestoreController implements TriplestoreAPI {
             IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (IOException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -425,7 +424,7 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -448,7 +447,7 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -471,7 +470,7 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -488,7 +487,7 @@ public class TriplestoreController implements TriplestoreAPI {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 

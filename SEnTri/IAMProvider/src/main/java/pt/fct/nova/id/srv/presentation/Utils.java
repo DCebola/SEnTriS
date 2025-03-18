@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.presentation;
 
 import jakarta.ws.rs.core.Cookie;
-import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.storage.redis.IAMStorage;
 import pt.fct.nova.id.srv.application.crypto.PasswordLib;
@@ -11,14 +10,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
-import static jakarta.ws.rs.core.Response.Status.*;
-
 public class Utils {
     private static final String BEARER = "Bearer";
-    public static final String INTERNAL_ERROR = "Internal error.";
     public static final String SUCCESSFUL_REQUEST_PROCESSING = "Successful request processing.";
     public static final String REQUEST_NOT_FOUND = "Request not found.";
-    public static final String OPERATION_TIMEOUT = "Operation timeout.";
 
     public static void authCheck(Cookie cookie, String username) throws InvalidCookieException, NoSessionFoundException, InvalidSessionException {
         if (cookie == null)

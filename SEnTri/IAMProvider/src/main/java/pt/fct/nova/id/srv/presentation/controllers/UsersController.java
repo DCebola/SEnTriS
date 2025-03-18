@@ -11,9 +11,7 @@ import pt.fct.nova.id.srv.application.crypto.PasswordLib;
 import pt.fct.nova.id.srv.presentation.Utils;
 import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
 import pt.fct.nova.id.srv.presentation.dtos.*;
-import pt.fct.nova.id.srv.presentation.exceptions.InvalidPasswordException;
-import pt.fct.nova.id.srv.presentation.exceptions.SessionException;
-import pt.fct.nova.id.srv.presentation.exceptions.UnknownUserException;
+import pt.fct.nova.id.srv.presentation.exceptions.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.*;
-import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.TOKEN_SESSION_FIELD;
 import static pt.fct.nova.id.srv.application.storage.redis.IAMStorage.TOKEN_USER_FIELD;
 import static pt.fct.nova.id.srv.presentation.Utils.*;
@@ -32,13 +29,12 @@ import static pt.fct.nova.id.srv.presentation.controllers.TriplestoresController
 @Path("/users")
 public class UsersController implements UsersAPI {
     private static final String SUCCESSFUL_AUTH = "Successful authentication.";
-    private static final String CAN_NOT_DELETE_STORE_OWNER = "Can not delete store owners.";
     private static final String SUCCESSFUL_USER_REGISTER = "Successful user registration.";
     private static final String SUCCESSFUL_USER_DELETE = "Successful user deletion.";
     private static final String SUCCESSFUL_ROLE_REQUEST_ISSUED = "Successful issued role request.";
     private static final String SUCCESSFUL_ROLE_GRANT = "Successful role grant.";
     private static final String REQUEST_DECISION_MALFORMED = "Request decision malformed.";
-    private static final String ALREADY_HAS_ROLE = "User already has role.";
+    public static final Response.Status LOCKED = Response.Status.fromStatusCode(423);
 
     @Override
     public Response auth(AuthForm credentials) {
@@ -49,8 +45,8 @@ public class UsersController implements UsersAPI {
             return Response.ok(SUCCESSFUL_AUTH).cookie(cookie).build();
         } catch (UnknownUserException | InvalidPasswordException e) {
             return Response.status(UNAUTHORIZED).build();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -68,9 +64,9 @@ public class UsersController implements UsersAPI {
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
         } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(CONFLICT).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -81,18 +77,16 @@ public class UsersController implements UsersAPI {
             String lockID = LocksClient.acquireUserLock(username);
             if (IAMStorage.checkIfOwnsAny(username)) {
                 LocksClient.releaseUserLock(username, lockID);
-                return Response.ok(CAN_NOT_DELETE_STORE_OWNER).build();
+                return Response.ok().build();
             }
             IAMStorage.deleteUser(username);
             LocksClient.deleteAllUserLocks(username);
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_DELETE).build();
-        } catch (SessionException e) {
-            return handleSessionException(e);
         } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
-        } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(LOCKED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -106,25 +100,23 @@ public class UsersController implements UsersAPI {
             Role issuerRole = IAMStorage.getRole(issuerUsername);
             Role role = roleForm.getRole();
             if (IAMStorage.getRole(username).equals(role))
-                return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
+                return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
             if (issuerRole.equals(BASIC) || issuerRole.equals(PRIVILEGED)) {
                 if (username.equals(issuerUsername)) {
                     IAMStorage.saveRoleRequest(username, role);
                     return Response.ok(SUCCESSFUL_ROLE_REQUEST_ISSUED).build();
                 } else
-                    return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                    return Response.status(UNAUTHORIZED).build();
             } else {
                 String lockID = LocksClient.acquireUserLock(username);
                 IAMStorage.setRole(username, role);
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
             }
-        } catch (SessionException e) {
-            return handleSessionException(e);
         } catch (TooManyLockRetriesException e) {
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
-        } catch (InterruptedException e) {
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(LOCKED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -134,10 +126,10 @@ public class UsersController implements UsersAPI {
             Utils.authCheck(cookie, username);
             Role role = IAMStorage.getRole(username);
             if (!role.equals(ADMIN))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
             return Response.ok(IAMStorage.getPendingRoleRequests()).build();
-        } catch (SessionException e) {
-            return handleSessionException(e);
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -149,7 +141,7 @@ public class UsersController implements UsersAPI {
             Utils.authCheck(cookie, username);
             Role issuerRole = IAMStorage.getRole(username);
             if (!issuerRole.equals(ADMIN))
-                return Response.ok(INSUFFICIENT_PERMISSIONS).status(FORBIDDEN).build();
+                return Response.status(UNAUTHORIZED).build();
             if (!IAMStorage.userExists(targetUser))
                 return Response.status(NOT_FOUND).build();
 
@@ -167,21 +159,17 @@ public class UsersController implements UsersAPI {
                 if (IAMStorage.getRole(targetUser).equals(req.role())) {
                     IAMStorage.deleteRoleRequest(requestID);
                     LocksClient.releaseUserLock(targetUser, lockID);
-                    return Response.ok(ALREADY_HAS_ROLE).status(BAD_REQUEST).build();
+                    return Response.ok(SUCCESSFUL_ROLE_GRANT).build();
                 }
                 IAMStorage.setRole(targetUser, req.role());
             }
             IAMStorage.deleteRoleRequest(requestID);
             LocksClient.releaseUserLock(targetUser, lockID);
             return Response.ok(SUCCESSFUL_REQUEST_PROCESSING).build();
-        } catch (SessionException e) {
-            return handleSessionException(e);
         } catch (TooManyLockRetriesException e) {
-            e.printStackTrace();
-            return Response.ok(OPERATION_TIMEOUT).status(INTERNAL_SERVER_ERROR).build();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(LOCKED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -189,17 +177,17 @@ public class UsersController implements UsersAPI {
     public Response checkIfActive(List<String> authorizationHeaders) {
         String tokenID = extractAccessToken(authorizationHeaders);
         if (tokenID == null)
-            return Response.ok(NO_ACCESS_TOKEN).status(BAD_REQUEST).build();
+            return Response.status(UNAUTHORIZED).build();
         Map<String, String> token = IAMStorage.getToken(tokenID);
         if (token == null || token.isEmpty())
-            return Response.ok(ACCESS_FORBIDDEN).status(FORBIDDEN).build();
+            return Response.status(UNAUTHORIZED).build();
 
         String username = token.get(TOKEN_USER_FIELD);
         try {
             Utils.authCheck(token.get(TOKEN_SESSION_FIELD), username);
-        } catch (SessionException e) {
-            return handleSessionException(e);
+            return Response.ok(ACCESS_ALLOWED).build();
+        } catch (Exception e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
-        return Response.ok(ACCESS_ALLOWED).build();
     }
 }

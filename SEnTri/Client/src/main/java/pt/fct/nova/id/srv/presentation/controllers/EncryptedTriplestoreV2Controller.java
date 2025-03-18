@@ -52,7 +52,6 @@ import java.util.*;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static pt.fct.nova.id.srv.application.query.QueryType.*;
 import static pt.fct.nova.id.srv.presentation.controllers.ParsingUtils.*;
-import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.INTERNAL_ERROR;
 import static pt.fct.nova.id.srv.presentation.controllers.TriplestoreController.*;
 
 @Path("triplestores/encrypted/v2")
@@ -102,7 +101,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return Response.ok(SUCCESSFUL_CREATION).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -116,7 +115,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 return response.build();
             return Response.ok(SUCCESSFUL_DELETION).build();
         } catch (Exception e) {
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -169,7 +168,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -270,7 +269,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return Response.ok(INVALID_SYNTAX).status(BAD_REQUEST).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -355,7 +354,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(INTERNAL_ERROR).status(INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
