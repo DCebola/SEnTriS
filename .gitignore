@@ -288,3 +288,5 @@ SEnTri/Scripts/Triplestore/db_data/
 *.war
 
 *.rdb
+
+SEnTri/SEnTri.code-workspace
