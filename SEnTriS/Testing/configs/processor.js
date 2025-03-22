@@ -47,17 +47,17 @@ var answers = new Map()
 
 // Loads dataset from disk
 function loadData() {
-	if (fs.existsSync('./Data/datasets.json')) {
-		JSON.parse(fs.readFileSync('./Data/datasets.json', 'utf8')).forEach(i => { datasetNames.push(i) })
-		fs.readdirSync('./Data/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
+	if (fs.existsSync('./data/datasets.json')) {
+		JSON.parse(fs.readFileSync('./data/datasets.json', 'utf8')).forEach(i => { datasetNames.push(i) })
+		fs.readdirSync('./data/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
 	}
-	if (fs.existsSync('./Data/ontologies.json')) {
-		JSON.parse(fs.readFileSync('./Data/ontologies.json', 'utf8')).forEach(i => { ontologyNames.push(i) })
-		fs.readdirSync('./Data/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
+	if (fs.existsSync('./data/ontologies.json')) {
+		JSON.parse(fs.readFileSync('./data/ontologies.json', 'utf8')).forEach(i => { ontologyNames.push(i) })
+		fs.readdirSync('./data/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
 	}
-	if (fs.existsSync('./Data/queries.json')) {
-		JSON.parse(fs.readFileSync('./Data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
-		fs.readdirSync('./Data/answers').forEach((data, i) => { answers.set(queries[i].name, data) })
+	if (fs.existsSync('./data/queries.json')) {
+		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
+		fs.readdirSync('./data/answers').forEach((data, i) => { answers.set(queries[i].name, data) })
 	}
 }
 loadData()

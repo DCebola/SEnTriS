@@ -20,9 +20,9 @@ do
 done
 
 cd ./fuseki
-cp -r ../Data/datasets ./datasets
+cp -r ../data/datasets ./datasets
 wait
-cp ../Data/ontologies/lubm-ontology.owl ./datasets
+cp ../data/ontologies/lubm-ontology.owl ./datasets
 wait
 for i in 0 1 5 10 20
 do
