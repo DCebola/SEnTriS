@@ -71,7 +71,7 @@ GET    IAMProvider/api/triplestores/{TriplestoreID}/access/tokens/owner         
 POST   IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Lock access to triplestore.    (Write access)
 DELETE IAMProvider/api/triplestores/{TriplestoreID}/access/locks                #Unlock access to triplestore.  (Write access)
 ```
-### Secrets' Vault API
+### Secret Vault API
 ```perl
 GET    Vault/api/ctrl/version             #Get service version.            (Basic)
 
