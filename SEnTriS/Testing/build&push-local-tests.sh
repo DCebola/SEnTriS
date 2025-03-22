@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 2  ]; then
-    echo "Usage: build&push-tests <docker-registry> <dropbox-token>"
+if [ $# -ne 1  ]; then
+    echo "Usage: build&push-tests <docker-registry>"
     exit 1
 fi
 
@@ -9,9 +9,9 @@ for scenario in lubm-upload
 do
     docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentris-test-$scenario" --format "{{.ID}}")) &> /dev/null
     wait
-    docker build -t $1/sentris-$scenario \
+    docker build -f local.Dockerfile \
+    -t $1/sentris-test-$scenario \
     --build-arg TEST_SCENARIO=$scenario \
-    --build-arg DROPBOX_TOKEN=$2 \
     .
     wait
     docker push $1/sentris-$scenario

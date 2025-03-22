@@ -8,24 +8,15 @@ module.exports = {
 	extractAdminCookie,
 
 	genUser,
-	genRoleUpgradeRequest,
 	selectUser,
-	selectAdminUser,
 	processGenUserReply,
 	selectRoleRequest,
 
 	genTriplestore,
 	extractTriplestoreList,
 	selectTriplestoreFromList,
-	genReadAccessRequest,
-	genWriteAccessRequest,
-	setDatasets,
-	hasDataset,
 	uploadDataset,
 	uploadOntology,
-
-	genSPARQLQuery,
-
 }
 
 const Faker = require('faker')
@@ -128,6 +119,7 @@ function processGenUserReply(response, context, next) {
 	return next()
 }
 
+
 /**
  * Extracts the role request id
  */
@@ -190,10 +182,6 @@ function uploadOntology(requestParams, context, next) {
 	form.append('contents', ontologies.get(ontologyNames[0]))
 	requestParams.body = form
 	return next()
-}
-
-function hasDataset() {
-	return next(context.vars.datasetNames.length !== 0)
 }
 
 /**

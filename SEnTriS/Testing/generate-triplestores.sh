@@ -5,11 +5,11 @@ if [ $# -ne 0  ]; then
     exit 1
 fi
 
-for i in 1 5 10 20
+for i in 2 3 4
 do
    sh lubm-generator/generate.sh -u $i -q --consolidate Full --onto http://swat.cse.lehigh.edu/onto/univ-bench.owl
    wait
-   cp Universities-1.owl ./Data/LUBM/datasets/lubm-$i.owl
+   cp Universities-1.owl ./data/datasets/lubm-$i.owl
    wait
 done
 
