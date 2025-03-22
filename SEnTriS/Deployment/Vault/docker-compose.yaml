@@ -1,0 +1,54 @@
+services:
+    vault-db:
+      image: redis:latest
+      container_name: sentris-vault-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./data:/data
+        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ../SSL/vault-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/vault-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/vault-redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      expose:
+        - "6379"
+      networks:
+        - sentris-vault-backend
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    vault-api:
+      depends_on:
+        - vault-db
+      image: ${DOCKER_REGISTRY}/sentris-vault-api
+      container_name: sentris-vault-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/vault-truststore.ks:/usr/local/tomcat/ssl/vault-truststore.ks
+        - ../SSL/vault-cert.pem:/usr/local/tomcat/ssl/vault-cert.pem
+        - ../SSL/vault-key.pem:/usr/local/tomcat/ssl/vault-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      expose:
+        - "8443"
+      networks:
+        - sentris-vault-backend
+        - sentris-vault-frontend
+        - sentris-iam-provider-frontend
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/vault-secrets.env
+
+volumes:
+    data:
+
+networks:
+  sentris-vault-backend:
+    name: sentris-vault-backend
+    driver: bridge
+  sentris-vault-frontend:
+    name: sentris-vault-frontend
+    driver: bridge
+  sentris-iam-provider-frontend:
+    name: sentris-iam-provider-frontend
+    external: true

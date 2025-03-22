@@ -1,0 +1,36 @@
+services:
+  client-api:
+    image: ${DOCKER_REGISTRY}/sentris-client-api
+    container_name: sentris-client
+    command: >
+      sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+    volumes:
+      - ../SSL/client-truststore.ks:/usr/local/tomcat/ssl/client-truststore.ks
+      - ../SSL/client-cert.pem:/usr/local/tomcat/ssl/client-cert.pem
+      - ../SSL/client-key.pem:/usr/local/tomcat/ssl/client-key.pem
+      - ./server.xml:/usr/local/tomcat/conf/server.xml
+    ports:
+      - "8080:8443"
+    networks:
+      - sentris-client-frontend
+      - sentris-vault-frontend
+      - sentris-iam-provider-frontend
+      - sentris-triplestore-frontend
+    env_file:
+      - ./system-properties.env
+      - ../Secrets/client-secrets.env
+
+networks:
+  sentris-client-frontend:
+    name: sentris-client-frontend
+    driver: bridge
+  sentris-vault-frontend:
+    name: sentris-vault-frontend
+    external: true
+  sentris-iam-provider-frontend:
+    name: sentris-iam-provider-frontend
+    external: true
+  sentris-triplestore-frontend:
+    name: sentris-triplestore-frontend
+    external: true
+  

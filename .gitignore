@@ -271,22 +271,24 @@ TSWLatexianTemp*
 
 # xwatermark package
 *.xwm
-SEnTri/*/.idea/
+SEnTriS/*/.idea/
 
-SEnTri/*/SSL/
+SEnTriS/*/SSL/
 
-SEnTri/*/Secrets/
+SEnTriS/*/Secrets/
 
-SEnTri/Testing/*/datasets/
+SEnTriS/Testing/*/datasets/
 
-SEnTri/*/db_data/
+SEnTriS/*/db_data/
 
-SEnTri/*/target/
+SEnTriS/*/target/
 
-SEnTri/Scripts/Triplestore/db_data/
+SEnTriS/Scripts/Triplestore/db_data/
 
 *.war
 
 *.rdb
 
-SEnTri/SEnTri.code-workspace
+SEnTriS/SEnTri.code-workspace
+
+*.code-workspace

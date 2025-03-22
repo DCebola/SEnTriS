@@ -1,0 +1,58 @@
+services:
+    proxy-db:
+      image: redis:latest
+      container_name: sentris-proxy-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./data:/data
+        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ../SSL/proxy-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/proxy-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/proxy-redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      expose:
+        - "6379"
+      networks:
+        - sentris-proxy-backend
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    proxy-api:
+      depends_on:
+        - proxy-db
+      image: ${DOCKER_REGISTRY}/sentris-proxy-api
+      container_name: sentris-proxy-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/proxy-truststore.ks:/usr/local/tomcat/ssl/proxy-truststore.ks
+        - ../SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
+        - ../SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      expose:
+        - "8443"
+      networks:
+        - sentris-proxy-backend
+        - sentris-proxy-frontend
+        - sentris-iam-provider-frontend
+        - sentris-vault-frontend
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/proxy-secrets.env
+
+volumes:
+    data:
+
+networks:
+  sentris-proxy-backend:
+    name: sentris-proxy-backend
+    driver: bridge
+  sentris-proxy-frontend:
+    name: sentris-proxy-frontend
+    driver: bridge
+  sentris-iam-provider-frontend:
+    name: sentris-iam-provider-frontend
+    external: true
+  sentris-vault-frontend:
+    name: sentris-vault-frontend
+    external: true

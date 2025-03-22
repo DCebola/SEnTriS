@@ -1,0 +1,50 @@
+services:
+    iam-provider-db:
+      image: redis:latest
+      container_name: sentris-iam-provider-db
+      command: redis-server ../usr/local/etc/redis/redis.conf
+      volumes:
+        - ./data:/data
+        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
+        - ../SSL/iam-provider-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
+        - ../SSL/iam-provider-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
+        - ../SSL/iam-provider-redis.dh:/usr/local/etc/redis/tls/redis.dh
+        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+      expose:
+        - "6379"
+      networks:
+        - sentris-iam-provider-backend
+      environment:
+        REDIS_TLS_ENABLED: "yes"
+
+    iam-provider-api:
+      depends_on:
+        - iam-provider-db
+      image: ${DOCKER_REGISTRY}/sentris-iam-provider-api
+      container_name: sentris-iam-provider-api
+      command: >
+        sh -c "echo 'org.apache.tomcat.util.digester.PROPERTY_SOURCE=org.apache.tomcat.util.digester.EnvironmentPropertySource' >> conf/catalina.properties && catalina.sh run"
+      volumes:
+        - ../SSL/iam-provider-truststore.ks:/usr/local/tomcat/ssl/iam-provider-truststore.ks
+        - ../SSL/iam-provider-cert.pem:/usr/local/tomcat/ssl/iam-provider-cert.pem
+        - ../SSL/iam-provider-key.pem:/usr/local/tomcat/ssl/iam-provider-key.pem
+        - ./server.xml:/usr/local/tomcat/conf/server.xml
+      ports:
+        - "8081:8443"
+      networks:
+        - sentris-iam-provider-backend
+        - sentris-iam-provider-frontend
+      env_file:
+        - ./system-properties.env
+        - ../Secrets/iam-provider-secrets.env
+
+volumes:
+    data:
+
+networks:
+  sentris-iam-provider-backend:
+    name: sentris-iam-provider-backend
+    driver: bridge
+  sentris-iam-provider-frontend:
+    name: sentris-iam-provider-frontend
+    driver: bridge
