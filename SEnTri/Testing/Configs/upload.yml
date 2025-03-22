@@ -76,7 +76,7 @@ before:
           cookie: "[{{ admin_session_cookie }}]"
 
 scenarios:
- - name: 'Experimental evaluation'
+ - name: 'Experimental evaluation: Upload Size'
    weight: 1
    flow:                         
       - loop:
@@ -133,60 +133,3 @@ scenarios:
         loopElement: "$version"
         over: "version"
 
-      #Loop over datasets (lubm-1, lubm-5, lubm-10, lubm-20)
-        #Loop over protocols
-          #Repeat 10
-            #Create triplestore
-            #Upload dataset
-            #Upload ontology
-            #Get info (size expansion)
-            #Delete triplestore
-      
-      #@Before create 1 priviledged user 
-      #Loop over datasets (lubm-1, lubm-5)
-        #Loop over protocols
-          #Loop over queries
-              #Repeat 10
-
-      #@Before create 5 priviledged users 
-      #Loop over protocols
-        #Loop over 5 users (owner)
-          # Create triplestore
-          # [owner-write] test_owner_access :check pass | http_200
-          # [owner-read]  (test_owner_access :check x?) | x? -> pass
-          # [owner-write] test_shared_read_access :check pass | http_200
-          # Loop over [No access, read access, write access, remove write access, remove read access]
-            # Loop over other 4 other users
-              # Give access to user, respecting the current access policy
-              # [user-read] (test_shared_read_access :check x?) | x? -> pass or http_403
-              # [user-write] (test_shared_write_access :check pass) | http_200 or http_403
-              # If http_200, [user-read] (test_shared_write_access :check x?) | x? -> pass
-          # Transfer ownership to rnd user
-          # [rnd-user-delete] Delete transfered triplestore
-      #Set BASIC role to 4 users, keep 1 privileged
-      #Loop over protocols
-        # [priviledged]Create triplestore
-        # [owner-write] test_owner_access :check pass | http_200
-        # [owner-read]  (test_owner_access :check x?) | x? -> pass
-        # [owner-write] test_shared_read_access :check pass | http_200
-        # Loop over [No access, read access, write access, remove write access, remove read access]
-          # Loop over other 4 basic users
-            # Issue access request to triplestore, respecting the current access policy
-            # Owner validates access request
-            # [user-read] (test_shared_read_access :check x?) | x? -> pass or http_403
-            # [user-write] (test_shared_write_access :check pass) | http_200 or http_403
-            # If http_200, [user-read] (test_shared_write_access :check x?) | x? -> pass
-            # Transfer ownership to user | expect error
-
-      #@Before create 25 priviledged users, 1 triplestore
-      #@Before create 1 triplestore
-      # Parallel test
-      # 5 users, 1 triplestore
-      # Try to write, if success no timeout, assert write succeeded 
-
-
-# LUBM - Upload: 4 datasets * 2 protocols * 10 repetitions = 80 creation, 80 dataset upload, 80 ontology uploads, 80 deletions
-# LUBM - Latency: 2 datasets * 2 protocols * 14 queries * 10 repetitions = 560 queries
-# LUBM - Correcteness & Soundness: 1 dataset * 2 protocols * 14 queries * 3 repetitions = 140 queries
-# RBAC - Sharing Triplestores: 
-# M/M Setting (10 users, 1 triplestore concurrent read & write)
