@@ -13,13 +13,12 @@ module.exports = {
 	selectRoleRequest,
 
 	genTriplestore,
-	extractTriplestoreList,
-	selectTriplestoreFromList,
 	uploadDataset,
 	uploadOntology,
+	processTriplestoreSize,
 }
 
-const Faker = require('faker')
+const Faker = require("faker")
 const fs = require('fs')
 const FormData = require('form-data');
 
@@ -69,23 +68,24 @@ function random(context, next) {
 /**
  * Extracts the session cookie.
  */
-function extractCookie(response, context, next) {
-	console.log(JSON.stringify(context))
+function extractCookie(request, response, context, events, done) {
+	console.log(response)
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
+				console.log(header)
 				context.vars.session_cookie = header.split(';')[0];
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
 		}
 	}
-	return next()
+	return done()
 }
 
 /**
  * Extracts the session cookie.
  */
-function extractAdminCookie(response, context, next) {
+function extractAdminCookie(request, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
@@ -94,13 +94,13 @@ function extractAdminCookie(response, context, next) {
 			}
 		}
 	}
-	return next()
+	return done()
 }
 
 /**
  * Generate data for a new user using Faker
  */
-function genUser(context, done) {
+function genUser(context, events, done) {
 	context.vars.username = Faker.internet.userName(Faker.name.firstName(), Faker.name.lastName())
 	context.vars.password = `${Faker.internet.password()}`
 	return done()
@@ -109,21 +109,21 @@ function genUser(context, done) {
 /**
  * Stores new user data
  */
-function processGenUserReply(response, context, next) {
+function processGenUserReply(request, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		users.push({
 			"username": context.vars.username,
 			"password": context.vars.password
 		})
 	}
-	return next()
+	return done()
 }
 
 
 /**
  * Extracts the role request id
  */
-function selectRoleRequest(response, next) {
+function selectRoleRequest(request, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		requestID = JSON.parse(response.body).filter(r => {
 			if (r.username === context.vars.username)
@@ -132,7 +132,7 @@ function selectRoleRequest(response, next) {
 		if (requestID != undefined)
 			context.vars.role_request_id = requestID
 	}
-	return next()
+	return done()
 }
 
 /**
@@ -153,7 +153,7 @@ function selectUser(context, done) {
  * Generate data for a new triplestore
  */
 function genTriplestore(context, done) {
-	context.vars.
+	console.log(context)
 	context.vars.triplestoreID = `${Faker.string.nanoid()}`
 	return done()
 }
@@ -181,6 +181,14 @@ function uploadOntology(requestParams, context, next) {
 	form.append('syntax', "rdf/xml")
 	form.append('contents', ontologies.get(ontologyNames[0]))
 	requestParams.body = form
+	return next()
+}
+
+function processTriplestoreSize(response, context, next) {
+	if (response.statusCode >= 200 && response.statusCode < 300) {
+		console.log(JSON.parse(response.body))
+		events.emit("histogram", queryName + ".size", JSON.parse(response.body));
+	}
 	return next()
 }
 
