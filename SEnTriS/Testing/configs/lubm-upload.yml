@@ -120,13 +120,20 @@ scenarios:
                       Content-Type: multipart/form-data
                       cookie: "[{{ session_cookie }}]"
                     beforeRequest: uploadOntology
+                - log: "Get size: {{ $dataset }}"
+                - get:                          
+                    url: ":8080/Client/api/triplestores/info/{{ triplestoreID }}/{{ username }}"
+                    name: "info-{{ $dataset }}"
+                    headers:
+                      cookie: "[{{ session_cookie }}]"
+                    afterRequest: processTriplestoreSize
                 - log: "Deleting triplestore: {{ $dataset }}"
                 - delete:                          
                     url: ":8080/Client/api/triplestores/encrypted/{{ $version }}/{{ triplestoreID }}/{{ username }}"
                     name: "delete-triplestore-{{ $dataset }}"
                     headers:
                       cookie: "[{{ session_cookie }}]"
-                count: 10
+                count: 3
             loopElement: "$dataset"
             over: "datasets"
         loopElement: "$version"

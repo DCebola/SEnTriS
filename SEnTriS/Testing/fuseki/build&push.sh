@@ -24,7 +24,7 @@ cp -r ../data/datasets ./datasets
 wait
 cp ../data/ontologies/lubm-ontology.owl ./datasets
 wait
-for i in 0 1 5 10 20
+for i in 0 1 2 3 4 5 10 20
 do
    docker build --build-arg dataset=$i -t $1/fuseki-$i .
    wait
