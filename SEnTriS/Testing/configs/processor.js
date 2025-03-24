@@ -11,6 +11,7 @@ module.exports = {
 	selectUser,
 	processGenUserReply,
 	selectRoleRequest,
+	generateAuthRequest,
 
 	genTriplestore,
 	uploadDataset,
@@ -68,7 +69,7 @@ function random(context, next) {
 /**
  * Extracts the session cookie.
  */
-function extractCookie(request, response, context, events, done) {
+function extractCookie(requestParams, response, context, events, done) {
 	console.log(response)
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
@@ -85,7 +86,7 @@ function extractCookie(request, response, context, events, done) {
 /**
  * Extracts the session cookie.
  */
-function extractAdminCookie(request, response, context, events, done) {
+function extractAdminCookie(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
@@ -109,7 +110,7 @@ function genUser(context, events, done) {
 /**
  * Stores new user data
  */
-function processGenUserReply(request, response, context, events, done) {
+function processGenUserReply(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		users.push({
 			"username": context.vars.username,
@@ -119,18 +120,26 @@ function processGenUserReply(request, response, context, events, done) {
 	return done()
 }
 
+function generateAuthRequest(requestParams, context, events, done) {
+	const form = new FormData()
+	form.append('username', context.vars.username)
+	form.append('password', context.vars.password)
+	requestParams.formData = form
+	return done()
+}
+
 
 /**
- * Extracts the role request id
+ * Extracts the role requestParams id
  */
-function selectRoleRequest(request, response, context, events, done) {
+function selectRoleRequest(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		requestID = JSON.parse(response.body).filter(r => {
+		let requestParamsID = JSON.parse(response.body).filter(r => {
 			if (r.username === context.vars.username)
-				return r.requestID
+				return r.requestParamsID
 		});
-		if (requestID != undefined)
-			context.vars.role_request_id = requestID
+		if (requestParamsID != undefined)
+			context.vars.role_requestParams_id = requestParamsID
 	}
 	return done()
 }
@@ -138,7 +147,8 @@ function selectRoleRequest(request, response, context, events, done) {
 /**
  * Select an user.
  */
-function selectUser(context, done) {
+function selectUser(context, events, done) {
+
 	if (users.length > 0) {
 		let user = users.sample()
 		context.vars.username = user.username

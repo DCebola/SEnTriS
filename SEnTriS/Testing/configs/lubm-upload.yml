@@ -28,15 +28,14 @@ before:
     - post:
         url: "/Client/api/users"
         name: "create-user"
-        headers:
-          Content-Type: multipart/form-data
+        formData:
+          username: "{{ username }}"
+          password: "{{ password }}"
         afterResponse: "processGenUserReply"
     - post:                          
         url: "/Client/api/users/auth"
         name: "auth"
-        headers:
-          Content-Type: multipart/form-data
-        json:
+        formData:
           username: "{{ username }}"
           password: "{{ password }}"
         afterResponse: "extractCookie"
@@ -45,15 +44,13 @@ before:
         name: "issue-upgrade-role-request"
         headers:
           cookie: "[{{ session_cookie }}]"
-        json:
+        formData:
           username: "{{ username }}"
           password: "{{ password }}"     
     - post:                          
         url: "/Client/api/users/auth"
         name: "auth"
-        headers:
-          Content-Type: multipart/form-data
-        json:
+        formData:
           username: "admin"
           password: "admin"
         afterResponse: "extractAdminCookie"
@@ -68,9 +65,11 @@ before:
         ifTrue: 'role_request_id'
         name: "process-role-request"
         headers:
-          Content-Type: multipart/form-data
           cookie: "[{{ admin_session_cookie }}]"
-
+        formData:
+          target: "{{ username }}"
+          accept: "true"
+          
 scenarios:
  - name: 'Experimental evaluation: Upload Size'
    weight: 1
@@ -80,8 +79,6 @@ scenarios:
       - post:                          
           url: "/Client/api/users/auth"
           name: "auth"
-          headers:
-            Content-Type: multipart/form-data
           json:
             username: "{{ username }}"
             password: "{{ password }}"
