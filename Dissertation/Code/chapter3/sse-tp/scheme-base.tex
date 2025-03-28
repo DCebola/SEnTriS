@@ -69,7 +69,7 @@ function encryptTriples($triples$):
         $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_s$, "S" || $keyword_p$ || $keyword_o$) }
         $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_p$, "P" || $keyword_s$ || $keyword_o$) }
         $\textrm{\emph{f}}req$ := $\textrm{\emph{f}}req$ :U { encryptNode($parsed_o$, "O" || $keyword_s$ || $keyword_p$) }
-        encryptTriple("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $\textrm{\emph{f}}req$)
+        encryptTriplePattern("SPO" || $keyword_s$ || $keyword_p$ || $keyword_o$, $\textrm{\emph{f}}req$)
  
 function encryptTriplePattern($keyword$, $frequencies$): 
     $i$ := 0

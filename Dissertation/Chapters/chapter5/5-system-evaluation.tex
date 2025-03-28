@@ -6,8 +6,29 @@
 
 \prependtographicspath{{Figures/}}
 
+In this chapter we present the experimental evaluation of \gls{SEnTriS}. We start by analyzing and discussing the solution's storage and query complexity, in Section \ref{ch5:complexity-analysis}. In Section \ref{ch5:setup-methodology}, we present the experimental evaluation conducted: we describe the testing environments; explain the experimental evaluation scenarios; present and discuss the results. Finally, in Section \ref{ch5:security-analysis}, we present \gls{SEnTriS} security properties, analyze the leakage, and discuss the trade-offs between each version of the protocol.
+
+\section{Complexity Analysis}
+\label{ch5:complexity-analysis}
+
+\subsection{Storage Complexity}
+%Space complexity in terms of RDF terms
+\subsubsection{SEnTriS V1}
+\subsubsection{SEnTriS V2}
+
+\subsection{Query Evaluation Complexity}
+%Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
+\subsubsection{SEnTriS V1}
+\subsubsection{SEnTriS V2}
+
 \section{Experimental Evaluation}
-\subsection{Setup \& Methodology}
+
+ 
+
+
+
+\subsection{Setup \& Methodology} 
+\label{ch5:setup-methodology}
 \subsubsection{Validation Scenarios}
 \subsubsection{LUBM Scenarios}
 \subsection{Experimental Results}
@@ -20,7 +41,7 @@
 \subsubsection{Result Analysis}
 
 \section{Security Analysis}
-
+\label{ch5:security-analysis}
 In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model, defined in Section \ref{ch3:sec:solution-models:security-model}. We will start by enumerating the security properties of the different versions.
 
 \subsection{Security Properties}
@@ -51,19 +72,6 @@ We expect all implementations of \gls{SEnTriS} to possess the following \emph{se
 \subsection{Security Properties Proofs}
 
 %Corolary: sentry v2 leakage is reduced
-
-
-\section{Complexity Analysis}
-
-\subsection{Storage Complexity}
-%Space complexity in terms of RDF terms
-\subsubsection{SEnTriS V1}
-\subsubsection{SEnTriS V2}
-
-\subsection{Query Evaluation Complexity}
-%Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
-\subsubsection{SEnTriS V1}
-\subsubsection{SEnTriS V2}
 
 \section{Final Discussion}
 
