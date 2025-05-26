@@ -23,7 +23,7 @@ const Faker = require("faker")
 const fs = require('fs')
 const FormData = require('form-data');
 
-setTimeout(console.log, +Infinity)
+setTimeout(console.log, 2147483647)
 
 var users = []
 var admin_cookie = ""
@@ -50,6 +50,9 @@ function loadData() {
 		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
 		fs.readdirSync('./data/answers').forEach((data, i) => { answers.set(queries[i].name, data) })
 	}
+	if (fs.existsSync('./data/users.json')) {
+		JSON.parse(fs.readFileSync('./data/users.json', 'utf8')).forEach(i => { users.push(i) })
+	}
 }
 loadData()
 
@@ -70,11 +73,10 @@ function random(context, next) {
  * Extracts the session cookie.
  */
 function extractCookie(requestParams, response, context, events, done) {
-	console.log(response)
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
-				console.log(header)
+				console.log("[extract_cookie] - " + header)
 				context.vars.session_cookie = header.split(';')[0];
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
@@ -90,6 +92,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
+				console.log("[extract_admin_cookie] - " + header)
 				admin_cookie = header.split(';')[0];
 				context.vars.admin_session_cookie = admin_cookie
 			}
@@ -104,6 +107,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 function genUser(context, events, done) {
 	context.vars.username = Faker.internet.userName(Faker.name.firstName(), Faker.name.lastName())
 	context.vars.password = `${Faker.internet.password()}`
+	console.log("[generate-user] - " + context.vars.username + " | " + context.vars.password)
 	return done()
 }
 
@@ -116,6 +120,7 @@ function processGenUserReply(requestParams, response, context, events, done) {
 			"username": context.vars.username,
 			"password": context.vars.password
 		})
+		console.log("[process-generate-user] - Saved User: " + JSON.stringify(users))
 	}
 	return done()
 }
@@ -148,13 +153,15 @@ function selectRoleRequest(requestParams, response, context, events, done) {
  * Select an user.
  */
 function selectUser(context, events, done) {
-
 	if (users.length > 0) {
 		let user = users.sample()
 		context.vars.username = user.username
 		context.vars.password = user.password
-		if (sessions.has(username))
+		console.log("[select-user] - " + user.username + " | " + user.password)
+		if (sessions.has(user.username)) {
 			context.vars.session_cookie = sessions.get(user.username)
+			console.log("[select-user-session] - " + sessions.get(user.username))
+		}
 	}
 	return done()
 }
@@ -163,7 +170,7 @@ function selectUser(context, events, done) {
  * Generate data for a new triplestore
  */
 function genTriplestore(context, done) {
-	console.log(context)
+	console.log("genTriplestore")
 	context.vars.triplestoreID = `${Faker.string.nanoid()}`
 	return done()
 }

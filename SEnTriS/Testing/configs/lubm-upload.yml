@@ -24,14 +24,13 @@ config:
 
 before:
   flow:
-    - function: "genUser"    
+    - function: "selectUser"    
     - post:
         url: "/Client/api/users"
         name: "create-user"
         formData:
           username: "{{ username }}"
           password: "{{ password }}"
-        afterResponse: "processGenUserReply"
     - post:                          
         url: "/Client/api/users/auth"
         name: "auth"

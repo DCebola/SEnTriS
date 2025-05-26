@@ -7,7 +7,7 @@
 
 **Scenario:**
 
-1. Loop over datasets (lubm-1, lubm-5, lubm-10, lubm-20)
+1. Loop over datasets (lubm-1, lubm-2, lubm-3, lubm-4, lubm-5)
 2. Loop over protocols
    1. Repeat 10
       1.  Create triplestore
