@@ -1,132 +1,129 @@
 config:
   target: 'https://host.docker.internal:8080'
-  tls:
-    rejectUnauthorized: false
   http:
     timeout: 3600 #1hour timeout
   plugins:
     metrics-by-endpoint: 
   processor: "./processor.js"
-  variables:
-    version:
-      - "v1"
-      - "v2"
-    datasets:
-      - "lubm-0"
-      - "lubm-1"
-      #- "lubm-5"
-      #- "lubm-10"
-      #- "lubm-20"
   phases:  
     - name: "test"
       duration: 1
       arrivalCount: 1
-
-before:
-  flow:
-    - function: "selectUser"    
-    - post:
-        url: "/Client/api/users"
-        name: "create-user"
-        formData:
-          username: "{{ username }}"
-          password: "{{ password }}"
-    - post:                          
-        url: "/Client/api/users/auth"
-        name: "auth"
-        formData:
-          username: "{{ username }}"
-          password: "{{ password }}"
-        afterResponse: "extractCookie"
-    - post:                          
-        url: "/Client/api/users/{{ username }}/upgrade"
-        name: "issue-upgrade-role-request"
-        headers:
-          cookie: "[{{ session_cookie }}]"
-        formData:
-          username: "{{ username }}"
-          password: "{{ password }}"     
-    - post:                          
-        url: "/Client/api/users/auth"
-        name: "auth"
-        formData:
-          username: "admin"
-          password: "admin"
-        afterResponse: "extractAdminCookie"
-    - get:                          
-        url: "/Client/api/users/admin/requests"
-        name: "list-role-request"
-        headers:
-          cookie: "[{{ admin_session_cookie }}]"
-        afterResponse: "selectRoleRequest"
-    - post:                          
-        url: "/Client/api/users/admin/requests/{{ role_request_id }}"
-        ifTrue: 'role_request_id'
-        name: "process-role-request"
-        headers:
-          cookie: "[{{ admin_session_cookie }}]"
-        formData:
-          target: "{{ username }}"
-          accept: "true"
-          
+     
 scenarios:
  - name: 'Experimental evaluation: Upload Size'
    weight: 1
    flow:      
-      - log: "Authenticating user"
-      - function: "selectUser"
+      - function: "genUser"    
+      - post:
+          url: "/Client/api/users"
+          name: "create-user"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
       - post:                          
           url: "/Client/api/users/auth"
           name: "auth"
-          json:
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          afterResponse: "extractCookie"
+      - post:                          
+          url: "/Client/api/users/{{ username }}/upgrade"
+          name: "issue-upgrade-role-request"
+          headers:
+            cookie: "{{ session_cookie }}"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"     
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "admin"
+            password: "admin"
+          afterResponse: "extractAdminCookie"
+      - get:                          
+          url: "/Client/api/users/admin/requests"
+          name: "list-role-request"
+          headers:
+            cookie: "{{ admin_session_cookie }}"
+          afterResponse: "selectRoleRequest"
+      - put:                          
+          url: "/Client/api/users/admin/requests/{{ role_request_id }}"
+          ifTrue: 'role_request_id'
+          name: "process-role-request"
+          headers:
+            cookie: "{{ admin_session_cookie }}"
+          formData:
+            target: "{{ username }}"
+            accept: "true"
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
             username: "{{ username }}"
             password: "{{ password }}"
           afterResponse: "extractCookie"
       - loop:
           - loop:
               - loop:
-                - log: "Create triplestore: {{ $dataset }}"
+                - log: "Create triplestore: {{ dataset }}"
                 - function: "genTriplestore"
                 - post:                          
-                    url: "/Client/api/triplestores/encrypted/{{ $version }}"
-                    name: "create-triplestore-{{ $dataset }}"
+                    url: "/Client/api/triplestores/encrypted/{{ version }}"
+                    name: "create-triplestore-{{ dataset }}"
                     headers:
-                      Content-Type: multipart/form-data
-                      cookie: "[{{ session_cookie }}]"
+                      cookie: "{{ session_cookie }}"
                     formData:
                       issuer: "{{ username }}"
                       triplestoreID: "{{ triplestoreID }}"
-                - log: "Uploading dataset: {{ $dataset }}"
-                - function: "uploadDataset"
+                - log: "Uploading dataset: {{ dataset }}"
                 - post:                          
-                    url: "/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=false"
-                    name: "upload-dataset-{{ $dataset }}"
+                    url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=false"
+                    name: "upload-dataset-{{ dataset }}"
                     headers:
-                      Content-Type: multipart/form-data
-                      cookie: "[{{ session_cookie }}]"
-                - log: "Uploading ontology: {{ $dataset }}"
-                - function: "uploadOntology"
+                      cookie: "{{ session_cookie }}"
+                    formData:
+                      issuer: "{{ username }}"
+                      triplestoreID: "{{ triplestoreID }}"
+                      syntax: "rdf/xml"
+                      contents:
+                        fromFile: "./data/datasets/{{ dataset }}.owl"
+                - log: "Uploading ontology: {{ dataset }}"
                 - post:                          
-                    url: "/Client/api/triplestores/encrypted/{{ $version }}/upload?schema=true"
-                    name: "upload-ontology-{{ $dataset }}"
+                    url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=true"
+                    name: "upload-ontology-{{ dataset }}"
                     headers:
-                      Content-Type: multipart/form-data
-                      cookie: "[{{ session_cookie }}]"
-                - log: "Get size: {{ $dataset }}"
+                      cookie: "{{ session_cookie }}"
+                    formData:
+                      issuer: "{{ username }}"
+                      triplestoreID: "{{ triplestoreID }}"
+                      syntax: "rdf/xml"
+                      contents:
+                        fromFile: "./data/ontologies/lubm-ontology.owl"
+                - log: "Get size: {{ dataset }}"
                 - get:                          
                     url: "/Client/api/triplestores/info/{{ triplestoreID }}/{{ username }}"
-                    name: "info-{{ $dataset }}"
+                    name: "info-{{ dataset }}"
                     headers:
-                      cookie: "[{{ session_cookie }}]"
-                    afterRequest: processTriplestoreSize
-                - log: "Deleting triplestore: {{ $dataset }}"
+                      cookie: "{{ session_cookie }}"
+                    afterRequest: "processTriplestoreSize"
+                - log: "Deleting triplestore: {{ dataset }}"
                 - delete:                          
-                    url: "/Client/api/triplestores/encrypted/{{ $version }}/{{ triplestoreID }}/{{ username }}"
-                    name: "delete-triplestore-{{ $dataset }}"
+                    url: "/Client/api/triplestores/encrypted/{{ version }}/{{ triplestoreID }}/{{ username }}"
+                    name: "delete-triplestore-{{ dataset }}"
                     headers:
-                      cookie: "[{{ session_cookie }}]"
-                count: 3
-            loopElement: "$dataset"
-            over: "datasets"
-        loopElement: "$version"
-        over: "version"
+                      cookie: "{{ session_cookie }}"
+                count: 1
+            loopElement: "dataset"
+            over:
+              - "lubm-0"
+              #- "lubm-1"
+              #- "lubm-5"
+              #- "lubm-10"
+              #- "lubm-20"
+        loopElement: "version"
+        over:
+          - "v1"
+          - "v2"

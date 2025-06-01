@@ -14,12 +14,12 @@ module.exports = {
 	generateAuthRequest,
 
 	genTriplestore,
-	uploadDataset,
-	uploadOntology,
 	processTriplestoreSize,
+
+	logResponse,
 }
 
-const Faker = require("faker")
+const { faker } = require('@faker-js/faker');
 const fs = require('fs')
 const FormData = require('form-data');
 
@@ -77,11 +77,20 @@ function extractCookie(requestParams, response, context, events, done) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
 				console.log("[extract_cookie] - " + header)
-				context.vars.session_cookie = header.split(';')[0];
+				context.vars.session_cookie = header.split(';')[0].split("=")[1];
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
 		}
 	}
+	return done()
+}
+
+/**
+ * DEBUG: Logs received response
+ */
+function logResponse(requestParams, response, context, events, done) {
+	console.log(response.statusCode)
+	console.log(response.body)
 	return done()
 }
 
@@ -93,7 +102,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
 				console.log("[extract_admin_cookie] - " + header)
-				admin_cookie = header.split(';')[0];
+				admin_cookie = header.split(';')[0].split("=")[1];
 				context.vars.admin_session_cookie = admin_cookie
 			}
 		}
@@ -102,11 +111,11 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 }
 
 /**
- * Generate data for a new user using Faker
+ * Generate data for a new user using faker
  */
 function genUser(context, events, done) {
-	context.vars.username = Faker.internet.userName(Faker.name.firstName(), Faker.name.lastName())
-	context.vars.password = `${Faker.internet.password()}`
+	context.vars.username = faker.internet.username(faker.person.firstName(), faker.person.lastName())
+	context.vars.password = `${faker.internet.password()}`
 	console.log("[generate-user] - " + context.vars.username + " | " + context.vars.password)
 	return done()
 }
@@ -139,12 +148,13 @@ function generateAuthRequest(requestParams, context, events, done) {
  */
 function selectRoleRequest(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		let requestParamsID = JSON.parse(response.body).filter(r => {
+		let roleRequest = JSON.parse(response.body).filter(r => {
 			if (r.username === context.vars.username)
-				return r.requestParamsID
-		});
-		if (requestParamsID != undefined)
-			context.vars.role_requestParams_id = requestParamsID
+				return r
+		})[0];
+		if (roleRequest != undefined)
+			context.vars.role_request_id = roleRequest.requestID
+		console.log(roleRequest.requestID)
 	}
 	return done()
 }
@@ -169,42 +179,16 @@ function selectUser(context, events, done) {
 /**
  * Generate data for a new triplestore
  */
-function genTriplestore(context, done) {
-	console.log("genTriplestore")
-	context.vars.triplestoreID = `${Faker.string.nanoid()}`
-	return done()
-}
-
-/**
- * Prepares dataset upload
- */
-function uploadDataset(requestParams, context, next) {
-	const form = new FormData()
-	form.append('issuer', context.vars.username)
-	form.append('triplestoreID', context.vars.triplestoreID)
-	form.append('syntax', "rdf/xml")
-	form.append('contents', datasets.get(context.vars.datasetNames.slice(1)))
-	requestParams.body = form
+function genTriplestore(context, events, next) {
+	context.vars.triplestoreID = `${faker.string.nanoid()}`
+	console.log("[generate-triplestore] - " + context.vars.triplestoreID)
 	return next()
 }
 
-/**
- * Prepares ontology upload
- */
-function uploadOntology(requestParams, context, next) {
-	const form = new FormData()
-	form.append('issuer', context.vars.username)
-	form.append('triplestoreID', context.vars.triplestoreID)
-	form.append('syntax', "rdf/xml")
-	form.append('contents', ontologies.get(ontologyNames[0]))
-	requestParams.body = form
-	return next()
-}
-
-function processTriplestoreSize(response, context, next) {
+function processTriplestoreSize(response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		console.log(JSON.parse(response.body))
-		events.emit("histogram", queryName + ".size", JSON.parse(response.body));
+		events.emit("histogram", context.vars.dataset + ".size", JSON.parse(response.body));
 	}
 	return next()
 }
@@ -212,7 +196,7 @@ function processTriplestoreSize(response, context, next) {
 /**
  * Extracts the triplestore list
  */
-function extractTriplestoreList(response, context, next) {
+function extractTriplestoreList(response, context, events, next) {
 	context.vars.triplestoreList = []
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		context.vars.triplestoreList = JSON.parse(response.body)
@@ -223,7 +207,7 @@ function extractTriplestoreList(response, context, next) {
 /**
  * Select a random triplestore from the list of available
  */
-function selectTriplestoreFromList(context, next) {
+function selectTriplestoreFromList(context, events, next) {
 	if (typeof context.vars.triplestoreList !== 'undefined' && context.vars.triplestoreList.length > 0)
 		context.vars.triplestoreID = context.vars.triplestoreList.sample()
 	else
@@ -234,8 +218,7 @@ function selectTriplestoreFromList(context, next) {
 /**
  * Select a the LUBM query to send
  */
-function selectLUBMQuery(context, next) {
-
+function selectLUBMQuery(context, events, next) {
 	return next()
 }
 
