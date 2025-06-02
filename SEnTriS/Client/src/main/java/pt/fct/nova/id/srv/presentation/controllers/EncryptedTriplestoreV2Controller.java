@@ -127,11 +127,11 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
             String issuer = form.getIssuer();
             String triplestoreID = form.getTriplestoreID();
             if (form.getContent() == null) {
-                return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
+                return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             }
             Set<Triple> triples = parseTriples(form.getContent(), parseRDFLanguage(form.getSyntax()));
             if (triples.isEmpty()) {
-                return Response.ok(EMPTY_UPLOAD).status(Response.Status.BAD_REQUEST).build();
+                return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             }
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
             if (response.getStatus() != OK)
@@ -163,9 +163,9 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 return answerSPARQLQuery(httpClient, cookie, triplestoreID, queryType, planner, plan, protocol, accessToken);
             }
         } catch (UnknownRDFLanguageException e) {
-            return Response.ok(INVALID_SYNTAX).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(INVALID_SYNTAX).status(BAD_REQUEST).build();
         } catch (InvalidNodeException e) {
-            return Response.ok(BAD_NODE).status(Response.Status.BAD_REQUEST).build();
+            return Response.ok(BAD_NODE).status(BAD_REQUEST).build();
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(INTERNAL_SERVER_ERROR).build();

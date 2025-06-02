@@ -14,9 +14,9 @@ module.exports = {
 	generateAuthRequest,
 
 	genTriplestore,
+	uploadABox,
+	uploadTBox,
 	processTriplestoreSize,
-
-	logResponse,
 }
 
 const { faker } = require('@faker-js/faker');
@@ -28,30 +28,18 @@ setTimeout(console.log, 2147483647)
 var users = []
 var admin_cookie = ""
 var sessions = new Map()
-var queries = []
-var datasetNames = []
 var datasets = new Map()
-var ontologyNames = []
 var ontologies = new Map()
 var queries = []
 var answers = new Map()
 
 // Loads dataset from disk
 function loadData() {
-	if (fs.existsSync('./data/datasets.json')) {
-		JSON.parse(fs.readFileSync('./data/datasets.json', 'utf8')).forEach(i => { datasetNames.push(i) })
-		fs.readdirSync('./data/datasets').forEach((data, i) => { datasets.set(datasetNames[i], data) })
-	}
-	if (fs.existsSync('./data/ontologies.json')) {
-		JSON.parse(fs.readFileSync('./data/ontologies.json', 'utf8')).forEach(i => { ontologyNames.push(i) })
-		fs.readdirSync('./data/ontologies').forEach((data, i) => { ontologies.set(ontologyNames[i], data) })
-	}
+	fs.readdirSync('./data/datasets').forEach((dataset, i) => { datasets.set(dataset, fs.readFileSync('./data/datasets/' + dataset)) })
+	fs.readdirSync('./data/ontologies').forEach((ontology, i) => { ontologies.set(ontology, fs.readFileSync('./data/ontologies/' + ontology)) })
 	if (fs.existsSync('./data/queries.json')) {
 		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
-		fs.readdirSync('./data/answers').forEach((data, i) => { answers.set(queries[i].name, data) })
-	}
-	if (fs.existsSync('./data/users.json')) {
-		JSON.parse(fs.readFileSync('./data/users.json', 'utf8')).forEach(i => { users.push(i) })
+		fs.readdirSync('./data/answers').forEach((answer, i) => { answers.set(queries[i].name, fs.readFileSync('./data/answers/' + answer)) })
 	}
 }
 loadData()
@@ -82,15 +70,6 @@ function extractCookie(requestParams, response, context, events, done) {
 			}
 		}
 	}
-	return done()
-}
-
-/**
- * DEBUG: Logs received response
- */
-function logResponse(requestParams, response, context, events, done) {
-	console.log(response.statusCode)
-	console.log(response.body)
 	return done()
 }
 
@@ -185,10 +164,38 @@ function genTriplestore(context, events, next) {
 	return next()
 }
 
-function processTriplestoreSize(response, context, events, next) {
+/**
+ * Prepares dataset upload
+ */
+function uploadABox(requestParams, context, events, next) {
+	const form = new FormData()
+	form.append('issuer', context.vars.username)
+	form.append('triplestoreID', context.vars.triplestoreID)
+	form.append('syntax', "rdf/xml")
+	form.append('contents', datasets.get(context.vars.dataset + ".owl"))
+	requestParams.body = form
+	return next()
+}
+
+
+/**
+ * Prepares ontology upload
+ */
+function uploadTBox(requestParams, context, events, next) {
+	const form = new FormData()
+	form.append('issuer', context.vars.username)
+	form.append('triplestoreID', context.vars.triplestoreID)
+	form.append('syntax', "rdf/xml")
+	form.append('contents', ontologies.get('lubm-ontology.owl'))
+	requestParams.body = form
+	return next()
+}
+
+
+function processTriplestoreSize(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		console.log(JSON.parse(response.body))
-		events.emit("histogram", context.vars.dataset + ".size", JSON.parse(response.body));
+		console.log("response:" + response.body)
+		events.emit("histogram", + "custom" + context.vars.version + "." + context.vars.dataset + ".size", JSON.parse(response.body));
 	}
 	return next()
 }
@@ -196,7 +203,7 @@ function processTriplestoreSize(response, context, events, next) {
 /**
  * Extracts the triplestore list
  */
-function extractTriplestoreList(response, context, events, next) {
+function extractTriplestoreList(requestParams, response, context, events, next) {
 	context.vars.triplestoreList = []
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		context.vars.triplestoreList = JSON.parse(response.body)

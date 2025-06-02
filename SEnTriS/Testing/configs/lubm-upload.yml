@@ -84,42 +84,34 @@ scenarios:
                     name: "upload-dataset-{{ dataset }}"
                     headers:
                       cookie: "{{ session_cookie }}"
-                    formData:
-                      issuer: "{{ username }}"
-                      triplestoreID: "{{ triplestoreID }}"
-                      syntax: "rdf/xml"
-                      contents:
-                        fromFile: "./data/datasets/{{ dataset }}.owl"
+                    beforeRequest: "uploadABox"
+                    setContentLengthHeader: true
                 - log: "Uploading ontology: {{ dataset }}"
                 - post:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=true"
                     name: "upload-ontology-{{ dataset }}"
                     headers:
                       cookie: "{{ session_cookie }}"
-                    formData:
-                      issuer: "{{ username }}"
-                      triplestoreID: "{{ triplestoreID }}"
-                      syntax: "rdf/xml"
-                      contents:
-                        fromFile: "./data/ontologies/lubm-ontology.owl"
+                    beforeRequest: "uploadTBox"
+                    setContentLengthHeader: true
                 - log: "Get size: {{ dataset }}"
                 - get:                          
-                    url: "/Client/api/triplestores/info/{{ triplestoreID }}/{{ username }}"
+                    url: "/Client/api/triplestores/{{ triplestoreID }}/{{ username }}"
                     name: "info-{{ dataset }}"
                     headers:
                       cookie: "{{ session_cookie }}"
-                    afterRequest: "processTriplestoreSize"
+                    afterResponse: "processTriplestoreSize"
                 - log: "Deleting triplestore: {{ dataset }}"
                 - delete:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/{{ triplestoreID }}/{{ username }}"
                     name: "delete-triplestore-{{ dataset }}"
                     headers:
                       cookie: "{{ session_cookie }}"
-                count: 1
+                count: 3
             loopElement: "dataset"
             over:
               - "lubm-0"
-              #- "lubm-1"
+              - "lubm-1"
               #- "lubm-5"
               #- "lubm-10"
               #- "lubm-20"

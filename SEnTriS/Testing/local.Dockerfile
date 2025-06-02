@@ -13,4 +13,4 @@ RUN apk --no-cache add curl
 ADD ./data data
 ADD ./configs/$TEST_SCENARIO.yml $TEST_SCENARIO.yml
 ADD ./configs/processor.js processor.js
-CMD artillery run --insecure $TEST_SCENARIO.yml --output $TEST_SCENARIO.json
+CMD DEBUG=http* artillery run --insecure $TEST_SCENARIO.yml --output $TEST_SCENARIO.json
