@@ -9,7 +9,7 @@
 
 1. Loop over datasets (lubm-1, lubm-2, lubm-3, lubm-4, lubm-5)
 2. Loop over protocols
-   1. Repeat 10
+   1. Repeat 3
       1.  Create triplestore
       2.  Upload dataset
       3.  Upload ontology

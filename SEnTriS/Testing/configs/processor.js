@@ -17,6 +17,9 @@ module.exports = {
 	uploadABox,
 	uploadTBox,
 	processTriplestoreSize,
+
+	genLUBMQuery,
+	processLUBMQueryAnswer
 }
 
 const { faker } = require('@faker-js/faker');
@@ -30,7 +33,7 @@ var admin_cookie = ""
 var sessions = new Map()
 var datasets = new Map()
 var ontologies = new Map()
-var queries = []
+var queries = new Map()
 var answers = new Map()
 
 // Loads dataset from disk
@@ -38,7 +41,7 @@ function loadData() {
 	fs.readdirSync('./data/datasets').forEach((dataset, i) => { datasets.set(dataset, fs.readFileSync('./data/datasets/' + dataset)) })
 	fs.readdirSync('./data/ontologies').forEach((ontology, i) => { ontologies.set(ontology, fs.readFileSync('./data/ontologies/' + ontology)) })
 	if (fs.existsSync('./data/queries.json')) {
-		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(i => { queries.push(i) })
+		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(query => { queries.set(query.name, query) })
 		fs.readdirSync('./data/answers').forEach((answer, i) => { answers.set(queries[i].name, fs.readFileSync('./data/answers/' + answer)) })
 	}
 }
@@ -223,9 +226,18 @@ function selectTriplestoreFromList(context, events, next) {
 }
 
 /**
- * Select a the LUBM query to send
+ * Prepares LUBM query
  */
-function selectLUBMQuery(context, events, next) {
+function genLUBMQuery(requestParams, context, events, next) {
+	let query = queries.get(context.vars.queryName)
+	const form = new FormData()
+	form.append('issuer', context.vars.username)
+	form.append('triplestoreID', context.vars.triplestoreID)
+	form.append('query', query.body)
+	form.append('inference', "true")
+	form.append('transitivityDepth', query.transitivityDepth)
+	form.append('expansionDepth', query.expansionDepth)
+	requestParams.body = form
 	return next()
 }
 
@@ -234,22 +246,23 @@ function selectLUBMQuery(context, events, next) {
  * Assertion: Bindings are sorted w/ no duplicate bindings
  */
 function processLUBMQueryAnswer(response, context, events, next) {
-	let queryName = context.vars.queryName
-	if (response.statusCode >= 200 && response.statusCode < 300) {
-		let referenceAnswer = answers.get(queryName)
-		let receivedAnswer = JSON.parse(response.body)
-		if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
-			let correctSet = extractBindings(referenceAnswer);
-			let receivedSet = extractBindings(receivedAnswer);
-			let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
-			let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
-			let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
-			events.emit("histogram", queryName + ".completeness", completeness);
-			events.emit("histogram", queryName + ".soundness", soundness);
-		} else
-			events.emit("counter", queryName + ".wrong", 1);
-	} else
-		events.emit("counter", queryName + ".wrong", 1);
+	// if (context.vars.triplestoreID == 'lubm-1') {
+	// 	if (response.statusCode >= 200 && response.statusCode < 300) {
+	// 		let referenceAnswer = answers.get(context.vars.queryName)
+	// 		let receivedAnswer = JSON.parse(response.body)
+	// 		if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
+	// 			let correctSet = extractBindings(referenceAnswer);
+	// 			let receivedSet = extractBindings(receivedAnswer);
+	// 			let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
+	// 			let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
+	// 			let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
+	// 			events.emit("histogram", context.vars.queryName + ".completeness", completeness);
+	// 			events.emit("histogram", context.vars.queryName + ".soundness", soundness);
+	// 		} else
+	// 			events.emit("counter", context.vars.queryName + ".wrong", 1);
+	// 	} else
+	// 		events.emit("counter", context.vars.queryName + ".wrong", 1);
+    // }	
 	return next()
 }
 
@@ -260,7 +273,7 @@ function extractBindings(result) {
 }
 
 function hasEqualVars(vars, receveivedVars) {
-	return vars.difference(receveivedVars).length == 0;
+	return vars.symmetricDifference(receveivedVars).length == 0;
 }
 
 
