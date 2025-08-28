@@ -5,7 +5,7 @@ if [ $# -ne 1  ]; then
     exit 1
 fi
 
-for scenario in lubm-upload
+for scenario in lubm-upload lubm-query
 do
     docker rm $(docker stop $(docker ps -a -q --filter="ancestor=$1/sentris-test-$scenario" --format "{{.ID}}")) &> /dev/null
     wait
