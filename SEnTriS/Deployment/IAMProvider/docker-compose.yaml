@@ -1,6 +1,6 @@
 services:
     iam-provider-db:
-      image: redis:latest
+      image: redis:8.0
       container_name: sentris-iam-provider-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:

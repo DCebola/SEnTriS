@@ -1,9 +1,12 @@
 config:
   target: 'https://host.docker.internal:8080'
   http:
-    timeout: 3600 #1hour timeout
+    timeout: 86400 #1day timeout
   plugins:
-    metrics-by-endpoint: 
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+      groupDynamicURLs: false
+      metricsNamespace: endpoint-metrics
   processor: "./processor.js"
   phases:  
     - name: "test"
@@ -58,16 +61,16 @@ scenarios:
           formData:
             target: "{{ username }}"
             accept: "true"
-      - post:                          
-          url: "/Client/api/users/auth"
-          name: "auth"
-          formData:
-            username: "{{ username }}"
-            password: "{{ password }}"
-          afterResponse: "extractCookie"
       - loop:
           - loop:
               - loop:
+                - post:                          
+                    url: "/Client/api/users/auth"
+                    name: "auth"
+                    formData:
+                      username: "{{ username }}"
+                      password: "{{ password }}"
+                    afterResponse: "extractCookie"
                 - log: "Create triplestore: {{ dataset }}"
                 - function: "genTriplestore"
                 - post:                          
@@ -86,6 +89,13 @@ scenarios:
                       cookie: "{{ session_cookie }}"
                     beforeRequest: "uploadABox"
                     setContentLengthHeader: true
+                - post:                          
+                    url: "/Client/api/users/auth"
+                    name: "auth"
+                    formData:
+                      username: "{{ username }}"
+                      password: "{{ password }}"
+                    afterResponse: "extractCookie"
                 - log: "Uploading ontology: {{ dataset }}"
                 - post:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=true"
@@ -112,6 +122,9 @@ scenarios:
             over:
               - "lubm-0"
               #- "lubm-1"
+              #- "lubm-2"
+              #- "lubm-3"
+              #- "lubm-4"
               #- "lubm-5"
               #- "lubm-10"
               #- "lubm-20"

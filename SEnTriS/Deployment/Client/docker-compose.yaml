@@ -9,6 +9,7 @@ services:
       - ../SSL/client-cert.pem:/usr/local/tomcat/ssl/client-cert.pem
       - ../SSL/client-key.pem:/usr/local/tomcat/ssl/client-key.pem
       - ./server.xml:/usr/local/tomcat/conf/server.xml
+      - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
     ports:
       - "8080:8443"
     networks:

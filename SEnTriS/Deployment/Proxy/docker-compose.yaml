@@ -1,6 +1,6 @@
 services:
     proxy-db:
-      image: redis:latest
+      image: redis:8.0
       container_name: sentris-proxy-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
@@ -29,6 +29,7 @@ services:
         - ../SSL/proxy-cert.pem:/usr/local/tomcat/ssl/proxy-cert.pem
         - ../SSL/proxy-key.pem:/usr/local/tomcat/ssl/proxy-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
+        - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
       expose:
         - "8443"
       networks:

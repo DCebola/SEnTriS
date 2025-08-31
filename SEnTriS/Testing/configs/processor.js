@@ -42,7 +42,7 @@ function loadData() {
 	fs.readdirSync('./data/ontologies').forEach((ontology, i) => { ontologies.set(ontology, fs.readFileSync('./data/ontologies/' + ontology)) })
 	if (fs.existsSync('./data/queries.json')) {
 		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(query => { queries.set(query.name, query) })
-		fs.readdirSync('./data/answers').forEach((answer, i) => { answers.set(queries[i].name, fs.readFileSync('./data/answers/' + answer)) })
+		fs.readdirSync('./data/answers').forEach(answer => {answers.set(queries.get(answer), fs.readFileSync('./data/answers/' + answer)) })
 	}
 }
 loadData()
@@ -67,7 +67,7 @@ function extractCookie(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
-				console.log("[extract_cookie] - " + header)
+				//console.log("[extract_cookie] - " + header)
 				context.vars.session_cookie = header.split(';')[0].split("=")[1];
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
@@ -83,7 +83,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
-				console.log("[extract_admin_cookie] - " + header)
+				//console.log("[extract_admin_cookie] - " + header)
 				admin_cookie = header.split(';')[0].split("=")[1];
 				context.vars.admin_session_cookie = admin_cookie
 			}
@@ -98,7 +98,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 function genUser(context, events, done) {
 	context.vars.username = faker.internet.username(faker.person.firstName(), faker.person.lastName())
 	context.vars.password = `${faker.internet.password()}`
-	console.log("[generate-user] - " + context.vars.username + " | " + context.vars.password)
+	//console.log("[generate-user] - " + context.vars.username + " | " + context.vars.password)
 	return done()
 }
 
@@ -111,7 +111,7 @@ function processGenUserReply(requestParams, response, context, events, done) {
 			"username": context.vars.username,
 			"password": context.vars.password
 		})
-		console.log("[process-generate-user] - Saved User: " + JSON.stringify(users))
+		//console.log("[process-generate-user] - Saved User: " + JSON.stringify(users))
 	}
 	return done()
 }
@@ -136,7 +136,7 @@ function selectRoleRequest(requestParams, response, context, events, done) {
 		})[0];
 		if (roleRequest != undefined)
 			context.vars.role_request_id = roleRequest.requestID
-		console.log(roleRequest.requestID)
+		//console.log(roleRequest.requestID)
 	}
 	return done()
 }
@@ -149,10 +149,10 @@ function selectUser(context, events, done) {
 		let user = users.sample()
 		context.vars.username = user.username
 		context.vars.password = user.password
-		console.log("[select-user] - " + user.username + " | " + user.password)
+		//console.log("[select-user] - " + user.username + " | " + user.password)
 		if (sessions.has(user.username)) {
 			context.vars.session_cookie = sessions.get(user.username)
-			console.log("[select-user-session] - " + sessions.get(user.username))
+			//console.log("[select-user-session] - " + sessions.get(user.username))
 		}
 	}
 	return done()
@@ -163,7 +163,7 @@ function selectUser(context, events, done) {
  */
 function genTriplestore(context, events, next) {
 	context.vars.triplestoreID = `${faker.string.nanoid()}`
-	console.log("[generate-triplestore] - " + context.vars.triplestoreID)
+	//console.log("[generate-triplestore] - " + context.vars.triplestoreID)
 	return next()
 }
 
@@ -197,8 +197,7 @@ function uploadTBox(requestParams, context, events, next) {
 
 function processTriplestoreSize(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		console.log("response:" + response.body)
-		events.emit("histogram", + "custom" + context.vars.version + "." + context.vars.dataset + ".size", JSON.parse(response.body));
+		events.emit("histogram", context.vars.version + "." + context.vars.dataset + ".size", JSON.parse(response.body));
 	}
 	return next()
 }

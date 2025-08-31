@@ -1,6 +1,6 @@
 services:
     vault-db:
-      image: redis:latest
+      image: redis:8.0
       container_name: sentris-vault-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:

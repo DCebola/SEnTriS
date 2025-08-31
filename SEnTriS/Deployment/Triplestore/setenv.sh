@@ -1,0 +1,3 @@
+
+CATALINA_OPTS=$(echo $CATALINA_OPTS | cut -c 11-)
+export CATALINA_OPTS="$CATALINA_OPTS -Xms32g -Xmx32g"

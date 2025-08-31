@@ -25,7 +25,6 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
             for i, key in ipairs(KEYS) do
                 if i <= numDeletions then
                     len = redis.call("llen", key)
-                    print("v1: Delete: " .. key .. " | " .. tostring(len))
                     local t
                     total = 0
                     for i = 1, len, 1 do
@@ -33,8 +32,6 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
                         redis.call("del", t)
                         total = total + 1
                     end
-                    print("v1: Last Deletion: " .. t)
-                    print("v1: Total Deletions: " .. key .. " | " .. tostring(total))
                 else
                     len = redis.call("llen", key)
                     local t
@@ -49,8 +46,6 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
                             total = total + 2
                         end
                     end
-                    print("v1: Last Upload: " .. t .. " -> " .. n)
-                    print("v1: Total Uploads: " .. key .. " | " .. tostring(total))
                 end
                 redis.call("del", key)
             end

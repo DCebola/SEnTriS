@@ -1,6 +1,6 @@
 services:
     triplestore-db:
-      image: redis:latest
+      image: redis:8.0
       container_name: sentris-triplestore-db
       command: redis-server ../usr/local/etc/redis/redis.conf
       volumes:
@@ -29,6 +29,7 @@ services:
         - ../SSL/triplestore-cert.pem:/usr/local/tomcat/ssl/triplestore-cert.pem
         - ../SSL/triplestore-key.pem:/usr/local/tomcat/ssl/triplestore-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
+        - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
       expose:
         - "8443"
       networks:

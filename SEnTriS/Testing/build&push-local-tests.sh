@@ -16,4 +16,3 @@ do
     wait
     docker push $1/sentris-$scenario
 done
-
