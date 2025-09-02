@@ -244,24 +244,28 @@ function genLUBMQuery(requestParams, context, events, next) {
  * Processes SPARQL query answer
  * Assertion: Bindings are sorted w/ no duplicate bindings
  */
-function processLUBMQueryAnswer(response, context, events, next) {
-	// if (context.vars.triplestoreID == 'lubm-1') {
-	// 	if (response.statusCode >= 200 && response.statusCode < 300) {
-	// 		let referenceAnswer = answers.get(context.vars.queryName)
-	// 		let receivedAnswer = JSON.parse(response.body)
-	// 		if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
-	// 			let correctSet = extractBindings(referenceAnswer);
-	// 			let receivedSet = extractBindings(receivedAnswer);
-	// 			let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
-	// 			let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
-	// 			let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
-	// 			events.emit("histogram", context.vars.queryName + ".completeness", completeness);
-	// 			events.emit("histogram", context.vars.queryName + ".soundness", soundness);
-	// 		} else
-	// 			events.emit("counter", context.vars.queryName + ".wrong", 1);
-	// 	} else
-	// 		events.emit("counter", context.vars.queryName + ".wrong", 1);
-    // }	
+function processLUBMQueryAnswer(requestParams, response, context, events, next) {
+	if (response.statusCode >= 200 && response.statusCode < 300) {
+		if (context.vars.triplestoreID == 'lubm-1') {
+			if (response.statusCode >= 200 && response.statusCode < 300) {
+				let referenceAnswer = answers.get(context.vars.queryName)
+				let receivedAnswer = JSON.parse(response.body)
+				if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
+					let correctSet = extractBindings(referenceAnswer);
+					let receivedSet = extractBindings(receivedAnswer);
+					let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
+					let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
+					let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
+					events.emit("histogram", context.vars.queryName + ".completeness", completeness);
+					events.emit("histogram", context.vars.queryName + ".soundness", soundness);
+				} else
+					events.emit("counter", context.vars.queryName + ".wrong", 1);
+			} else
+				events.emit("counter", context.vars.queryName + ".wrong", 1);
+		}
+	} else {
+		console.log("ERROR:" + JSON.stringify(response.body))
+	}
 	return next()
 }
 

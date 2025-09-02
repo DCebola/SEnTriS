@@ -14,7 +14,7 @@ config:
       arrivalCount: 1
      
 scenarios:
- - name: 'Experimental evaluation: Upload Size'
+ - name: 'Experimental evaluation: Upload & Query Latency'
    weight: 1
    flow:      
       - function: "genUser"    
@@ -75,7 +75,7 @@ scenarios:
                 - function: "genTriplestore"
                 - post:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}"
-                    name: "create-triplestore-{{ dataset }}"
+                    name: "create-triplestore-{{ dataset }}-{{ version }}"
                     headers:
                       cookie: "{{ session_cookie }}"
                     formData:
@@ -84,7 +84,7 @@ scenarios:
                 - log: "Uploading dataset: {{ dataset }}"
                 - post:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=false"
-                    name: "upload-dataset-{{ dataset }}"
+                    name: "upload-dataset-{{ dataset }}-{{ version }}"
                     headers:
                       cookie: "{{ session_cookie }}"
                     beforeRequest: "uploadABox"
@@ -99,7 +99,7 @@ scenarios:
                 - log: "Uploading ontology: {{ dataset }}"
                 - post:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=true"
-                    name: "upload-ontology-{{ dataset }}"
+                    name: "upload-ontology-{{ dataset }}-{{ version }}"
                     headers:
                       cookie: "{{ session_cookie }}"
                     beforeRequest: "uploadTBox"
@@ -107,17 +107,44 @@ scenarios:
                 - log: "Get size: {{ dataset }}"
                 - get:                          
                     url: "/Client/api/triplestores/{{ triplestoreID }}/{{ username }}"
-                    name: "info-{{ dataset }}"
+                    name: "info-{{ dataset }}-{{ version }}"
                     headers:
                       cookie: "{{ session_cookie }}"
                     afterResponse: "processTriplestoreSize"
+                - loop:
+                  - loop:
+                    - log: "Querying dataset: {{ dataset }} | {{ version }} | {{ queryName }}"
+                    - post: 
+                        url: "/Client/api/triplestores/encrypted/{{ version }}/query"
+                        name: "query-{{ dataset }}-{{ version }}-{{ queryName }}"
+                        headers:
+                          cookie: "{{ session_cookie }}"
+                        beforeRequest: genLUBMQuery
+                        afterResponse: processLUBMQueryAnswer
+                    loopElement: "queryName" 
+                    over:
+                      # - "lubm-1"
+                      # - "lubm-2"
+                      # - "lubm-3"
+                      # - "lubm-4"
+                      # - "lubm-5"
+                      # - "lubm-6"
+                      # - "lubm-7"
+                      # - "lubm-8"
+                      - "lubm-9"
+                      - "lubm-10"
+                      # - "lubm-11"
+                      # - "lubm-12"      
+                      # - "lubm-13"
+                      # - "lubm-14"          
+                  count: 20
                 - log: "Deleting triplestore: {{ dataset }}"
                 - delete:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/{{ triplestoreID }}/{{ username }}"
-                    name: "delete-triplestore-{{ dataset }}"
+                    name: "delete-triplestore-{{ dataset }}-{{ version }}"
                     headers:
                       cookie: "{{ session_cookie }}"
-                count: 3
+                count: 1
             loopElement: "dataset"
             over:
               - "lubm-0"
@@ -130,5 +157,5 @@ scenarios:
               #- "lubm-20"
         loopElement: "version"
         over:
-          - "v1"
+          #- "v1"
           - "v2"
