@@ -1,10 +1,9 @@
 package pt.fct.nova.id.srv.application.clients;
 
 import jakarta.ws.rs.core.Cookie;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.core5.net.URIBuilder;
 import pt.fct.nova.id.srv.presentation.dtos.AuthForm;
 import pt.fct.nova.id.srv.presentation.dtos.RequestDecisionForm;
 import pt.fct.nova.id.srv.presentation.dtos.Role;

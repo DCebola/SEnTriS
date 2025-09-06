@@ -1,13 +1,12 @@
 package pt.fct.nova.id.srv.application.clients;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.query.plans.DefaultQueryExecutionPlan;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Set;

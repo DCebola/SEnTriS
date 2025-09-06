@@ -3,11 +3,13 @@ package pt.fct.nova.id.srv.application.clients;
 import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.NewCookie;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.*;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.client5.http.classic.methods.*;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -160,7 +162,7 @@ public class HTTPUtils {
         return (CloseableHttpResponse) httpClient.execute(request);
     }
 
-    public static String consumeResponseEntity(CloseableHttpResponse response) throws IOException {
+    public static String consumeResponseEntity(CloseableHttpResponse response) throws IOException, ParseException {
         String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         EntityUtils.consume(response.getEntity());
         return responseBody;

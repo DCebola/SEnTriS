@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.application.clients;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
 import pt.fct.nova.id.srv.presentation.controllers.ParsingUtils;
 
 import java.io.IOException;

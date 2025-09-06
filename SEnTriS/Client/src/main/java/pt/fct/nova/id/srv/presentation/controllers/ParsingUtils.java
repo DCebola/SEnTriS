@@ -1,15 +1,15 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.lang.CollectorStreamTriples;
+import org.apache.jena.riot.lang.CollectorStreamRDF;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
@@ -225,9 +225,9 @@ public class ParsingUtils {
     }
 
     public static Set<Triple> parseTriples(InputStream content, Lang lang) throws UnknownRDFLanguageException, InvalidNodeException {
-        CollectorStreamTriples tripleCollector = new CollectorStreamTriples();
+        CollectorStreamRDF tripleCollector = new CollectorStreamRDF();
         RDFParser.source(content).lang(lang).parse(tripleCollector);
-        return new HashSet<>(tripleCollector.getCollected());
+        return new HashSet<>(tripleCollector.getTriples());
     }
 
     public static Lang parseRDFLanguage(String syntax) throws UnknownRDFLanguageException {
@@ -245,7 +245,7 @@ public class ParsingUtils {
         else if (node.isLiteral())
             return String.format(LITERAL_NODE, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return String.format(BLANK_NODE, node.getBlankNodeId());
+            return String.format(BLANK_NODE, node.getBlankNodeLabel());
     }
 
     public static String parseKeyword(Node node) throws InvalidNodeException {
