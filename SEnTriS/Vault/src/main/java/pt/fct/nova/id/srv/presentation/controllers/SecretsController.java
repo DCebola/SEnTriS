@@ -2,8 +2,9 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ParseException;
 import pt.fct.nova.id.srv.application.storage.redis.VaultStorage;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
@@ -34,13 +35,13 @@ public class SecretsController implements SecretsAPI {
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken);
              ByteArrayInputStream is = new ByteArrayInputStream(secrets);
              ObjectInputStream ois = new ObjectInputStream(is)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (VaultStorage.exists(triplestoreID))
                 return Response.ok(SECRETS_ALREADY_EXIST).status(NOT_FOUND).build();
             VaultStorage.saveSecrets(triplestoreID, (Map<String, String>) ois.readObject());
             return Response.ok(SUCCESSFUL_SECRETS_CREATION).build();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | ParseException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -56,13 +57,13 @@ public class SecretsController implements SecretsAPI {
              ByteArrayOutputStream bos = new ByteArrayOutputStream();
              ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (!VaultStorage.exists(triplestoreID))
                 return Response.status(NOT_FOUND).build();
             oos.writeObject(VaultStorage.getSecrets(triplestoreID));
             return Response.ok(base64Encoder.encodeToString(bos.toByteArray())).build();
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -75,13 +76,13 @@ public class SecretsController implements SecretsAPI {
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             if (!VaultStorage.exists(triplestoreID))
                 return Response.status(NOT_FOUND).build();
             VaultStorage.deleteSecrets(triplestoreID);
             return Response.ok(SUCCESSFUL_SECRETS_DELETION).build();
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
