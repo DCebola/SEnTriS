@@ -173,7 +173,7 @@ public class TriplestoreStorageEngine implements StorageEngine {
             String[] nodes;
             for (String t : serialized) {
                 nodes = t.split(COMPOUND_NODE_SEPARATOR);
-                schema.add(new Triple(
+                schema.add(Triple.create(
                         generateNode(nodes[0]),
                         generateNode(nodes[1]),
                         generateNode(nodes[2])
@@ -226,7 +226,7 @@ public class TriplestoreStorageEngine implements StorageEngine {
         else if (node.isLiteral())
             return String.format(LITERAL_NODE, node.getLiteralLexicalForm(), node.getLiteralDatatypeURI());
         else
-            return String.format(BLANK_NODE, node.getBlankNodeId());
+            return String.format(BLANK_NODE, node.getBlankNodeLabel());
     }
 
     @Override

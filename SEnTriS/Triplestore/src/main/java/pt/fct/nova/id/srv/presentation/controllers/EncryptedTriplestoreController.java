@@ -1,8 +1,8 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -36,7 +36,7 @@ public class EncryptedTriplestoreController {
              ByteArrayInputStream bis = new ByteArrayInputStream(encryptedNodes);
              ObjectInputStream ois = new ObjectInputStream(bis)) {
 
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             return Response.ok(storageEngine.commitUpload(triplestoreID, (Map<String, String>) ois.readObject())).build();
         } catch (Exception e) {
@@ -54,7 +54,7 @@ public class EncryptedTriplestoreController {
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken);
              ByteArrayInputStream bis = new ByteArrayInputStream(trapdoors);
              ObjectInputStream ois = new ObjectInputStream(bis)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                  ObjectOutputStream oos = new ObjectOutputStream(bos)) {
@@ -75,7 +75,7 @@ public class EncryptedTriplestoreController {
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID);
             return Response.ok(SUCCESSFUL_DELETION).build();
@@ -94,7 +94,7 @@ public class EncryptedTriplestoreController {
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken);
              ByteArrayInputStream bis = new ByteArrayInputStream(trapdoors);
              ObjectInputStream ois = new ObjectInputStream(bis)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             return Response.ok(storageEngine.commitDelete(triplestoreID, (Set<String>) ois.readObject())).build();
         } catch (Exception e) {
@@ -115,7 +115,7 @@ public class EncryptedTriplestoreController {
              ObjectInputStream uploads_ois = new ObjectInputStream(uploads_bis);
              ByteArrayInputStream deletions_bis = new ByteArrayInputStream(deletions);
              ObjectInputStream deletions_ois = new ObjectInputStream(deletions_bis)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.update((List<String>) uploads_ois.readObject(), (List<String>) deletions_ois.readObject());
             return Response.ok(SUCCESSFUL_UPDATE).build();

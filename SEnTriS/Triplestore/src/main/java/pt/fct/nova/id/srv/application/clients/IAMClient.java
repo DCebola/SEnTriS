@@ -1,8 +1,7 @@
 package pt.fct.nova.id.srv.application.clients;
 
-import jakarta.ws.rs.core.Cookie;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
 
 import java.io.IOException;
 

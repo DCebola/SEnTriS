@@ -1,8 +1,10 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
+
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

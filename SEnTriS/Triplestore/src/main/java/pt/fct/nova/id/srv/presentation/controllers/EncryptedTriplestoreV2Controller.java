@@ -2,8 +2,8 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
@@ -43,7 +43,7 @@ public class EncryptedTriplestoreV2Controller implements EncryptedTriplestoreV2A
              ByteArrayInputStream trapdoors_is = new ByteArrayInputStream(form.getTrapdoors());
              ObjectInputStream trapdoors_ois = new ObjectInputStream(trapdoors_is)) {
             try (CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
-                if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+                if (response.getCode() != OK.getStatusCode())
                     return HTTPUtils.buildResponse(response);
             }
 
