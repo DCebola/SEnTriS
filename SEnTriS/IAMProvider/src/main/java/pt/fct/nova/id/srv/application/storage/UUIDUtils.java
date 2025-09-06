@@ -1,9 +1,8 @@
 package pt.fct.nova.id.srv.application.storage;
 
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.UUID;
-
-import static org.apache.commons.codec.binary.Base64.encodeBase64URLSafeString;
 
 public class UUIDUtils {
     public static String generateID() {
@@ -15,6 +14,6 @@ public class UUIDUtils {
         ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
-        return encodeBase64URLSafeString(bb.array());
+        return Base64.getUrlEncoder().encodeToString(bb.array());
     }
 }

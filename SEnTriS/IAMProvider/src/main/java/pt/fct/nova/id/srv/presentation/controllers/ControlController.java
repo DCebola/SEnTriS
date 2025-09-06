@@ -1,7 +1,6 @@
 package pt.fct.nova.id.srv.presentation.controllers;
 
 
-import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.storage.redis.IAMStorage;
 import pt.fct.nova.id.srv.application.storage.redis.LocksClient;
 import pt.fct.nova.id.srv.application.crypto.PasswordLib;
@@ -9,6 +8,8 @@ import pt.fct.nova.id.srv.presentation.apis.ControlAPI;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
+
+import java.util.Base64;
 
 
 /**
@@ -25,7 +26,7 @@ public class ControlController implements ControlAPI {
             try {
                 System.out.println("Initializing IAM Provider.");
                 String defaultAdminUsername = System.getenv("DEFAULT_ADMIN_USERNAME");
-                String defaultAdminPassword = Base64.encodeBase64URLSafeString(PasswordLib.hash(System.getenv("DEFAULT_ADMIN_PASSWORD")));
+                String defaultAdminPassword = Base64.getUrlEncoder().encodeToString(PasswordLib.hash(System.getenv("DEFAULT_ADMIN_PASSWORD")));
                 String lockID = LocksClient.acquireUserLock(defaultAdminUsername);
                 IAMStorage.init(defaultAdminUsername, defaultAdminPassword);
                 LocksClient.releaseUserLock(defaultAdminUsername, lockID);

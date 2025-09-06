@@ -2,7 +2,6 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.*;
-import org.apache.commons.codec.binary.Base64;
 import pt.fct.nova.id.srv.application.storage.redis.IAMStorage;
 import pt.fct.nova.id.srv.application.storage.RoleRequest;
 import pt.fct.nova.id.srv.application.storage.redis.LocksClient;
@@ -13,8 +12,7 @@ import pt.fct.nova.id.srv.presentation.apis.UsersAPI;
 import pt.fct.nova.id.srv.presentation.dtos.*;
 import pt.fct.nova.id.srv.presentation.exceptions.*;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +57,7 @@ public class UsersController implements UsersAPI {
                 LocksClient.releaseUserLock(username, lockID);
                 return Response.status(BAD_REQUEST).build();
             }
-            String passwordHash = Base64.encodeBase64URLSafeString(PasswordLib.hash(credentials.getPassword()));
+            String passwordHash = Base64.getUrlEncoder().encodeToString(PasswordLib.hash(credentials.getPassword()));
             IAMStorage.saveUser(username, passwordHash, BASIC);
             LocksClient.releaseUserLock(username, lockID);
             return Response.ok(SUCCESSFUL_USER_REGISTER).build();
