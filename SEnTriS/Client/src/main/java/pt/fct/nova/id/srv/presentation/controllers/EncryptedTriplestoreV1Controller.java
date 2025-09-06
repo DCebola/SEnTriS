@@ -156,7 +156,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
     private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie,
                                           String triplestoreID, EncryptionSchemeV1 protocol, LinkedList<Triple> triples,
-                                          String accessToken) throws IOException {
+                                          String accessToken) throws IOException, ParseException {
         try {
             String schemaKeyword = protocol.getSchemaKeyword();
             List<String> trapdoors = List.of(protocol.generateTrapdoor(schemaKeyword));
@@ -256,7 +256,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
     }
 
     private HTTPResponse fetchOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, EncryptionSchemeV1 protocol,
-                                             Ontology ontology, boolean inference, String accessToken) throws IOException {
+                                             Ontology ontology, boolean inference, String accessToken) throws IOException, ParseException {
         try {
             String schemaKeyword = protocol.getSchemaKeyword();
             List<String> trapdoors = List.of(protocol.generateTrapdoor(schemaKeyword));
@@ -424,7 +424,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
 
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                              DefaultQueryExecutionPlan plan, EncryptionSchemeV1 protocol, String accessToken) throws IOException {
+                                              DefaultQueryExecutionPlan plan, EncryptionSchemeV1 protocol, String accessToken) throws IOException, ParseException {
         try {
             List<Triple> triplesToUpload, triplesToDelete;
             Map<String, Integer> keywordsFrequency = new HashMap<>();

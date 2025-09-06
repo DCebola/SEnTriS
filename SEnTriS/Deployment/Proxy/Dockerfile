@@ -1,3 +1,3 @@
-FROM tomcat:jdk24-openjdk
+FROM tomcat:jdk21-openjdk
 WORKDIR /usr/local/tomcat
 ADD Proxy.war webapps

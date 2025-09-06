@@ -2,8 +2,8 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Triple;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
@@ -40,7 +40,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
@@ -67,7 +67,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             return Response.ok(storageEngine.memoryUsage(triplestoreID)).build();
         } catch (NotImplemented e) {
@@ -85,7 +85,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
                 oos.writeObject(storageEngine.findSchema(triplestoreID));
@@ -106,7 +106,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasReadAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
 
             try (ByteArrayInputStream bis = new ByteArrayInputStream(queryExecutionPlan);
@@ -134,7 +134,7 @@ public class TriplestoreController implements TriplestoreAPI {
             return Response.status(UNAUTHORIZED).build();
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasOwnerAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             storageEngine.delete(triplestoreID, isSchema);
             return Response.ok(SUCCESSFUL_DELETION).build();
@@ -152,7 +152,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
         try (CloseableHttpClient httpClient = HTTPClient.buildClient();
              CloseableHttpResponse response = IAMClient.hasWriteAccess(httpClient, triplestoreID, accessToken)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             try (ByteArrayInputStream bis = new ByteArrayInputStream(triplesData);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {

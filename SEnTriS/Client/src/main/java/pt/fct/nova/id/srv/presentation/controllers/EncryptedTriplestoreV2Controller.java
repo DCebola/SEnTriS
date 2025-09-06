@@ -174,7 +174,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
     }
 
     private Response uploadOntologySchema(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, EncryptionSchemeV2 protocol,
-                                          LinkedList<Triple> triples, String accessToken) throws IOException {
+                                          LinkedList<Triple> triples, String accessToken) throws IOException, ParseException {
         try {
             String schemaKeyword = protocol.getSchemaKeyword();
             List<String> trapdoors = List.of(protocol.generateTrapdoor(schemaKeyword));
@@ -449,7 +449,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
 
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType, SecureSPARQLPlanner planner,
-                                              DefaultQueryExecutionPlan plan, EncryptionSchemeV2 protocol, String accessToken) throws IOException {
+                                              DefaultQueryExecutionPlan plan, EncryptionSchemeV2 protocol, String accessToken) throws IOException, ParseException {
         try {
             List<Triple> triplesToUpload, triplesToDelete;
             Map<String, Integer> keywordsFrequency = new HashMap<>();

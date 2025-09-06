@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.core5.http.ParseException;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -155,7 +156,7 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    private Response upload(HttpClient httpClient, Cookie cookie, String triplestoreID, Set<Triple> triples, boolean schema, String accessToken) throws IOException, URISyntaxException {
+    private Response upload(HttpClient httpClient, Cookie cookie, String triplestoreID, Set<Triple> triples, boolean schema, String accessToken) throws IOException, URISyntaxException, ParseException {
         HTTPResponse response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -247,7 +248,7 @@ public class TriplestoreController implements TriplestoreAPI {
 
 
     private Response executeSPARQLQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, QueryType queryType,
-                                        DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException {
+                                        DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException, ParseException {
         HTTPResponse response = query(httpClient, triplestoreID, plan, accessToken);
         if (response.getStatus() != OK)
             return response.build();
@@ -262,7 +263,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     private Response executeSPARQLUpdateQuery(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
-                                              QueryType queryType, DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException, URISyntaxException {
+                                              QueryType queryType, DefaultSPARQLPlanner planner, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ClassNotFoundException, URISyntaxException, ParseException {
         HTTPResponse response = acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken);
         if (response.getStatus() != OK) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
@@ -288,7 +289,7 @@ public class TriplestoreController implements TriplestoreAPI {
     }
 
     private Response updateTriplestore(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID,
-                                       Set<Triple> triplesToUpload, Set<Triple> triplesToDelete, String accessToken) throws IOException, URISyntaxException {
+                                       Set<Triple> triplesToUpload, Set<Triple> triplesToDelete, String accessToken) throws IOException, URISyntaxException, ParseException {
         HTTPResponse response;
         if (!triplesToDelete.isEmpty()) {
             response = deleteSome(httpClient, triplestoreID, triplesToDelete, accessToken);
@@ -318,7 +319,7 @@ public class TriplestoreController implements TriplestoreAPI {
     private Response generateCONSTRUCTResults(List<Triple> constructTemplate, SPARQLResult<String> sparqlResult) throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Graph g = QueryUtils.generateGraphFromSerializableBindings(constructTemplate, sparqlResult.getBindings());
-            RDFWriter.create(g).lang(Lang.JSONLD11).output(out);
+            RDFWriter.source(g).lang(Lang.JSONLD11).output(out);
             return Response.ok(out.toByteArray()).build();
         }
     }
@@ -376,7 +377,7 @@ public class TriplestoreController implements TriplestoreAPI {
             response = updateTriplestoreOwner(httpClient, cookie, triplestoreID, target, accessToken);
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -405,7 +406,7 @@ public class TriplestoreController implements TriplestoreAPI {
             response = listPendingAccessRequests(httpClient, cookie, triplestoreID, accessToken);
             IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);
             return response.build();
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -491,122 +492,122 @@ public class TriplestoreController implements TriplestoreAPI {
         }
     }
 
-    public static HTTPResponse createTriplestoreAccessList(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException {
+    public static HTTPResponse createTriplestoreAccessList(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.createTriplestore(httpClient, cookie, triplestoreID, issuer)) {
             return new HTTPResponse(response);
         }
     }
 
 
-    public static HTTPResponse deleteTriplestoreAccessList(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteTriplestoreAccessList(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.deleteTriplestore(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteTriplestoreContents(HttpClient httpClient, String triplestoreID, boolean schema, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse deleteTriplestoreContents(HttpClient httpClient, String triplestoreID, boolean schema, String accessToken) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.deleteAll(httpClient, triplestoreID, schema, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse listTriplestores(CloseableHttpClient httpClient, Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws IOException, URISyntaxException {
+    private HTTPResponse listTriplestores(CloseableHttpClient httpClient, Cookie cookie, String issuer, boolean write, boolean read, boolean owns) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = IAMClient.listTriplestores(httpClient, cookie, issuer, write, read, owns)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse fetchTriplestoreInfo(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+    private HTTPResponse fetchTriplestoreInfo(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.fetchInfo(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse createAccessToken(CloseableHttpClient httpClient, Cookie cookie, String issuer, String triplestoreID) throws IOException {
+    public static HTTPResponse createAccessToken(CloseableHttpClient httpClient, Cookie cookie, String issuer, String triplestoreID) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.createAccessToken(httpClient, cookie, issuer, triplestoreID)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse acquireTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.acquireTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse releaseTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse releaseTriplestoreLock(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.releaseTriplestoreLock(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    public static HTTPResponse deleteAccessToken(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    public static HTTPResponse deleteAccessToken(HttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.deleteAccessToken(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse fetchSchema(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException {
+    private HTTPResponse fetchSchema(CloseableHttpClient httpClient, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.fetchSchema(httpClient, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse upload(HttpClient httpClient, String triplestoreID, Set<Triple> triples, boolean schema, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse upload(HttpClient httpClient, String triplestoreID, Set<Triple> triples, boolean schema, String accessToken) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.upload(httpClient, triplestoreID, triples, schema, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse deleteSome(HttpClient httpClient, String triplestoreID, Set<Triple> triples, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.deleteSome(httpClient, triplestoreID, triples, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse query(CloseableHttpClient httpClient, String triplestoreID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException {
+    private HTTPResponse query(CloseableHttpClient httpClient, String triplestoreID, DefaultQueryExecutionPlan plan, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = TriplestoreClient.query(httpClient, triplestoreID, plan, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse updateTriplestoreOwner(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, String accessToken) throws IOException {
+    private HTTPResponse updateTriplestoreOwner(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.updateTriplestoreOwner(httpClient, cookie, triplestoreID, target, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse revokeAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, boolean write, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse revokeAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, boolean write, String accessToken) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = IAMClient.revokeAccess(httpClient, cookie, triplestoreID, target, write, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse grantAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, boolean write, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse grantAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String target, boolean write, String accessToken) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = IAMClient.grantAccess(httpClient, cookie, triplestoreID, target, write, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse listPendingAccessRequests(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException {
+    private HTTPResponse listPendingAccessRequests(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String accessToken) throws IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.listPendingAccessRequests(httpClient, cookie, triplestoreID, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse requestAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer, boolean write) throws IOException, URISyntaxException {
+    private HTTPResponse requestAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String issuer, boolean write) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = IAMClient.requestAccess(httpClient, cookie, triplestoreID, issuer, write)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse processAccessRequest(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String requestID, boolean accept, String accessToken) throws IOException, URISyntaxException {
+    private HTTPResponse processAccessRequest(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, String requestID, boolean accept, String accessToken) throws IOException, URISyntaxException, ParseException {
         try (CloseableHttpResponse response = IAMClient.processAccessRequest(httpClient, cookie, triplestoreID, requestID, accept, accessToken)) {
             return new HTTPResponse(response);
         }
     }
 
-    private HTTPResponse listUsersWithAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, boolean write, String accessToken) throws URISyntaxException, IOException {
+    private HTTPResponse listUsersWithAccess(CloseableHttpClient httpClient, Cookie cookie, String triplestoreID, boolean write, String accessToken) throws URISyntaxException, IOException, ParseException {
         try (CloseableHttpResponse response = IAMClient.listUsersWithAccess(httpClient, cookie, triplestoreID, write, accessToken)) {
             return new HTTPResponse(response);
         }
