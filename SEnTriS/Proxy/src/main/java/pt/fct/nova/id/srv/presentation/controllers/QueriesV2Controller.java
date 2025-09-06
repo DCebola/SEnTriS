@@ -3,8 +3,8 @@ package pt.fct.nova.id.srv.presentation.controllers;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.jena.atlas.lib.NotImplemented;
 import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
@@ -45,7 +45,7 @@ public class QueriesV2Controller implements QueriesAPI {
              ByteArrayInputStream eqKey_is = new ByteArrayInputStream(form.getKey());
              ObjectInputStream eqKey_ois = new ObjectInputStream(eqKey_is)) {
 
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
 
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
@@ -77,7 +77,7 @@ public class QueriesV2Controller implements QueriesAPI {
              CloseableHttpResponse response = IAMClient.checkIfActive(httpClient, accessToken);
              ByteArrayInputStream is = new ByteArrayInputStream(encryptedNodes);
              ObjectInputStream ois = new ObjectInputStream(is)) {
-            if (response.getStatusLine().getStatusCode() != OK.getStatusCode())
+            if (response.getCode() != OK.getStatusCode())
                 return HTTPUtils.buildResponse(response);
             return Response.ok(base64Encoder.encodeToString(ProxyStorageV2.save((List<byte[]>) ois.readObject()))).build();
         } catch (Exception e) {

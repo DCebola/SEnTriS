@@ -1,7 +1,7 @@
 package pt.fct.nova.id.srv.presentation;
 
 import jakarta.ws.rs.core.Cookie;
-import org.apache.commons.codec.binary.Base64;
+import org.apache.hc.client5.http.utils.Base64;
 import pt.fct.nova.id.srv.application.storage.redis.IAMStorage;
 import pt.fct.nova.id.srv.application.crypto.PasswordLib;
 import pt.fct.nova.id.srv.presentation.exceptions.*;
