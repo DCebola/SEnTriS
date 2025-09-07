@@ -13,8 +13,6 @@ keytool -import -file ./SSL/triplestore-cert.pem -alias triplestore -keystore ./
 wait
 keytool -import -file ./SSL/proxy-cert.pem -alias proxy -keystore ./SSL/iam-provider-truststore.ks
 wait
-keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/triplestore-truststore.ks
-wait
 
 #Vault Truststore
 keytool -import -file ./SSL/vault-redis-cert.pem -alias redis -keystore ./SSL/vault-truststore.ks
@@ -22,8 +20,6 @@ wait
 keytool -import -file ./SSL/iam-provider-cert.pem -alias iam-provider -keystore ./SSL/vault-truststore.ks
 wait
 keytool -import -file ./SSL/client-cert.pem -alias client -keystore ./SSL/vault-truststore.ks
-wait
-keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/vault-truststore.ks
 wait
 
 #Triplestore Truststore
@@ -35,8 +31,6 @@ keytool -import -file ./SSL/proxy-cert.pem -alias proxy -keystore ./SSL/triplest
 wait
 keytool -import -file ./SSL/client-cert.pem -alias client -keystore ./SSL/triplestore-truststore.ks
 wait
-keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/triplestore-truststore.ks
-wait
 
 #Proxy Truststore
 keytool -import -file ./SSL/proxy-redis-cert.pem -alias redis -keystore ./SSL/proxy-truststore.ks
@@ -47,8 +41,6 @@ keytool -import -file ./SSL/client-cert.pem -alias client -keystore ./SSL/proxy-
 wait
 keytool -import -file ./SSL/triplestore-cert.pem -alias triplestore -keystore ./SSL/proxy-truststore.ks
 wait
-keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/proxy-truststore.ks
-wait
 
 #Client Truststore
 keytool -import -file ./SSL/iam-provider-cert.pem -alias iam-provider -keystore ./SSL/client-truststore.ks
@@ -56,6 +48,4 @@ wait
 keytool -import -file ./SSL/triplestore-cert.pem -alias triplestore -keystore ./SSL/client-truststore.ks
 wait
 keytool -import -file ./SSL/proxy-cert.pem -alias proxy -keystore ./SSL/client-truststore.ks
-wait
-keytool -import -file ./SSL/ca-cert.pem -alias ca -keystore ./SSL/client-truststore.ks
 wait

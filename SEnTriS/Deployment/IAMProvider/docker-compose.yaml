@@ -29,6 +29,7 @@ services:
         - ../SSL/iam-provider-cert.pem:/usr/local/tomcat/ssl/iam-provider-cert.pem
         - ../SSL/iam-provider-key.pem:/usr/local/tomcat/ssl/iam-provider-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
+        - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
       ports:
         - "8081:8443"
       networks:

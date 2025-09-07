@@ -29,6 +29,7 @@ services:
         - ../SSL/vault-cert.pem:/usr/local/tomcat/ssl/vault-cert.pem
         - ../SSL/vault-key.pem:/usr/local/tomcat/ssl/vault-key.pem
         - ./server.xml:/usr/local/tomcat/conf/server.xml
+        - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
       expose:
         - "8443"
       networks:
