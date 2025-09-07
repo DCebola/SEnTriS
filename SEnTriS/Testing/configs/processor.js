@@ -246,7 +246,7 @@ function genLUBMQuery(requestParams, context, events, next) {
  */
 function processLUBMQueryAnswer(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		if (context.vars.triplestoreID == 'lubm-1') {
+		if (context.vars.triplestoreID == 'lubm-10') {
 			if (response.statusCode >= 200 && response.statusCode < 300) {
 				let referenceAnswer = answers.get(context.vars.queryName)
 				let receivedAnswer = JSON.parse(response.body)
