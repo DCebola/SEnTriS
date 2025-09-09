@@ -1,5 +1,5 @@
 config:
-  target: 'https://host.docker.internal:8080'
+  target: 'https://host.docker.internal:8090'
   http:
     timeout: 86400 #1day timeout
   plugins:
@@ -147,9 +147,9 @@ scenarios:
                 count: 1
             loopElement: "dataset"
             over:
-              - "lubm-0"
+              #- "lubm-0"
               - "lubm-1"
-              - "lubm-2"
+              #- "lubm-2"
               #- "lubm-3"
               #- "lubm-4"
               #- "lubm-5"
@@ -157,5 +157,5 @@ scenarios:
               #- "lubm-20"
         loopElement: "version"
         over:
-          # - "v1"
-          - "v2"
+          - "v1"
+          #- "v2"

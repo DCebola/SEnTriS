@@ -11,7 +11,7 @@ services:
       - ./server.xml:/usr/local/tomcat/conf/server.xml
       - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
     ports:
-      - "8080:8443"
+      - "8090:8443"
     networks:
       - sentris-client-frontend
       - sentris-vault-frontend

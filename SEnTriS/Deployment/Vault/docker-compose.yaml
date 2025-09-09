@@ -2,20 +2,21 @@ services:
     vault-db:
       image: redis:8.0
       container_name: sentris-vault-db
-      command: redis-server ../usr/local/etc/redis/redis.conf
+      command: redis-server /etc/redis/redis.conf
       volumes:
-        - ./data:/data
-        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/vault-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/vault-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/vault-redis.dh:/usr/local/etc/redis/tls/redis.dh
-        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+        - ./data:/data/dumb.rdb:u+rwx
+        - ../SSL/ca-cert.pem:/etc/certs/ca-cert.pem:ro
+        - ../SSL/vault-redis-cert.pem:/etc/certs/redis-cert.pem:ro
+        - ../SSL/vault-redis-key.pem:/etc/certs/redis-key.pem:ro
+        - ../SSL/vault-redis.dh:/etc/certs/redis.dh:ro
+        - ./DB/redis.conf:/etc/redis/redis.conf:ro
       expose:
         - "6379"
       networks:
         - sentris-vault-backend
       environment:
         REDIS_TLS_ENABLED: "yes"
+        SKIP_FIX_PERMS: 1
 
     vault-api:
       depends_on:

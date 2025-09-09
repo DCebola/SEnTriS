@@ -2,21 +2,22 @@ services:
     iam-provider-db:
       image: redis:8.0
       container_name: sentris-iam-provider-db
-      command: redis-server ../usr/local/etc/redis/redis.conf
+      command: redis-server /etc/redis/redis.conf
       volumes:
-        - ./data:/data
-        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/iam-provider-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/iam-provider-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/iam-provider-redis.dh:/usr/local/etc/redis/tls/redis.dh
-        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+        - ./data:/data/dumb.rdb:u+rwx
+        - ../SSL/ca-cert.pem:/etc/certs/ca-cert.pem:ro
+        - ../SSL/iam-provider-redis-cert.pem:/etc/certs/redis-cert.pem:ro
+        - ../SSL/iam-provider-redis-key.pem:/etc/certs/redis-key.pem:ro
+        - ../SSL/iam-provider-redis.dh:/etc/certs/redis.dh:ro
+        - ./DB/redis.conf:/etc/redis/redis.conf:ro
       expose:
         - "6379"
       networks:
         - sentris-iam-provider-backend
       environment:
         REDIS_TLS_ENABLED: "yes"
-
+        SKIP_FIX_PERMS: 1
+        
     iam-provider-api:
       depends_on:
         - iam-provider-db
@@ -31,7 +32,7 @@ services:
         - ./server.xml:/usr/local/tomcat/conf/server.xml
         - ./setenv.sh:/usr/local/tomcat/bin/setenv.sh
       ports:
-        - "8081:8443"
+        - "8091:8443"
       networks:
         - sentris-iam-provider-backend
         - sentris-iam-provider-frontend

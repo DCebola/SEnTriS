@@ -2,21 +2,22 @@ services:
     proxy-db:
       image: redis:8.0
       container_name: sentris-proxy-db
-      command: redis-server ../usr/local/etc/redis/redis.conf
+      command: redis-server /etc/redis/redis.conf
       volumes:
-        - ./data:/data
-        - ../SSL/ca-cert.pem:/usr/local/etc/redis/tls/ca-cert.pem
-        - ../SSL/proxy-redis-cert.pem:/usr/local/etc/redis/tls/redis-cert.pem
-        - ../SSL/proxy-redis-key.pem:/usr/local/etc/redis/tls/redis-key.pem
-        - ../SSL/proxy-redis.dh:/usr/local/etc/redis/tls/redis.dh
-        - ./DB/redis.conf:/usr/local/etc/redis/redis.conf
+        - ./data:/data/dumb.rdb:u+rwx
+        - ../SSL/ca-cert.pem:/etc/certs/ca-cert.pem:ro
+        - ../SSL/proxy-redis-cert.pem:/etc/certs/redis-cert.pem:ro
+        - ../SSL/proxy-redis-key.pem:/etc/certs/redis-key.pem:ro
+        - ../SSL/proxy-redis.dh:/etc/certs/redis.dh:ro
+        - ./DB/redis.conf:/etc/redis/redis.conf:ro
       expose:
         - "6379"
       networks:
         - sentris-proxy-backend
       environment:
         REDIS_TLS_ENABLED: "yes"
-
+        SKIP_FIX_PERMS: 1
+        
     proxy-api:
       depends_on:
         - proxy-db
