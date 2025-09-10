@@ -157,5 +157,5 @@ scenarios:
               #- "lubm-20"
         loopElement: "version"
         over:
-          - "v1"
-          #- "v2"
+          #- "v1"
+          - "v2"
