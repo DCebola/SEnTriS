@@ -22,9 +22,9 @@ module.exports = {
 	processLUBMQueryAnswer
 }
 
-const { faker } = require('@faker-js/faker');
+const { faker } = require('@faker-js/faker')
 const fs = require('fs')
-const FormData = require('form-data');
+const FormData = require('form-data')
 
 setTimeout(console.log, 2147483647)
 
@@ -42,7 +42,13 @@ function loadData() {
 	fs.readdirSync('./data/ontologies').forEach((ontology, i) => { ontologies.set(ontology, fs.readFileSync('./data/ontologies/' + ontology)) })
 	if (fs.existsSync('./data/queries.json')) {
 		JSON.parse(fs.readFileSync('./data/queries.json', 'utf8')).forEach(query => { queries.set(query.name, query) })
-		fs.readdirSync('./data/answers').forEach(answer => {answers.set(queries.get(answer), fs.readFileSync('./data/answers/' + answer)) })
+		fs.readdirSync('./data/answers').forEach(
+			answer => {
+				let queryName = answer.split('.')[0]
+				let referenceAnswer = JSON.parse(fs.readFileSync('./data/answers/' + answer))
+				answers.set(queryName, referenceAnswer) 
+			}
+		)
 	}
 }
 loadData()
@@ -68,7 +74,7 @@ function extractCookie(requestParams, response, context, events, done) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
 				//console.log("[extract_cookie] - " + header)
-				context.vars.session_cookie = header.split(';')[0].split("=")[1];
+				context.vars.session_cookie = header.split(';')[0].split("=")[1]
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
 		}
@@ -84,7 +90,7 @@ function extractAdminCookie(requestParams, response, context, events, done) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
 				//console.log("[extract_admin_cookie] - " + header)
-				admin_cookie = header.split(';')[0].split("=")[1];
+				admin_cookie = header.split(';')[0].split("=")[1]
 				context.vars.admin_session_cookie = admin_cookie
 			}
 		}
@@ -133,7 +139,7 @@ function selectRoleRequest(requestParams, response, context, events, done) {
 		let roleRequest = JSON.parse(response.body).filter(r => {
 			if (r.username === context.vars.username)
 				return r
-		})[0];
+		})[0]
 		if (roleRequest != undefined)
 			context.vars.role_request_id = roleRequest.requestID
 		//console.log(roleRequest.requestID)
@@ -197,7 +203,7 @@ function uploadTBox(requestParams, context, events, next) {
 
 function processTriplestoreSize(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		events.emit("histogram", context.vars.version + "." + context.vars.dataset + ".size", JSON.parse(response.body));
+		events.emit("histogram", context.vars.version + "." + context.vars.dataset + ".size", JSON.parse(response.body))
 	}
 	return next()
 }
@@ -246,22 +252,26 @@ function genLUBMQuery(requestParams, context, events, next) {
  */
 function processLUBMQueryAnswer(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
-		if (context.vars.triplestoreID == 'lubm-10') {
+		if (context.vars.dataset == 'lubm-1') {
 			if (response.statusCode >= 200 && response.statusCode < 300) {
 				let referenceAnswer = answers.get(context.vars.queryName)
 				let receivedAnswer = JSON.parse(response.body)
-				if (hasEqualVars(new Set(referenceAnswer.head.vars), new Set(receivedAnswer.head.vars))) {
-					let correctSet = extractBindings(referenceAnswer);
-					let receivedSet = extractBindings(receivedAnswer);
-					let correctlyReturned = new Set([...receivedSet].filter(ans => correctSet.has(ans)));
-					let completeness = correctSet.size > 0 ? (correctlyReturned.size / correctSet.size) * 100 : 100;
-					let soundness = receivedSet.size > 0 ? (correctlyReturned.size / receivedSet.size) * 100 : 100;
-					events.emit("histogram", context.vars.queryName + ".completeness", completeness);
-					events.emit("histogram", context.vars.queryName + ".soundness", soundness);
+				let receivedVars = createSet(receivedAnswer.head.vars)
+				let referenceVars = createSet(referenceAnswer.head.vars)
+				if (receivedVars.symmetricDifference(referenceVars).size == 0) {
+					let referenceBindings = createSet(referenceAnswer.results.bindings)
+					let receivedBindings = createSet(receivedAnswer.results.bindings)
+					let correctBindings = receivedBindings.intersection(referenceBindings)
+					let completeness = referenceBindings.size > 0 ? (correctBindings.size / referenceBindings.size) * 100 : 100
+					let soundness = receivedBindings.size > 0 ? (correctBindings.size / receivedBindings.size) * 100 : 100
+					events.emit("histogram", context.vars.queryName + ".completeness", completeness)
+					events.emit("histogram", context.vars.queryName + ".soundness", soundness)
+					events.emit("histogram", context.vars.queryName + ".received", receivedBindings.size)
+					events.emit("histogram", context.vars.queryName + ".expected", referenceBindings.size)
 				} else
-					events.emit("counter", context.vars.queryName + ".wrong", 1);
+					events.emit("counter", context.vars.queryName + ".wrong", 1)
 			} else
-				events.emit("counter", context.vars.queryName + ".wrong", 1);
+				events.emit("counter", context.vars.queryName + ".wrong", 1)
 		}
 	} else {
 		console.log("ERROR:" + JSON.stringify(response.body))
@@ -269,23 +279,8 @@ function processLUBMQueryAnswer(requestParams, response, context, events, next) 
 	return next()
 }
 
-function extractBindings(result) {
-	return new Set(result.results.bindings.map(binding =>
-		JSON.stringify(binding)
-	));
+function createSet(items) {
+	let set = new Set()
+	items.forEach(item => {set.add(JSON.stringify(item))})
+	return set
 }
-
-function hasEqualVars(vars, receveivedVars) {
-	return vars.symmetricDifference(receveivedVars).length == 0;
-}
-
-
-function calculateCompletnessAndSoundness(nonEntailedBindings, expectedBindings, receivedBindings) {
-	let completeness, soundness
-	if (expectedBindings.length >= receivedBindings.length) {
-		completeness = expectedBindings.filter(x => receivedBindings.includes(x)) / expectedBindings.length
-		soundness = nonEntailedBindings.filter(x => receivedBindings.includes(x)) / receivedBindings.length
-	}
-	return [completeness, soundness]
-}
-

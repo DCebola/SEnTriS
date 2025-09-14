@@ -25,7 +25,7 @@ public class Redis {
                 System.getenv("REDIS_HOST"),
                 Integer.parseInt(System.getenv("REDIS_PORT")),
                 Integer.parseInt(System.getenv("REDIS_TIMEOUT")),
-                true);
+                Boolean.parseBoolean(System.getenv("REDIS_SSL")));
 
         return instance;
     }

@@ -33,7 +33,7 @@
         "name": "lubm-6",
         "body": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX ub: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#>\nSELECT DISTINCT ?X WHERE {?X rdf:type ub:Student}\nORDER BY ASC(?X)",
         "transitivityDepth": 2,
-        "expansionDepth": 2
+        "expansionDepth": 3
     },
     {
         "name": "lubm-7",
