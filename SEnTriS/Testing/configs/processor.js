@@ -262,7 +262,7 @@ function processLUBMQueryAnswer(requestParams, response, context, events, next) 
 					let referenceBindings = createSet(referenceAnswer.results.bindings)
 					let receivedBindings = createSet(receivedAnswer.results.bindings)
 					let correctBindings = receivedBindings.intersection(referenceBindings)
-					let completeness = referenceBindings.size > 0 ? (correctBindings.size / referenceBindings.size) * 100 : 100
+					let completeness = referenceBindings.size == 0 ? (receivedBindings.size == 0 ? 100 : 0) : (correctBindings.size / referenceBindings.size) * 100;
 					let soundness = receivedBindings.size > 0 ? (correctBindings.size / receivedBindings.size) * 100 : 100
 					events.emit("histogram", context.vars.queryName + ".completeness", completeness)
 					events.emit("histogram", context.vars.queryName + ".soundness", soundness)

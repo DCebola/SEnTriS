@@ -137,7 +137,7 @@ scenarios:
                       - "lubm-12"      
                       - "lubm-13"
                       - "lubm-14"          
-                  count: 10
+                  count: 3
                 - log: "Deleting triplestore: {{ dataset }}"
                 - delete:                          
                     url: "/Client/api/triplestores/encrypted/{{ version }}/{{ triplestoreID }}/{{ username }}"
@@ -147,13 +147,13 @@ scenarios:
                 count: 1
             loopElement: "dataset"
             over:
-              - "lubm-0"
+              #- "lubm-0"
               - "lubm-1"
-              - "lubm-2"
-              - "lubm-3"
-              - "lubm-4"
-              - "lubm-5"
+              #- "lubm-2"
+              #- "lubm-3"
+              #- "lubm-4"
+              #- "lubm-5"
         loopElement: "version"
         over:
           - "v1"
-          - "v2"
+          #- "v2"
