@@ -1,0 +1,143 @@
+config:
+  target: 'https://host.docker.internal:8090'
+  http:
+    timeout: 86400 #1day timeout
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+      groupDynamicURLs: false
+      metricsNamespace: endpoint-metrics
+  processor: "./processor.js"
+  phases:  
+    - name: "test"
+      duration: 1
+      arrivalCount: 1
+     
+scenarios:
+ - name: 'Experimental evaluation: Upload & Query Latency'
+   weight: 1
+   flow:      
+      - function: "genUser"    
+      - post:
+          url: "/Client/api/users"
+          name: "create-user"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          afterResponse: "extractCookie"
+      - post:                          
+          url: "/Client/api/users/{{ username }}/upgrade"
+          name: "issue-upgrade-role-request"
+          headers:
+            cookie: "{{ session_cookie }}"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"     
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "admin"
+            password: "admin"
+          afterResponse: "extractAdminCookie"
+      - get:                          
+          url: "/Client/api/users/admin/requests"
+          name: "list-role-request"
+          headers:
+            cookie: "{{ admin_session_cookie }}"
+          afterResponse: "selectRoleRequest"
+      - put:                          
+          url: "/Client/api/users/admin/requests/{{ role_request_id }}"
+          ifTrue: 'role_request_id'
+          name: "process-role-request"
+          headers:
+            cookie: "{{ admin_session_cookie }}"
+          formData:
+            target: "{{ username }}"
+            accept: "true"
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          afterResponse: "extractCookie"
+      - log: "Create triplestore: {{ dataset }}"
+      - function: "genTriplestore"
+      - post:                          
+          url: "/Client/api/triplestores/encrypted/{{ version }}"
+          name: "create-triplestore-{{ dataset }}-{{ version }}"
+          headers:
+            cookie: "{{ session_cookie }}"
+          formData:
+            issuer: "{{ username }}"
+            triplestoreID: "{{ triplestoreID }}"
+      - log: "Uploading dataset: {{ dataset }}"
+      - post:                          
+          url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=false"
+          name: "upload-dataset-{{ dataset }}-{{ version }}"
+          headers:
+            cookie: "{{ session_cookie }}"
+          beforeRequest: "uploadABox"
+          setContentLengthHeader: true
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          afterResponse: "extractCookie"
+      - log: "Uploading ontology: {{ dataset }}"
+      - post:                          
+          url: "/Client/api/triplestores/encrypted/{{ version }}/upload?schema=true"
+          name: "upload-ontology-{{ dataset }}-{{ version }}"
+          headers:
+            cookie: "{{ session_cookie }}"
+          beforeRequest: "uploadTBox"
+          setContentLengthHeader: true
+      - log: "Get size: {{ dataset }}"
+      - get:                          
+          url: "/Client/api/triplestores/{{ triplestoreID }}/{{ username }}"
+          name: "info-{{ dataset }}-{{ version }}"
+          headers:
+            cookie: "{{ session_cookie }}"
+          afterResponse: "processTriplestoreSize"
+      - loop:
+        - loop:
+          - log: "Querying dataset: {{ dataset }} | {{ version }} | {{ queryName }}"
+          - post: 
+              url: "/Client/api/triplestores/encrypted/{{ version }}/query"
+              name: "query-{{ dataset }}-{{ version }}-{{ queryName }}"
+              headers:
+                cookie: "{{ session_cookie }}"
+              beforeRequest: genLUBMQuery
+              afterResponse: processLUBMQueryAnswer
+          loopElement: "queryName" 
+          over:
+            - "lubm-1"
+            - "lubm-2"
+            - "lubm-3"
+            - "lubm-4"
+            - "lubm-5"
+            - "lubm-6"
+            - "lubm-7"
+            - "lubm-8"
+            - "lubm-9"
+            - "lubm-10"
+            - "lubm-11"
+            - "lubm-12"      
+            - "lubm-13"
+            - "lubm-14"          
+        count: 10
+      - log: "Deleting triplestore: {{ dataset }}"
+      - delete:                          
+          url: "/Client/api/triplestores/encrypted/{{ version }}/{{ triplestoreID }}/{{ username }}"
+          name: "delete-triplestore-{{ dataset }}-{{ version }}"
+          headers:
+            cookie: "{{ session_cookie }}"
