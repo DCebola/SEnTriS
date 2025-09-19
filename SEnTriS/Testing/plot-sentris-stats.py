@@ -204,7 +204,7 @@ def plot_stat(df, columns, title, ylabel, filename, use_formatter=False):
                     continue
                 ax.plot(
                     group["elapsed_min"], group[col],
-                    linestyle=ls, marker=marker, markersize=3,
+                    linestyle=ls, markersize=3,
                     label=f"{name} ({col.replace('_bytes','')})"
                 )
                 # annotate max & min (human readable)
@@ -243,7 +243,7 @@ def plot_stat(df, columns, title, ylabel, filename, use_formatter=False):
                 continue
             ax.plot(
                 group["elapsed_min"], group[col],
-                linestyle=ls, marker=marker, markersize=3,
+                linestyle=ls, markersize=3,
                 label=name
             )
             try:
@@ -303,9 +303,9 @@ for idx, (name, group) in enumerate(data.groupby("container_name")):
     ls, marker = get_style(idx)
     group = group.sort_values("elapsed_min")
     if "block_in_bytes" in group.columns and group["block_in_bytes"].dropna().any():
-        axes[0].plot(group["elapsed_min"], group["block_in_bytes"], ls, marker=marker, markersize=3, label=name)
+        axes[0].plot(group["elapsed_min"], group["block_in_bytes"], ls, markersize=3, label=name)
     if "block_out_bytes" in group.columns and group["block_out_bytes"].dropna().any():
-        axes[1].plot(group["elapsed_min"], group["block_out_bytes"], ls, marker=marker, markersize=3, label=name)
+        axes[1].plot(group["elapsed_min"], group["block_out_bytes"], ls, markersize=3, label=name)
 
     # annotate per column for summary
     for col, ax in zip(["block_in_bytes", "block_out_bytes"], axes):
