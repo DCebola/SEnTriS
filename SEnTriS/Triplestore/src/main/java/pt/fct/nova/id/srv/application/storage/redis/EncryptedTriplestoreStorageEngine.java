@@ -21,29 +21,24 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
     public final static String UPDATE_SCRIPT = """
             local numDeletions = tonumber(ARGV[1])
             local len
-            local total
             for i, key in ipairs(KEYS) do
                 if i <= numDeletions then
                     len = redis.call("llen", key)
                     local t
-                    total = 0
                     for i = 1, len, 1 do
                         t = redis.call("lpop", key)
                         redis.call("del", t)
-                        total = total + 1
                     end
                 else
                     len = redis.call("llen", key)
                     local t
                     local n
-                    total = 0
                     for i = 1, len, 1 do
                         if (i % 2 == 1) then
                             t = redis.call("lpop", key)
                         else
                             n = redis.call("lpop", key)
                             redis.call("set", t, n)
-                            total = total + 2
                         end
                     end
                 end

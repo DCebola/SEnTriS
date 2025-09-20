@@ -1,0 +1,53 @@
+config:
+  target: 'https://host.docker.internal:8090'
+  http:
+    timeout: 86400 #1day timeout
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+      groupDynamicURLs: false
+      metricsNamespace: endpoint-metrics
+  processor: "./processor.js"
+  phases:  
+    - name: "test"
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+ - name: 'Experimental evaluation: Upload & Query Latency'
+   weight: 1
+   flow:      
+      - post:                          
+          url: "/Client/api/users/auth"
+          name: "auth"
+          formData:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          afterResponse: "extractCookie"
+      - loop:
+        - loop:
+          - log: "Querying triplestore: {{ triplestoreID }} {{ queryName }}"
+          - post: 
+              url: "/Client/api/triplestores/encrypted/{{ version }}/query"
+              name: "query-{{ queryName }}"
+              headers:
+                cookie: "{{ session_cookie }}"
+              beforeRequest: genLUBMQuery
+              afterResponse: processLUBMQueryAnswer
+          loopElement: "queryName" 
+          over:
+            - "lubm-1"
+            - "lubm-2"
+            - "lubm-3"
+            - "lubm-4"
+            - "lubm-5"
+            - "lubm-6"
+            - "lubm-7"
+            - "lubm-8"
+            - "lubm-9"
+            - "lubm-10"
+            - "lubm-11"
+            - "lubm-12"      
+            - "lubm-13"
+            - "lubm-14"          
+        count: 1

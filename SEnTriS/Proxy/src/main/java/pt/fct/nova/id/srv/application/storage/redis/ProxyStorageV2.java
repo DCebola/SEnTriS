@@ -5,11 +5,12 @@ import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.Bytes;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV2;
-import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV2;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -19,9 +20,9 @@ import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV2 extends ProxyStorage {
 
-    public static BindingsTableV2 search(DGKEqKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
+    public static BindingsTableV1 search(DGKEqKey key, Var[] vars, Map<Var, String> searches, byte[] executionID) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            BindingsTableV2 res = new MemBindingsTableV2(vars);
+            BindingsTableV1 res = new MemBindingsTableV1(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());
@@ -34,15 +35,27 @@ public class ProxyStorageV2 extends ProxyStorage {
                 searchResults.put(vars[i], responses.get(i).get());
 
 
-            Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
-            for (Var var : vars)
-                groupedEqTags.put(var, ConcurrentHashMap.newKeySet());
+            //Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
+            //for (Var var : vars)
+            //    groupedEqTags.put(var, ConcurrentHashMap.newKeySet());
+            p = jedis.pipelined();
+            Map<byte[], byte[]> eqTags = new HashMap<>(searchResults.size());
             Bytes p_idx;
             for (int i = 0; i < searchResults.get(vars[0]).size(); i++) {
                 p_idx = new Bytes(generateID());
-                for (Var var : vars)
-                    res.add(p_idx, var, findEqTagGroup(key, groupedEqTags.get(var), new BigInteger(searchResults.get(var).get(i))));
+                for (Var var : vars) {
+                    byte[] eqTag = searchResults.get(var).get(i);
+                    byte[] binding = DGKEqUtils.removeRNDLayer(key, new BigInteger(eqTag));
+                    eqTags.putIfAbsent(binding, eqTag);
+                    res.add(p_idx, var, new Bytes(binding));
+                }
             }
+            for (Map.Entry<byte[], byte[]> entry : eqTags.entrySet()) {
+                byte[] binding = entry.getKey();
+                byte[] eqTag = entry.getValue();
+                p.hset(executionID, binding, eqTag);
+            }
+            p.sync();
             System.out.println("Built Table: " + Arrays.toString(vars) + " | " + res.getPatterns().size());
             return res;
         } catch (Exception e) {
@@ -50,13 +63,29 @@ public class ProxyStorageV2 extends ProxyStorage {
         }
     }
 
+    public static Map<byte[], byte[]> getEqTags(byte[] executionID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            return jedis.hgetAll(executionID);
+        }
+    }
+
+    public static void deleteEqTags(byte[] executionID) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+           jedis.del(executionID);
+        }
+    }
+
     private static BigInteger findEqTagGroup(DGKEqKey key, Set<BigInteger> groupedEqTags, BigInteger eqTag) {
+        System.out.println("[search-eq-group] - " + eqTag);
         BigInteger res = groupedEqTags.parallelStream()
                 .filter(item -> DGKEqUtils.equals(key, item, eqTag))
                 .findAny()
                 .orElse(null);
-        if (res != null)
+        if (res != null) {
+            System.out.println("[found-group] - " + res);
             return res;
+        }
+        System.out.println("[create-group] - " + eqTag);
         groupedEqTags.add(eqTag);
         return eqTag;
     }

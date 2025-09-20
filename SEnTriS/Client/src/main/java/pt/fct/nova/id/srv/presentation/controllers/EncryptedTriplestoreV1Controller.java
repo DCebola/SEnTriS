@@ -112,6 +112,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
             if (form.getContent() == null)
                 return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             Set<Triple> triples = parseTriples(form.getContent(), parseRDFLanguage(form.getSyntax()));
+            System.out.println("Triples:" +  triples.size());
             if (triples.isEmpty())
                 return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             HTTPResponse response = createAccessToken(httpClient, cookie, issuer, triplestoreID);
@@ -200,6 +201,7 @@ public class EncryptedTriplestoreV1Controller extends EncryptedTriplestoreContro
                 protocol.clearNodes();
                 batch.clear();
             }
+            protocol.clearFrequencies();
             return updateTriplestore(httpClient, cookie, protocolVersion, triplestoreID, deletions, uploads, accessToken);
         } catch (Exception e) {
             deleteAccessToken(httpClient, cookie, triplestoreID, accessToken);

@@ -130,6 +130,7 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             }
             Set<Triple> triples = parseTriples(form.getContent(), parseRDFLanguage(form.getSyntax()));
+            System.out.println("Triples:" +  triples.size());
             if (triples.isEmpty()) {
                 return Response.ok(EMPTY_UPLOAD).status(BAD_REQUEST).build();
             }
@@ -543,8 +544,8 @@ public class EncryptedTriplestoreV2Controller extends EncryptedTriplestoreContro
                 response = batch(httpClient, cookie, triplestoreID, protocol, accessToken, keywordsFrequency, batch, collector, opType);
             batch.clear();
             protocol.clearNodes();
-            protocol.clearEqTags();
         }
+        protocol.clearEqTags();
         protocol.clearFrequencies();
         System.out.println("Check batch is empty" + batch.size());
         return response;

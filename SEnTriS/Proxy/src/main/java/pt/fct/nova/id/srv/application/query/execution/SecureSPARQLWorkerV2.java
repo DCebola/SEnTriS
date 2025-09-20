@@ -11,10 +11,10 @@ import pt.fct.nova.id.srv.application.query.jobs.SerializableBinding;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.*;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.*;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorageV2;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV2;
-import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV2;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
 
-import java.math.BigInteger;
+import static pt.fct.nova.id.srv.application.Utils.generateID;
 import java.util.*;
 
 public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
@@ -22,11 +22,13 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     private final SPARQLResult<byte[]> result;
     private final DGKEqKey key;
     private final Set<String> allSearchIDs;
+    private final byte[] executionID;
 
     public SecureSPARQLWorkerV2(DGKEqKey key) {
         result = new DefaultSPARQLResult<>();
         this.key = key;
         allSearchIDs = new HashSet<>();
+        executionID = generateID();
     }
 
     public Set<String> getAllSearchIDs() {
@@ -34,17 +36,17 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     @Override
-    public BindingsTableV2 exec(Job job) throws SPARQLExecutionException {
+    public BindingsTableV1 exec(Job job) throws SPARQLExecutionException {
         if (job instanceof SecureSearchJob secureSearchJob) {
             Map<Var, String> searches = secureSearchJob.getSearches();
             allSearchIDs.addAll(searches.values());
-            return ProxyStorageV2.search(key, secureSearchJob.getVars(), searches);
-        } else if (job instanceof EmptyResJob) return new MemBindingsTableV2(((EmptyResJob) job).getVars());
+            return ProxyStorageV2.search(key, secureSearchJob.getVars(), searches, executionID);
+        } else if (job instanceof EmptyResJob) return new MemBindingsTableV1(((EmptyResJob) job).getVars());
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
     @Override
-    public BindingsTableV2 exec(Job1 job, BindingsTableV2 prevJobResults) {
+    public BindingsTableV1 exec(Job1 job, BindingsTableV1 prevJobResults) {
         if (job instanceof ProjectJob)
             return execProject((ProjectJob) job, prevJobResults);
         else if (job instanceof OrderByJob)
@@ -57,33 +59,33 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
 
     }
 
-    private BindingsTableV2 execProject(ProjectJob job, BindingsTableV2 prevJobResults) {
+    private BindingsTableV1 execProject(ProjectJob job, BindingsTableV1 prevJobResults) {
         System.out.println("PROJECT BEFORE: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         prevJobResults.project(job.getVars());
         System.out.println("PROJECT AFTER: " + prevJobResults.getVars() + " | " + prevJobResults.getPatterns().size());
         return prevJobResults;
     }
 
-    private BindingsTableV2 execOrderBy(OrderByJob job, BindingsTableV2 prevJobResults) {
+    private BindingsTableV1 execOrderBy(OrderByJob job, BindingsTableV1 prevJobResults) {
         result.setOrdered(true);
         result.setSortConditions(job.getSortConditions());
         return prevJobResults;
     }
 
-    private BindingsTableV2 execSlice(SliceJob job, BindingsTableV2 prevJobResults) {
+    private BindingsTableV1 execSlice(SliceJob job, BindingsTableV1 prevJobResults) {
         result.setSliced(true);
         result.setLength(job.getLength());
         result.setOffset(job.getOffset());
         return prevJobResults;
     }
 
-    private BindingsTableV2 execDistinct(BindingsTableV2 prevJobResults) {
+    private BindingsTableV1 execDistinct(BindingsTableV1 prevJobResults) {
         result.setDistinct(true);
         return prevJobResults;
     }
 
     @Override
-    public BindingsTableV2 exec(Job2 job, BindingsTableV2 left, BindingsTableV2 right) throws SPARQLExecutionException {
+    public BindingsTableV1 exec(Job2 job, BindingsTableV1 left, BindingsTableV1 right) throws SPARQLExecutionException {
         if (job instanceof JoinJob)
             return execJoin(left, right);
         else if (job instanceof UnionJob)
@@ -95,32 +97,32 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         throw new JobInstanceException(job.getClass().toString(), job.getID());
     }
 
-    private BindingsTableV2 execJoin(BindingsTableV2 left, BindingsTableV2 right) {
-        BindingsTableV2 join = left.join(right, key);
+    private BindingsTableV1 execJoin(BindingsTableV1 left, BindingsTableV1 right) {
+        BindingsTableV1 join = left.join(right);
         System.out.println("JOIN: " + join.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return join;
     }
 
-    private BindingsTableV2 execUnion(BindingsTableV2 left, BindingsTableV2 right) {
-        BindingsTableV2 union = left.union(right);
+    private BindingsTableV1 execUnion(BindingsTableV1 left, BindingsTableV1 right) {
+        BindingsTableV1 union = left.union(right);
         System.out.println("UNION: " + union.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return union;
     }
 
-    private BindingsTableV2 execOptional(BindingsTableV2 left, BindingsTableV2 right) {
-        BindingsTableV2 optional = left.leftOuterJoin(right, key);
+    private BindingsTableV1 execOptional(BindingsTableV1 left, BindingsTableV1 right) {
+        BindingsTableV1 optional = left.leftOuterJoin(right);
         System.out.println("OPTIONAL: " + optional.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
         return optional;
     }
 
-    private BindingsTableV2 execMinus(BindingsTableV2 left, BindingsTableV2 right) {
-        BindingsTableV2 minus = left.minus(right, key);
+    private BindingsTableV1 execMinus(BindingsTableV1 left, BindingsTableV1 right) {
+        BindingsTableV1 minus = left.minus(right);
         System.out.println("MINUS: " + minus.getPatterns().size());
         System.out.println("[L] -" + Arrays.toString(left.getVars().toArray()));
         System.out.println("[R] -" + Arrays.toString(right.getVars().toArray()));
@@ -128,7 +130,7 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
     }
 
     @Override
-    public SPARQLResult<byte[]> generateResults(BindingsTableV2 jobResults) {
+    public SPARQLResult<byte[]> generateResults(BindingsTableV1 jobResults) {
         Collection<SerializableBinding<byte[]>> bindings;
         boolean isDistinct = result.isDistinct();
         if (isDistinct)
@@ -139,7 +141,8 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
         return result;
     }
 
-    private Collection<SerializableBinding<byte[]>> generateBindings(Collection<SerializableBinding<byte[]>> bindings, BindingsTableV2 jobResults) {
+    /*
+    private Collection<SerializableBinding<byte[]>> generateBindings(Collection<SerializableBinding<byte[]>> bindings, BindingsTableV1 jobResults) {
         List<Var> vars = new ArrayList<>(jobResults.getVars());
         int i;
         HashMap<Var, byte[]> values;
@@ -153,6 +156,27 @@ public class SecureSPARQLWorkerV2 implements SPARQLWorkerV2 {
             }
             bindings.add(new SerializableBinding<>(values));
         }
+        return bindings;
+    }
+    */
+
+
+    private Collection<SerializableBinding<byte[]>> generateBindings(Collection<SerializableBinding<byte[]>> bindings, BindingsTableV1 jobResults) {
+        List<Var> vars = new ArrayList<>(jobResults.getVars());
+        int i;
+        HashMap<Var, byte[]> values;
+        Map<byte[], byte[]> eqTags = ProxyStorageV2.getEqTags(executionID);
+        for (List<byte[]> p_values : jobResults.getPatterns()) {
+            values = new HashMap<>();
+            i = 0;
+            for (byte[] val : p_values) {
+                if (val != null)
+                    values.put(vars.get(i), eqTags.get(val));
+                i++;
+            }
+            bindings.add(new SerializableBinding<>(values));
+        }
+        ProxyStorageV2.deleteEqTags(executionID);
         return bindings;
     }
 }

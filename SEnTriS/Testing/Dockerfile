@@ -11,5 +11,7 @@ RUN apk --no-cache add curl
 ADD ./data data
 ADD ./configs/lubm-query.yml lubm-query.yml
 ADD ./configs/lubm-upload.yml lubm-upload.yml
+ADD ./configs/lubm-debug.yml lubm-debug.yml
 ADD ./configs/processor.js processor.js
+#ENV DEBUG=http:request,http:response
 ENTRYPOINT ["artillery", "run"]

@@ -73,7 +73,7 @@ function extractCookie(requestParams, response, context, events, done) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
 		for (let header of response.rawHeaders) {
 			if (header.startsWith("session")) {
-				//console.log("[extract_cookie] - " + header)
+				console.log("[extract_cookie] - " + header)
 				context.vars.session_cookie = header.split(';')[0].split("=")[1]
 				sessions.set(context.vars.username, context.vars.session_cookie)
 			}
@@ -169,7 +169,6 @@ function selectUser(context, events, done) {
  */
 function genTriplestore(context, events, next) {
 	context.vars.triplestoreID = `${faker.string.nanoid()}`
-	//console.log("[generate-triplestore] - " + context.vars.triplestoreID)
 	return next()
 }
 
@@ -274,7 +273,7 @@ function processLUBMQueryAnswer(requestParams, response, context, events, next) 
 				events.emit("counter", context.vars.queryName + ".wrong", 1)
 		}
 	} else {
-		console.log("ERROR:" + JSON.stringify(response.body))
+		console.log("ERROR:" + response)
 	}
 	return next()
 }
