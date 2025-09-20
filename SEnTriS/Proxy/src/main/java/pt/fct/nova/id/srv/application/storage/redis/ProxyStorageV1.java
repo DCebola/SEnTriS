@@ -3,9 +3,9 @@ package pt.fct.nova.id.srv.application.storage.redis;
 import org.apache.jena.sparql.core.Var;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
 import pt.fct.nova.id.srv.application.storage.Bytes;
-import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -16,9 +16,9 @@ import java.util.*;
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV1 extends ProxyStorage {
-    public static BindingsTableV1 search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
+    public static BindingsTable search(SecretKey key, Var[] vars, Map<Var, String> searches) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            BindingsTableV1 res = new MemBindingsTableV1(vars);
+            BindingsTable res = new MemBindingsTable(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());

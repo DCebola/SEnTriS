@@ -5,21 +5,20 @@ import pt.fct.nova.id.srv.application.query.jobs.Job;
 import pt.fct.nova.id.srv.application.query.jobs.jobs1.Job1;
 import pt.fct.nova.id.srv.application.query.jobs.jobs2.Job2;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
-
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
 import java.util.*;
 
-public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
+public class DefaultSPARQLExecution implements SPARQLExecution {
 
     private final Map<String, Job> jobs;
-    private final Map<String, BindingsTableV1> jobResults;
+    private final Map<String, BindingsTable> jobResults;
     private String current;
     private final Queue<String> pending;
     private final List<String> finished;
     private SPARQLResult<byte[]> result;
 
 
-    public DefaultSPARQLExecutionV2(QueryExecutionPlan plan) {
+    public DefaultSPARQLExecution(QueryExecutionPlan plan) {
         this.jobs = plan.getJobs();
         this.pending = plan.getExecutionOrder();
         this.finished = new LinkedList<>();
@@ -59,7 +58,7 @@ public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
     }
 
     @Override
-    public void exec(SPARQLWorkerV2 worker) throws SPARQLExecutionException {
+    public void exec(SPARQLWorker worker) throws SPARQLExecutionException {
         while (!pending.isEmpty()) {
             current = pending.peek();
             jobResults.put(current, delegateJob(worker, current));
@@ -68,7 +67,7 @@ public class DefaultSPARQLExecutionV2 implements SPARQLExecutionV2 {
         result = worker.generateResults(jobResults.get(current));
     }
 
-    private BindingsTableV1 delegateJob(SPARQLWorkerV2 worker, String current) throws SPARQLExecutionException {
+    private BindingsTable delegateJob(SPARQLWorker worker, String current) throws SPARQLExecutionException {
         Job job = jobs.get(current);
         if (job instanceof Job1)
             return worker.exec((Job1) job,

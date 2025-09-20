@@ -4,7 +4,7 @@ import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecution
 
 import java.util.Iterator;
 
-public interface SPARQLExecutionV1 {
+public interface SPARQLExecution {
 
     Iterator<String> getPendingJobs();
 
@@ -18,5 +18,5 @@ public interface SPARQLExecutionV1 {
 
     SPARQLResult<byte[]> getResults();
 
-    void exec(SPARQLWorkerV1 worker) throws SPARQLExecutionException;
+    void exec(SPARQLWorker worker) throws SPARQLExecutionException;
 }

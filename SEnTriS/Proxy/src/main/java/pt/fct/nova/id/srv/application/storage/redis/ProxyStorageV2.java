@@ -5,24 +5,22 @@ import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqKey;
 import pt.fct.nova.id.srv.application.crypto.dgk.DGKEqUtils;
 import pt.fct.nova.id.srv.application.query.execution.exceptions.SPARQLExecutionException;
 import pt.fct.nova.id.srv.application.storage.Bytes;
-import pt.fct.nova.id.srv.application.storage.tables.BindingsTableV1;
-import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTableV1;
+import pt.fct.nova.id.srv.application.storage.tables.BindingsTable;
+import pt.fct.nova.id.srv.application.storage.tables.MemBindingsTable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.*;
 
 import static pt.fct.nova.id.srv.application.Utils.generateID;
 
 public class ProxyStorageV2 extends ProxyStorage {
 
-    public static BindingsTableV1 search(DGKEqKey key, Var[] vars, Map<Var, String> searches, byte[] executionID) throws SPARQLExecutionException {
+    public static BindingsTable search(DGKEqKey key, Var[] vars, Map<Var, String> searches, byte[] executionID) throws SPARQLExecutionException {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            BindingsTableV1 res = new MemBindingsTableV1(vars);
+            BindingsTable res = new MemBindingsTable(vars);
             System.out.println("Search: " + Arrays.toString(vars) + " | " + searches.entrySet());
             Pipeline p = jedis.pipelined();
             List<Response<List<byte[]>>> responses = new ArrayList<>(searches.size());
@@ -34,10 +32,6 @@ public class ProxyStorageV2 extends ProxyStorage {
             for (int i = 0; i < vars.length; i++)
                 searchResults.put(vars[i], responses.get(i).get());
 
-
-            //Map<Var, Set<BigInteger>> groupedEqTags = new ConcurrentHashMap<>();
-            //for (Var var : vars)
-            //    groupedEqTags.put(var, ConcurrentHashMap.newKeySet());
             p = jedis.pipelined();
             Map<byte[], byte[]> eqTags = new HashMap<>(searchResults.size());
             Bytes p_idx;
@@ -74,20 +68,4 @@ public class ProxyStorageV2 extends ProxyStorage {
            jedis.del(executionID);
         }
     }
-
-    private static BigInteger findEqTagGroup(DGKEqKey key, Set<BigInteger> groupedEqTags, BigInteger eqTag) {
-        System.out.println("[search-eq-group] - " + eqTag);
-        BigInteger res = groupedEqTags.parallelStream()
-                .filter(item -> DGKEqUtils.equals(key, item, eqTag))
-                .findAny()
-                .orElse(null);
-        if (res != null) {
-            System.out.println("[found-group] - " + res);
-            return res;
-        }
-        System.out.println("[create-group] - " + eqTag);
-        groupedEqTags.add(eqTag);
-        return eqTag;
-    }
-
 }

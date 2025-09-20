@@ -51,7 +51,7 @@ public class QueriesV2Controller implements QueriesAPI {
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
             DGKEqKey eqKey = (DGKEqKey) eqKey_ois.readObject();
 
-            SPARQLExecutionV2 execution = new DefaultSPARQLExecutionV2(executionPlan);
+            SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
             SecureSPARQLWorkerV2 worker = new SecureSPARQLWorkerV2(eqKey);
             execution.exec(worker);
             ProxyStorage.delete(worker.getAllSearchIDs());

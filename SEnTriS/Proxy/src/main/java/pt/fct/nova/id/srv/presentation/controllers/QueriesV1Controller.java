@@ -11,8 +11,8 @@ import pt.fct.nova.id.srv.application.clients.HTTPClient;
 import pt.fct.nova.id.srv.application.clients.HTTPUtils;
 import pt.fct.nova.id.srv.application.clients.IAMClient;
 import pt.fct.nova.id.srv.application.crypto.SymmetricEncryptionUtils;
-import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecutionV1;
-import pt.fct.nova.id.srv.application.query.execution.SPARQLExecutionV1;
+import pt.fct.nova.id.srv.application.query.execution.DefaultSPARQLExecution;
+import pt.fct.nova.id.srv.application.query.execution.SPARQLExecution;
 import pt.fct.nova.id.srv.application.query.execution.SecureSPARQLWorkerV1;
 import pt.fct.nova.id.srv.application.query.plans.QueryExecutionPlan;
 import pt.fct.nova.id.srv.application.storage.redis.ProxyStorage;
@@ -54,7 +54,7 @@ public class QueriesV1Controller implements QueriesAPI {
             QueryExecutionPlan executionPlan = (QueryExecutionPlan) plan_ois.readObject();
             SecretKey secretKey = SymmetricEncryptionUtils.parseKey(form.getKey());
 
-            SPARQLExecutionV1 execution = new DefaultSPARQLExecutionV1(executionPlan);
+            SPARQLExecution execution = new DefaultSPARQLExecution(executionPlan);
             SecureSPARQLWorkerV1 worker = new SecureSPARQLWorkerV1(secretKey);
             execution.exec(worker);
             ProxyStorage.delete(worker.getAllSearchIDs());
