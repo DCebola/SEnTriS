@@ -20,11 +20,12 @@ import json, glob, re, os, argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+import numpy as np
 
 # -----------------------
 # Defaults
 # -----------------------
-DEFAULT_INPUT_GLOB = "results/sentris-v1/*.json"
+DEFAULT_INPUT_GLOB = "results/*.json"
 DEFAULT_OUTPUT_DIR = "plots/lubm-new"
 # Add this at the top or load from JSON/CSV
 TRIPLES = {
@@ -57,6 +58,8 @@ def version_sort_key(ver):
 def format_dataset_label(ds, ver):
     m = re.match(r"lubm-(\d+)", ds)
     n = m.group(1) if m else "?"
+    if ver is None:
+        return f"lubm({n})"
     return f"lubm({n},{ver})"
 
 def format_query_label(qname):
@@ -178,6 +181,12 @@ def assign_styles(df):
     q_linestyles = {q: line_styles[i % len(line_styles)] for i,q in enumerate(sorted(df[df["Query"]!=""]["QueryNum"].unique()))}
     return dv_styles, q_linestyles
 
+def version_color(ver, versions):
+    """Return grayscale shade based on version index (darker for lower versions)."""
+    idx = versions.index(ver)
+    shades = np.linspace(0.2, 0.6, len(versions))  # 0.2=dark, 0.8=light
+    return str(shades[idx])
+
 # -----------------------
 # Plot helpers (legends)
 # -----------------------
@@ -259,13 +268,15 @@ def plot_size_vs_triples(df, outdir, log_scale, dv_styles):
     size_df = df.drop_duplicates(subset=["Dataset","Version"]).dropna(subset=["Upload Size (GB)","Triples"])
     size_df = size_df.sort_values(by=["Dataset","Version"], key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
     fig, ax = plt.subplots(figsize=(8,6))
-    x = []
-    y = []
+    versions = sorted(size_df["Version"].unique(), key=version_sort_key)
+    x = dict()
+    y = dict()
     for (ds, ver), row in size_df.groupby(["Dataset","Version"]):
-        x.append(row["Triples"])
-        y.append(row["Upload Size (GB)"])
-        ax.plot(row["Triples"], row["Upload Size (GB)"], marker=dv_styles[(ds,ver)]["marker"], color="black")
-    ax.plot(x, y, color="black", linestyle="-")
+        x.setdefault(ver, []).append(row["Triples"])
+        y.setdefault(ver, []).append(row["Upload Size (GB)"])
+        ax.plot(row["Triples"], row["Upload Size (GB)"], marker=dv_styles[(ds,ver)]["marker"], color=version_color(ver, versions))
+    for ver in versions:
+        ax.plot(x[ver], y[ver], color=version_color(ver, versions), linestyle="-")
     ax.set_xlabel("Number of Triples"); ax.set_ylabel("Upload Size (GB)")
     ax.set_title("Upload Size vs Number of Triples"); ax.grid(True, linestyle="--", alpha=0.6)
     if log_scale: ax.set_xscale("log"); ax.set_yscale("log")
@@ -276,13 +287,15 @@ def plot_upload_latency_vs_triples(df, outdir, log_scale, dv_styles):
     upl = df[(df["Upload Latency (s)"].notnull()) & (df["ReportHasQueries"]==False)].drop_duplicates(subset=["Dataset","Version"])
     upl = upl.sort_values(by=["Dataset","Version"], key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
     fig, ax = plt.subplots(figsize=(8,6))
-    x = []
-    y = []
+    versions = sorted(upl["Version"].unique(), key=version_sort_key)
+    x = dict()
+    y = dict()
     for (ds, ver), row in upl.groupby(["Dataset", "Version"]):
-        x.append(row["Triples"])
-        y.append(row["Upload Latency (s)"])
-        ax.plot(row["Triples"], row["Upload Latency (s)"], marker=dv_styles[(ds, ver)]["marker"], color="black")
-    ax.plot(x, y, color="black", linestyle="-")
+        x.setdefault(ver, []).append(row["Triples"])
+        y.setdefault(ver, []).append(row["Upload Latency (s)"])
+        ax.plot(row["Triples"], row["Upload Latency (s)"], marker=dv_styles[(ds, ver)]["marker"], color=version_color(ver, versions))
+    for ver in versions:
+        ax.plot(x[ver], y[ver], color=version_color(ver, versions), linestyle="-")
     ax.set_xlabel("Number of Triples")
     ax.set_ylabel("Upload Latency (s)")
     ax.set_title("Upload Latency vs Number of Triples")
@@ -308,22 +321,61 @@ def plot_soundness_completeness(df, outdir):
             fig.tight_layout(); fig.savefig(os.path.join(outdir, f"soundness_completeness_{ds}_{ver}.png"), dpi=150); plt.close(fig)
 
 def plot_upload_ontology_latencies(df, outdir):
-    ont = df.drop_duplicates(subset=["Dataset","Version"]).set_index(["Dataset","Version"])["Upload Ontology Latency (s)"].dropna()
+    ont = df.drop_duplicates(subset=["Dataset","Version"]) \
+            .set_index(["Dataset","Version"])["Upload Ontology Latency (s)"].dropna()
     if ont.empty: return
-    ont = ont.reset_index().sort_values(by=["Dataset","Version"], key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
-    labels = [format_dataset_label(ds, ver) for ds,ver in zip(ont["Dataset"], ont["Version"])]
-    plt.figure(figsize=(10,6)); plt.bar(labels, ont["Upload Ontology Latency (s)"], color="0.7", edgecolor="black")
-    plt.ylabel("Upload Ontology Latency (s)"); plt.title("Upload Ontology Latencies"); plt.grid(True, axis='y', linestyle="--", alpha=0.6)
-    plt.tight_layout(); plt.savefig(os.path.join(outdir, "upload_ontology_latency.png"), dpi=150); plt.close()
+    ont = ont.reset_index().sort_values(by=["Dataset","Version"],
+                                        key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
+
+    datasets = sorted(ont["Dataset"].unique(), key=dataset_sort_key)
+    versions = sorted(ont["Version"].unique(), key=version_sort_key)
+    x = np.arange(len(datasets))
+    width = 0.8 / len(versions)
+    shades = np.linspace(0.3, 0.8, len(versions))  # grayscale fills
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    for i, ver in enumerate(versions):
+        vals = [ont[(ont["Dataset"]==ds) & (ont["Version"]==ver)]["Upload Ontology Latency (s)"].values[0]
+                if not ont[(ont["Dataset"]==ds) & (ont["Version"]==ver)].empty else 0
+                for ds in datasets]
+        ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+
+    ax.set_xticks(x + width*(len(versions)-1)/2)
+    ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
+    ax.set_ylabel("Upload Ontology Latency (s)")
+    ax.set_title("Upload Ontology Latencies")
+    ax.legend(title="Versions")
+    ax.grid(True, axis='y', linestyle="--", alpha=0.6)
+    fig.tight_layout(); fig.savefig(os.path.join(outdir, "upload_ontology_latency.png"), dpi=150); plt.close(fig)
+
 
 def plot_upload_dataset_latencies(df, outdir):
     upl = df[(df["Upload Latency (s)"].notnull()) & (df["ReportHasQueries"]==False)].drop_duplicates(subset=["Dataset","Version"])
     if upl.empty: return
-    upl = upl.sort_values(by=["Dataset","Version"], key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
-    labels = [format_dataset_label(ds, ver) for ds,ver in zip(upl["Dataset"], upl["Version"])]
-    plt.figure(figsize=(10,6)); plt.bar(labels, upl["Upload Latency (s)"], color="0.85", edgecolor="black")
-    plt.ylabel("Upload Latency (s)"); plt.title("Upload Dataset Latencies"); plt.grid(True, axis='y', linestyle="--", alpha=0.6)
-    plt.tight_layout(); plt.savefig(os.path.join(outdir, "upload_dataset_latency.png"), dpi=150); plt.close()
+    upl = upl.sort_values(by=["Dataset","Version"],
+                          key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
+
+    datasets = sorted(upl["Dataset"].unique(), key=dataset_sort_key)
+    versions = sorted(upl["Version"].unique(), key=version_sort_key)
+    x = np.arange(len(datasets))
+    width = 0.8 / len(versions)
+    shades = np.linspace(0.3, 0.8, len(versions))
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    for i, ver in enumerate(versions):
+        vals = [upl[(upl["Dataset"]==ds) & (upl["Version"]==ver)]["Upload Latency (s)"].values[0]
+                if not upl[(upl["Dataset"]==ds) & (upl["Version"]==ver)].empty else 0
+                for ds in datasets]
+        ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+
+    ax.set_xticks(x + width*(len(versions)-1)/2)
+    ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
+    ax.set_ylabel("Upload Latency (s)")
+    ax.set_title("Upload Dataset Latencies")
+    ax.legend(title="Versions")
+    ax.grid(True, axis='y', linestyle="--", alpha=0.6)
+    fig.tight_layout(); fig.savefig(os.path.join(outdir, "upload_dataset_latency.png"), dpi=150); plt.close(fig)
+
 
 def plot_combined_legend(outdir, dv_styles, q_linestyles):
     fig, ax = plt.subplots(figsize=(8,4))

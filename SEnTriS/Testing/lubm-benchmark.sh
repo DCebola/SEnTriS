@@ -6,9 +6,9 @@ if [ $# -ne 2  ]; then
 fi
 
 if [ "$(curl -k -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8091/IAMProvider/api/ctrl/init)" = "200" ]; then
-  for dataset in lubm-5
+  for dataset in lubm-0 lubm-1
   do
-    for version in v1 #v2
+    for version in v2
     do
       for scenario in lubm-upload lubm-query
       do
