@@ -6,11 +6,11 @@ if [ $# -ne 2  ]; then
 fi
 
 if [ "$(curl -k -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8091/IAMProvider/api/ctrl/init)" = "200" ]; then
-  for dataset in lubm-0 lubm-1 lubm-2 lubm-3 lubm-4 lubm-5
+  for dataset in lubm-2 lubm-3 lubm-4 lubm-5
   do
     for version in v2
     do
-      for scenario in lubm-upload lubm-query
+      for scenario in lubm-query
       do
         echo " > $scenario (dataset=$dataset, version=$version)"
         docker run --rm \
@@ -21,7 +21,7 @@ if [ "$(curl -k -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8091
           --variables "{ \"dataset\": [\"$dataset\"], \"version\": [\"$version\"] }" \
           "$scenario.yml" \
           --output "$scenario.json" \
-          > "tmp/$version-$triplestore-$scenario.txt"
+          > "tmp/$version-$dataset-$scenario.txt"
         wait
       done
     done
