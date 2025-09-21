@@ -206,11 +206,11 @@ def plot_stat(df, col, title, ylabel, folder, use_formatter=False, combined=True
 # -------------------------------
 # Generate plots
 # -------------------------------
-plot_stat(data, "cpu_percent", "CPU Usage (%)", "CPU %", "plots/cpu_usage")
-plot_stat(data, "mem_used_bytes", "Memory Usage", "Memory", "plots/memory_usage", use_formatter=True)
-plot_stat(data, "net_in_bytes", "Network I/O (In)", "Bytes", "plots/network_io", use_formatter=True)
-plot_stat(data, "net_out_bytes", "Network I/O (Out)", "Bytes", "plots/network_io", use_formatter=True)
-plot_stat(data, "block_in_bytes", "Block I/O (In)", "Bytes", "plots/block_io", use_formatter=True)
-plot_stat(data, "block_out_bytes", "Block I/O (Out)", "Bytes", "plots/block_io", use_formatter=True)
+plot_stat(data, "cpu_percent", "CPU Usage (%)", "CPU %", "plots/stats/cpu_usage")
+plot_stat(data, "mem_used_bytes", "Memory Usage", "Memory", "plots/stats/memory_usage", use_formatter=True)
+plot_stat(data, "net_in_bytes", "Network I/O (In)", "Bytes", "plots/stats/network_io", use_formatter=True)
+plot_stat(data, "net_out_bytes", "Network I/O (Out)", "Bytes", "plots/stats/network_io", use_formatter=True)
+plot_stat(data, "block_in_bytes", "Block I/O (In)", "Bytes", "plots/stats/block_io", use_formatter=True)
+plot_stat(data, "block_out_bytes", "Block I/O (Out)", "Bytes", "plots/stats/block_io", use_formatter=True)
 
 print("✅ Per-container and combined plots saved under ./plots/<stat-type>/")

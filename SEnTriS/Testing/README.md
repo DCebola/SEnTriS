@@ -7,9 +7,9 @@
 
 **Scenario:**
 
-1. Loop over datasets (lubm-1, lubm-5, lubm-10, lubm-20)
+1. Loop over datasets (lubm-0, lubm-1, lubm-2, lubm-3, lubm-4)
 2. Loop over protocols
-   1. Repeat 10
+   1. Repeat 3
       1.  Create triplestore
       2.  Upload dataset
       3.  Upload ontology
@@ -49,11 +49,11 @@
       3. **[owner-read]**  (test_owner_access :check x?) | x? -> pass
       4. **[owner-write]** test_shared_read_access :check pass | http_200
       5. Loop over **[No access, read access, write access, remove write access, remove read access]**
-      6. Loop over other 4 other users
-         1. Give access to user, respecting the current access policy
-         2. **[user-read]** (test_shared_read_access :check x?) | x? -> pass or http_403
-         3. **[user-write]** (test_shared_write_access :check pass) | http_200 or http_403
-         4. If http_200, **[user-read]** (test_shared_write_access :check x?) | x? -> pass
+         6. Loop over other 4 other users
+            1. Give access to user, respecting the current access policy
+            2. **[user-read]** (test_shared_read_access :check x?) | x? -> pass or http_403
+            3. **[user-write]** (test_shared_write_access :check pass) | http_200 or http_403
+            4. If http_200, **[user-read]** (test_shared_write_access :check x?) | x? -> pass
       7. Transfer ownership to rnd user
       8. **[rnd-user-delete]** Delete transfered triplestore
 2. Set BASIC role to 4 users, keep 1 privileged
@@ -77,26 +77,24 @@
 
 1. Create 5 priviledged users, 
    1. Select 1 user
-   2. Loop over protocols
-      1. Create triplestore
-      2. Loop over other 4 users
+   2. Create triplestore, v1
+      1. Loop over other 4 users
          1. Give write access
 
 **Scenario**
 
-1. **In parallel**: Try to write simple unique statement, check success (no timeout and http_200) assert write succeeded (by issuing a read query for the statement)
+1. **In parallel**: Try to write simple unique statement, check success (no timeout and http_200) assert write succeeded (by issuing a read query for the statement) (:user :name :username)
 
 ## Validation: Concurrent Reads
 
-**Setup:**
+**Setup**:
 
-1. Create 5 priviledged users, 
-   1. Select 1 user
-   2. Loop over protocols
-      1. Create triplestore
-      2. Upload dataset (lubm-0)
-      3. Loop over other 4 users
-         1. Give read access
+1. Create 1 priviledged user
+2. Create triplestore
+   1. Upload simple dataset (X? :is test)
+3. Create 4 other users, 
+4. Loop over other 4 users
+   1. Give read access
 
 **Scenario**
 
@@ -109,15 +107,16 @@ Will not test Select queries nor the Distinct, OrderBy modifiers, because they a
 **Setup**:
 
 1. Create 1 priviledged user
- 	1. Loop over protocols
-     1. Create triplestore
-     2. Upload dataset (lubm-0)
+
 
 **Scenario:**
 
-1. Loop over protocols
-   1. Loop over queries (sparql-ask, sparql-construct, sparql-describe, sparql-union, sparql-minus, sparql-optional, sparql-insert-data, sparql-delete-data, sparql-delete-where, sparql-insert-delete)
-      1. Execute query & validate answer
+
+1. Loop over feature (sparql-ask, sparql-construct, sparql-describe, sparql-union, sparql-minus, sparql-optional, sparql-insert-data, sparql-delete-data, sparql-delete-where, sparql-insert-delete)
+   1. Create triplestore, v1
+   2. Upload feature dataset 
+   3. Execute query
+   4. Validate answer
 
 ## LUBM (volume analysis)
 1. LUBM - Upload: 4 datasets * 2 protocols * 10 repetitions = 80 creation, 80 dataset upload, 80 ontology uploads, 80 deletions
