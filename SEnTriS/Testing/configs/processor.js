@@ -251,24 +251,21 @@ function genLUBMQuery(requestParams, context, events, next) {
  */
 function processLUBMQueryAnswer(requestParams, response, context, events, next) {
 	if (response.statusCode >= 200 && response.statusCode < 300) {
+		let receivedAnswer = JSON.parse(response.body)
+		let receivedBindings = createSet(receivedAnswer.results.bindings)
+		events.emit("histogram", context.vars.queryName + ".received", receivedBindings.size)
 		if (context.vars.dataset == 'lubm-1') {
-			if (response.statusCode >= 200 && response.statusCode < 300) {
-				let referenceAnswer = answers.get(context.vars.queryName)
-				let receivedAnswer = JSON.parse(response.body)
-				let receivedVars = createSet(receivedAnswer.head.vars)
-				let referenceVars = createSet(referenceAnswer.head.vars)
-				if (receivedVars.symmetricDifference(referenceVars).size == 0) {
-					let referenceBindings = createSet(referenceAnswer.results.bindings)
-					let receivedBindings = createSet(receivedAnswer.results.bindings)
-					let correctBindings = receivedBindings.intersection(referenceBindings)
-					let completeness = referenceBindings.size == 0 ? (receivedBindings.size == 0 ? 100 : 0) : (correctBindings.size / referenceBindings.size) * 100;
-					let soundness = receivedBindings.size > 0 ? (correctBindings.size / receivedBindings.size) * 100 : 100
-					events.emit("histogram", context.vars.queryName + ".completeness", completeness)
-					events.emit("histogram", context.vars.queryName + ".soundness", soundness)
-					events.emit("histogram", context.vars.queryName + ".received", receivedBindings.size)
-					events.emit("histogram", context.vars.queryName + ".expected", referenceBindings.size)
-				} else
-					events.emit("counter", context.vars.queryName + ".wrong", 1)
+			let referenceAnswer = answers.get(context.vars.queryName)
+			let receivedVars = createSet(receivedAnswer.head.vars)
+			let referenceVars = createSet(referenceAnswer.head.vars)
+			if (receivedVars.symmetricDifference(referenceVars).size == 0) {
+				let referenceBindings = createSet(referenceAnswer.results.bindings)
+				let correctBindings = receivedBindings.intersection(referenceBindings)
+				let completeness = referenceBindings.size == 0 ? (receivedBindings.size == 0 ? 100 : 0) : (correctBindings.size / referenceBindings.size) * 100;
+				let soundness = receivedBindings.size > 0 ? (correctBindings.size / receivedBindings.size) * 100 : 100
+				events.emit("histogram", context.vars.queryName + ".completeness", completeness)
+				events.emit("histogram", context.vars.queryName + ".soundness", soundness)
+				events.emit("histogram", context.vars.queryName + ".expected", referenceBindings.size)
 			} else
 				events.emit("counter", context.vars.queryName + ".wrong", 1)
 		}
