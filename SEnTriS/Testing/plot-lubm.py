@@ -547,6 +547,58 @@ def plot_received_answers(df, outdir):
         fig.savefig(os.path.join(outdir, f"received_answers_{ds}.png"), dpi=150)
         plt.close(fig)
 
+def plot_received_answers_per_query(df, outdir):
+    """Plot received answers per query, x-axis = datasets, grouped by version, with % diff annotations."""
+    qdf = df[df["Query"] != ""].dropna(subset=["Received"])
+    if qdf.empty:
+        return
+
+    datasets = sorted(qdf["Dataset"].unique(), key=dataset_sort_key)
+    versions = sorted(qdf["Version"].unique(), key=version_sort_key)
+    shades = np.linspace(0.3, 0.8, len(versions))
+
+    for qnum in sorted(qdf["QueryNum"].unique()):
+        group_q = qdf[qdf["QueryNum"] == qnum]
+        if group_q.empty:
+            continue
+
+        x = np.arange(len(datasets))
+        width = 0.8 / len(versions)
+
+        fig, ax = plt.subplots(figsize=(12,6))
+        bars_per_version = {}
+
+        for i, ver in enumerate(versions):
+            vals = [
+                group_q[(group_q["Dataset"]==ds) & (group_q["Version"]==ver)]["Received"].values[0]
+                if not group_q[(group_q["Dataset"]==ds) & (group_q["Version"]==ver)].empty else 0
+                for ds in datasets
+            ]
+            ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+            bars_per_version[ver] = vals
+
+        # Annotate percentage differences
+        for j, ds in enumerate(datasets):
+            for i in range(len(versions)-1):
+                v1, v2 = versions[i], versions[i+1]
+                base = bars_per_version[v1][j]
+                if base and bars_per_version[v2][j]:
+                    pct_diff = (bars_per_version[v2][j] - base) / base * 100
+                    if pct_diff > 0:
+                        ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) * 1.05,
+                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+
+        ax.set_xticks(x + width*(len(versions)-1)/2)
+        ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets], rotation=45)
+        ax.set_ylabel("Received Answers")
+        ax.set_title(f"Received Answers per Dataset - {format_query_label(f'lubm-{qnum}')}")
+        ax.legend(title="Versions")
+        ax.grid(True, axis='y', linestyle="--", alpha=0.6)
+        fig.tight_layout()
+        fig.savefig(os.path.join(outdir, f"received_answers_query{qnum}.png"), dpi=150)
+        plt.close(fig)
+
+
 
 # -----------------------
 # Main
@@ -576,6 +628,7 @@ def main():
     plot_upload_dataset_latencies(df, args.output_dir)
     plot_upload_dataset_sizes(df, args.output_dir)
     plot_received_answers(df, args.output_dir)
+    plot_received_answers_per_query(df, args.output_dir)
 
     print("Done. Results in", args.output_dir)
 
