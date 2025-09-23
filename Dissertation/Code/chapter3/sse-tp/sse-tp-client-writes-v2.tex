@@ -15,7 +15,7 @@ function batchExecute($triplestoreID$, $scheme$, $triples$, $opType$):
                 throw BatchException()
             $batchIDs$.add($batchID$)
         $scheme$.clearNodes()
-        $scheme$.clearEqTags()
+    $scheme$.clearEqTags()
     $scheme$.clearFrequencies()
     return $batchIDs$
         

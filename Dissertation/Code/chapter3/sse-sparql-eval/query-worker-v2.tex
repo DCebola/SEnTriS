@@ -3,16 +3,34 @@ State:
     $key$ := :bot
     $sparqlResult$ := ({}, false, false, false, :bot, :bot)
     $storageEngine$ := :bot
+    $execID$ := :bot
 
 function setContext($k$, $storage$):
     $key$ := $k$
     $storageEngine$ := $storage$
+    $execID$ := generateID()
 
-function execJoin($le\textrm{\emph{f}}t$, $right$):
-    return $le\textrm{\emph{f}}t$.join($right$, $key$)
+function exec($job$):
+    if $job$ is SEC_SEARCH:
+        $searches$ := $job$.getSearches()
+        foreach $(var, \; searchID)$ in $searches$
+            $searchIDs$ :=  $searchIDs$ :U { $searchID$ }
+        return $storageEngine$.search($key$, $job$.getVariables(), $searches$, $execID$)
+    elif $job$ is EMPTY:
+        return createBindingsTable($job$.vars)
+    throw JobInstanceException()
 
-function execOptional($le\textrm{\emph{f}}t$, $right$):
-    return $le\textrm{\emph{f}}t$.leftOuterJoin($right$, $key$)
-
-function execMinus($le\textrm{\emph{f}}t$, $right$):
-    return $le\textrm{\emph{f}}t$.minus($right$, $key$)
+function generateBindings($collector$, $jobResults$):
+    vars = $jobResults$.getVariables()
+    values := {}
+    $eqTags$ := $storageEngine$.getEqTags($execID$)
+    foreach $patterns$ in $jobResults$.getPatterns():
+        $binding$ := {}
+        $i$ := 0
+        foreach $encryptedBinding$ in $patterns$:
+            if $encryptedBinding$ :neq :bot:
+                $binding$[$vars$[$i$]] := $eqTags$[$encryptedBinding$]
+            $i$++
+        $collector$.add($binding$)
+    $storageEngine$.getEqTags($execID$)
+    return $collector$

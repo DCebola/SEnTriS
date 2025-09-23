@@ -1,8 +1,9 @@
 State:
     $TIMEOUT$ := fetchConfig($TIMEOUT$)
     $bindings$ := {}
+    $eqTags$ := {}
 
-function search($K_{DGK_{priv}} = (p, \; vp, \; n, \; u)$, $variables$, $searches$):
+function search($K_{DGK_{priv}} = (p, \; vp, \; n, \; u)$, $variables$, $searches$, $execID$):
     $table$ := createBindingsTable()
     $table$.setVariables($variables$)
     $searchResults$ := {}
@@ -16,21 +17,19 @@ function search($K_{DGK_{priv}} = (p, \; vp, \; n, \; u)$, $variables$, $searche
     for $i$ in range(0, $\#searchResults$[$variables$[0]]):
         $patternID$ := generateID()
         foreach $variable$ in $variables$:
-            $eqTagGroup$ := findEqTagGroup($K_{DGK_{priv}}$, $groupedEqTags$[$variable$], $searchResults$[$variable$][$i$])
+            $eqTag$ := $searchResults$[$variable$][$i$]
+            $binding$ := removeRNDLayer($K_{DGK_{priv}}$, $eqTag$)
+            if $eqTags$[$execID$] is :bot:
+                $eqTags$[$execID$] := {}
+            $eqTags$[$execID$][$binding$] := $eqTag$
             $table$.add($patternID$, $variable$, $eqTagGroup$)
     return $table$
 
-function findEqTagGroup($K_{DGK_{priv}}$, $groupedEqTags$, $newEqTag$):
-    $eqTagGroup$ := :bot
-    foreach $eqTag$ in $groupedEqTags$:
-        if equals($K_{DGK_{priv}}$, $eqTag$, $newEqTag$)
-            $eqTagGroup$ := $eqTag$
-    if $eqTagGroup$ :neq :bot:
-        return $eqTagGroup$
-    $groupedEqTags$ := $groupedEqTags$ :U { $newEqTag$ }
-    return $newEqTag$
+function getEqTags($execID$):  
+    return $eqTags$[$execID$]
 
-function equals($K_{DGK_{priv}} = (vp, \; p)$, $ct_1$, $ct_2$):
-    if $ct_1^{vp} \; \textrm{mod} \; p$ = $ct_2^{vp} \; \textrm{mod} \; p$:
-        return true
-    return false
+function deleteEqTags($execID$):
+    $eqTags$[$exeID$] := :bot
+
+function removeRNDLayer($K_{DGK_{priv}} = (vp, \; p)$, $ct$):
+    return $ct^{vp} \; \textrm{mod} \; p$

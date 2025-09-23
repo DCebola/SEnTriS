@@ -25,8 +25,8 @@ import numpy as np
 # -----------------------
 # Defaults
 # -----------------------
-DEFAULT_INPUT_GLOB = "results/*.json"
-DEFAULT_OUTPUT_DIR = "plots/lubm-final"
+DEFAULT_INPUT_GLOB = "results/lubm/*.json"
+DEFAULT_OUTPUT_DIR = "plots/lubm"
 # Add this at the top or load from JSON/CSV
 TRIPLES = {
     "lubm-0": 8521,
@@ -35,8 +35,6 @@ TRIPLES = {
     "lubm-3": 337129,
     "lubm-4": 477786,
     "lubm-5": 624534,
-    "lubm-10": 1272577,
-    "lubm-20": 2688048,
     # extend as needed
 }
 
@@ -410,10 +408,15 @@ def plot_upload_ontology_latencies(df, outdir):
 
 
 def plot_upload_dataset_latencies(df, outdir):
+    """Plot upload latencies per dataset, grouped by version, annotate % difference between versions."""
     upl = df[df["Upload Latency (s)"].notnull()].drop_duplicates(subset=["Dataset","Version"])
-    if upl.empty: return
-    upl = upl.sort_values(by=["Dataset","Version"],
-                          key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v)))
+    if upl.empty:
+        return
+
+    upl = upl.sort_values(
+        by=["Dataset","Version"],
+        key=lambda col: col.map(lambda v: dataset_sort_key(v) if col.name=="Dataset" else version_sort_key(v))
+    )
 
     datasets = sorted(upl["Dataset"].unique(), key=dataset_sort_key)
     versions = sorted(upl["Version"].unique(), key=version_sort_key)
@@ -422,11 +425,23 @@ def plot_upload_dataset_latencies(df, outdir):
     shades = np.linspace(0.3, 0.8, len(versions))
 
     fig, ax = plt.subplots(figsize=(10,6))
+    bars_per_version = {}
     for i, ver in enumerate(versions):
         vals = [upl[(upl["Dataset"]==ds) & (upl["Version"]==ver)]["Upload Latency (s)"].values[0]
                 if not upl[(upl["Dataset"]==ds) & (upl["Version"]==ver)].empty else 0
                 for ds in datasets]
         ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+        bars_per_version[ver] = vals
+
+    # Annotate percentage differences
+    for j, ds in enumerate(datasets):
+        for i in range(len(versions)-1):
+            v1, v2 = versions[i], versions[i+1]
+            base = bars_per_version[v1][j]
+            if base and bars_per_version[v2][j]:
+                pct_diff = (bars_per_version[v2][j] - base) / base * 100
+                ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.1,
+                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
 
     ax.set_xticks(x + width*(len(versions)-1)/2)
     ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
@@ -438,8 +453,10 @@ def plot_upload_dataset_latencies(df, outdir):
     fig.savefig(os.path.join(outdir, "upload_dataset_latency.png"), dpi=150)
     plt.close(fig)
 
+
+
 def plot_upload_dataset_sizes(df, outdir):
-    """Plot upload sizes per dataset (grouped bar chart by version, greyscale)."""
+    """Plot upload sizes per dataset, grouped by version, annotate % difference between versions."""
     size_df = df[df["Upload Size (GB)"].notnull()].drop_duplicates(subset=["Dataset","Version"])
     if size_df.empty:
         return
@@ -453,14 +470,26 @@ def plot_upload_dataset_sizes(df, outdir):
     versions = sorted(size_df["Version"].unique(), key=version_sort_key)
     x = np.arange(len(datasets))
     width = 0.8 / len(versions)
-    shades = np.linspace(0.3, 0.8, len(versions))  # grayscale fills
+    shades = np.linspace(0.3, 0.8, len(versions))
 
     fig, ax = plt.subplots(figsize=(10,6))
+    bars_per_version = {}
     for i, ver in enumerate(versions):
         vals = [size_df[(size_df["Dataset"]==ds) & (size_df["Version"]==ver)]["Upload Size (GB)"].values[0]
                 if not size_df[(size_df["Dataset"]==ds) & (size_df["Version"]==ver)].empty else 0
                 for ds in datasets]
         ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+        bars_per_version[ver] = vals
+
+    # Annotate percentage differences
+    for j, ds in enumerate(datasets):
+        for i in range(len(versions)-1):
+            v1, v2 = versions[i], versions[i+1]
+            base = bars_per_version[v1][j]
+            if base and bars_per_version[v2][j]:
+                pct_diff = (bars_per_version[v2][j] - base) / base * 100
+                ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.05,
+                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
 
     ax.set_xticks(x + width*(len(versions)-1)/2)
     ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
@@ -474,28 +503,49 @@ def plot_upload_dataset_sizes(df, outdir):
 
 
 
-def plot_combined_legend(outdir, dv_styles, q_linestyles):
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.axis("off")
+def plot_received_answers(df, outdir):
+    """Plot received answers per query, grouped by version, annotate % difference between versions."""
+    qdf = df[df["Query"] != ""].dropna(subset=["Received"])
+    if qdf.empty:
+        return
 
-    # Dataset-version markers
-    dv_handles = [Line2D([0],[0], marker=s["marker"], color="black", linestyle="None", markersize=8)
-                  for (ds,ver), s in dv_styles.items()]
-    dv_labels = [format_dataset_label(ds, ver) for (ds,ver) in dv_styles.keys()]
+    for ds, group_ds in sorted(qdf.groupby("Dataset"), key=lambda x: dataset_sort_key(x[0])):
+        queries = [q for q in CUSTOM_QUERY_ORDER if q in group_ds["QueryNum"].values]
+        versions = sorted(group_ds["Version"].unique(), key=version_sort_key)
 
-    # Query line styles
-    q_handles = [Line2D([0],[0], color="black", linestyle=ls, linewidth=2)
-                 for q, ls in q_linestyles.items()]
-    q_labels = [format_query_label(f"lubm-{q}") for q in q_linestyles.keys()]
+        x = np.arange(len(queries))
+        width = 0.8 / len(versions)
+        shades = np.linspace(0.3, 0.8, len(versions))
 
-    # Combine
-    legend1 = ax.legend(dv_handles, dv_labels, title="Datasets (markers)", loc="upper left")
-    ax.add_artist(legend1)
-    ax.legend(q_handles, q_labels, title="Queries (line styles)", loc="upper right")
+        fig, ax = plt.subplots(figsize=(12,6))
+        bars_per_version = {}
+        for i, ver in enumerate(versions):
+            vals = [group_ds[(group_ds["QueryNum"]==q) & (group_ds["Version"]==ver)]["Received"].values[0]
+                    if not group_ds[(group_ds["QueryNum"]==q) & (group_ds["Version"]==ver)].empty else 0
+                    for q in queries]
+            ax.bar(x + i*width, vals, width, label=ver, color=str(shades[i]), edgecolor="black")
+            bars_per_version[ver] = vals
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "legend.png"), dpi=150)
-    plt.close()
+        # Annotate percentage differences
+        for j, q in enumerate(queries):
+            for i in range(len(versions)-1):
+                v1, v2 = versions[i], versions[i+1]
+                base = bars_per_version[v1][j]
+                if base and bars_per_version[v2][j]:
+                    pct_diff = (bars_per_version[v2][j] - base) / base * 100
+                    if pct_diff > 0:
+                        ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.05*max(base, bars_per_version[v2][j]),
+                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+
+        ax.set_xticks(x + width*(len(versions)-1)/2)
+        ax.set_xticklabels([format_query_label(f"lubm-{q}") for q in queries], rotation=45)
+        ax.set_ylabel("Received Answers")
+        ax.set_title(f"Received Answers per Query - {format_dataset_label(ds, None)}")
+        ax.legend(title="Versions")
+        ax.grid(True, axis='y', linestyle="--", alpha=0.6)
+        fig.tight_layout()
+        fig.savefig(os.path.join(outdir, f"received_answers_{ds}.png"), dpi=150)
+        plt.close(fig)
 
 
 # -----------------------
@@ -525,7 +575,7 @@ def main():
     plot_upload_ontology_latencies(df, args.output_dir)
     plot_upload_dataset_latencies(df, args.output_dir)
     plot_upload_dataset_sizes(df, args.output_dir)
-    plot_combined_legend(args.output_dir, dv_styles, q_linestyles)
+    plot_received_answers(df, args.output_dir)
 
     print("Done. Results in", args.output_dir)
 

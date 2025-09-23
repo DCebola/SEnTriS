@@ -14,3 +14,4 @@ subproperty
 cryptosystem
 generateIndex
 archictural
+subproperties
