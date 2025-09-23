@@ -11,10 +11,53 @@ In this chapter we present the experimental evaluation of \gls{SEnTriS}. We star
 \section{Complexity Analysis}
 \label{ch5:complexity-analysis}
 
+In this Section we will evaluation \gls{SEnTriS} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
+
 \subsection{Storage Complexity}
+
+When evaluating the storage complexity of \gls{SEnTriS}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
+
+\paragraph{SEnTriS V1 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. Furthermore, we also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies. 
+
+\paragraph{SEnTriS V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+
+\paragraph{SEnTriS V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
+
+Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{Abox}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
+
 %Space complexity in terms of RDF terms
-\subsubsection{SEnTriS V1}
-\subsubsection{SEnTriS V2}
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+    \hline
+         \textbf{Version} & \textbf{Deterministic} & \textbf{Probabilistic} & \textbf{DGK} \\ \hline
+        V1 & $27T_a + K_a + 3T_t$ & $18T_a + Ka + 3T_t$ & 0 \\ \hline
+        V2 & $18T_a + K_a + N_a + 3T_t$ & $18T_a + K_a + N_a + 3T_t$ & $18T_a$ \\ \hline
+    \end{tabular}
+    \caption{Count of encryption operations.}
+    \label{tbl:storage-complexity:count}
+\end{table}
+
+Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriS} versions.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|}
+    \hline
+        \textbf{Version} & \textbf{Storage Formula} & \textbf{Asymptotic Storage} \\
+        \hline
+        V1 & $(45T_a + 2K_a + 6T_t) * \overline{S}$ & $O\!\left((T_a + K_a + T_t) * \overline{S}\right)$ \\
+        \hline
+        V2 & $(36T_a + 2K_a + 2N_a + 6T_t) * \overline{S} + 18T_a * \overline{N}$  & $O\!\left((T_a + K_a + N_a + T_t) * \overline{S} + T_a * \overline{N}\right)$ \\
+        \hline
+    \end{tabular}
+    \caption{Storage complexity comparison.}
+    \label{tbl:storage-complexity:formulas}
+\end{table}
+
+
+To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriS} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriS} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
 
 \subsection{Query Evaluation Complexity}
 %Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
@@ -23,17 +66,11 @@ In this chapter we present the experimental evaluation of \gls{SEnTriS}. We star
 
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
- 
-
-
 
 \subsection{Setup \& Methodology} 
 \subsubsection{Validation Scenarios}
 \subsubsection{LUBM Scenarios}
 \subsection{Experimental Results}
-\subsubsection{SPARQL Operations}
-\subsubsection{RBAC}
-\subsubsection{Concurrency}
 \subsubsection{Repository Size \& (Up)load Time}
 \subsubsection{Query Response Time}
 \subsubsection{Query Completeness \& Soundness}
