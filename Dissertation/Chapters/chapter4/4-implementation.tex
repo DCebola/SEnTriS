@@ -22,12 +22,12 @@ In this section, we will start by presenting the chosen technology stack and its
 
 The two most popular and mature semantic web development frameworks are Jena \autocite{The_Apache_Software_Foundation_undated-wk} and RDF4J \autocite{Eclipse-RDF4J-developersUnknown-uu}. Both are implemented in Java, provide similar features and are in active development. We opted to use the Jena framework because it is the most popular of the two.
 
-Parsing utilities and the creation of ontological models worked as expected. However, one limitation that we found was the high coupling and punctual lack of serialization support for a few classes. Furthermore, the query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes and procedures. As such, we implemented our custom data structures and query evaluation procedure (which were defined in the previous chapter). 
+Parsing utilities and the creation of ontological models worked as expected. However, one limitation that we found was the high coupling and punctual lack of serialization support for a few classes. Furthermore, the query evaluation procedure was highly dependent on the storage solutions specific by the framework. This lack of flexibility made it very complex to extend, or modify, any of the classes and procedures. As such, we implemented our custom data structures and query evaluation procedure. 
 
-\paragraph{Cryptography Libraries} For the cryptography operations we utilized a variety of well known libraries. We choose the Bouncy Castle library \autocite{BouncyCastle2023-og} for the key derivation operations and Lazysodium \autocite{Lazysodium-vo}, a Java wrapper of the Libsodium library \autocite{Libsodium-hk}, because it provides support for XChaCha20-Poly1305 encryption \autocite{NirUnknown-mk, XChaCha20-ur}. The \gls{DGK} encryption library used is an adaptation of the one developed by Andrew Quijano \autocite{DGKLibrary-ln}, where we removed the unused methods and implemented the abstractions used in the \gls{SEnTriS} protocol (e.g. equality check operation).
+\paragraph{Cryptography Libraries} For the cryptography operations we utilized a variety of well known libraries. We choose the Bouncy Castle library \autocite{BouncyCastle2023-og} for the key derivation operations and Lazysodium \autocite{Lazysodium-vo}, a Java wrapper of the Libsodium library \autocite{Libsodium-hk}, because it provides support for XChaCha20-Poly1305 encryption \autocite{NirUnknown-mk, XChaCha20-ur}. The \gls{DGK} encryption library used is an adaptation of the one developed by Andrew Quijano \autocite{DGKLibrary-ln}, where we removed the unused methods and implemented abstractions used in the \gls{SEnTriS} protocol.
 For \gls{SSL} certificate generation and management we used the OpenSSL library \autocite{OpenSSL-jb}.
 
-\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine, with persistence configured in \gls{AOF} mode (where every write operation received by the server is logged and can be re-executed at startup) \autocite{Redis-xq, Redis-rq}.
+\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine. Altough we could have configured Redis with persistence enabled, we decided not to do it \autocite{Redis-xq, Redis-rq}. This choice was deliberate, the correctness of the protocol is not dependent on persistent storage. Persistence was out of scope of this thesis, and will be proposed as future work.
 
 To guarantee atomicity in the creation of locks, updates and full deletions of triplestores, we implemented these operations using Lua scripts \autocite{Lua-gq}, which are executed directly in the Redis servers. This approach ensured that the logic was either fully executed server side, or not executed at all. 
 
@@ -53,8 +53,7 @@ We separate the component logic between two layers, the presentation and applica
 
 \section{Component Architecture \& Implementation Details}
 
-In this section, we will dive into the \gls{SEnTriS} component's implementation. For each of the components, we will describe their architecture and provide explanation about relevant implementation details. We will focus on providing mappings between the implementation and formal abstractions and algorithms, rather than describing and explaining code. The reasoning behind this approach, is that the code implementation follows as much as possible the formal algorithms, for which we have provided extensive listings.
-   
+In this section, we will dive into the implementation the \gls{SEnTriS} components. For each one, we will describe their architecture and provide explanation about relevant implementation details. We will focus on providing mappings between the implementation and formal abstractions and algorithms, rather than describing and explaining code. The reasoning behind this approach, is that the code implementation follows closely the formal algorithms, for which we have provided extensive pseudocode listings.
 
 \subsection{Client}
 
@@ -67,13 +66,13 @@ The first two expose the entry points for the \gls{IAM} algorithms, whereas the 
 
 More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints used to querying plaintext triplestores, following the SPARQL-EVAL protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
-A more direct mapping of each \gls{API} to the formal algorithms from the \gls{SEnTriS} protocol is the following:
+We will now provide a mapping between the \gls{API}s and the formal algorithms from the \gls{SEnTriS} protocol:
 
 \begin{itemize}
     \item \textbf{UserAPI}: exposes the endpoints for the IAM.$Auth$, IAM.$RegisterUser$, IAM.$Unreg$\textrm{-}\linebreak$isterUser$, IAM.$IssueUpgradeRequest$, IAM.$IssueDowngradeRequest$, IAM.$List$\textrm{-}\linebreak$PendingRoleRequests$, IAM.$IssueRoleDecision$ algorithms.
     
     \item \textbf{TriplestoreAPI}: exposes endpoints for the IAM.$ListTriplestores$, IAM.$Update$\textrm{-}\linebreak$TriplestoreOwner$, IAM.$GrantAccess$, IAM.$RevokeAccess$, IAM.$RequestAccess$, IAM\textrm{-}.$ListPendingAccessRequests$, IAM.$IssueAccessDecision$, and IAM.$ListUsersWithAc$\textrm{-}$cess$ algorithms.
-    z
+    
     \item \textbf{EncryptedTriplestoreAPI}: exposes endpoints for the IAM.$CreateTriplestore$, IAM\textrm{-}\linebreak.$DeleteTriplestore$, SEnTriS.$UploadTriples$, SEnTriS.$DeleteTriplestore$, SEnTriS\textrm{-}\linebreak.$SearchSchema$, and SEnTriS.$ExecuteSPARQLQuery$ algorithms.
 
 \end{itemize}
@@ -87,11 +86,11 @@ A more direct mapping of each \gls{API} to the formal algorithms from the \gls{S
 
 \paragraph*{Application Layer} Figure \ref{fig:client-application-layer} shows the Client application layer, where we implement all the internal components and libraries. These are grouped into four domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Query} and \emph{Ontologies}.
 
-Under the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between \gls{SEnTriS} components. Compared to the other three components, which have a single \gls{API} each, the Triplestore component exposes three. One is used for querying plaintext triplestores (during testing) and the other two for querying encrypted triplestores (following the two different versions of the \gls{SEnTriS} protocol, respectively). This is the reason why we have three Triplestore clients and one \gls{IAM}, one Vault, and one Proxy client.
+In the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between \gls{SEnTriS} components. Compared to the other three components, which have a single \gls{API} each, the Triplestore component exposes three. One is used for querying plaintext triplestores (during testing) and the other two for querying encrypted triplestores (one per version of the \gls{SEnTriS} protocol, respectively). Consequently, we have three Triplestore clients and one \gls{IAM}, one Vault, and one Proxy client.
 
-In the \emph{Cryptography} domain, we implement the encryption libraries and encryption schemes. The \emph{SymmetricEncryption} library is where we group all auxiliary operations related to symmetric encryption. The \emph{DGK} library is an adaption of a public\footnote{Source code shared at https://github.com/AndrewQuijano/Homomorphic Encryption} solution \autocite{Quijano2019-au} where we introduce the abstractions used by the \gls{SEnTriS} protocol (e.g. the \emph{equality key}). The two \emph{EncryptionSchemes} implement the \emph{SSE-TP} protocol variations. The \emph{EncryptionSchemeV1} is used in \gls{SEnTriS} V1, whereas the \emph{EncryptionSchemeV2} is used in \gls{SEnTriS} V2.
+In the \emph{Cryptography} domain, we implement the encryption libraries and encryption schemes. The \emph{SymmetricEncryption} library is where we group all auxiliary operations related to symmetric encryption. The \emph{DGK} library is an adaption of a public\footnote{Source code shared at https://github.com/AndrewQuijano/Homomorphic Encryption} solution \autocite{Quijano2019-au} where we introduce the abstractions used by the \gls{SEnTriS} protocol (e.g. the \emph{equality key}, part of the private key shared with the Proxy, during query evaluation). The two \emph{EncryptionSchemes} implement the \emph{SSE-TP} protocol variations. The \emph{EncryptionSchemeV1} is used in \gls{SEnTriS} V1, whereas the \emph{EncryptionSchemeV2} is used in \gls{SEnTriS} V2.
 
-Under the \emph{Query} domain we, implement all logical components scoped to query parsing and planning: the query engine, plan, result, jobs and planners. The \emph{DefaultSPARQLPlanner} is used for testing and generates plaintext query plans, to be executed against plaintext triplestores. The \emph{SecureSPARQLPlanner} generates query plans following the \gls{SEnTriS} protocol, to be executed against encrypted triplestores.
+In the \emph{Query} domain we, implement all logical components scoped to query parsing and planning: the query engine, plan, result, jobs and planners. The \emph{DefaultSPARQLPlanner} is used for testing and generates plaintext query plans, to be executed against plaintext triplestores. The \emph{SecureSPARQLPlanner} generates query plans following the \gls{SEnTriS} protocol, to be executed against encrypted triplestores.
 
 Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions, used for query rewriting. The \emph{DefaultOntology} is used by the \emph{DefaultSPARQLPlanner}, whereas the \emph{SecureOntology} is used by the \emph{SecureSPARQLPlanner}.
 
@@ -102,13 +101,13 @@ Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions
     \label{fig:client-application-layer}
 \end{figure}
 
-\subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations over the stored data. 
+\subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations against the stored data. 
 
 \paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
 
 The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL protocol.
 
-The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch, Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEnTriS.$DeleteAll$ algorithms. 
+The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch$, SEnTriS.$Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEnTriS.$DeleteAll$ algorithms. 
 
 \begin{figure}[H]
     \centering
