@@ -48,7 +48,7 @@ Our aim is to develop and implement an extensible and flexible solution. As such
 
 To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. Furthermore, the components are deployed as containerized applications. Figure \ref{fig:generic-component-architecture} shows the architectural scheme of a generic component.
 
-We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
+We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. A component will always include a \emph{ControlAPI}, where administration enpoints are exposed (e.g. for retrieving version information) In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
 
 
 \section{Component Architecture \& Implementation Details}
@@ -107,7 +107,7 @@ Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions
 
 The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL protocol.
 
-The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch$, SEnTriS.$Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEnTriS.$DeleteAll$ algorithms. 
+The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch$, SEnTriS.$Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEn\textrm{-}\linebreak.TriS.$DeleteAll$ algorithms. 
 
 \begin{figure}[H]
     \centering
@@ -148,6 +148,8 @@ The \emph{UserAPI} contains the endpoints for the IAM.$Init$, IAM.$CreateSession
 
 The \emph{TriplestoreAPI API} contains the endpoints for the IAM.$CreateTriplestoreAccessList$, IAM.$GetTriplestores$, IAM.$GetUsersWithAccess$, IAM.$ChangeTriplestoreOwner$, IAM.\linebreak$DeleteTriplestoreAccessList$, IAM.$GrantTriplestoreAccess$, IAM.$RevokeTriplestoreAc$\textrm{-}\linebreak$cess$, IAM.$IssueAccessRequest$, IAM.$GetPendingAccessRequests$, IAM.$ProcessAccessRe$\textrm{-}\linebreak$quest$, IAM.$CreateAccessToken$, IAM.$DeleteAccessToken$, IAM.$CheckReadAccess$, IAM.\linebreak$CheckWriteAccess$, IAM.$CheckOwnerAccess$, IAM.$AcquireTriplestoreLock$ and IAM.$Re$\textrm{-}\linebreak$leaseTriplestoreLock$ algorithms.
 
+The initialization procedure of the \gls{IAM} component, where a new admin user is generated and stored, and which is scoped to the IAM.$Init$ algorithm, is exposed via the \emph{ControlAPI}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{chapter4/iam-application.png}
@@ -183,11 +185,11 @@ Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} a
 
 In the \emph{Communication Clients} domain, we implement the client that abstract the internal communication between the Proxy and the \gls{IAM} Provider.
 
-In the \emph{Cryptography} domain, we provide the encryption libraries and encryption abstractions required by the Proxy. More specifically, in the \emph{SymmetricEncryption} library we group the symmetric key parsing and decryption operations. In the \emph{DGK} library we provide the \emph{equality key} implementation.
+In the \emph{Cryptography} domain, we provide the encryption libraries and encryption abstractions required by the Proxy. More specifically, in the \emph{SymmetricEncryption} library we group the symmetric key parsing and decryption operations. In the \emph{DGK} library we provide the \emph{equality key} implementation and the partial decryption operation (which removes the randomized layer from \gls{DGK} encrypted ciphertexts).
 
-Under the \emph{Query} domain, we implement the logical components scoped to the evaluation of \gls{SPARQL} queries. Due to the differences in the data encryption between \gls{SEnTriS} V1 and V2, we implement different query workers (\emph{SecureSPARQLWorkerV1} and \emph{SecureSPARQLWorkerV2}) and query executions (\emph{SecureSPARQLExecutionV1} and \emph{SecureSPARQLExecutionV2}) for each version. The main difference between them is that they manipulate binding tables whose implementation differs and cannot be abstracted into a generic one, due to the underlying data types for the encrypted data: sets of byte arrays in \gls{SEnTriS} V1 and \emph{BigIntegers} in V2. The \emph{DefaultQueryExecutionPlan} and \emph{DefaultSPARQLResult} are common between both versions of the protocol.
+Under the \emph{Query} domain, we implement the logical components scoped to the evaluation of \gls{SPARQL} queries. Due to the differences in the data encryption between \gls{SEnTriS} V1 and V2, we implement different query workers (\emph{SecureSPARQLWorkerV1} and \emph{SecureSPARQLWorkerV2}). The main difference between them is that in V2, during the generation of the query results, we need to substitue the deterministicly encrypted bindings with their original value. This requires \emph{SecureSPARQLWorkerV2} to manipulate and query an extra data structure. The \emph{DefaultQueryExecutionPlan} and \emph{DefaultSPARQLResult} are common between both versions of the protocol.
 
-Finally, in the \emph{Storage} domain, we implement the storage components and in-memory binding tables. The \emph{ProxyStorage} contains the logic for common storage functionalities: data saving and deletion. The data encryption differs between the protocol versions, as such, the data retrieval and binding tables creation logic varies. We implement this in the \emph{ProxyStorageV1} and \emph{ProxyStorageV2}, which are extensions of the \emph{ProxyStorage}. The implementation of the binding tables is scoped to the \emph{MemBindingsTableV1} and \emph{MemBindingsTableV2}.
+Finally, in the \emph{Storage} domain, we implement the storage components and in-memory binding tables. The \emph{ProxyStorage} contains the logic for common storage functionalities: data saving and deletion. The data encryption differs between the protocol versions, as such, the data retrieval and binding tables creation logic varies. We implement this in the \emph{ProxyStorageV1} and \emph{ProxyStorageV2}, which are extensions of the \emph{ProxyStorage}. The implementation of the binding tables is scoped to the \emph{MemBindingsTable}.
 
 \subsection{Vault} The vault component stores and distributes triplestore secrets.
 
@@ -215,4 +217,4 @@ In the \emph{Storage} domain, we implement the \emph{VaultStorage}. This compone
 
 \section{Summary} In this Section, we started by presenting the technology stack used for the implementation of \gls{SEnTriS}, mentioning the reasoning behind each technology choice and presenting any limitations found. We then explained the general design and architecture of a \gls{SEnTriS} component.
 
-We finished with an explanation of the internal architecture of each of the \gls{SEnTriS} components. For each component, we described their \emph{Presentation} and \emph{Application} layers, presenting mappings between the implementation and the formal algorithms and abstractions found in \gls{SEnTriS}.
+We finished with an explanation of the internal architecture of each of the \gls{SEnTriS} components. For each component, we described their \emph{Presentation} and \emph{Application} layers, presenting mappings between the implementation, the formal algorithms and abstractions found in \gls{SEnTriS}.

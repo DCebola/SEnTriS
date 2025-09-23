@@ -21,6 +21,10 @@
 \AtEndPreamble{% 
   \usepackage{gillius2}%
 }
+\usepackage[english]{datetime2}
+\usepackage{datetime2-calc}%
+\DTMsavenow{now}
+
 
 % Faculty / School
 \school(pt):={Faculdade de Ciências e Tecnologia}
@@ -63,7 +67,7 @@
 
 \spine(author)={\thedocauthor(name,short)}
 \spine(title)={\thedoctitle(\option{/novathesis/coverlang},main,caps)}
-\spine(date)={\thentdateyear}
+\spine(date)={\DTMfetchyear{now}}
 
 \spine(text,angle)={90}
 \spine(box,textcolor)={white}
@@ -184,8 +188,8 @@
   \MakeTextUppercase{\thedegreename(\option{/novathesis/coverlang})}\\[3mm]%
   \theuniversity(\option{/novathesis/coverlang})\\[1pt]%
   \iftoggle{/novathesis/printtimestamp}{%
-    \ifdocworking{\emph{\color{yellow}\textbf{Draft:} \today}}{\thentdatemonth, \thentdateyear}%
-  }{\thentdatemonth, \thentdateyear}%
+    \ifdocworking{\emph{\color{yellow}\textbf{Draft:} \DTMfetchday{now}}}{\DTMmonthname{\DTMfetchmonth{now}}, \DTMfetchyear{now}}%
+  }{\DTMmonthname{\DTMfetchmonth{now}}, \DTMfetchyear{now}}%
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,6 +253,6 @@
   \MakeTextUppercase{\thedegreename(\option{/novathesis/coverlang})}\\[1.25ex]%
   \theuniversity(\option{/novathesis/coverlang})\\[1pt]%
   \iftoggle{/novathesis/printtimestamp}{%
-    \ifdocworking{\emph{\color{blue}\textbf{Draft:} \today}}{\thentdatemonth, \thentdateyear}%
-  }{\thentdatemonth, \thentdateyear}%
+    \ifdocworking{\emph{\color{blue}\textbf{Draft:} \DTMfetchday{now}}}{\DTMmonthname{\DTMfetchmonth{now}}, \DTMfetchyear{now}}%
+  }{\DTMmonthname{\DTMfetchmonth{now}}, \DTMfetchyear{now}}%
 }
