@@ -10,6 +10,8 @@ import redis.clients.jedis.Transaction;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static pt.fct.nova.id.srv.application.storage.redis.TriplestoreStorageEngine.TRIPLESTORE_SIZE_FORMAT;
+
 public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine {
 
     private static final Base64.Decoder base64Decoder = Base64.getUrlDecoder();
@@ -58,8 +60,15 @@ public class EncryptedTriplestoreStorageEngine implements EncryptedStorageEngine
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Transaction t = jedis.multi();
             String id = Utils.generateID();
-            encryptedNodes.forEach((k, v) -> t.lpush(id, v, String.format(KEY_FORMAT, triplestoreID, k)));
-            System.out.println("Uploads:" + encryptedNodes.entrySet().size() + " | " + id);
+            double uploadSize = 0;
+            for (Map.Entry<String, String> entry : encryptedNodes.entrySet()) {
+                String k = String.format(KEY_FORMAT, triplestoreID, entry.getKey());
+                String v = entry.getValue();
+                t.lpush(id, v, k);
+                uploadSize += (double) v.getBytes().length + (double) v.getBytes().length;
+            }
+            System.out.println("Uploads:" + encryptedNodes.size() + " | " + id + " | " + uploadSize);
+            t.incrByFloat(String.format(TRIPLESTORE_SIZE_FORMAT, triplestoreID), uploadSize);
             t.expire(id, COMMIT_LIFETIME);
             t.exec();
             return id;

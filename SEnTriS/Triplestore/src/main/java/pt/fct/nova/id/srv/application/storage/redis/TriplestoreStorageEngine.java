@@ -10,8 +10,6 @@ import pt.fct.nova.id.srv.application.storage.exceptions.InvalidNodeException;
 import pt.fct.nova.id.srv.application.storage.StorageEngine;
 import pt.fct.nova.id.srv.application.storage.tables.*;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 
 import java.util.*;
@@ -42,6 +40,8 @@ public class TriplestoreStorageEngine implements StorageEngine {
     private static final String COMPOUND_KEYWORD = "%s".concat(BASIC_SEPARATOR).concat("%s");
     private static final String COMPOUND_NODE = "%s".concat(COMPOUND_NODE_SEPARATOR).concat("%s");
     private static final String KEYWORD_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("%s").concat(BASIC_SEPARATOR).concat("%s");
+
+    public final static String TRIPLESTORE_SIZE_FORMAT = "%s".concat(BASIC_SEPARATOR).concat("size");
 
     public final static String DELETE_ALL_SCRIPT = """
             local keys = {};
@@ -83,20 +83,12 @@ public class TriplestoreStorageEngine implements StorageEngine {
     @Override
     public long memoryUsage(String triplestoreID) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            Pipeline p = jedis.pipelined();
-            Set<Response<Long>> responses = new HashSet<>();
-            Redis.scan(jedis, String.format(TRIPLESTORE_DATA_PATTERN, triplestoreID)).forEach(k -> responses.add(p.memoryUsage(k)));
-            p.sync();
-            long memoryUsage = 0L;
-            Long val;
-            System.out.println(responses.size());
-            for (Response<Long> r : responses) {
-                val = r.get();
-                if (val != null)
-                    memoryUsage += val;
+            String size = jedis.get(String.format(TRIPLESTORE_SIZE_FORMAT, triplestoreID));
+            if (size != null) {
+                System.out.println("Memory Usage: " + size + " bytes.");
+                return Long.parseLong(size);
             }
-            System.out.println("Memory Usage: " + memoryUsage);
-            return memoryUsage;
+            return 0;
         }
     }
 
