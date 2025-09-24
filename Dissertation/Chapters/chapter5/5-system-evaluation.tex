@@ -11,7 +11,7 @@ In this chapter we present the experimental evaluation of \gls{SEnTriS}. We star
 \section{Complexity Analysis}
 \label{ch5:complexity-analysis}
 
-In this Section we will evaluation \gls{SEnTriS} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
+In this Section we will be evaluating \gls{SEnTriS} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
 
 \subsection{Storage Complexity}
 
@@ -60,19 +60,63 @@ Now, let $\overline{S}$ be the average size of a ciphertext generated with the X
 To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriS} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriS} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
 
 \subsection{Query Evaluation Complexity}
-%Time complexity in terms of node search, number of joins and modular exponentiations. Also consider transitivity and expansion depth
-\subsubsection{SEnTriS V1}
-\subsubsection{SEnTriS V2}
+
+In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will break down our analysis, and evaluate the three steps of the protocol: the query rewritting, query preparation, and query evaluation phase.
+
+\subsubsection{Query Rewriting Complexity}
+
+The time complexity for the query rewriting algorithm depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
+
+\begin{itemize}
+    \item \textbf{Ontology Structure:} The depth and breadth of class and property hierarchies, presence of transitive and inverse properties, and defined class restrictions.
+    \item \textbf{Query Content:} The number and type of triple patterns present in the query, and how these relate to the ontology.
+\end{itemize}
+
+As it was explained in Section \ref{ch3:query-rewriting}, we use an algorithm that recursively expands the triple patterns present in a \gls{SPARQL} query, up to a parametrized depth.
+
+The complexity of this algorithm is directly related to the various different ways we can expand a query term, based on the ontology's structure, at each expansion step. We denominate this as the \emph{branching factor}. When parsing a class $c$, the rewriting algorithm will consider all subclasses, equivalent classes, intersection operands, and class restrictions related to $c$. Similarly, for a property $p$, expansions will account for subproperties, equivalent properties, inverse and symmetric properties, and any applicable transitive closures.
+
+More formally, given class $c$, let $SC(c)$, $EC(c)$, $IC(c)$ be, respectively, the number of its direct subclasses, equivalent classes, and classes for which $c$ appears as an intersection operand. Let $INT(c)$ be the measure of how many operands are involved in the intersection definitions including $c$, and $R(c)$ be the count of restrictions imposed on $c$. 
+
+Given a property $p$, let $SP(p)$, $EP(p)$ and $INV(p)$, be, respectively, the count of its direct subproperties, equivalent and inverse properties. $SYM(p)$ and $TRANS(p)$ are boolean flags that indicate whether $p$ is symmetric and transitive (1 if yes, 0 otherwise).
+
+Futhermore, let $n$ be the number of triple patterns present in the query, $E$ be the parameter that configures the maximum expansion depth (how many rounds of expansion are allowed for a property $p$ or class $c$) and $T$ be the parameter that configures the maximum transitivity depth (a process requires nested loops).  
+
+With these values, we can specify the branching factors for both the class expansion $B_c$, and the property expansion $B_p$:
+
+\begin{align}
+    \label{equation:branching-factors}
+    \begin{split}
+        B_c &= SC(c) + EC(c) + IC(c) + INT(c) + R(c) \\
+        B_p &= SP(p) + EP(p) + SYM(p) + INV(p) + TRANS(p) \times T^2 
+    \end{split}
+\end{align}
+
+Since there is maximum depth of expansion, the total complexity for expanding class-related patterns can be defined as $O(B_c^E)$, and for property-related patterns\footnote{We informally separate $T^2$ from $B_p$ to highlight the quadratic component.} as $O((B_p + T^2)^E)$. The overall time complexity can be defined as:
+
+
+\begin{align}
+    \label{equation:query-rewriting-complexity}
+    \begin{split}
+        O\left( n \times \max \left( B_c^E,\ (B_p + T^2)^E \right) \right) 
+    \end{split}
+\end{align}
+
+
+To conclude, the asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
+
+\subsubsection{Query Preparation Complexity}
+
+\subsubsection{Query Evaluation Complexity}
 
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
 
 \subsection{Setup \& Methodology} 
-\subsubsection{Validation Scenarios}
 \subsubsection{LUBM Scenarios}
 \subsection{Experimental Results}
-\subsubsection{Repository Size \& (Up)load Time}
-\subsubsection{Query Response Time}
+\subsubsection{Repository Size \& (Up)load Latency}
+\subsubsection{Query Response Latency}
 \subsubsection{Query Completeness \& Soundness}
 \subsubsection{Result Analysis}
 
@@ -111,8 +155,10 @@ We expect all implementations of \gls{SEnTriS} to possess the following \emph{se
 
 \section{Final Discussion}
 
-Both implementations come with a trade-off between query evaluation leakage and performance.
+Both implementations come with a trade-off between security guaranties and performance.
 
-\gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} queries evaluation, as they tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually require an even higher number of equality joins.
+\gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually contain an even higher number of equality joins.
 
-In \gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage. This is achieved at the cost of: 1) an increase in complexity, during set operations between binding tables: 2) an extra communication round during query evaluation, where we have to reverse the masking applied to the \emph{equality tags} and need to fetch, and decrypt, the node values to generate the final results.
+\gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage. This is achieved at the cost of increase in time and space complexity.
+
+Nevertheless, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
