@@ -61,11 +61,92 @@ To conclude, in both versions storage complexity scales linearly. Although, in \
 
 \subsection{Query Evaluation Complexity}
 
-In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will break down our analysis, and evaluate the three steps of the protocol: the query rewritting, query preparation, and query evaluation phase.
+In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and cryptographic functions executions.
 
-\subsubsection{Query Rewriting Complexity}
+\subsubsection{Read Query Complexity}
 
-The time complexity for the query rewriting algorithm depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
+ Let $q_S$, $q_J$, $q_M$, $q_O$, $q_P$, $q_{SO}$, $q_D$ be the number of unique query jobs generated from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm.
+
+\paragraph{Query Parsing} During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriS} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEARCH}}$ (or alternative the number o triple patterns) scoped to the \gls{BGP}. 
+
+During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEARCH}}$ generated for the respective \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the \gls{BGP} scoped $job_{\text{SEARCH}}$, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
+
+Consequently, the number of jobs generated during query parsing is:
+
+\begin{align}
+    \label{equation:query-parsing}
+    \begin{split}
+        q_{\text{jobs}} = q_S + q_J + q_{\text{bgp}} * (n - 1) + q_M + q_O+ q_P+ q_{SO}+ q_D
+    \end{split}
+\end{align}
+
+\paragraph{Query Preparation V1} During the query preparation step, for each unique $job_{\text{SEARCH}}$, we generate a trapdoor to retrieve the frequency of its pattern keyword. For each non $\bot$ frequency, we then generate $\overline{\text{f}}$ new trapdoors, where $\overline{\text{f}}$ is the average keyword frequency. As such, we can express the complexity of this phase as:
+
+\begin{align}
+    \label{equation:query-preparation-v1}
+    \begin{split}
+        O_{\text{Prep V1}} &= O \left( q_S * (E_{\text{CHACHA}} + D_{\text{CHACHA}} + \overline{\text{f}} * E_{\text{CHACHA}})\right) \\
+        &= O \left( q_S * (D_{\text{CHACHA}} + E_{\text{CHACHA}} * (\overline{\text{f}} + 1))\right)
+    \end{split}
+\end{align}
+
+\paragraph{Query Preparation V2} Compared to \gls{SEnTriS} V1, each binding sent to the Proxy component is also masked. Let $mask$ be a masking operation, the complexity of this phase is defined as:
+
+\begin{align}
+    \label{equation:query-preparation-v2}
+    \begin{split}
+        O_{\text{Prep V2}} &= O \left( q_S * (E_{\text{CHACHA}} + D_{\text{CHACHA}} + \overline{\text{f}} * E_{\text{CHACHA}} + \overline{\text{f}} * mask)\right) \\
+        &= O \left( q_S * (D_{\text{CHACHA}} + E_{\text{CHACHA}} * (\overline{\text{f}} + 1) + \overline{\text{f}} * mask)\right)
+    \end{split}
+\end{align}
+
+\subsubsection{Query Evaluation Phase Complexity}
+
+The execution of a SPARQL query plan involves sequential processing of a set of jobs, each performing operations such as pattern matching, join, optional join, union, minus, and projection. The overall complexity of the execution can be understood by analyzing the complexity of these individual operations and how they compose according to the query plan.
+
+Let $n$ be the number of jobs in the execution plan, and for each job $J_i$, let its runtime complexity be $T(J_i)$. Then the total execution complexity is:
+
+\[
+T_{\text{exec}} = \sum_{i=1}^n T(J_i)
+\]
+
+The complexity of each job depends on the operation it performs and the size of its input data.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|p{5cm}|c|}
+\hline
+\textbf{Operation} & \textbf{Asymptotic Complexity} \\
+\hline
+JOIN & $O(m * n * v)$ \\
+\hline
+OPTIONAL & $O(m * n * v)$ \\
+\hline
+MINUS & $O(m * n * v)$ \\
+\hline
+UNION & $O(m + n)$ \\
+\hline
+PROJECT & $O(v)$ \\
+\hline
+\end{tabular}
+\caption{Complexities of common SPARQL operations. Here $m,n$ are pattern counts, $v$ is number of join variables, $p$ is patterns, and $k$ projected variables.}
+\label{tab:sparql-ops}
+\end{table}
+
+In practice, the number of join variables $v$ is typically small compared to pattern counts $m, n$, so JOIN and OPTIONAL complexities are roughly quadratic. The main control loop executes each job once, making the total cost linear in the number of jobs but dominated by the complexities of the underlying job operations.
+
+Thus, the overall execution complexity balances a linear traversal through jobs with potentially quadratic or near-linear complexities within each job's operations.
+
+\subsubsection{Inference Complexity Cost}
+
+When we introduce inference capabilities to the query evaluation protocol, we automatically introduce extra complexity from: 1) retrieval of the ontology; 2) query rewriting, which will also affect the total number of query jobs.
+
+\paragraph{Ontology retrieval} The complexity for the retrieval of the ontology depends on the number of trapdoors generated, and values decrypted. 
+
+
+%TODO: Ontology reconstruction complexity
+
+\paragraph{Query rewriting} The time complexity for the query rewriting algorithm depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
 
 \begin{itemize}
     \item \textbf{Ontology Structure:} The depth and breadth of class and property hierarchies, presence of transitive and inverse properties, and defined class restrictions.
@@ -80,7 +161,7 @@ More formally, given class $c$, let $SC(c)$, $EC(c)$, $IC(c)$ be, respectively, 
 
 Given a property $p$, let $SP(p)$, $EP(p)$ and $INV(p)$, be, respectively, the count of its direct subproperties, equivalent and inverse properties. $SYM(p)$ and $TRANS(p)$ are boolean flags that indicate whether $p$ is symmetric and transitive (1 if yes, 0 otherwise).
 
-Futhermore, let $n$ be the number of triple patterns present in the query, $E$ be the parameter that configures the maximum expansion depth (how many rounds of expansion are allowed for a property $p$ or class $c$) and $T$ be the parameter that configures the maximum transitivity depth (a process requires nested loops).  
+Furthermore, let $n$ be the number of triple patterns present in the query, $E$ be the parameter that configures the maximum expansion depth (how many rounds of expansion are allowed for a property $p$ or class $c$) and $T$ be the parameter that configures the maximum transitivity depth (a process requires nested loops).  
 
 With these values, we can specify the branching factors for both the class expansion $B_c$, and the property expansion $B_p$:
 
@@ -92,8 +173,7 @@ With these values, we can specify the branching factors for both the class expan
     \end{split}
 \end{align}
 
-Since there is maximum depth of expansion, the total complexity for expanding class-related patterns can be defined as $O(B_c^E)$, and for property-related patterns\footnote{We informally separate $T^2$ from $B_p$ to highlight the quadratic component.} as $O((B_p + T^2)^E)$. The overall time complexity can be defined as:
-
+Since there is a maximum depth of expansion, the total complexity for expanding class-related patterns can be defined as $O\left( B_c^E \right)$, and for property-related patterns\footnote{We informally separate $T^2$ from $B_p$ to highlight the quadratic component.} as $O \left( (B_p + T^2)^E) \right)$. The overall time complexity can be defined as:
 
 \begin{align}
     \label{equation:query-rewriting-complexity}
@@ -103,11 +183,85 @@ Since there is maximum depth of expansion, the total complexity for expanding cl
 \end{align}
 
 
-To conclude, the asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
+The asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
 
-\subsubsection{Query Preparation Complexity}
+%TODO: Explain how job number is modified, actually revisit, the join pipeline is only for joining the searches... the order of the other jobs does not change. Number only increased based on branching. Will need to add jobs created to the complexity of the expansion because that is what is interesting
 
-\subsubsection{Query Evaluation Complexity}
+\paragraph{Increase in Query Jobs} If we want to evaluate how does the complexity of the query rewriting algorithm affects the number of jobs generated, we need to analyze which jobs are created and when. 
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|}
+    \hline
+    Component & Jobs Create \\
+    \hline
+    $SC(c)$          & 1 search, 1 union per subclass \\
+    $EC(c)$          & 1 search, 1 union per equivalent class \\
+    $IC(c)$          & 1 search, 1 union, 1 join per intersection \\
+    $INT(c)$         & 1 search, 1 union per intersection operand \\
+    $R(c)$           & 1 search, 1 union, 1 minus per restriction \\
+    $SP(p)$          & 1 search, 1 union per subproperty \\
+    $EP(p)$          & 1 search, 1 union per equivalent property \\
+    $SYM(p)$         & 1 search, 1 union if symmetric \\
+    $INV(p)$         & 1 search, 1 union if inverse \\
+    $TRANS(p) \times T^2$ & 1 search, 1 join, 1 union per transitive step \\
+    \hline
+    \end{tabular}
+    \caption{Jobs Created during pattern expansion}
+\end{table}
+
+\vspace{0.5cm}
+
+For a class $c$, the class expansion branching factor $B_c$ combining all job creation is:
+
+\[
+B_c = SC(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + EC(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + IC(c) \times \left(j_{\text{search}} + j_{\text{union}} + j_{\text{join}}\right) + INT(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + R(c) \times \left(j_{\text{search}} + j_{\text{union}} + j_{\text{minus}}\right)
+\]
+
+For a property $p$, the property expansion branching factor $B_p$ is:
+
+\[
+B_p = SP(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + EP(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + SYM(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + INV(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + TRANS(p) \times T^2 \times \left(j_{\text{search}} + j_{\text{join}} + j_{\text{union}}\right)
+\]
+
+
+The growth of different job types created during query rewriting depends on the ontology's class and property branching factors, $B_c$ and $B_p$, and expansion parameters.
+
+\begin{itemize}
+    \item \textbf{Search jobs} grow exponentially with the maximum of the class and property branching factors raised to the expansion depth $E$:
+    \item \textbf{Union jobs} follow a similar growth pattern:
+    \item \textbf{Join jobs} increase with the branching factors and transitivity depth $T$:
+    \item \textbf{Minus jobs} scale linearly with the number of restrictions on class $c$, $R(c)$, and exponentially with expansion depth:
+\end{itemize}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{l|c|l}
+    \hline
+    Job Type    & Growth Formula                        & Notes \\
+    \hline
+    Search      & $O\left(\max(B_c^E, B_p^E)\right)$           & $B_c, B_p$: class and property branching factors \\
+    Union       & $O\left(\max(B_c^E, B_p^E)\right)$           & Mirrors search job growth \\
+    Join        & $O\left(\max(B_c^E, B_p^E) \times T\right)$  & $T$: transitivity depth \\
+    Minus       & $O\left(R(c) \times \max(B_c^E, B_p^E)\right)$  & $R(c)$: number of class restrictions \\
+    \hline
+    \end{tabular}
+    \caption{Asymptotic growth of job counts by job type with explicit class and property branching factors}
+\end{table}
+
+
+
+%TODO: Update the overall complexity
+
+\subsubsection{Complexity of write queries}
+
+%TODO: Complexity of delete 
+%      Compleity of upload
+%      Explain Cases
+%          - Generate triples
+%          - 
+
+
 
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
@@ -122,7 +276,157 @@ To conclude, the asymptotic complexity of the query rewriting algorithm is expon
 
 \section{Security Analysis}
 \label{ch5:security-analysis}
+
 In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model, defined in Section \ref{ch3:sec:solution-models:security-model}. We will start by enumerating the security properties of the different versions.
+
+\subsection{Security guaranties of the SSE-SPARQL-EVAL protocol}
+
+\subsubsection{Assumptions}
+
+We have defined the security model in Section \ref{ch3:sec:solution-models:security-model}, but additionally we will consider that an adversary $\mathcal{A}$ will only compromise either the Triplestore or the Proxy components, but not both simultaneously.
+
+\subsection{Leakage Definition}
+
+Let $Pt$ and $V$ be the number of patterns and variables. We will denote the randomized query execution plan as $\pi(Qp)$. Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, the node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. The multiplicative blinding operator is denoted as $B(\cdot)$ and the encryption schemes are specified as $E_{\text{CRYPTO}}(\cdot)$ where $\text{CRYPTO} \in \{\text{DGK}, \text{DET}, \text{RND}\}$. Let $I$ be a function that, when applied to a trapdoor, reveals its associated dataset. Finally, let $\sigma(\cdot)$ be  a function, which when applied to ciphertexts captures their equivalence and frequency. More specifically, $\sigma(E_{\text{det}}(\mathrm{bindings}))$ reveals which ciphertexts in the binding tables are equal and how frequently they occur, without disclosing the plaintext, whereas $\sigma(B(E_{\text{det}}(\mathrm{eqTags})))$ represents the equality and frequency pattern of equality tags after applying multiplicative blinding. We define leakage as a function $\mathcal{L}_{C}^{V}$, where version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$:
+
+\begin{align}
+    \label{equation:leakage-functions-triplestores}
+    \begin{split}
+        \mathcal{L}_{Triplestore}^{V1} &= \{ T(n), E(n), I(T(n))\} \\
+        \mathcal{L}_{Triplestore}^{V2} &= \{ T(n), E(n), T_{eq}, E(eq), I(T(n)), I(T(eq))\} \\
+    \end{split}
+\end{align}
+
+\begin{align}
+    \label{equation:leakage-functions-proxy}
+    \begin{split}
+        \mathcal{L}_{Proxy}^{V1} &= (|\mathcal{P}|, |\mathcal{V}|, \sigma(E_{det}(\mathrm{bindings})), \pi(J)) \\
+        \mathcal{L}_{Proxy}^{V2} &= (|\mathcal{P}|, |\mathcal{V}|, \sigma(B(E_{det}(\mathrm{eqTags}))), \pi(J)) \\
+    \end{split}
+\end{align}
+
+\subsection{Indistinguishability Games}
+
+For each version $V \in \{1,2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$, the indistinguishability game $G^V_C$ proceeds as follows:
+
+\begin{enumerate}
+    \item The adversary $\mathcal{A}$, restricted to component $C$, chooses two challenge query sets $Q_0$ and $Q_1$.
+    \item The challenger flips a fair random bit $b \in \{0,1\}$, then runs the SSE-SPARQL-EVAL protocol version $V$ on query set $Q_b$.
+    \item The challenger sends $\mathcal{A}$ the resulting \emph{real view} $\mathrm{RealView}_C^{V}$ seen by component $C$.
+    \item A simulator $\mathcal{S}_C^{V}$, given only the leakage $\mathcal{L}_C^{V}(Q_b)$, produces a \emph{simulated view} $\mathrm{SimView}_C^{V}$.
+    \item $\mathcal{A}$ receives either $\mathrm{RealView}_C^{V}$ or $\mathrm{SimView}_C^{V}$, chosen at random, and attempts to guess $b$.
+\end{enumerate}
+
+The adversary's advantage is measured as
+\[
+\mathrm{Adv}_{\mathcal{A}}^{V,C} = \left| \Pr[ \mathcal{A}(\mathrm{RealView}_C^{V})=b ] - \Pr[ \mathcal{A}(\mathrm{SimView}_C^{V})=b ] \right|
+\]
+
+Security notions (IND-CKA1 or IND-CKA2) hold if this advantage is negligible for any poly-time $\mathcal{A}$.
+
+
+\subsection{Simulation-Based Proofs for Version 1}
+
+\paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V1}$}
+
+Given leakage $\mathcal{L}_{Triplestore}^{V1} = \{S, F, I(T(n))\}$:
+
+\begin{itemize}
+    \item Generate simulated random ciphertext trapdoors $S'$ independent of the plaintext queries but consistent with the format.
+    \item Generate simulated frequency counts $F'$ consistent in size and distribution type with $F$.
+    \item Preserve dataset association metadata.
+    \item Output $\mathrm{SimView}_{Triplestore}^{V1} = (S', F', I(T(n)))$.
+\end{itemize}
+
+Semantic security of the inner encryption ensures indistinguishability between $\mathrm{RealView}_{Triplestore}^{V1}$ and $\mathrm{SimView}_{Triplestore}^{V1}$.
+
+
+
+\paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V1}$}
+
+Given leakage $\mathcal{L}_{Proxy}^{V1} = (|P|, |V|, \sigma( E_{det}(\mathrm{bindings})), \pi(J))$:
+
+\begin{itemize}
+    \item Construct a bindings table of size $|P| \times |V|$.
+    \item Assign fresh random deterministic ciphertexts to each distinct equality class in $\sigma$.
+    \item Fill each binding table cell with the ciphertext corresponding to its equality class.
+    \item Randomize job execution order according to $\pi(J)$.
+    \item Output $\mathrm{SimView}_{Proxy}^{V1} = (\text{BindingTable}', \pi(J))$.
+\end{itemize}
+
+Due to semantic security of deterministic encryption, $\mathrm{SimView}_{Proxy}^{V1}$ is computationally indistinguishable from $\mathrm{RealView}_{Proxy}^{V1}$.
+
+\subsection{Simulation-Based Proofs for Version 2}
+
+\paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V2}$}
+
+Given leakage $\mathcal{L}_{Triplestore}^{V2} = \{S, F, Q, I(T(n))\}$:
+
+\begin{itemize}
+    \item Simulate random ciphertext trapdoors $S'$ as for V1.
+    \item Simulate frequency counts $F'$ likewise.
+    \item Simulate DGK encrypted equality tag trapdoors $Q'$ as fresh random DGK ciphertexts consistent with leakage.
+    \item Preserve dataset association metadata.
+    \item Output $\mathrm{SimView}_{Triplestore}^{V2} = (S', F', Q', I(T(n)))$.
+\end{itemize}
+
+Semantic security of DGK cryptosystem and underlying symmetric encryption hides all additional information beyond leakage.
+
+\paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V2}$}
+
+Given leakage $\mathcal{L}_{Proxy}^{V2} = (|P|, |V|, \sigma(B(E_{det}(\mathrm{eqTags}))), \pi(J))$:
+
+\begin{itemize}
+    \item Build a bindings table of dimension $|P| \times |V|$.
+    \item For each blinded equality class in $\sigma$, assign fresh random deterministic ciphertext labels.
+    \item For each query, generate fresh multiplicative masks and apply them to mask deterministic ciphertexts, ensuring ciphertexts differ across queries.
+    \item Populate the binding table cells accordingly.
+    \item Randomize job execution order $\pi(J)$.
+    \item Output $\mathrm{SimView}_{Proxy}^{V2} = (\text{BlindedBindingTable}', \pi(J))$.
+\end{itemize}
+
+Because of the fresh multiplicative masking, the adversary cannot link ciphertexts across queries, ensuring strong adaptive security.
+
+
+\paragraph{Run for Version 1, Triplestore}
+
+1. $\mathcal{A}_{TS}$ picks query sets $Q_0, Q_1$.
+2. Challenger flips $b$, runs protocol on $Q_b$, outputs real trapdoors, frequency counts, and dataset info.
+3. Simulator uses leakage only to produce random trapdoors and frequencies consistent with leakage.
+4. $\mathcal{A}_{TS}$ attempts to distinguish real vs simulated ciphertexts.
+5. Semantic security ensures negligible distinguishing advantage.
+
+\paragraph{Run for Version 1, Proxy}
+
+1. $\mathcal{A}_P$ picks $Q_0, Q_1$.
+2. Challenger executes protocol, sees deterministic ciphertext bindings and randomized job order.
+3. Simulator creates bindings consistent with equality classes and randomized order.
+4. Without blinding, $\mathcal{A}_P$ can link ciphertexts adaptively, breaking IND-CKA2.
+
+\paragraph{Run for Version 2, Triplestore}
+
+Similar to V1 but includes simulated DGK-encrypted equality tag trapdoors.
+
+\paragraph{Run for Version 2, Proxy}
+
+\begin{enumerate}
+    \item Bindings include multiplicatively masked ciphertexts.
+    \item Simulator applies fresh random masks for each query, producing unlinkable ciphertexts.
+    \item Randomized job execution order hides query ordering.
+    \item Adaptively, $\mathcal{A}_P$ gains no significant advantage distinguishing real from simulated.
+\end{enumerate}
+
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Version} & \textbf{IND-CKA1 Security} & \textbf{IND-CKA2 Security} \\
+\hline
+V1 & Yes & No \\
+V2 & Yes & Yes \\
+\hline
+\end{tabular}
+\end{center}
+
 
 \subsection{Security Properties}
 
@@ -143,15 +447,6 @@ We expect all implementations of \gls{SEnTriS} to possess the following \emph{se
             \item \emph{SEnTriS V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
         \end{enumerate}
 \end{enumerate}
-
-% Plan V0 [[search_0,0, ... search0,n]->[random join_pipeline]^K -> [UNION|OPTIONAL|MINUS|JOIN search0,0, join_0,n, join,k,n]-> DISTINCT | PROJECT | ORDERBY  | SLICE]
-
-\subsection{Leakage Analysis}
-\subsubsection{SEnTriS V1}
-\subsubsection{SEnTriS V2}
-\subsection{Security Properties Proofs}
-
-%Corolary: sentry v2 leakage is reduced
 
 \section{Final Discussion}
 

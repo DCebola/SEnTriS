@@ -332,33 +332,6 @@ public class SecureSPARQLPlanner extends OpVisitorByType implements SPARQLPlanne
         return jobID;
     }
 
-    /*
-    private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth,
-                                     Map<String, Job> jobs, Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
-        Var var;
-        Node property;
-        String right, left, join;
-        Node value;
-        if (restriction != null && (restriction.isHasValueRestriction() || restriction.isSomeValuesFromRestriction())) {
-            if (restriction.isHasValueRestriction()) {
-                var = Var.alloc(restriction.getOnProperty().asNode().getLocalName());
-                property = restriction.getOnProperty().asNode();
-                value = restriction.asHasValueRestriction().getHasValue().asNode();
-            } else {
-                var = Var.alloc(restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode().getLocalName());
-                property = restriction.getOnProperty().asNode();
-                value = restriction.asSomeValuesFromRestriction().getSomeValuesFrom().asNode();
-            }
-            right = pushSearch(s, property, var, jobs, jobsIDs);
-            left = pushSearch(var, rdfType, value, jobs, jobsIDs);
-            join = pushJoin(
-                    expandProperty(prefix.concat(" PROPERTY"), right, s, property, var, depth, jobs, jobsIDs, true, true),
-                    expandClass(prefix.concat(" VALUE CLASS"), left, var, value, depth, jobs, jobsIDs), jobs, jobsIDs);
-            jobID = pushUnion(jobID, join, jobs, jobsIDs);
-        }
-        return jobID;
-    }
-     */
     private String expandRestriction(String prefix, Restriction restriction, String jobID, Node s, int depth, Map<String, Job> jobs,
                                      Map<String, String> jobsIDs, Node rdfType) throws InvalidNodeException {
         Var var;
