@@ -357,11 +357,11 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 
 In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model. We will start by formalizing the security guaranties of the SSE-SPARQL-EVAL protocol, and finish by defining the security properties of \gls{SEnTriS}.
 
-\subsection{Security guaranties of the SSE-SPARQL-EVAL protocol}
+\subsection{SSE-SPARQL-EVAL Security Guaranties}
 
 We have defined the security model in Section \ref{ch3:sec:solution-models:security-model}, but we will additionally consider that an adversary $\mathcal{A}$ can only compromise either the Triplestore or the Proxy components, not both simultaneously.
 
-\subsection{Leakage Definition}
+\subsubsection{Leakage Definition}
 
 Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
 
@@ -387,7 +387,7 @@ We define leakage as a function $\mathcal{L}_{C}^{V}$, where version $V \in \{V1
     \end{split}
 \end{align}
 
-\subsection{Indistinguishability Games}
+\subsubsection{Indistinguishability Games}
 
 For each version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$, the indistinguishability game $G^V_C$ proceeds as follows:
 
@@ -412,7 +412,7 @@ The adversary's advantage is measured as
 IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-time adversary $\mathcal{A}$.
 
 
-\subsection{Security Proofs (SSE-SPARQL-EVAL V1)}
+\subsubsection{Security Proofs (SSE-SPARQL-EVAL V1)}
 
 \begin{theorem} 
     Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
@@ -464,7 +464,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
     Due to the deterministic encryption of bindings, with a single run of $G^{V1}_{proxy}$, \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. However, consecutive runs of $G^{V1}_{Proxy}$ will allow $\mathcal{A}$ to keep track of past views, their respective plan size, variable count, ciphertexts and frequency. Because ciphertexts are deterministic, $\mathcal{A}$ will be able to associate ciphertext between different views and construct frequency tables. If they always choose the same set of queries, eventually they will see repeated views. Thus, $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ stops being negligible.
 \end{proof}
 
-\subsection{Security Proofs (SSE-SPARQL-EVAL V2)}
+\subsubsection{Security Proofs (SSE-SPARQL-EVAL V2)}
 
 \begin{theorem} 
     Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
