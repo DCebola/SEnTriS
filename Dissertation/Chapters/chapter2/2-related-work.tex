@@ -12,13 +12,6 @@ In this chapter, we will discuss the architecture and design of the \emph{Semant
 \section{Semantic Web: A layered architecture}
 \label{ch2:sec:semantic-web}
 
-In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
-\begin{enumerate}
-    \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
-    \item All data items are identified by \gls{IRI} \autocite{Durst2005-xq};
-    \item Usage of ontologies to model semantics within a domain.
-\end{enumerate}
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\textwidth]{chapter2/semantic-web-stack.png}
@@ -26,6 +19,13 @@ In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and
     \label{fig:semantic-web-stack}
 \end{figure}
 
+
+In Section \ref{ch1:sec:context}, we have contextualized the main philosophy and design principles of the \emph{Semantic Web}:
+\begin{enumerate}
+    \item Usage of \emph{labeled graphs} as the data model where concepts are represented as triples consisting of a subject, predicate and object (with nodes being objects and relations between such objects modelled as the edges);
+    \item All data items are identified by \gls{IRI} \autocite{Durst2005-xq};
+    \item Usage of ontologies to model semantics within a domain.
+\end{enumerate}
 
 Additionally, the \emph{Semantic Web} can also be seen as a stack of various layers \autocite{Antoniou2012-nj} (Figure \ref{fig:semantic-web-stack}). Most of these layers are standardized due to the collective work of the \gls{W3C}.
 
@@ -79,9 +79,9 @@ To make a statement $B$ about a statement $A$ we can use a technique called \emp
 There are multiple text-based syntaxes for \gls{RDF}. Some of the most commonly used are \gls{TURTLE} \autocite{W3c_undated-kq} (Listing\ref{listing-turtle-example}), and its extension for named graphs \emph{TriG} \autocite{W3c_undated-uz}.
 In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, property, and object are written in this order. Statements are finished by a period. Literals are surrounded in quotes with the type of data specified with an \gls{IRI}. The data value and type are separated by \^{}\^{} (if no data type is mentioned, the value is inferred as being a string). We can also define \gls{IRI} abbreviations (using @prefix, followed by the prefix to substitute the \gls{IRI}, a colon, the \gls{IRI} and a period) and simplify statements, for easier readability (e.g.using a semicolon to make more than one statement about the same subject, defining statements with nested blank nodes using square brackets). Comments start with \#.
 
-\lstinputlisting[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]{Code/chapter2/turtle-example.xml}
-
 \emph{XML/RDF} \autocite{W3c_undated-hv} is a standardized \gls{XML}-based syntax and \emph{RDFa} \autocite{W3c_undated-qb} permits \gls{RDF} to be embedded in the \gls{HTML}\footnote{We recommend the curious reader to read the W3C recommendations to better learn the syntaxes.}.
+
+\lstinputlisting[language=XML, caption={Simple RDF example, written in \gls{TURTLE} syntax.}, label={listing-turtle-example}]{Code/chapter2/turtle-example.xml}
 
 \subsection{RDFS: RDF Schema}
 \label{ch2:sec:semantic-web:rdf-schema}
@@ -93,24 +93,11 @@ In \gls{TURTLE}, \gls{IRI}s are enclosed by angle brackets. The subject, propert
 
 \gls{RDFS} \autocite{W3c_undated-mp} does that by providing vocabulary to describe groups of related resources and the relationships between these resources. This vocabulary is a set of \gls{RDF} resources identified under \url{http://www.w3.org/2000/01/rdf-schema#}{}.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{chapter2/rdfs-example.png}
-    \caption{A simple RDFS graphical example.}
-    \label{fig:rdfs-grafical-example}
-\end{figure}
-
 \subsubsection{RDFS primitives}
 
 \emph{Classes} group resources together, the \emph{instances} of the class. \emph{Properties} are defined by specifying to which classes of resource they may apply, using the mechanism of \emph{domain} and \emph{range}. This allows for easy extension, by not having to redefine classes wherever a new property, that applies to an existing class, is needed.
 
 To state that a resource is an instance of a class we use the \emph{rdf:type} property.
-
-The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances of its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$. The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
-
-The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
-
-In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In Figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical Example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
 
 \begin{table}[h]
     \begin{center}
@@ -131,6 +118,19 @@ In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the
     \caption{\gls{RDFS} Core Classes and respective description.}
     \label{tbl:rdfs-classes}
 \end{table}
+
+The \emph{rdfs:subClassOf} is used to define that all the instances of a class are instances of its \emph{superclasses}: if $A$ rdfs:subClassOf $B$, then instances of $A$ are also instances of $B$. The \emph{rdfs:subPropertyOf} states that instances related by a property are also related by its \emph{superproperties}: if $A$ rdfs:subPropertyOf $B$, then instances related to $A$ are also related to $B$. The properties rdfs:subClassOf and rdfs:subPropertyOf are \emph{transitive}, and there are no restrictions on the number of superclasses or superproperties that, respectively, a class or a property can have.
+
+The \emph{rdfs:domain} property defines that any resource with a given property is an instance of the domain classes that the property applies to. The \emph{rdfs:range} property specifies that the values of the property are instances its range classes.
+
+In tables \ref{tbl:rdfs-classes} and \ref{tbl:rdfs-properties}, we summarize the core \gls{RDFS} classes and properties. In Figure \ref{fig:rdfs-grafical-example}, we extend the \gls{RDF} graphical Example \ref{fig:rdf-grafical-example} with \gls{RDFS}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{chapter2/rdfs-example.png}
+    \caption{A simple RDFS graphical example.}
+    \label{fig:rdfs-grafical-example}
+\end{figure}
 
 \begin{table}[h]
     \begin{center}

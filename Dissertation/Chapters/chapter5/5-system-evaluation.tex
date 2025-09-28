@@ -6,7 +6,13 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we present the experimental evaluation of \gls{SEnTriS}. We start by analyzing and discussing the solution's storage and query complexity, in Section \ref{ch5:complexity-analysis}. In Section \ref{ch5:setup-methodology}, we present the experimental evaluation conducted: we describe the testing environments; explain the experimental evaluation scenarios; present and discuss the results. Finally, in Section \ref{ch5:security-analysis}, we present \gls{SEnTriS} security properties, analyze the leakage, and discuss the trade-offs between each version of the protocol.
+In this Chapter we present the experimental evaluation of \gls{SEnTriS}. We start by analyzing and discussing the solution's storage and query evaluation complexity, in Section \ref{ch5:complexity-analysis}. 
+
+In Section \ref{ch5:setup-methodology}, we present the experimental evaluation conducted: we describe the testing environments; explain the experimental evaluation scenarios; and present and discuss the results. 
+
+In Section \ref{ch5:security-analysis}, we evaluate the security of \gls{SEnTriS}: we analyze the security guaranties of the SSE-SPARQL-EVAL; and define the security properties of \gls{SEnTriS}. 
+
+Finally, in Section \ref{ch5:final-discussion}, we conclude with an analyisis of the security and performance trade-offs between each version of the protocol.
 
 \section{Complexity Analysis}
 \label{ch5:complexity-analysis}
@@ -337,7 +343,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 \subsection{Security Proofs (SSE-SPARQL-EVAL V1)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, the SSE-SPARQL-EVAL V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -369,7 +375,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
         \item Generates a new set of variables $O(V')$ and constructs a query execution plan, respecting the structure of $\pi(Qp)$. The new plan $\pi(Qp')$ has equivalent jobs, with new random identifiers, that use variables from $O(V')$.
         \item Creates $Bt'$ as follows: for each binding table in $Bt$, creates a new binding table populated with values from $E_{DET}(\mathrm{bindings'})$, according to the saved mappings.
         \item Constructs a simulated $Q_r'$, based on $Q_r$, but filled with values from $E_{DET}(\mathrm{bindings'})$ and according to the saved mappings.
-        \item Output $\mathrm{SimView}_{Proxy}^{V1} = (Bt', O(V'), E_{DET}(\mathrm{bindings'}), \sigma(E_{DET}(\mathrm{bindings'})), \pi(Qp'), Q_r', K'_{\text{RND}})$.
+        \item Output $\mathrm{SimView}_{Proxy}^{V1} = (Bt', O(V'), E_{DET}(\mathrm{bindings'}), \sigma(E_{DET}(\mathrm{bindings'})), \pi(Qp'),$\linebreak$ Q_r', K'_{\text{RND}})$.
     \end{enumerate}
 
     \paragraph{Running $G^{V1}_{Proxy}$}
@@ -389,7 +395,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 \subsection{Security Proofs (SSE-SPARQL-EVAL V2)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, the SSE-SPARQL-EVAL V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -418,7 +424,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
     \begin{enumerate}
         \item Receives leakage $\mathcal{L}_{Proxy}^{V2}$.
         \item Generates a new secret key $K'_{\text{DGK}_{eq}}$.
-        \item Generates $E_{DGK_{DET}}(\mathrm{bindings'})$ as follows: for each binding in \linebreak $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$, creates two values one deterministic and another randomized. These values have similar sizes to, respectively, $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$ and to $B(E_{\text{DGK}}(\mathrm{eqTags})))$ and respect $\sigma(D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags}))))$. The simulator keeps track of the mapping between them. We will refer to the deterministic and random values as $\text{DET}(eq_tags')$ and $\text{RND}(eq_tags')$.
+        \item Generates $E_{DGK_{DET}}(\mathrm{bindings'})$ as follows: for each binding in \linebreak $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$, creates two values one deterministic and another randomized. These values have similar sizes to $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$ and to \linebreak $B(E_{\text{DGK}}(\mathrm{eqTags}))$ and respect $\sigma(D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags}))))$. The simulator keeps track of the mapping between them. We will refer to the deterministic and random values as $\text{DET}(eqTags')$ and $\text{RND}(eqTags')$.
         \item Generates a new set of variables $O(V')$ and constructs a query execution plan, respecting the structure of $\pi(Qp)$. The new plan $\pi(Qp')$ has equivalent jobs, with new random identifiers, that use variables from $O(V')$.
         \item Creates $Bt'$ as follows: for each binding table in $Bt$, creates a new binding table populated with values from $\text{DET}(eqTags')$, according to the saved mappings.
         \item Constructs a simulated $Q_r'$, based on $Q_r$, but filled with values from $\text{RND}(eqTags')$ and according to the saved mappings.
@@ -463,6 +469,7 @@ From the security analysis of the SSE-SPARQL-EVAL protocol, and taking into acco
 Properties 1-4 are derived from the \gls{RBAC} features of \gls{SEnTriS}, properties 5-7 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Finally, property 8-9 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SSE-SPARQL-EVAL protocol.
 
 \section{Final Discussion}
+\label{ch5:final-discussion}
 
 Both implementations come with a trade-off between security guaranties and performance.
 

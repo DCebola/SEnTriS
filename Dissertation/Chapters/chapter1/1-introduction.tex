@@ -100,9 +100,9 @@ In this thesis we aim to develop a practical and secure solution for the collabo
     \gls{SEnTriS} is an adaptation of the SSE-SPARQL-EVAL protocol for a multiuser setting. Encrypted triplestores are shareable, remain queryable, possess reasoning capabilities and support role based access control. Access to triplestores is controlled with the usage of ephemeral access tokens. Concurrent writes are resolved with a lock-based strategy. Secrets are distributed among user with access to the triplestores. The protocol is implemented in two versions:
     \begin{itemize} 
     
-        \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer of the encryption onions and compare the values.
+        \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer of the encryption onions and compare the values. This implementation achieves \gls{IND-CKA1} security guaranties.
     
-        \item \emph{\gls{SEnTriS} V2}: We use multiplicative blinding techniques with the aim of reducing leakage during query evaluation. The value of a subject, predicate or object is mapped to an \emph{equality tag}, an integer value encrypted with the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index the equality tags and equality tags reference probabilistically encrypted subjects, predicates and objects. During query evaluation, we mask the values of the equality tags, via multiplicative blinding. Equality checks are done by partially decrypting the blinded encryption tags, stripping only the randomized layer of the ciphertexts. These values remain deterministic but different for every query evaluation.
+        \item \emph{\gls{SEnTriS} V2}: We use multiplicative blinding techniques with the aim of reducing leakage during query evaluation. The value of a subject, predicate or object is mapped to an \emph{equality tag}, an integer value encrypted with the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index the equality tags and equality tags reference probabilistically encrypted subjects, predicates and objects. During query evaluation, we mask the values of the equality tags, via multiplicative blinding. Equality checks are done by partially decrypting the blinded encryption tags, stripping only the randomized layer of the ciphertexts. These values remain deterministic but different for every query evaluation. This implementation achieves \gls{IND-CKA2} security guaranties.
     \end{itemize}
 \end{description}
 
@@ -115,6 +115,6 @@ The remaining of the document will be organized as follows:
     \item [Chapter 2] discusses related work on \emph{Semantic Web} and \emph{Secure Computations} and compares existing solutions for secure semantic data outsourcing and \gls{SPARQL} evaluation.
     \item [Chapter 3] presents the solution.
     \item [Chapter 4] describes the implementation details of each of the system's components.
-    \item [Chapter 5] presents the experimental evaluation procedures, describes and discusses the obtained results.
+    \item [Chapter 5] evaluates the solutions in terms of complexity and security.It also presents the experimental evaluation procedures, describes and discusses the obtained results.
     \item [Chapter 6] summarizes main conclusions from the research and suggests future work.
 \end{description}
