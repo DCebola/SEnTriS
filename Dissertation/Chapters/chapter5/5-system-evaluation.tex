@@ -67,26 +67,36 @@ To conclude, in both versions storage complexity scales linearly. Although, in \
 
 \subsection{Query Evaluation Complexity}
 
-In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and cryptographic functions executions.
+In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and executions of cryptographic functions.
 
 \subsubsection{Read Query Complexity}
 
- Let $q_S$, $q_J$, $q_M$, $q_O$, $q_P$, $q_{SO}$, $q_D$ be the number of unique query jobs generated from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm.
+Let $V \in \{V1, V2\}$, the full complexity formula for the evaluation of read queries, can be defined as:
 
-\paragraph{Query Parsing} During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriS} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEARCH}}$ (or alternative the number o triple patterns) scoped to the \gls{BGP}. 
+\begin{align}
+    \label{equation:query-eval-full}
+    \begin{split}
+        O_v = O_{\text{Prep V}} + O_{\text{Eval V}} 
+    \end{split}
+\end{align}
 
-During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEARCH}}$ generated for the respective \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the \gls{BGP} scoped $job_{\text{SEARCH}}$, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
+\paragraph{Query Parsing} Before evaluating $O_{\text{Prep V}}$ and $O_{\text{Eval V}}$ we will analyze the quantity and kind of query jobs generated after parsing a \gls{SPARQL} query.
+
+Let $q_S$, $q_J$, $q_M$, $q_O$, $q_U$, $q_P$, $q_{SO}$, $q_D$, $q_{SL}$ be the number of $job_{\text{SEC\_SEARCH}}$, $job_{\text{JOIN}}$, $job_{\text{MINUS}}$, $job_{\text{OPTIONAL}}$, $job_{\text{UNION}}$, $job_{\text{PROJECT}}$, $job_{\text{SORT}}$, $job_{\text{DISTINCT}}$ and $job_{\text{SLICE}}$ generated uniquely from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm.
+During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriS} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEC\_SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEC\_SEARCH}}$ (or alternative the number o triple patterns) scoped to the \gls{BGP}. 
+
+During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEC\_SEARCH}}$ generated for the respective \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the \gls{BGP} scoped $job_{\text{SEC\_SEARCH}}$, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
 
 Consequently, the number of jobs generated during query parsing is:
 
 \begin{align}
     \label{equation:query-parsing}
     \begin{split}
-        q_{\text{jobs}} = q_S + q_J + q_{\text{bgp}} * (n - 1) + q_M + q_O+ q_P+ q_{SO}+ q_D
+        q_{\text{jobs}} = q_S + q_J + q_{\text{bgp}} * (n - 1) + q_M + q_O+ + q_U + q_P+ q_{SO} + q_D + q_{SL}
     \end{split}
 \end{align}
 
-\paragraph{Query Preparation V1} During the query preparation step, for each unique $job_{\text{SEARCH}}$, we generate a trapdoor to retrieve the frequency of its pattern keyword. For each non $\bot$ frequency, we then generate $\overline{\text{f}}$ new trapdoors, where $\overline{\text{f}}$ is the average keyword frequency. As such, we can express the complexity of this phase as:
+\paragraph{Query Preparation V1} During the query preparation step, for each unique \linebreak$job_{\text{SEC\_SEARCH}}$, we generate a trapdoor to retrieve the frequency of its pattern keyword. For each non $\bot$ frequency, we then generate $\overline{\text{f}}$ new trapdoors, where $\overline{\text{f}}$ is the average keyword frequency. As such, we can express the complexity of this phase as:
 
 \begin{align}
     \label{equation:query-preparation-v1}
@@ -106,53 +116,125 @@ Consequently, the number of jobs generated during query parsing is:
     \end{split}
 \end{align}
 
-\subsubsection{Query Evaluation Phase Complexity}
+\paragraph{Query Evaluation Complexity V1}
 
-The execution of a SPARQL query plan involves sequential processing of a set of jobs, each performing operations such as pattern matching, join, optional join, union, minus, and projection. The overall complexity of the execution can be understood by analyzing the complexity of these individual operations and how they compose according to the query plan.
+During the query evaluation phase, the secure worker sequentially executes query jobs that have been dispatched according to the execution plan. No query jobs is executed twice, their result is stored and re-used if required. Let $V$ the set of variables contained in all query jobs from the received query plan $Q_p$. The size of $Q_p$ is equal to $q_{\text{jobs}}$.
 
-Let $n$ be the number of jobs in the execution plan, and for each job $J_i$, let its runtime complexity be $T(J_i)$. Then the total execution complexity is:
+After all query jobs are executed, an intermediate query result is generated and returned to the Client. At the Client the bindings are decrypted, and the final query results are generated. The complexity of this phase depends on the complexity of each query job execution and the generation of the final results in the Client.
 
-\[
-T_{\text{exec}} = \sum_{i=1}^n T(J_i)
-\]
+\begin{align}
+    \label{equation:query-evaluation-v1}
+    \begin{split}
+        O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{Res V1}}
+    \end{split}
+\end{align}
 
-The complexity of each job depends on the operation it performs and the size of its input data.
+As such, we will analyze the complexity of each query job. 
 
-\begin{table}[h]
-\centering
-\begin{tabular}{|c|p{5cm}|c|}
-\hline
-\textbf{Operation} & \textbf{Asymptotic Complexity} \\
-\hline
-JOIN & $O(m * n * v)$ \\
-\hline
-OPTIONAL & $O(m * n * v)$ \\
-\hline
-MINUS & $O(m * n * v)$ \\
-\hline
-UNION & $O(m + n)$ \\
-\hline
-PROJECT & $O(v)$ \\
-\hline
-\end{tabular}
-\caption{Complexities of common SPARQL operations. Here $m,n$ are pattern counts, $v$ is number of join variables, $p$ is patterns, and $k$ projected variables.}
-\label{tab:sparql-ops}
-\end{table}
+During the execution of a $job_{\text{SEC\_SEARCH}}$ a bindings table is generated. During this process, the randomized encryption of the bindings is decrypted. 
 
-In practice, the number of join variables $v$ is typically small compared to pattern counts $m, n$, so JOIN and OPTIONAL complexities are roughly quadratic. The main control loop executes each job once, making the total cost linear in the number of jobs but dominated by the complexities of the underlying job operations.
+Let $l_t$, $l_b$, $l_v$, $r_t$, $r_b$ and $r_v$ be the triple patterns, bindings and variables in a \emph{left} and \emph{right} binding tables. When a $job_{\text{JOIN}}$ is executed, we iterate over $l_b$, verify if the bindings are  contained in $r_b$. When a binding is also contained in $r_b$, we check for equality between the left and right triple patterns that have the binding, scoping the equality check to the common variables between the two tables. In case the equality check is positive, we generate a new pattern, whose value is the union of the bindings in both patterns, and save it to the result table.
 
-Thus, the overall execution complexity balances a linear traversal through jobs with potentially quadratic or near-linear complexities within each job's operations.
+The distinction between a $job_{\text{JOIN}}$ and a $job_{\text{OPTIONAL}}$ is that during the iteration over $l_b$, if a binding is not contained in $r_b$, we copy the value of all triple patterns from the left table containing that binding, to the result table.
+
+During the execution of a $job_{\text{UNION}}$ we iterate over $l_t$ and $r_t$ and copy all triple patterns to the result table.
+
+When we execute of a $job_{\text{MINUS}}$ we iterate over $l_b$ and verify which bindings are not contained in $r_b$. For all bindings not contained in $r_b$, we copy the values of the triple patterns to the result table.
+
+The execution of the $job_{\text{DISTINCT}}$ consist in checking if a boolean flag is toggled, which changes the data struct where the final results are stored, which are stored in a set instead of a list.
+
+Finally, during a $job_{\text{PROJECT}}$ we simply keep the bindings and patterns referenced by the $v_p$ variables in the projection.
+
+Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC\_SEARCH}}$ and $D_{CRYPTO}(\cdot)$ be the deryption function using the CRYPTO algorithm, we can re-define the complexity function as:
+
+\begin{align}
+    \label{equation:query-evaluation-v1-jobs}
+    \begin{split}
+        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O_{\text{Res V1}}\;,\\
+        \text{where } J_i =&
+                    \begin{cases}
+                        O\left( \overline{b} * D_{\text{CHACHA}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
+                        O\left(|l_t| * |r_t| * |l_v \cup r_v|\right), & \text{if } J_i \in \{job_{\text{JOIN}}, job_{\text{OPTIONAL}}, job_{\text{MINUS}}\} \\
+                        O\left(|l_t| * |l_v| + |r_t| * |r_v|\right), & \text{if } J_i = job_{\text{UNION}} \\
+                        O\left(|v_p|\right), & \text{if } J_i = job_{\text{PROJECT}} \\
+                        O\left(1\right), & \text{if } J_i = job_{\text{DISTINCT}}
+                    \end{cases}
+    \end{split}
+\end{align}
+
+To define $O_{Res}$, lets analyse the generation of query results at the Client. We have to consider the four possible types of \gls{SPARQL} query types SELECT, DESCRIBE, ASK and CONSTRUCT. 
+
+Let $R_b$ and $R_v$ be the bindings and vars in the intermediate results. For ASK queries, the Client simply checks if the result is not empty. For DESCRIBE queries, it deobfuscates the variables in $R_v$, iterates over $R_b$ and constructs a frequency table. For SELECT queries, the Client deobfuscates the variables in $R_v$, decrypts each binding in $R_b$ and applies sorting and slicing modifiers, if required. For CONSTRUCT queries, after the deobfuscation of variables, decryption of bindings and application of modifiers, a new \gls{RDF} graph is created by matching every decrypted binding in $R_b$, againts the triple patterns provided in the construct template $C_t$.
+
+Let SORT and SLICE be boolean flags, which dictate if sorting and slice modifiers should be applied to the final results (1 if yes, 0 otherwise). Additionally, let $s_o$ and $s_l$ be the \emph{offset} and \emph{lenght} parameters of the slice modifier. We can define  $O_{\text{RES}}$ as:
+
+\begin{align}
+    \label{equation:query-evaluation-v1-res}
+    \begin{split}
+        O_{\text{Res V1}} &= O( \max(O_{\text{ASK}}, O_{\text{DESCRIBE}}, O_{\text{SELECT}}, O_{\text{CONSTRUCT}}) ) \\
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}} + \text{SORT}*(|R_b|* \log(|R_b|)) \\
+        &+ \text{SLICE}*(s_o + s_l) ) , O(O_{\text{SELECT}} + |C_t| * |R_b|)) ) \\
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}}) , O(|R_b|*D_{\text{CHACHA}} + |C_t| * |R_b|)) ) \\
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}})) ) \\
+        &= O( |R_b|*D_{\text{CHACHA}} )
+    \end{split}
+\end{align}
+
+Consequently, the complete complexity definition for $O_{\text{Eval V1}}$ is:
+
+\begin{align}
+    \label{equation:query-evaluation-v1-final}
+    \begin{split}
+        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|*D_{\text{CHACHA}} \right)\;,\\
+        \text{where } J_i =&
+                    \begin{cases}
+                        O\left( \overline{b} * D_{\text{CHACHA}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
+                        O\left(|l_t| * |r_t| * |l_v \cup r_v|\right), & \text{if } J_i \in \{job_{\text{JOIN}}, job_{\text{OPTIONAL}}, job_{\text{MINUS}}\} \\
+                        O\left(|l_t| * |l_v| + |r_t| * |r_v|\right), & \text{if } J_i = job_{\text{UNION}} \\
+                        O\left(|v_p|\right), & \text{if } J_i = job_{\text{PROJECT}} \\
+                        O\left(1\right), & \text{if } J_i = job_{\text{DISTINCT}}
+                    \end{cases}
+    \end{split}
+\end{align}
+
+\paragraph{Query Evaluation Complexity V2} In \gls{SEnTriS} V2, there is an additional communication round during the generation of the final result. The multiplicative blinding of the equality tags is reverted, and these are used to fecth the final bindings, which are then decrypted and used to compute the final query results.
+
+Let $mask^{-1}$ represent a function that reverts multiplicative blinding, $O_{\text{Eval V2}}$ is defined as:
+
+\begin{align}
+    \label{equation:query-evaluation-v1-final}
+    \begin{split}
+        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V2}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|* ( mask^{-1} + D_{\text{CHACHA}}) \right)\;,\\
+        \text{where } J_i =&
+                    \begin{cases}
+                        O\left( \overline{b} * D_{\text{DGK}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
+                        O\left(|l_t| * |r_t| * |l_v \cup r_v|\right), & \text{if } J_i \in \{job_{\text{JOIN}}, job_{\text{OPTIONAL}}, job_{\text{MINUS}}\} \\
+                        O\left(|l_t| * |l_v| + |r_t| * |r_v|\right), & \text{if } J_i = job_{\text{UNION}} \\
+                        O\left(|v_p|\right), & \text{if } J_i = job_{\text{PROJECT}} \\
+                        O\left(1\right), & \text{if } J_i = job_{\text{DISTINCT}}
+                    \end{cases}
+    \end{split}
+\end{align}
+
+\paragraph{Discussion} From the complexity analyisis, we can conclude that the number of query jobs scales linearly with the contents of the queries. Furthermore, we can also observe that the complexity of the query preparation phase scales linearly with the number of search jobs and the frequency of the keywords in searches.
+
+Regarding the query evaluation phase, we can observe that the complexity of the binary query jobs is quadratic. However, if we consider that the major complexity factor, during query evaluation, continues to be the execution of cryptographic operations, and that the number of bindings returned to the Client is smaller than the ones used to construct the binding tables, we can argue that it scales linerly to the latter volume of bindings and to the number of search jobs.  
 
 \subsubsection{Inference Complexity Cost}
 
-When we introduce inference capabilities to the query evaluation protocol, we automatically introduce extra complexity from: 1) retrieval of the ontology; 2) query rewriting, which will also affect the total number of query jobs.
+When we introduce inference capabilities to the query evaluation protocol, we automatically introduce extra complexity from: 1) retrieval of the ontology; 2) query rewriting, which will also affect the total number of query jobs, $q_{\text{jobs}}$.
 
-\paragraph{Ontology retrieval} The complexity for the retrieval of the ontology depends on the number of trapdoors generated, and values decrypted. 
+\paragraph{Query Preparation Complexity} The complexity for the retrieval of the ontology depends on the size of the \emph{Tbox}. Let $f_{\text{TBox}}$ be the frequency of the keyword used to generate trapdoors that reference \emph{Tbox} nodes. The new complexity for the $O_{\text{Prep V}}$, will be:
 
+\begin{align}
+    \label{equation:query-prep-inference}
+    \begin{split}
+        O_{\text{Prep w/ Inf V}} &= E_{\text{CHACHA}} + D_{\text{CHACHA}} + f_{\text{TBox}} * (E_{\text{CHACHA}} + D_{\text{CHACHA}}) + O_{\text{Prep V}} \\
+        &= (E_{\text{CHACHA}} + D_{\text{CHACHA}}) * (f_{\text{TBox}} + 1) + O_{\text{Prep V}}
+    \end{split} 
+\end{align}
 
-%TODO: Ontology reconstruction complexity
-
-\paragraph{Query rewriting} The time complexity for the query rewriting algorithm depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
+\paragraph{Query rewriting} To understand how $q_{\text{jobs}}$ varies, we first need to analyse the the time complexity for the query rewriting algorithm. It depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
 
 \begin{itemize}
     \item \textbf{Ontology Structure:} The depth and breadth of class and property hierarchies, presence of transitive and inverse properties, and defined class restrictions.
@@ -175,7 +257,7 @@ With these values, we can specify the branching factors for both the class expan
     \label{equation:branching-factors}
     \begin{split}
         B_c &= SC(c) + EC(c) + IC(c) + INT(c) + R(c) \\
-        B_p &= SP(p) + EP(p) + SYM(p) + INV(p) + TRANS(p) \times T^2 
+        B_p &= SP(p) + EP(p) + SYM(p) + INV(p) + TRANS(p) * T^2 
     \end{split}
 \end{align}
 
@@ -184,7 +266,7 @@ Since there is a maximum depth of expansion, the total complexity for expanding 
 \begin{align}
     \label{equation:query-rewriting-complexity}
     \begin{split}
-        O\left( n \times \max \left( B_c^E,\ (B_p + T^2)^E \right) \right) 
+        O\left( n * \max \left( B_c^E,\ (B_p + T^2)^E \right) \right) 
     \end{split}
 \end{align}
 
@@ -193,71 +275,61 @@ The asymptotic complexity of the query rewriting algorithm is exponential in ter
 
 %TODO: Explain how job number is modified, actually revisit, the join pipeline is only for joining the searches... the order of the other jobs does not change. Number only increased based on branching. Will need to add jobs created to the complexity of the expansion because that is what is interesting
 
-\paragraph{Increase in Query Jobs} If we want to evaluate how does the complexity of the query rewriting algorithm affects the number of jobs generated, we need to analyze which jobs are created and when. 
+\paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expantion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
 
 \begin{table}[h]
     \centering
     \begin{tabular}{|l|l|}
     \hline
-    Component & Jobs Create \\
+    Expansion Kind & New Jobs \\
     \hline
-    $SC(c)$          & 1 search, 1 union per subclass \\
-    $EC(c)$          & 1 search, 1 union per equivalent class \\
-    $IC(c)$          & 1 search, 1 union, 1 join per intersection \\
-    $INT(c)$         & 1 search, 1 union per intersection operand \\
-    $R(c)$           & 1 search, 1 union, 1 minus per restriction \\
-    $SP(p)$          & 1 search, 1 union per subproperty \\
-    $EP(p)$          & 1 search, 1 union per equivalent property \\
-    $SYM(p)$         & 1 search, 1 union if symmetric \\
-    $INV(p)$         & 1 search, 1 union if inverse \\
-    $TRANS(p) \times T^2$ & 1 search, 1 join, 1 union per transitive step \\
+    $SC(c)$          & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
     \hline
-    \end{tabular}
-    \caption{Jobs Created during pattern expansion}
-\end{table}
-
-\vspace{0.5cm}
-
-For a class $c$, the class expansion branching factor $B_c$ combining all job creation is:
-
-\[
-B_c = SC(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + EC(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + IC(c) \times \left(j_{\text{search}} + j_{\text{union}} + j_{\text{join}}\right) + INT(c) \times \left(j_{\text{search}} + j_{\text{union}}\right) + R(c) \times \left(j_{\text{search}} + j_{\text{union}} + j_{\text{minus}}\right)
-\]
-
-For a property $p$, the property expansion branching factor $B_p$ is:
-
-\[
-B_p = SP(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + EP(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + SYM(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + INV(p) \times \left(j_{\text{search}} + j_{\text{union}}\right) + TRANS(p) \times T^2 \times \left(j_{\text{search}} + j_{\text{join}} + j_{\text{union}}\right)
-\]
-
-
-The growth of different job types created during query rewriting depends on the ontology's class and property branching factors, $B_c$ and $B_p$, and expansion parameters.
-
-\begin{itemize}
-    \item \textbf{Search jobs} grow exponentially with the maximum of the class and property branching factors raised to the expansion depth $E$:
-    \item \textbf{Union jobs} follow a similar growth pattern:
-    \item \textbf{Join jobs} increase with the branching factors and transitivity depth $T$:
-    \item \textbf{Minus jobs} scale linearly with the number of restrictions on class $c$, $R(c)$, and exponentially with expansion depth:
-\end{itemize}
-
-\begin{table}[h]
-    \centering
-    \begin{tabular}{l|c|l}
+    $EC(c)$          & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
     \hline
-    Job Type    & Growth Formula                        & Notes \\
+    $IC(c)$          & 1 $job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}} + 1 job_{\text{JOIN}}$ \\
     \hline
-    Search      & $O\left(\max(B_c^E, B_p^E)\right)$           & $B_c, B_p$: class and property branching factors \\
-    Union       & $O\left(\max(B_c^E, B_p^E)\right)$           & Mirrors search job growth \\
-    Join        & $O\left(\max(B_c^E, B_p^E) \times T\right)$  & $T$: transitivity depth \\
-    Minus       & $O\left(R(c) \times \max(B_c^E, B_p^E)\right)$  & $R(c)$: number of class restrictions \\
+    $INT(c)$         & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
+    \hline
+    $R(c)$           & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}} + 1 job_{\text{MINUS}}$ \\
+    \hline
+    $SP(p)$          & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
+    \hline
+    $EP(p)$          & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
+    \hline
+    $SYM(p)$         & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
+    \hline
+    $INV(p)$         & $1 job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}}$ \\
+    \hline
+    $TRANS(p) * T^2$ & $(1job_{\text{SEC\_SEARCH}} + 1 job_{\text{UNION}} + 1 job_{\text{JOIN}}) * T^2$\\
     \hline
     \end{tabular}
-    \caption{Asymptotic growth of job counts by job type with explicit class and property branching factors}
+    \caption{Jobs created during pattern expansion}
+    \label{cha5:table:inference-branching-jobs}
 \end{table}
 
+Given the number of jobs created by expansion kind, we can re-define the branching factor definitions:
 
+\begin{align}
+    \label{equation:branching-factors-updated}
+    \begin{split}
+        B^{\text{Inf}}_c &= \big( SC(c) + EC(c) + INT(c) + IC(c) + R(c) \big) * \left( job_{\text{SEC\_SEARCH}} + job_{\text{UNION}} \right) \\
+        &\phantom{=} + job_{\text{JOIN}} * IC(c) + job_{\text{MINUS}} * R(c) \\
+        B^{\text{Inf}}_p &= \big( SP(p) + EP(p) + SYM(p) + INV(p) \big) * \left( job_{\text{SEC\_SEARCH}} + job_{\text{UNION}} \right) \\
+        &\phantom{=} + \left( job_{\text{SEC\_SEARCH}} + job_{\text{UNION}} + job_{\text{JOIN}} \right) * TRANS(p) * T^2
+    \end{split}
+\end{align}
 
-%TODO: Update the overall complexity
+\pagebreak
+
+Finally, with the branching factor specified in terms of query jobs, we can define the new number of query jobs $q_{\text{jobs w/ Inf}}$ as:
+
+\begin{align}
+    \label{equation:query-jobs-growth}
+    \begin{split}
+        q_{\text{jobs w/ Inf}} &= q_{\text{jobs}} + n * ((B^{\text{Inf}}_c)^E + (B^{\text{Inf}}_p)^E)
+    \end{split}
+\end{align}
 
 \subsubsection{Complexity of write queries}
 
