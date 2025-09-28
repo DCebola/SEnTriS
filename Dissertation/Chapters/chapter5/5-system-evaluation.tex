@@ -101,8 +101,8 @@ Consequently, the number of jobs generated during query parsing is:
 \begin{align}
     \label{equation:query-preparation-v1}
     \begin{split}
-        O_{\text{Prep V1}} &= O \left( q_S * (E_{\text{CHACHA}} + D_{\text{CHACHA}} + \overline{\text{f}} * E_{\text{CHACHA}})\right) \\
-        &= O \left( q_S * (D_{\text{CHACHA}} + E_{\text{CHACHA}} * (\overline{\text{f}} + 1))\right)
+        O_{\text{Prep V1}} &= O \left( q_S * (E_{\text{DET}} + D_{\text{RND}} + \overline{\text{f}} * E_{\text{DET}})\right) \\
+        &= O \left( q_S * (D_{\text{RND}} + E_{\text{DET}} * (\overline{\text{f}} + 1))\right)
     \end{split}
 \end{align}
 
@@ -111,8 +111,8 @@ Consequently, the number of jobs generated during query parsing is:
 \begin{align}
     \label{equation:query-preparation-v2}
     \begin{split}
-        O_{\text{Prep V2}} &= O \left( q_S * (E_{\text{CHACHA}} + D_{\text{CHACHA}} + \overline{\text{f}} * E_{\text{CHACHA}} + \overline{\text{f}} * mask)\right) \\
-        &= O \left( q_S * (D_{\text{CHACHA}} + E_{\text{CHACHA}} * (\overline{\text{f}} + 1) + \overline{\text{f}} * mask)\right)
+        O_{\text{Prep V2}} &= O \left( q_S * (E_{\text{DET}} + D_{\text{RND}} + \overline{\text{f}} * E_{\text{DET}} + \overline{\text{f}} * mask)\right) \\
+        &= O \left( q_S * (D_{\text{RND}} + E_{\text{DET}} * (\overline{\text{f}} + 1) + \overline{\text{f}} * mask)\right)
     \end{split}
 \end{align}
 
@@ -153,7 +153,7 @@ Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC
         & \quad \quad \quad \quad \quad \quad O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O_{\text{Res V1}}\;,\\
         \text{where } J_i =&
                     \begin{cases}
-                        O\left( \overline{b} * D_{\text{CHACHA}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
+                        O\left( \overline{b} * D_{\text{RND}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
                         O\left(|l_t| * |r_t| * |l_v \cup r_v|\right), & \text{if } J_i \in \{job_{\text{JOIN}}, job_{\text{OPTIONAL}}, job_{\text{MINUS}}\} \\
                         O\left(|l_t| * |l_v| + |r_t| * |r_v|\right), & \text{if } J_i = job_{\text{UNION}} \\
                         O\left(|v_p|\right), & \text{if } J_i = job_{\text{PROJECT}} \\
@@ -172,11 +172,11 @@ Let SORT and SLICE be boolean flags, which dictate if sorting and slice modifier
     \label{equation:query-evaluation-v1-res}
     \begin{split}
         O_{\text{Res V1}} &= O( \max(O_{\text{ASK}}, O_{\text{DESCRIBE}}, O_{\text{SELECT}}, O_{\text{CONSTRUCT}}) ) \\
-        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}} + \text{SORT}*(|R_b|* \log(|R_b|)) \\
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{DET}} + \text{SORT}*(|R_b|* \log(|R_b|)) \\
         &+ \text{SLICE}*(s_o + s_l) ) , O(O_{\text{SELECT}} + |C_t| * |R_b|)) ) \\
-        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}}) , O(|R_b|*D_{\text{CHACHA}} + |C_t| * |R_b|)) ) \\
-        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{CHACHA}})) ) \\
-        &= O( |R_b|*D_{\text{CHACHA}} )
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{DET}}) , O(|R_b|*D_{\text{DET}} + |C_t| * |R_b|)) ) \\
+        &= O( \max(O(1), O(|R_b|*|R_v|), O(|R_b|*D_{\text{DET}})) ) \\
+        &= O( |R_b|*D_{\text{DET}} )
     \end{split}
 \end{align}
 
@@ -185,10 +185,10 @@ Consequently, the complete complexity definition for $O_{\text{Eval V1}}$ is:
 \begin{align}
     \label{equation:query-evaluation-v1-final}
     \begin{split}
-        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|*D_{\text{CHACHA}} \right)\;,\\
+        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V1}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|*D_{\text{DET}} \right)\;,\\
         \text{where } J_i =&
                     \begin{cases}
-                        O\left( \overline{b} * D_{\text{CHACHA}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
+                        O\left( \overline{b} * D_{\text{RND}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
                         O\left(|l_t| * |r_t| * |l_v \cup r_v|\right), & \text{if } J_i \in \{job_{\text{JOIN}}, job_{\text{OPTIONAL}}, job_{\text{MINUS}}\} \\
                         O\left(|l_t| * |l_v| + |r_t| * |r_v|\right), & \text{if } J_i = job_{\text{UNION}} \\
                         O\left(|v_p|\right), & \text{if } J_i = job_{\text{PROJECT}} \\
@@ -202,9 +202,9 @@ Consequently, the complete complexity definition for $O_{\text{Eval V1}}$ is:
 Let $mask^{-1}$ represent a function that reverts multiplicative blinding, $O_{\text{Eval V2}}$ is defined as:
 
 \begin{align}
-    \label{equation:query-evaluation-v1-final}
+    \label{equation:query-evaluation-v2-final}
     \begin{split}
-        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V2}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|* ( mask^{-1} + D_{\text{CHACHA}}) \right)\;,\\
+        & \quad \quad \quad \quad \quad \quad O_{\text{Eval V2}} = \sum_{i=1}^{q_{\text{jobs}}} O\left(J_i\right) + O\left( |R_b|* ( mask^{-1} + D_{\text{RND}}) \right)\;,\\
         \text{where } J_i =&
                     \begin{cases}
                         O\left( \overline{b} * D_{\text{DGK}} \right), & \text{if } J_i = job_{\text{SEC\_SEARCH}} \\
@@ -229,8 +229,8 @@ When we introduce inference capabilities to the query evaluation protocol, we au
 \begin{align}
     \label{equation:query-prep-inference}
     \begin{split}
-        O_{\text{Prep w/ Inf V}} &= E_{\text{CHACHA}} + D_{\text{CHACHA}} + f_{\text{TBox}} * (E_{\text{CHACHA}} + D_{\text{CHACHA}}) + O_{\text{Prep V}} \\
-        &= (E_{\text{CHACHA}} + D_{\text{CHACHA}}) * (f_{\text{TBox}} + 1) + O_{\text{Prep V}}
+        O_{\text{Prep w/ Inf V}} &= E_{\text{DET}} + D_{\text{RND}} + f_{\text{TBox}} * (E_{\text{DET}} + D_{\text{RND}}) + O_{\text{Prep V}} \\
+        &= (E_{\text{DET}} + D_{\text{RND}}) * (f_{\text{TBox}} + 1) + O_{\text{Prep V}}
     \end{split} 
 \end{align}
 
