@@ -86,6 +86,13 @@ We will now provide a mapping between the \gls{API}s and the formal algorithms f
 
 \paragraph*{Application Layer} Figure \ref{fig:client-application-layer} shows the Client application layer, where we implement all the internal components and libraries. These are grouped into four domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Query} and \emph{Ontologies}.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapter4/client-application.png}
+    \caption{Client Application Layer.}
+    \label{fig:client-application-layer}
+\end{figure}
+
 In the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between \gls{SEnTriS} components. Compared to the other three components, which have a single \gls{API} each, the Triplestore component exposes three. One is used for querying plaintext triplestores (during testing) and the other two for querying encrypted triplestores (one per version of the \gls{SEnTriS} protocol, respectively). Consequently, we have three Triplestore clients and one \gls{IAM}, one Vault, and one Proxy client.
 
 In the \emph{Cryptography} domain, we implement the encryption libraries and encryption schemes. The \emph{SymmetricEncryption} library is where we group all auxiliary operations related to symmetric encryption. The \emph{DGK} library is an adaption of a public\footnote{Source code shared at https://github.com/AndrewQuijano/Homomorphic Encryption} solution \autocite{Quijano2019-au} where we introduce the abstractions used by the \gls{SEnTriS} protocol (e.g. the \emph{equality key}, part of the private key shared with the Proxy, during query evaluation). The two \emph{EncryptionSchemes} implement the \emph{SSE-TP} protocol variations. The \emph{EncryptionSchemeV1} is used in \gls{SEnTriS} V1, whereas the \emph{EncryptionSchemeV2} is used in \gls{SEnTriS} V2.
@@ -93,13 +100,6 @@ In the \emph{Cryptography} domain, we implement the encryption libraries and enc
 In the \emph{Query} domain we, implement all logical components scoped to query parsing and planning: the query engine, plan, result, jobs and planners. The \emph{DefaultSPARQLPlanner} is used for testing and generates plaintext query plans, to be executed against plaintext triplestores. The \emph{SecureSPARQLPlanner} generates query plans following the \gls{SEnTriS} protocol, to be executed against encrypted triplestores.
 
 Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions, used for query rewriting. The \emph{DefaultOntology} is used by the \emph{DefaultSPARQLPlanner}, whereas the \emph{SecureOntology} is used by the \emph{SecureSPARQLPlanner}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{chapter4/client-application.png}
-    \caption{Client Application Layer.}
-    \label{fig:client-application-layer}
-\end{figure}
 
 \subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations against the stored data. 
 
@@ -132,15 +132,10 @@ Under the \emph{Query} domain, we implement the logical components scoped to pla
 Finally, in the \emph{Storage} domain, we implement the storage components for both the SPARQL-EVAL and \gls{SEnTriS} protocols. The \emph{TriplestoreStorageEngine} implements the indexing and storage algorithms of SPARQL-EVAL. Additionally, the \emph{MemBindingsTable} is the auxiliary data structure against which the query worker executes set operations.
 The \emph{EncryptedTriplestoreStorageEngineV1} and \emph{EncryptedTriplestoreStorageEngineV2} implement, respectively, the data storage and retrieval algorithms of \gls{SEnTriS} V1 and \gls{SEnTriS} V2.
 
+\vfill
+\pagebreak
 
 \subsection{IAM Provider} The \gls{IAM} provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{chapter4/iam-presentation.png}
-    \caption{\gls{IAM} Provider Presentation Layer.}
-    \label{fig:iam-presentation-layer}
-\end{figure}
 
 \paragraph*{Presentation Layer} Figure \ref{fig:iam-presentation-layer} shows the \gls{IAM} provider presentation layer. It exposes two different \gls{API}s: the \emph{UserAPI}; and the \emph{TriplestoreAPI}.
 
@@ -152,18 +147,28 @@ The initialization procedure of the \gls{IAM} component, where a new admin user 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\textwidth]{chapter4/iam-application.png}
-    \caption{\gls{IAM} Provider Application Layer.}
-    \label{fig:iam-application-layer}
+    \includegraphics[width=\textwidth]{chapter4/iam-presentation.png}
+    \caption{\gls{IAM} Provider Presentation Layer.}
+    \label{fig:iam-presentation-layer}
 \end{figure}
+
+
+
 
 \paragraph*{Application Layer} Figure \ref{fig:iam-application-layer} shows the \gls{IAM} provider application layer, where we implement its internal components and libraries. These are grouped into two domains: \emph{Storage} and \emph{Cryptography}.
 
 In the \emph{Cryptography} domain, we implement the operations related password verification, which are scoped to the \emph{PasswordLib}.
 
 Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} and \emph{LocksClient} components. The first contains the logic for the creation, update and retrieval of user data and triplestore \gls{ACL}s. The second is where we define the resource locking operations. 
- 
-\subsection{Proxy}  The secure computation proxy evaluates query execution plans over encrypted bindings.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{chapter4/iam-application.png}
+    \caption{\gls{IAM} Provider Application Layer.}
+    \label{fig:iam-application-layer}
+\end{figure}
+\vfill
+\pagebreak
 
 \begin{figure}[H]
     \centering
@@ -172,14 +177,9 @@ Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} a
     \label{fig:proxy-presentation-layer}
 \end{figure}
 
-\paragraph*{Presentation Layer} Figure \ref{fig:proxy-presentation-layer} shows the Proxy presentation layer. It exposes one single \gls{API}: the \emph{QueriesAPI}. This \gls{API} contains the endpoints for the SEnTriS.$PrepareBindings$ and SEnTriS.$EvaluateQuery$ algorithms.
+\subsection{Proxy}  The secure computation proxy evaluates query execution plans over encrypted bindings.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{chapter4/proxy-application.png}
-    \caption{Proxy Application Layer.}
-    \label{fig:proxy-application-layer}
-\end{figure}
+\paragraph*{Presentation Layer} Figure \ref{fig:proxy-presentation-layer} shows the Proxy presentation layer. It exposes one single \gls{API}: the \emph{QueriesAPI}. This \gls{API} contains the endpoints for the SEnTriS.$PrepareBindings$ and SEnTriS.$EvaluateQuery$ algorithms.
 
 \paragraph*{Application Layer} Figure \ref{fig:proxy-application-layer} shows the  Proxy application layer, where we implement its internal components and libraries. These are grouped into three domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Storage} and \emph{Query}.
 
@@ -190,6 +190,13 @@ In the \emph{Cryptography} domain, we provide the encryption libraries and encry
 Under the \emph{Query} domain, we implement the logical components scoped to the evaluation of \gls{SPARQL} queries. Due to the differences in the data encryption between \gls{SEnTriS} V1 and V2, we implement different query workers (\emph{SecureSPARQLWorkerV1} and \emph{SecureSPARQLWorkerV2}). The main difference between them is that in V2, during the generation of the query results, we need to substitue the deterministicly encrypted bindings with their original value. This requires \emph{SecureSPARQLWorkerV2} to manipulate and query an extra data structure. The \emph{DefaultQueryExecutionPlan} and \emph{DefaultSPARQLResult} are common between both versions of the protocol.
 
 Finally, in the \emph{Storage} domain, we implement the storage components and in-memory binding tables. The \emph{ProxyStorage} contains the logic for common storage functionalities: data saving and deletion. The data encryption differs between the protocol versions, as such, the data retrieval and binding tables creation logic varies. We implement this in the \emph{ProxyStorageV1} and \emph{ProxyStorageV2}, which are extensions of the \emph{ProxyStorage}. The implementation of the binding tables is scoped to the \emph{MemBindingsTable}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapter4/proxy-application.png}
+    \caption{Proxy Application Layer.}
+    \label{fig:proxy-application-layer}
+\end{figure}
 
 \subsection{Vault} The vault component stores and distributes triplestore secrets.
 
