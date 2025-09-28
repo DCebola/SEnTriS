@@ -277,160 +277,172 @@ The growth of different job types created during query rewriting depends on the 
 \section{Security Analysis}
 \label{ch5:security-analysis}
 
-In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model, defined in Section \ref{ch3:sec:solution-models:security-model}. We will start by enumerating the security properties of the different versions.
+In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model. We will start by formalizing the security guaranties of the SSE-SPARQL-EVAL protocol, and finish by defining the security properties of \gls{SEnTriS}.
 
 \subsection{Security guaranties of the SSE-SPARQL-EVAL protocol}
 
-\subsubsection{Assumptions}
-
-We have defined the security model in Section \ref{ch3:sec:solution-models:security-model}, but additionally we will consider that an adversary $\mathcal{A}$ will only compromise either the Triplestore or the Proxy components, but not both simultaneously.
+We have defined the security model in Section \ref{ch3:sec:solution-models:security-model}, but we will additionally consider that an adversary $\mathcal{A}$ can only compromise either the Triplestore or the Proxy components, not both simultaneously.
 
 \subsection{Leakage Definition}
 
-Let $Pt$ and $V$ be the number of patterns and variables. We will denote the randomized query execution plan as $\pi(Qp)$. Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, the node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. The multiplicative blinding operator is denoted as $B(\cdot)$ and the encryption schemes are specified as $E_{\text{CRYPTO}}(\cdot)$ where $\text{CRYPTO} \in \{\text{DGK}, \text{DET}, \text{RND}\}$. Let $I$ be a function that, when applied to a trapdoor, reveals its associated dataset. Finally, let $\sigma(\cdot)$ be  a function, which when applied to ciphertexts captures their equivalence and frequency. More specifically, $\sigma(E_{\text{det}}(\mathrm{bindings}))$ reveals which ciphertexts in the binding tables are equal and how frequently they occur, without disclosing the plaintext, whereas $\sigma(B(E_{\text{det}}(\mathrm{eqTags})))$ represents the equality and frequency pattern of equality tags after applying multiplicative blinding. We define leakage as a function $\mathcal{L}_{C}^{V}$, where version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$:
+Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
+
+Furthermore, $n$ is a $k$-bit \gls{RSA} modulus, $m' \in \mathbb{Z}^*_n$ is a masking value and the multiplicative blinding operator is denoted as $B(\cdot)$. The encryption and decryption schemes are specified as $E_{\text{CRYPTO}}(\cdot)$ and $D_{\text{CRYPTO}}(\cdot)$, where $\text{CRYPTO}$ is the cryptographic algorithm. The cryptographic keys are specified as $K_{\text{CRYPTO}}$. 
+
+Let $I(\cdot)$ be a function that, when applied to a trapdoor, reveals its associated dataset. Finally, let $\sigma(\cdot)$ be a function that, when applied to ciphertexts, captures their equivalence and frequency. More specifically, $\sigma(E_{\text{DET}}(\mathrm{bindings}))$ reveals which ciphertexts in the binding tables are equal and how frequently they occur, without disclosing the plaintext, whereas $\sigma(D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags}))))$ represents the equality and frequency of equality tags after applying multiplicative blinding.
+
+We define leakage as a function $\mathcal{L}_{C}^{V}$, where version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$:
 
 \begin{align}
     \label{equation:leakage-functions-triplestores}
     \begin{split}
-        \mathcal{L}_{Triplestore}^{V1} &= \{ T(n), E(n), I(T(n))\} \\
-        \mathcal{L}_{Triplestore}^{V2} &= \{ T(n), E(n), T_{eq}, E(eq), I(T(n)), I(T(eq))\} \\
+        \mathcal{L}_{Triplestore}^{V1} &= ( T(n), E(n), I(T(n))) \\
+        \mathcal{L}_{Triplestore}^{V2} &= ( T(eq), E(n), E(eq), m, n, I(T(eq)), I(E(eq))) \\
     \end{split}
 \end{align}
 
 \begin{align}
     \label{equation:leakage-functions-proxy}
     \begin{split}
-        \mathcal{L}_{Proxy}^{V1} &= (|\mathcal{P}|, |\mathcal{V}|, \sigma(E_{det}(\mathrm{bindings})), \pi(J)) \\
-        \mathcal{L}_{Proxy}^{V2} &= (|\mathcal{P}|, |\mathcal{V}|, \sigma(B(E_{det}(\mathrm{eqTags}))), \pi(J)) \\
+        \mathcal{L}_{Proxy}^{V1} &= (Bt, O(V), E_{DET}(\mathrm{bindings}), \sigma(E_{DET}(\mathrm{bindings})), \pi(Qp), Q_r, K_{\text{RND}}) \\
+        \mathcal{L}_{Proxy}^{V2} &= (Bt, O(V), D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags}))), \sigma(D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))), \\ &\;\;\;\;\;\pi(Qp), Q_r, K_{\text{DGK}_{eq}}) \\
     \end{split}
 \end{align}
 
 \subsection{Indistinguishability Games}
 
-For each version $V \in \{1,2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$, the indistinguishability game $G^V_C$ proceeds as follows:
+For each version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, \mathrm{Proxy}\}$, the indistinguishability game $G^V_C$ proceeds as follows:
 
 \begin{enumerate}
-    \item The adversary $\mathcal{A}$, restricted to component $C$, chooses two challenge query sets $Q_0$ and $Q_1$.
-    \item The challenger flips a fair random bit $b \in \{0,1\}$, then runs the SSE-SPARQL-EVAL protocol version $V$ on query set $Q_b$.
-    \item The challenger sends $\mathcal{A}$ the resulting \emph{real view} $\mathrm{RealView}_C^{V}$ seen by component $C$.
-    \item A simulator $\mathcal{S}_C^{V}$, given only the leakage $\mathcal{L}_C^{V}(Q_b)$, produces a \emph{simulated view} $\mathrm{SimView}_C^{V}$.
-    \item $\mathcal{A}$ receives either $\mathrm{RealView}_C^{V}$ or $\mathrm{SimView}_C^{V}$, chosen at random, and attempts to guess $b$.
+    \item \textbf{Adversary}: $\mathcal{A}$, restricted to component $C$, chooses two challenge query sets $Q_0$ and $Q_1$.
+    \item \textbf{Challenger}: Flips a fair random bit $b \in \{0,1\}$, then runs the SSE-SPARQL-EVAL protocol version $V$ on query set $Q_b$.
+    \item \textbf{Challenger}: sends $\mathcal{A}$ the resulting \emph{real view} $\mathrm{RealView}_C^{V}$ seen by component $C$.
+    \item \textbf{Simulator}: $\mathcal{S}_C^{V}$, given only leakage $\mathcal{L}_C^{V}(Q_b)$, produces a \emph{simulated view} $\mathrm{SimView}_C^{V}$.
+    \item \textbf{Adversary}: $\mathcal{A}$ receives either $\mathrm{RealView}_C^{V}$ or $\mathrm{SimView}_C^{V}$, chosen at random, and attempts to guess $b$.
 \end{enumerate}
 
 The adversary's advantage is measured as
-\[
-\mathrm{Adv}_{\mathcal{A}}^{V,C} = \left| \Pr[ \mathcal{A}(\mathrm{RealView}_C^{V})=b ] - \Pr[ \mathcal{A}(\mathrm{SimView}_C^{V})=b ] \right|
-\]
 
-Security notions (IND-CKA1 or IND-CKA2) hold if this advantage is negligible for any poly-time $\mathcal{A}$.
-
-
-\subsection{Simulation-Based Proofs for Version 1}
-
-\paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V1}$}
-
-Given leakage $\mathcal{L}_{Triplestore}^{V1} = \{S, F, I(T(n))\}$:
-
-\begin{itemize}
-    \item Generate simulated random ciphertext trapdoors $S'$ independent of the plaintext queries but consistent with the format.
-    \item Generate simulated frequency counts $F'$ consistent in size and distribution type with $F$.
-    \item Preserve dataset association metadata.
-    \item Output $\mathrm{SimView}_{Triplestore}^{V1} = (S', F', I(T(n)))$.
-\end{itemize}
-
-Semantic security of the inner encryption ensures indistinguishability between $\mathrm{RealView}_{Triplestore}^{V1}$ and $\mathrm{SimView}_{Triplestore}^{V1}$.
+\begin{align}
+    \label{equation:adversary-advantage}
+    \begin{split}
+        \mathrm{Adv}_{\mathcal{A}}^{V,C} = \left| \Pr[ \mathcal{A}(\mathrm{RealView}_C^{V})=b ] - \Pr[ \mathcal{A}(\mathrm{SimView}_C^{V})=b ] \right|
+    \end{split}
+\end{align}
 
 
-
-\paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V1}$}
-
-Given leakage $\mathcal{L}_{Proxy}^{V1} = (|P|, |V|, \sigma( E_{det}(\mathrm{bindings})), \pi(J))$:
-
-\begin{itemize}
-    \item Construct a bindings table of size $|P| \times |V|$.
-    \item Assign fresh random deterministic ciphertexts to each distinct equality class in $\sigma$.
-    \item Fill each binding table cell with the ciphertext corresponding to its equality class.
-    \item Randomize job execution order according to $\pi(J)$.
-    \item Output $\mathrm{SimView}_{Proxy}^{V1} = (\text{BindingTable}', \pi(J))$.
-\end{itemize}
-
-Due to semantic security of deterministic encryption, $\mathrm{SimView}_{Proxy}^{V1}$ is computationally indistinguishable from $\mathrm{RealView}_{Proxy}^{V1}$.
-
-\subsection{Simulation-Based Proofs for Version 2}
-
-\paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V2}$}
-
-Given leakage $\mathcal{L}_{Triplestore}^{V2} = \{S, F, Q, I(T(n))\}$:
-
-\begin{itemize}
-    \item Simulate random ciphertext trapdoors $S'$ as for V1.
-    \item Simulate frequency counts $F'$ likewise.
-    \item Simulate DGK encrypted equality tag trapdoors $Q'$ as fresh random DGK ciphertexts consistent with leakage.
-    \item Preserve dataset association metadata.
-    \item Output $\mathrm{SimView}_{Triplestore}^{V2} = (S', F', Q', I(T(n)))$.
-\end{itemize}
-
-Semantic security of DGK cryptosystem and underlying symmetric encryption hides all additional information beyond leakage.
-
-\paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V2}$}
-
-Given leakage $\mathcal{L}_{Proxy}^{V2} = (|P|, |V|, \sigma(B(E_{det}(\mathrm{eqTags}))), \pi(J))$:
-
-\begin{itemize}
-    \item Build a bindings table of dimension $|P| \times |V|$.
-    \item For each blinded equality class in $\sigma$, assign fresh random deterministic ciphertext labels.
-    \item For each query, generate fresh multiplicative masks and apply them to mask deterministic ciphertexts, ensuring ciphertexts differ across queries.
-    \item Populate the binding table cells accordingly.
-    \item Randomize job execution order $\pi(J)$.
-    \item Output $\mathrm{SimView}_{Proxy}^{V2} = (\text{BlindedBindingTable}', \pi(J))$.
-\end{itemize}
-
-Because of the fresh multiplicative masking, the adversary cannot link ciphertexts across queries, ensuring strong adaptive security.
+IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-time adversary $\mathcal{A}$.
 
 
-\paragraph{Run for Version 1, Triplestore}
+\subsection{Security Proofs (SSE-SPARQL-EVAL V1)}
 
-1. $\mathcal{A}_{TS}$ picks query sets $Q_0, Q_1$.
-2. Challenger flips $b$, runs protocol on $Q_b$, outputs real trapdoors, frequency counts, and dataset info.
-3. Simulator uses leakage only to produce random trapdoors and frequencies consistent with leakage.
-4. $\mathcal{A}_{TS}$ attempts to distinguish real vs simulated ciphertexts.
-5. Semantic security ensures negligible distinguishing advantage.
+\begin{theorem} 
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, the SSE-SPARQL-EVAL V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
+\end{theorem}
 
-\paragraph{Run for Version 1, Proxy}
+\begin{proof} \hfill
 
-1. $\mathcal{A}_P$ picks $Q_0, Q_1$.
-2. Challenger executes protocol, sees deterministic ciphertext bindings and randomized job order.
-3. Simulator creates bindings consistent with equality classes and randomized order.
-4. Without blinding, $\mathcal{A}_P$ can link ciphertexts adaptively, breaking IND-CKA2.
+    \paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V1}$}
 
-\paragraph{Run for Version 2, Triplestore}
+    \begin{enumerate}
+        \item Receives leakage $\mathcal{L}_{Triplestore}^{V1}$.
+        \item Generate simulated random trapdoors $T'(n)$ independent of the queries, but consistent with targeted dataset (preserving the dataset association).
+        \item Generate simulated randomly encrypted ciphertexts $E'(n)$, referenced by $T'(n)$.
+        \item Output $\mathrm{SimView}_{Triplestore}^{V1} = (E'(n), T'(n), I(T(n)))$.
+    \end{enumerate}
 
-Similar to V1 but includes simulated DGK-encrypted equality tag trapdoors.
+    \paragraph{Running $G^{V1}_{Triplestore}$}
 
-\paragraph{Run for Version 2, Proxy}
+    \begin{enumerate}
+        \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Triplestore}$.
+        \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V1}$ receives $\mathcal{L}_{Triplestore}^{V1}$ and outputs $\mathrm{SimView}_{Triplestore}^{V1}$.
+        \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
+    \end{enumerate}
 
-\begin{enumerate}
-    \item Bindings include multiplicatively masked ciphertexts.
-    \item Simulator applies fresh random masks for each query, producing unlinkable ciphertexts.
-    \item Randomized job execution order hides query ordering.
-    \item Adaptively, $\mathcal{A}_P$ gains no significant advantage distinguishing real from simulated.
-\end{enumerate}
+    \paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V1}$}
 
-\begin{center}
-\begin{tabular}{|l|c|c|}
-\hline
-\textbf{Version} & \textbf{IND-CKA1 Security} & \textbf{IND-CKA2 Security} \\
-\hline
-V1 & Yes & No \\
-V2 & Yes & Yes \\
-\hline
-\end{tabular}
-\end{center}
+    \begin{enumerate}
+        \item Receives leakage $\mathcal{L}_{Proxy}^{V1}$.
+        \item Generates a new secret key $K'_{\text{RND}}$.
+        \item Generates $E_{DG}(\mathrm{bindings'})$ as follows: for each binding in $E_{DET}(\mathrm{bindings})$, creates a fresh deterministic ciphertext according to $\sigma(E_{DET}(\mathrm{bindings}))$, and keeps track of the mapping between them.
+        \item Generates a new set of variables $O(V')$ and constructs a query execution plan, respecting the structure of $\pi(Qp)$. The new plan $\pi(Qp')$ has equivalent jobs, with new random identifiers, that use variables from $O(V')$.
+        \item Creates $Bt'$ as follows: for each binding table in $Bt$, creates a new binding table populated with values from $E_{DET}(\mathrm{bindings'})$, according to the saved mappings.
+        \item Constructs a simulated $Q_r'$, based on $Q_r$, but filled with values from $E_{DET}(\mathrm{bindings'})$ and according to the saved mappings.
+        \item Output $\mathrm{SimView}_{Proxy}^{V1} = (Bt', O(V'), E_{DET}(\mathrm{bindings'}), \sigma(E_{DET}(\mathrm{bindings'})), \pi(Qp'), Q_r', K'_{\text{RND}})$.
+    \end{enumerate}
+
+    \paragraph{Running $G^{V1}_{Proxy}$}
+
+    \begin{enumerate}
+        \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Proxy}$.
+        \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V1}$ receives $\mathcal{L}_{Proxy}^{V1}$ and outputs $\mathrm{SimView}_{Proxy}^{V1}$.
+        \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
+    \end{enumerate}
+
+    The semantic security of the cryptographic primitives in use, ensure that \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ is negligible, even after consecutive runs. 
+    
+    Due to the deterministic encryption of bindings, with a single run of $G^{V1}_{proxy}$, \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. However, consecutive runs of $G^{V1}_{Proxy}$ will allow $\mathcal{A}$ to keep track of past views, their respective plan size, variable count, ciphertexts and frequency. Because ciphertexts are deterministic, $\mathcal{A}$ will be able to associate ciphertext between different views and construct frequency tables. If they always choose the same set of queries, eventually they will see repeated views. Thus, $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ stops being negligible.
+\end{proof}
+
+\subsection{Security Proofs (SSE-SPARQL-EVAL V2)}
+
+\begin{theorem} 
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, the SSE-SPARQL-EVAL V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
+\end{theorem}
+
+\begin{proof} \hfill
+
+    \paragraph{Triplestore Simulator $\mathcal{S}_{Triplestore}^{V2}$}
+
+    \begin{enumerate}
+        \item Receives leakage $\mathcal{L}_{Triplestore}^{V2}$.
+        \item Generate simulated random trapdoors $T'(eq)$ independent of the queries, but consistent with targeted dataset (preserving the dataset association).
+        \item Generate simulated randomly encrypted ciphertexts $E'(eq)$, referenced by  $T'(eq)$, and $E'(n)$, referenced by $E'(eq)$.
+        \item Samples a new mask $m' \in \mathbb{Z}^*_n$ and computes $B(E'(eq))$.
+        \item Output $\mathrm{SimView}_{Triplestore}^{V2} = ( T'(eq), E'(n), E'(eq), I(T'(eq)), I(E'(eq)), m', n, B(E'(eq)))$.
+    \end{enumerate}
+
+    \paragraph{Running $G^{V2}_{Triplestore}$}
+
+    \begin{enumerate}
+        \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Triplestore}$.
+        \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V2}$ receives $\mathcal{L}_{Triplestore}^{V2}$ and outputs $\mathrm{SimView}_{Triplestore}^{V2}$.
+        \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
+    \end{enumerate}
+
+    \paragraph{Proxy Simulator $\mathcal{S}_{Proxy}^{V2}$}
+
+    \begin{enumerate}
+        \item Receives leakage $\mathcal{L}_{Proxy}^{V2}$.
+        \item Generates a new secret key $K'_{\text{DGK}_{eq}}$.
+        \item Generates $E_{DGK_{DET}}(\mathrm{bindings'})$ as follows: for each binding in \linebreak $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$, creates two values one deterministic and another randomized. These values have similar sizes to, respectively, $D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags})))$ and to $B(E_{\text{DGK}}(\mathrm{eqTags})))$ and respect $\sigma(D_{\text{DGK}_{eq}}(B(E_{\text{DGK}}(\mathrm{eqTags}))))$. The simulator keeps track of the mapping between them. We will refer to the deterministic and random values as $\text{DET}(eq_tags')$ and $\text{RND}(eq_tags')$.
+        \item Generates a new set of variables $O(V')$ and constructs a query execution plan, respecting the structure of $\pi(Qp)$. The new plan $\pi(Qp')$ has equivalent jobs, with new random identifiers, that use variables from $O(V')$.
+        \item Creates $Bt'$ as follows: for each binding table in $Bt$, creates a new binding table populated with values from $\text{DET}(eqTags')$, according to the saved mappings.
+        \item Constructs a simulated $Q_r'$, based on $Q_r$, but filled with values from $\text{RND}(eqTags')$ and according to the saved mappings.
+        \item Output $\mathrm{SimView}_{Proxy}^{V2} = (Bt', O(V'), \text{DET}(eqTags'), \sigma(\text{DET}(eqTags')), \pi(Qp'), Q_r',$ \linebreak $K'_{\text{DGK}_{eq}})$.
+    \end{enumerate}
+
+    \paragraph{Running $G^{V2}_{Proxy}$}
+
+    \begin{enumerate}
+        \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Proxy}$.
+        \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V2}$ receives $\mathcal{L}_{Proxy}^{V2}$ and outputs $\mathrm{SimView}_{Proxy}^{V2}$.
+        \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
+    \end{enumerate}
+
+    The semantic security of the cryptographic primitives in use, ensure that \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V2}$ is negligible, even after consecutive runs. 
+    
+    Like in version V1, $G^{V2}_{proxy}$, $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. On the contrary, consecutive runs of $G^{V2}_{Proxy}$ do not provide any change in $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$. The multiplicative blinding ensures that deterministically encrypted equality tags are not linkable between different views.
+\end{proof}
 
 
 \subsection{Security Properties}
 
-We expect all implementations of \gls{SEnTriS} to possess the following \emph{security properties}:
+From the security analysis of the SSE-SPARQL-EVAL protocol, and taking into account the \gls{RBAC} features of \gls{SEnTriS} we can now define a set of security properties:
 
 \begin{enumerate}
     \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
@@ -443,17 +455,19 @@ We expect all implementations of \gls{SEnTriS} to possess the following \emph{se
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
         \begin{enumerate}
-            \item \emph{SEnTriS V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-            \item \emph{SEnTriS V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+            \item \emph{\gls{SEnTriS} V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+            \item \emph{\gls{SEnTriS} V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
         \end{enumerate}
 \end{enumerate}
+
+Properties 1-4 are derived from the \gls{RBAC} features of \gls{SEnTriS}, properties 5-7 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Finally, property 8-9 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SSE-SPARQL-EVAL protocol.
 
 \section{Final Discussion}
 
 Both implementations come with a trade-off between security guaranties and performance.
 
-\gls{SEnTriS} V1 provides both data confidentiality and access control, but suffers from the same leakage problems of \emph{CryptDB}, where an adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these tend to require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques: the modified queries usually contain an even higher number of equality joins.
+\gls{SEnTriS} V1 provides both data confidentiality and access control, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
 
-\gls{SEnTriS} V2 provides both data confidentiality, access control and reduced leakage. This is achieved at the cost of increase in time and space complexity.
+\gls{SEnTriS} V2 provides both data confidentiality, access control and \gls{IND-CKA2} security. This is achieved at the cost of an increase in time and space complexity.
 
-Nevertheless, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
+From the \gls{LUBM} benchmark results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
