@@ -23,13 +23,13 @@ In this Section we will be evaluating \gls{SEnTriS} in terms of space complexity
 
 When evaluating the storage complexity of \gls{SEnTriS}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
 
-\paragraph{SEnTriS V1 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. Furthermore, we also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies. 
+\paragraph{SEnTriS V1 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. Furthermore, we also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies. 
 
-\paragraph{SEnTriS V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+\paragraph{SEnTriS V2 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
 
 \paragraph{SEnTriS V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
 
-Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{Abox}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
+Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{\emph{Abox}}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
 
 %Space complexity in terms of RDF terms
 
@@ -47,7 +47,7 @@ Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of 
 
 Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriS} versions.
 
-\begin{table}[h!]
+\begin{table}[H]
     \centering
     \begin{tabular}{|l|l|l|}
     \hline
@@ -69,7 +69,7 @@ To conclude, in both versions storage complexity scales linearly. Although, in \
 
 In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and executions of cryptographic functions.
 
-\subsubsection{Read Query Complexity}
+\subsubsection{SPARQL Query Evaluation Complexity}
 
 Let $V \in \{V1, V2\}$, the full complexity formula for the evaluation of read queries, can be defined as:
 
@@ -331,7 +331,7 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
     \end{split}
 \end{align}
 
-\subsubsection{Complexity of write queries}
+\subsubsection{SPARQL UPDATE Query Evaluation Complexity}
 
 %TODO: Complexity of delete 
 %      Compleity of upload
@@ -339,18 +339,125 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 %          - Generate triples
 %          - 
 
-
-
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
 
 \subsection{Setup \& Methodology} 
+
+To measure the performance and inference capabilities of \gls{SEnTriS} we used the \gls{LUBM} benchmark \autocite{Guo2005-ja}, which is considered a reference in the domain. To run the experiments we utilized \emph{Artillery} \autocite{Talk-to-salesUnknown-oe}, a load testing tool. 
+
+We converted the experiment scenarios in \gls{LUBM} to \emph{Artillery} test scenarios: configuration files written in their YAML-based \gls{DSL}. Complementary to the test scenarios we also implemented a custom processor, to output \gls{LUBM} specific metrics, such as \emph{completeness} and \emph{soundness}.
+
+The test datasets were generated using the \gls{LUBM} data generation tool \emph{UBA1.7}, in single thread mode and with the \emph{consolidate} flag set to \emph{Full}. This allowed us to have 1 file per dataset.
+
+The experimental evaluation was conducted in a system running \emph{Ubuntu~24.04.3 LTS}, with an \emph{AMD Ryzen~7 1700} cpu (16 cores) and 128GiB of DDR4 RAM.
+
 \subsubsection{LUBM Scenarios}
+
+The test scenario and custom processor implementations can be consulted in Listings \ref{lubm-artillery-scenario} and \ref{lubm-artillery-config}. The experiment was run for each dataset, and for both versions of \gls{SEnTriS}. To represent the datasets we will use a notation similar to that in \autocite{Guo2005-ja}. We denote lubm(N) as the dataset that contains N universities beginning at University0 and is generated using a seed with value 0. We used the example dataset lubm(0) found in \autocite{UnknownUnknown-ni}, containing a single university and department, and generated 5 other datasets: lubm(1), lubm(2), lubm(3), lubm(4), lubm(5). 
+
+Succintely, the test scenario run was the following:
+
+\begin{enumerate}
+  \item \textbf{POST} \emph{/Client/api/users} - Create a new basic user with random username and password.
+  \item \textbf{POST} \emph{/Client/api/users/auth} - Authenticate user.
+  \item \textbf{POST} \emph{/Client/api/users/<username>/upgrade} - Request role upgrade.
+  \item \textbf{POST} \emph{/Client/api/users/auth} - Authenticate the admin user.
+  \item \textbf{GET} \emph{/Client/api/users/admin/requests} - List role change requests.
+  \item \textbf{PUT} \emph{/Client/api/users/admin/requests/<role\_request\_ID>} - Process role request, and validate role upgrade to \emph{PRIVILEGED}.
+  \item \textbf{POST} \emph{/Client/api/users/auth} - Re-authenticate the user.
+  \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>} - Create a new random triplestore.
+  \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload the dataset (\emph{Abox}), set \emph{schema} query string to \emph{true}.
+  \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload \gls{LUBM} ontology (TBox), set \emph{schema} query string to \emph{true}.
+  \item \textbf{GET} \emph{/Client/api/triplestores/<triplestoreID>/<username>} - Retrieve triplestore size information.
+  \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information, returned answers lenght. If the query is executed againts lubm(1), capture \emph{soundness} and \emph{completeness}.
+  \item \textbf{DELETE} \emph{/Client/api/triplestores/encrypted/<version>/<triplestoreID>/<username>} - Delete triplestore.
+\end{enumerate}
+
+\vfill
+\pagebreak
+
 \subsection{Experimental Results}
+
+In this Section we will present the experimental results captured.
+
 \subsubsection{Repository Size \& (Up)load Latency}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/size_vs_triples.png}
+    \caption{Dataset size versus triples.}
+    \label{plot-size-vs-triples}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/upload_latency_vs_triples.png}
+    \caption{Dataset upload latency versus triples.}
+    \label{plot-latency-vs-triples}
+\end{figure}
+
+We present the dataset size and upload latency, per dataset, in Figures \ref{plot:upload-size}, \ref{plot:upload-latency}. In Figures \ref{plot-size-vs-triples} and \ref{plot-latency-vs-triples}, we plot the dataset size, and upload latency, againts their volume of triples. Finally, in Figure \ref{plot:upload-ontology-latency}, we present the ontology upload latency.
+
+Upload latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1. Both upload latency and dataset size increase, as the number of triples in the datasets also increases. The ontology upload latency is similar for both versions, and consistent between datasets. 
+
+This results are in line with the expections: the ontology size is constant and its storage complexity is the equivalent in both versions; storage complexity in \gls{SEnTriS} V2 is higher, hence the higher latency and dataset size.
+
 \subsubsection{Query Response Latency}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/latency_all.png}
+    \caption{Query response latency.}
+    \label{plot-query-latency-all}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v1.png}
+    \caption{Query response latency versus triples (\gls{SEnTriS} V1).}
+    \label{plot-query-latency-vs-triples-v1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v2.png}
+    \caption{Query response latency versus triples (\gls{SEnTriS} V2).}
+    \label{plot-query-latency-vs-triples-v2}
+\end{figure}
+
+We present the query response latency size, for each dataset, per \gls{SEnTriS} version, in Figures \ref{plot-latency-0}, \ref{plot-latency-1}, \ref{plot-latency-2}, \ref{plot-latency-3}, \ref{plot-latency-4}, \ref{plot-latency-5}. 
+
+In Figure \ref{plot-query-latency-all} we plot the query response latency size, for all datasets, per \gls{SEnTriS} version. Furthermore, in Figures \ref{plot-query-latency-vs-triples-v1} and \ref{plot-query-latency-vs-triples-v2}, we plot the query response latency, againts the target dataset volume of triples. 
+
+Query response latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1, for each query. Furthermore, for each version, it increases linearly has the number of triples in the datasets also increase. 
+
+This results are again, in line with the expections. The number of generated query jobs, depends uniquely on the \emph{transitivityDepth}, \emph{expansionDepth} and the queries' content. With fixed query contents, and inference parameters, they would only increase if the ontology size also increased, but it remains constant for each dataset. Hence, the number of query jobs is the same for each query, independent of the size of the \emph{Abox} size.
+
+However, the number of \emph{Abox} triples does increase between datasets, which results in higher keyword frequencies. The query evaluation complexity scales linearly to the keyword frenquency. With a constant number of query jobs, variation for each version of \gls{SEnTriS} only depends on the variation of \emph{Abox} triples, which explains the linear increase, as the size of datasets grows.
+
+Finally, between \gls{SEnTriS} versions, the higher latency of version V2, is explained by the extra round of communication between the Client and Triplestore, before generating the final result. Furthermore, the size of the ciphertexts produced by the \gls{DGK} cryptosystem tend to be higher, which also hinders performance.
+
 \subsubsection{Query Completeness \& Soundness}
-\subsubsection{Result Analysis}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/soundness_completeness_lubm-1_v1.png}
+    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriS} V1).}
+    \label{plot-soundness-completeness-v1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/soundness_completeness_lubm-1_v2.png}
+    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriS} V2).}
+    \label{plot-soundness-completeness-v2}
+\end{figure}
+
+Completeness and soundness was only evaluated for lubm(1), for which we found the reference answers \autocite{noauthor_undated-hl}. Figures \ref{plot-soundness-completeness-v1} and \ref{plot-soundness-completeness-v2} show perfect soundness and completeness, for both versions of \gls{SEnTriS}.
+
+For correctness, we evaluated if the number of bindings returned for each query, remained consisted between both versions. Figures \ref{plot-query-results-0}, \ref{plot-query-results-1}, \ref{plot-query-results-2}, \ref{plot-query-results-3}, \ref{plot-query-results-4}, \ref{plot-query-results-5} show that the number remains consistent between both versions, for each dataset, which is justified by the fact that they share the same \gls{SPARQL} query evaluation protocol, which does not depend on the data encryption.
+
 
 \section{Security Analysis}
 \label{ch5:security-analysis}

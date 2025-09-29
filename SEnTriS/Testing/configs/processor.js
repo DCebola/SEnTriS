@@ -208,28 +208,6 @@ function processTriplestoreSize(requestParams, response, context, events, next) 
 }
 
 /**
- * Extracts the triplestore list
- */
-function extractTriplestoreList(requestParams, response, context, events, next) {
-	context.vars.triplestoreList = []
-	if (response.statusCode >= 200 && response.statusCode < 300) {
-		context.vars.triplestoreList = JSON.parse(response.body)
-	}
-	return next()
-}
-
-/**
- * Select a random triplestore from the list of available
- */
-function selectTriplestoreFromList(context, events, next) {
-	if (typeof context.vars.triplestoreList !== 'undefined' && context.vars.triplestoreList.length > 0)
-		context.vars.triplestoreID = context.vars.triplestoreList.sample()
-	else
-		delete context.vars.triplestoreID
-	return next()
-}
-
-/**
  * Prepares LUBM query
  */
 function genLUBMQuery(requestParams, context, events, next) {

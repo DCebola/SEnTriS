@@ -204,7 +204,7 @@ def add_query_and_dataset_legends(ax, q_linestyles, dv_styles, filter_version=No
                      for q, ls in q_linestyles.items()]
         q_labels = [format_query_label(f"lubm-{q}") for q in q_linestyles.keys()]
         q_leg = ax.legend(q_handles, q_labels, title="Queries (line style)",
-                          loc='upper left', fontsize='small')
+                          loc='upper left', fontsize='medium')
         ax.add_artist(q_leg)
 
     # Dataset-version legend
@@ -219,10 +219,10 @@ def add_query_and_dataset_legends(ax, q_linestyles, dv_styles, filter_version=No
     if dv_handles:
         if q_linestyles is not None:
             ax.legend(dv_handles, dv_labels, title="Datasets (markers)",
-                      bbox_to_anchor=(0.275, 1), loc="upper right", fontsize='small')
+                      bbox_to_anchor=(0.275, 1), loc="upper right", fontsize='medium')
         else:
             ax.legend(dv_handles, dv_labels, title="Datasets (markers)",
-                      loc='upper left', fontsize='small')
+                      loc='upper left', fontsize='medium')
 
 # -----------------------
 # Plots
@@ -441,7 +441,7 @@ def plot_upload_dataset_latencies(df, outdir):
             if base and bars_per_version[v2][j]:
                 pct_diff = (bars_per_version[v2][j] - base) / base * 100
                 ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.1,
-                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=10, color="black")
 
     ax.set_xticks(x + width*(len(versions)-1)/2)
     ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
@@ -489,7 +489,7 @@ def plot_upload_dataset_sizes(df, outdir):
             if base and bars_per_version[v2][j]:
                 pct_diff = (bars_per_version[v2][j] - base) / base * 100
                 ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.05,
-                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+                        f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=10, color="black")
 
     ax.set_xticks(x + width*(len(versions)-1)/2)
     ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets])
@@ -535,7 +535,7 @@ def plot_received_answers(df, outdir):
                     pct_diff = (bars_per_version[v2][j] - base) / base * 100
                     if pct_diff > 0:
                         ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) + 0.05*max(base, bars_per_version[v2][j]),
-                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=10, color="black")
 
         ax.set_xticks(x + width*(len(versions)-1)/2)
         ax.set_xticklabels([format_query_label(f"lubm-{q}") for q in queries], rotation=45)
@@ -586,7 +586,7 @@ def plot_received_answers_per_query(df, outdir):
                     pct_diff = (bars_per_version[v2][j] - base) / base * 100
                     if pct_diff > 0:
                         ax.text(x[j] + (i+0.5)*width, max(base, bars_per_version[v2][j]) * 1.05,
-                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=7, color="red")
+                            f"Δ {pct_diff:.1f}%", ha="center", va="bottom", fontsize=10, color="black")
 
         ax.set_xticks(x + width*(len(versions)-1)/2)
         ax.set_xticklabels([format_dataset_label(ds, None) for ds in datasets], rotation=45)

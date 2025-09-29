@@ -1,0 +1,4725 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{Abel2007-sf}{inproceedings}{}
+      \name{author}{6}{}{%
+        {{hash=550cf886773e0da53d0240ca5d5c4a6f}{%
+           family={Abel},
+           familyi={A\bibinitperiod},
+           given={Fabian},
+           giveni={F\bibinitperiod}}}%
+        {{hash=fd54c51cbd87d46d68ee553f3c3ed627}{%
+           family={De\bibnamedelima Coi},
+           familyi={D\bibinitperiod\bibinitdelim C\bibinitperiod},
+           given={Juri\bibnamedelima Luca},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=4b57ac63cfca18f4615af0351c4c3971}{%
+           family={Henze},
+           familyi={H\bibinitperiod},
+           given={Nicola},
+           giveni={N\bibinitperiod}}}%
+        {{hash=5fb7b1453d5f3390e230a638205238bc}{%
+           family={Koesling},
+           familyi={K\bibinitperiod},
+           given={Arne\bibnamedelima Wolf},
+           giveni={A\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=fb9f3a698c331390080a6e3605cd1289}{%
+           family={Krause},
+           familyi={K\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=dde049337000e7ae6b69b328e2e16473}{%
+           family={Olmedilla},
+           familyi={O\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{22f15afa962686234067592f87d85971}
+      \strng{fullhash}{a9c88a20807361ea03050f278f08489b}
+      \strng{bibnamehash}{22f15afa962686234067592f87d85971}
+      \strng{authorbibnamehash}{22f15afa962686234067592f87d85971}
+      \strng{authornamehash}{22f15afa962686234067592f87d85971}
+      \strng{authorfullhash}{a9c88a20807361ea03050f278f08489b}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{isbn}{9783540762973}
+      \field{issn}{0302-9743}
+      \field{title}{Enabling advanced and context-dependent access control in {RDF} stores}
+      \field{volume}{4825 LNCS}
+      \field{year}{2007}
+      \field{pages}{1\bibrangedash 14}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1007/978-3-540-76298-0\_1
+      \endverb
+    \endentry
+    \entry{Aburawi2018-pq}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=5da26d266e221a1d4b5e7a4e279ebf5c}{%
+           family={Aburawi},
+           familyi={A\bibinitperiod},
+           given={Nahla},
+           giveni={N\bibinitperiod}}}%
+        {{hash=69b650369eac796b60503a93a197fa88}{%
+           family={Lisitsa},
+           familyi={L\bibinitperiod},
+           given={Alexei},
+           giveni={A\bibinitperiod}}}%
+        {{hash=1ae60227008ca25c93f265bee1720c4c}{%
+           family={Coenen},
+           familyi={C\bibinitperiod},
+           given={Frans},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{ca3e9591acc04acf841f730f18500e4a}
+      \strng{fullhash}{ca3e9591acc04acf841f730f18500e4a}
+      \strng{bibnamehash}{ca3e9591acc04acf841f730f18500e4a}
+      \strng{authorbibnamehash}{ca3e9591acc04acf841f730f18500e4a}
+      \strng{authornamehash}{ca3e9591acc04acf841f730f18500e4a}
+      \strng{authorfullhash}{ca3e9591acc04acf841f730f18500e4a}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{ICISSP} 2018 - Proceedings of the 4th International Conference on Information Systems Security and Privacy}
+      \field{title}{Querying Encrypted Graph Databases}
+      \field{volume}{2018-January}
+      \field{year}{2018}
+      \verb{doi}
+      \verb 10.5220/0006660004470451
+      \endverb
+    \endentry
+    \entry{Acar2018-mp}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=18f689e13e4f26ff421990f6e128ca4e}{%
+           family={Acar},
+           familyi={A\bibinitperiod},
+           given={Abbas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=cf23886dc84a512e971c6943d9ddba60}{%
+           family={Aksu},
+           familyi={A\bibinitperiod},
+           given={Hidayet},
+           giveni={H\bibinitperiod}}}%
+        {{hash=df5c295afc4eeaee19d99884d7e2ba59}{%
+           family={Uluagac},
+           familyi={U\bibinitperiod},
+           given={A\bibnamedelima Selcuk},
+           giveni={A\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=c1c6cc37d38b38f6ff327e1eabebda0c}{%
+           family={Conti},
+           familyi={C\bibinitperiod},
+           given={Mauro},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{4cb618e9442996bcac962b2a8e03c393}
+      \strng{fullhash}{c50b56f51bc7b98c9394011a4a804617}
+      \strng{bibnamehash}{4cb618e9442996bcac962b2a8e03c393}
+      \strng{authorbibnamehash}{4cb618e9442996bcac962b2a8e03c393}
+      \strng{authornamehash}{4cb618e9442996bcac962b2a8e03c393}
+      \strng{authorfullhash}{c50b56f51bc7b98c9394011a4a804617}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1557-7341}
+      \field{title}{A survey on homomorphic encryption schemes: Theory and implementation}
+      \field{volume}{51}
+      \field{year}{2018}
+      \verb{doi}
+      \verb 10.1145/3214303
+      \endverb
+    \endentry
+    \entry{Amazon_Web_Services_Inc_or_its_affiliates_undated-fj}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=85cf706452d54166f3cf737ab85d602b}{%
+           family={{Amazon Web Services, Inc. or its affiliates}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{85cf706452d54166f3cf737ab85d602b}
+      \strng{fullhash}{85cf706452d54166f3cf737ab85d602b}
+      \strng{bibnamehash}{85cf706452d54166f3cf737ab85d602b}
+      \strng{authorbibnamehash}{85cf706452d54166f3cf737ab85d602b}
+      \strng{authornamehash}{85cf706452d54166f3cf737ab85d602b}
+      \strng{authorfullhash}{85cf706452d54166f3cf737ab85d602b}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://docs.aws.amazon.com/neptune/index.html}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{Amazon Neptune}
+    \endentry
+    \entry{Antoniou2012-nj}{article}{}
+      \name{author}{4}{}{%
+        {{hash=3bedb033d421d9b43a2ec240debf37a0}{%
+           family={Antoniou},
+           familyi={A\bibinitperiod},
+           given={Grigoris},
+           giveni={G\bibinitperiod}}}%
+        {{hash=b2d7e1f159093aa2ea8379d9b6bc6911}{%
+           family={Groth},
+           familyi={G\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=ee480b6d2fd2c627ffb033d94c9691af}{%
+           family={Harmelen},
+           familyi={H\bibinitperiod},
+           given={Frank},
+           giveni={F\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+        {{hash=c322c048f090ff4f07130fd85d1114c2}{%
+           family={Hoekstra},
+           familyi={H\bibinitperiod},
+           given={Rinke},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{4f98eeb533ab51a9dcdb5f47cede0903}
+      \strng{fullhash}{7ca8e07cac3899c547d6d94a67d9cfdb}
+      \strng{bibnamehash}{4f98eeb533ab51a9dcdb5f47cede0903}
+      \strng{authorbibnamehash}{4f98eeb533ab51a9dcdb5f47cede0903}
+      \strng{authornamehash}{4f98eeb533ab51a9dcdb5f47cede0903}
+      \strng{authorfullhash}{7ca8e07cac3899c547d6d94a67d9cfdb}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The MIT Press}
+      \field{title}{A Semantic Web Primer (Third Edition)}
+      \field{year}{2012}
+      \field{pages}{287}
+      \range{pages}{1}
+    \endentry
+    \entry{Ashish2005-qz}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=4972e6a5a3ce2ff183176f8acf7b57a7}{%
+           family={Ashish},
+           familyi={A\bibinitperiod},
+           given={Naveen},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Schloss Dagstuhl-Leibniz-Zentrum für Informatik}%
+      }
+      \strng{namehash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \strng{fullhash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \strng{bibnamehash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \strng{authorbibnamehash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \strng{authornamehash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \strng{authorfullhash}{4972e6a5a3ce2ff183176f8acf7b57a7}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Dagstuhl Seminar Proceedings}
+      \field{title}{{Semantic-Web} Technology: Applications at {NASA}}
+      \field{year}{2005}
+    \endentry
+    \entry{Bash-ud}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.gnu.org/software/bash/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Bash - {GNU} project}
+    \endentry
+    \entry{Berners-Lee2001-ux}{book}{}
+      \name{author}{3}{}{%
+        {{hash=d469e0df304c98f67b55d087ea6187a1}{%
+           family={Berners-Lee},
+           familyi={B\bibinithyphendelim L\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=b03c1c11511fa3c1c6224a741f227be4}{%
+           family={Hendler},
+           familyi={H\bibinitperiod},
+           given={James},
+           giveni={J\bibinitperiod}}}%
+        {{hash=fb144ce9931b409b1bdccdff7d3a4ecd}{%
+           family={Lassila},
+           familyi={L\bibinitperiod},
+           given={Ora},
+           giveni={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \strng{fullhash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \strng{bibnamehash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \strng{authorbibnamehash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \strng{authornamehash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \strng{authorfullhash}{f4ea8e196bdf65a991bf6b05075d7d62}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0036-8733}
+      \field{title}{The semantic web}
+      \field{volume}{284}
+      \field{year}{2001}
+      \verb{doi}
+      \verb 10.1038/scientificamerican0501-34
+      \endverb
+    \endentry
+    \entry{Blaze1998-pz}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=4f5cc95e80ecb7d031e387ecc2f7d9fa}{%
+           family={Blaze},
+           familyi={B\bibinitperiod},
+           given={Matt},
+           giveni={M\bibinitperiod}}}%
+        {{hash=e0e95a6737c45d4251eeb8888caf8e64}{%
+           family={Bleumer},
+           familyi={B\bibinitperiod},
+           given={Gerrit},
+           giveni={G\bibinitperiod}}}%
+        {{hash=56eaa24c2612ebb03c0eafdffec8a3ca}{%
+           family={Strauss},
+           familyi={S\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{4d68b999d04b3b923832e55294fc2785}
+      \strng{fullhash}{4d68b999d04b3b923832e55294fc2785}
+      \strng{bibnamehash}{4d68b999d04b3b923832e55294fc2785}
+      \strng{authorbibnamehash}{4d68b999d04b3b923832e55294fc2785}
+      \strng{authornamehash}{4d68b999d04b3b923832e55294fc2785}
+      \strng{authorfullhash}{4d68b999d04b3b923832e55294fc2785}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Advances in Cryptology --- {EUROCRYPT'98}}
+      \field{title}{Divertible protocols and atomic proxy cryptography}
+      \field{year}{1998}
+      \field{pages}{127\bibrangedash 144}
+      \range{pages}{18}
+      \verb{doi}
+      \verb 10.1007/BFb0054122
+      \endverb
+    \endentry
+    \entry{Boneh2010-bw}{article}{}
+      \name{author}{3}{}{%
+        {{hash=9ef331cc9e5b527723547dfa1becd8cf}{%
+           family={Boneh},
+           familyi={B\bibinitperiod},
+           given={Dan},
+           giveni={D\bibinitperiod}}}%
+        {{hash=0e9166224409c3d193f407331ef18b02}{%
+           family={Sahai},
+           familyi={S\bibinitperiod},
+           given={Amit},
+           giveni={A\bibinitperiod}}}%
+        {{hash=86b19cae38747f83bc6146f03e291e49}{%
+           family={Waters},
+           familyi={W\bibinitperiod},
+           given={Brent},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \strng{fullhash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \strng{bibnamehash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \strng{authorbibnamehash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \strng{authornamehash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \strng{authorfullhash}{c39dc32b852ffb0ec65b0024e2cb9103}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Cryptology ePrint Archive}
+      \field{title}{Functional Encryption: Definitions and Challenges}
+      \field{year}{2010}
+    \endentry
+    \entry{Bosch2014-eb}{article}{}
+      \name{author}{4}{}{%
+        {{hash=d2361c0c1b20947a41a38ae607bf69c5}{%
+           family={Bösch},
+           familyi={B\bibinitperiod},
+           given={Christoph},
+           giveni={C\bibinitperiod}}}%
+        {{hash=3706a24acdf8aee8a7a42d1ae5021bc1}{%
+           family={Hartel},
+           familyi={H\bibinitperiod},
+           given={Pieter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=cdd87f4837396cef065ee8137b3e0a3a}{%
+           family={Jonker},
+           familyi={J\bibinitperiod},
+           given={Willem},
+           giveni={W\bibinitperiod}}}%
+        {{hash=9ebd647a5de7509e6b134f86ce61a4ed}{%
+           family={Peter},
+           familyi={P\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{d3c60358ea5f7cc4fb57a904e2f2c9eb}
+      \strng{fullhash}{6d784f8857f1beb20a1c69eb36b8dc56}
+      \strng{bibnamehash}{d3c60358ea5f7cc4fb57a904e2f2c9eb}
+      \strng{authorbibnamehash}{d3c60358ea5f7cc4fb57a904e2f2c9eb}
+      \strng{authornamehash}{d3c60358ea5f7cc4fb57a904e2f2c9eb}
+      \strng{authorfullhash}{6d784f8857f1beb20a1c69eb36b8dc56}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0360-0300}
+      \field{journaltitle}{ACM Comput. Surv.}
+      \field{month}{8}
+      \field{number}{2}
+      \field{title}{A Survey of Provably Secure Searchable Encryption}
+      \field{volume}{47}
+      \field{year}{2014}
+      \field{pages}{1\bibrangedash 51}
+      \range{pages}{51}
+      \verb{doi}
+      \verb 10.1145/2636328
+      \endverb
+    \endentry
+    \entry{BouncyCastle2023-og}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Bouncycastle}
+      \field{howpublished}{\url{https://www.bouncycastle.org/}}
+      \field{month}{3}
+      \field{note}{Accessed: 2024-10-26}
+      \field{title}{Bouncy Castle open-source cryptographic {APIs}}
+      \field{year}{2023}
+    \endentry
+    \entry{Brakerski2014-nm}{article}{}
+      \name{author}{3}{}{%
+        {{hash=9a0f2b40e3163796c628306096e94fd6}{%
+           family={Brakerski},
+           familyi={B\bibinitperiod},
+           given={Zvika},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=bd007b2a3d698c39bd758b253f7c2ebf}{%
+           family={Gentry},
+           familyi={G\bibinitperiod},
+           given={Craig},
+           giveni={C\bibinitperiod}}}%
+        {{hash=bcd43d9385708d5fa3dbc36c49d8e579}{%
+           family={Vaikuntanathan},
+           familyi={V\bibinitperiod},
+           given={Vinod},
+           giveni={V\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{9e2471e59619f19ba7b0995540830d7a}
+      \strng{fullhash}{9e2471e59619f19ba7b0995540830d7a}
+      \strng{bibnamehash}{9e2471e59619f19ba7b0995540830d7a}
+      \strng{authorbibnamehash}{9e2471e59619f19ba7b0995540830d7a}
+      \strng{authornamehash}{9e2471e59619f19ba7b0995540830d7a}
+      \strng{authorfullhash}{9e2471e59619f19ba7b0995540830d7a}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1942-3454}
+      \field{journaltitle}{ACM Trans. Comput. Theory}
+      \field{month}{7}
+      \field{number}{3}
+      \field{title}{(Leveled) Fully Homomorphic Encryption without Bootstrapping}
+      \field{volume}{6}
+      \field{year}{2014}
+      \field{pages}{1\bibrangedash 36}
+      \range{pages}{36}
+      \verb{doi}
+      \verb 10.1145/2633600
+      \endverb
+    \endentry
+    \entry{Cao2011-is}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=fed33d3994792b0024c33987d5456842}{%
+           family={Cao},
+           familyi={C\bibinitperiod},
+           given={Ning},
+           giveni={N\bibinitperiod}}}%
+        {{hash=ebdd3afe60231d8067ed9e08883de58c}{%
+           family={Yang},
+           familyi={Y\bibinitperiod},
+           given={Zhenyu},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=03ebb954658194d4f7fe4cd6f9a1c295}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Cong},
+           giveni={C\bibinitperiod}}}%
+        {{hash=b0133e86c3ff1295d2c2dab706529680}{%
+           family={Ren},
+           familyi={R\bibinitperiod},
+           given={Kui},
+           giveni={K\bibinitperiod}}}%
+        {{hash=77fe2c70f05bc54086c9e6b8bb6e32ac}{%
+           family={Lou},
+           familyi={L\bibinitperiod},
+           given={Wenjing},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{0b6a28c95d7b52c31f094786dd78dd64}
+      \strng{fullhash}{76af26a9de31a4ea0b55570e38f47878}
+      \strng{bibnamehash}{0b6a28c95d7b52c31f094786dd78dd64}
+      \strng{authorbibnamehash}{0b6a28c95d7b52c31f094786dd78dd64}
+      \strng{authornamehash}{0b6a28c95d7b52c31f094786dd78dd64}
+      \strng{authorfullhash}{76af26a9de31a4ea0b55570e38f47878}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings - International Conference on Distributed Computing Systems}
+      \field{title}{Privacy-preserving query over encrypted graph-structured data in cloud computing}
+      \field{year}{2011}
+      \verb{doi}
+      \verb 10.1109/ICDCS.2011.84
+      \endverb
+    \endentry
+    \entry{Carroll2003-zi}{article}{}
+      \name{author}{1}{}{%
+        {{hash=872f04b75b2adba8699aef58571bbdc8}{%
+           family={Carroll},
+           familyi={C\bibinitperiod},
+           given={Jeremy\bibnamedelima J},
+           giveni={J\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Verlag}%
+      }
+      \strng{namehash}{872f04b75b2adba8699aef58571bbdc8}
+      \strng{fullhash}{872f04b75b2adba8699aef58571bbdc8}
+      \strng{bibnamehash}{872f04b75b2adba8699aef58571bbdc8}
+      \strng{authorbibnamehash}{872f04b75b2adba8699aef58571bbdc8}
+      \strng{authornamehash}{872f04b75b2adba8699aef58571bbdc8}
+      \strng{authorfullhash}{872f04b75b2adba8699aef58571bbdc8}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0302-9743, 1611-3349}
+      \field{journaltitle}{Lect. Notes Comput. Sci.}
+      \field{title}{Signing {RDF} graphs}
+      \field{volume}{2870}
+      \field{year}{2003}
+      \field{pages}{369\bibrangedash 384}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/978-3-540-39718-2\_24
+      \endverb
+    \endentry
+    \entry{Carroll2011-me}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=76103bfd447320025bddeab58482fe7a}{%
+           family={Carroll},
+           familyi={C\bibinitperiod},
+           given={Mariana},
+           giveni={M\bibinitperiod}}}%
+        {{hash=7d6126372e9005d35d82128d9a5b0715}{%
+           family={Van\bibnamedelimb Der\bibnamedelima Merwe},
+           familyi={V\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Alta},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a932c98beecedaa44d7a9b9b77811a09}{%
+           family={Kotzé},
+           familyi={K\bibinitperiod},
+           given={Paula},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \strng{fullhash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \strng{bibnamehash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \strng{authorbibnamehash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \strng{authornamehash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \strng{authorfullhash}{a91bb8a3a8a22bcd3f0f0b12802d69bf}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2011 Information Security for South Africa - Proceedings of the {ISSA} 2011 Conference}
+      \field{title}{Secure cloud computing: Benefits, risks and controls}
+      \field{year}{2011}
+      \verb{doi}
+      \verb 10.1109/ISSA.2011.6027519
+      \endverb
+    \endentry
+    \entry{Chase2010-xx}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=aeae2b36c5597d9e2fdd0e2e632a2c42}{%
+           family={Chase},
+           familyi={C\bibinitperiod},
+           given={Melissa},
+           giveni={M\bibinitperiod}}}%
+        {{hash=2c260bb1ac4ba4df50d3b5e30487cfd6}{%
+           family={Kamara},
+           familyi={K\bibinitperiod},
+           given={Seny},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \strng{fullhash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \strng{bibnamehash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \strng{authorbibnamehash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \strng{authornamehash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \strng{authorfullhash}{6a7f33c246ed9a6ab6eaf0f8a35057e2}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{issn}{1611-3349}
+      \field{title}{Structured encryption and controlled disclosure}
+      \field{volume}{6477 LNCS}
+      \field{year}{2010}
+      \verb{doi}
+      \verb 10.1007/978-3-642-17373-8\_33
+      \endverb
+    \endentry
+    \entry{Chris_undated-hq}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=dd702934e34ea4f2fa72095641d86dc8}{%
+           family={Chris},
+           familyi={C\bibinitperiod},
+           given={Bizer},
+           giveni={B\bibinitperiod}}}%
+        {{hash=5c107a6d65509c5de8b056376cba37b4}{%
+           family={Andreas},
+           familyi={A\bibinitperiod},
+           given={Schultz},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \strng{fullhash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \strng{bibnamehash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \strng{authorbibnamehash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \strng{authornamehash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \strng{authorfullhash}{f62894c30c63ebcde6f9871575cc7e1e}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://wbsg.informatik.uni-mannheim.de/bizer/berlinsparqlbenchmark/spec/index.html}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{Berlin {SPARQL} Benchmark}
+    \endentry
+    \entry{Ciucanu2020-lx}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=7c9f6916cfe613a0bb57ac375d7d8fc0}{%
+           family={Ciucanu},
+           familyi={C\bibinitperiod},
+           given={Radu},
+           giveni={R\bibinitperiod}}}%
+        {{hash=e88b1be64dfef3e52e7b44340e8e6675}{%
+           family={Lafourcade},
+           familyi={L\bibinitperiod},
+           given={Pascal},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{796ba731634aab0090a42b13ca48890c}
+      \strng{fullhash}{796ba731634aab0090a42b13ca48890c}
+      \strng{bibnamehash}{796ba731634aab0090a42b13ca48890c}
+      \strng{authorbibnamehash}{796ba731634aab0090a42b13ca48890c}
+      \strng{authornamehash}{796ba731634aab0090a42b13ca48890c}
+      \strng{authorfullhash}{796ba731634aab0090a42b13ca48890c}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Data and Applications Security and Privacy {XXXIV}}
+      \field{title}{{GOOSE}: A Secure Framework for Graph Outsourcing and {SPARQL} Evaluation}
+      \field{year}{2020}
+      \field{pages}{347\bibrangedash 366}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1007/978-3-030-49669-2\_20
+      \endverb
+    \endentry
+    \entry{Costabello2012-ow}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=d93db211380f1d756c350e7f057cc9ab}{%
+           family={Costabello},
+           familyi={C\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod}}}%
+        {{hash=a25ef6b1524f271b24d81855810e4a02}{%
+           family={Villata},
+           familyi={V\bibinitperiod},
+           given={Serena},
+           giveni={S\bibinitperiod}}}%
+        {{hash=d90c37a4d07623002bb1e34c8fbc4c38}{%
+           family={Gandon},
+           familyi={G\bibinitperiod},
+           given={Fabien},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IOS Press}%
+      }
+      \strng{namehash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \strng{fullhash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \strng{bibnamehash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \strng{authorbibnamehash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \strng{authornamehash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \strng{authorfullhash}{a38d2d0cbb6b7254393c0a5f6953589e}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Frontiers in Artificial Intelligence and Applications}
+      \field{isbn}{9781614990970}
+      \field{issn}{0922-6389}
+      \field{title}{Context-aware access control for {RDF} graph stores}
+      \field{volume}{242}
+      \field{year}{2012}
+      \field{pages}{282\bibrangedash 287}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.3233/978-1-61499-098-7-282
+      \endverb
+    \endentry
+    \entry{Costabello2013-tb}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=d93db211380f1d756c350e7f057cc9ab}{%
+           family={Costabello},
+           familyi={C\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod}}}%
+        {{hash=a25ef6b1524f271b24d81855810e4a02}{%
+           family={Villata},
+           familyi={V\bibinitperiod},
+           given={Serena},
+           giveni={S\bibinitperiod}}}%
+        {{hash=c0404527e73cf0fb81cffd6ee13b8571}{%
+           family={Rodriguez\bibnamedelima Rocha},
+           familyi={R\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Oscar},
+           giveni={O\bibinitperiod}}}%
+        {{hash=d90c37a4d07623002bb1e34c8fbc4c38}{%
+           family={Gandon},
+           familyi={G\bibinitperiod},
+           given={Fabien},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Verlag}%
+      }
+      \strng{namehash}{7eefcb3b29179b3f564616d492ece6a6}
+      \strng{fullhash}{e5762eecb80fcee83b78e21633c4ddbc}
+      \strng{bibnamehash}{7eefcb3b29179b3f564616d492ece6a6}
+      \strng{authorbibnamehash}{7eefcb3b29179b3f564616d492ece6a6}
+      \strng{authornamehash}{7eefcb3b29179b3f564616d492ece6a6}
+      \strng{authorfullhash}{e5762eecb80fcee83b78e21633c4ddbc}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{isbn}{9783642382871}
+      \field{issn}{1611-3349}
+      \field{title}{Access control for {HTTP} operations on linked data}
+      \field{volume}{7882 LNCS}
+      \field{year}{2013}
+      \field{pages}{185\bibrangedash 199}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-642-38288-8\_13
+      \endverb
+    \endentry
+    \entry{Cure2014-vm}{book}{}
+      \name{author}{2}{}{%
+        {{hash=a4662e3c45c5124ba75da08f4ef7dc39}{%
+           family={Curé},
+           familyi={C\bibinitperiod},
+           given={Olivier},
+           giveni={O\bibinitperiod}}}%
+        {{hash=624fab61d9970e4e38d6d5aaf1b77cfb}{%
+           family={Blin},
+           familyi={B\bibinitperiod},
+           given={Guillaume},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{publisher}{1}{%
+        {Morgan Kaufmann}%
+      }
+      \strng{namehash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \strng{fullhash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \strng{bibnamehash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \strng{authorbibnamehash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \strng{authornamehash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \strng{authorfullhash}{30f5e8f72dcde13fcf4f3b672c891726}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{9780128004708}
+      \field{month}{11}
+      \field{title}{{RDF} Database Systems: Triples Storage and {SPARQL} Query Processing}
+      \field{year}{2014}
+    \endentry
+    \entry{Curtmola2011-hi}{article}{}
+      \name{author}{4}{}{%
+        {{hash=56f710100aaac251208cd1961981e14d}{%
+           family={Curtmola},
+           familyi={C\bibinitperiod},
+           given={Reza},
+           giveni={R\bibinitperiod}}}%
+        {{hash=a6c476f4d86bcfd8e2acd4ea73596371}{%
+           family={Garay},
+           familyi={G\bibinitperiod},
+           given={Juan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=2c260bb1ac4ba4df50d3b5e30487cfd6}{%
+           family={Kamara},
+           familyi={K\bibinitperiod},
+           given={Seny},
+           giveni={S\bibinitperiod}}}%
+        {{hash=a9721cf40a3150cd65a1b3d65d86fe94}{%
+           family={Ostrovsky},
+           familyi={O\bibinitperiod},
+           given={Rafail},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IOS Press}%
+      }
+      \strng{namehash}{97a9e6d9874976957ff3164d6e661161}
+      \strng{fullhash}{5ba64c82890de56bbb6ab05e6ae408c3}
+      \strng{bibnamehash}{97a9e6d9874976957ff3164d6e661161}
+      \strng{authorbibnamehash}{97a9e6d9874976957ff3164d6e661161}
+      \strng{authornamehash}{97a9e6d9874976957ff3164d6e661161}
+      \strng{authorfullhash}{5ba64c82890de56bbb6ab05e6ae408c3}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0926-227X, 1875-8924}
+      \field{journaltitle}{J. Comput. Secur.}
+      \field{month}{11}
+      \field{number}{5}
+      \field{title}{Searchable symmetric encryption: Improved definitions and efficient constructions}
+      \field{volume}{19}
+      \field{year}{2011}
+      \field{pages}{895\bibrangedash 934}
+      \range{pages}{40}
+      \verb{doi}
+      \verb 10.3233/jcs-2011-0426
+      \endverb
+    \endentry
+    \entry{Damgard2009-my}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=43508f80c8451905426e01ced91fa505}{%
+           family={Damgard},
+           familyi={D\bibinitperiod},
+           given={Ivan},
+           giveni={I\bibinitperiod}}}%
+        {{hash=4352c5147775e6a2ed35b379494a1aa5}{%
+           family={Geisler},
+           familyi={G\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+        {{hash=f7de0233ca5690aa8f25aa4861707df6}{%
+           family={Kroigard},
+           familyi={K\bibinitperiod},
+           given={Mikkel},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{924baf7d1d6a939fbf42338f79af4570}
+      \strng{fullhash}{924baf7d1d6a939fbf42338f79af4570}
+      \strng{bibnamehash}{924baf7d1d6a939fbf42338f79af4570}
+      \strng{authorbibnamehash}{924baf7d1d6a939fbf42338f79af4570}
+      \strng{authornamehash}{924baf7d1d6a939fbf42338f79af4570}
+      \strng{authorfullhash}{924baf7d1d6a939fbf42338f79af4570}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Applied Cryptography}
+      \field{number}{4}
+      \field{title}{A correction to 'efficient and secure comparison for on-line auctions'}
+      \field{volume}{1}
+      \field{year}{2009}
+      \field{pages}{323}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1504/ijact.2009.028031
+      \endverb
+    \endentry
+    \entry{Damgard2007-km}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=e7d2c4b806bfb9a8aa20810a903c51d2}{%
+           family={Damg{å}rd},
+           familyi={D\bibinitperiod},
+           given={Ivan},
+           giveni={I\bibinitperiod}}}%
+        {{hash=4352c5147775e6a2ed35b379494a1aa5}{%
+           family={Geisler},
+           familyi={G\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+        {{hash=71ec3ccd273ef6f3f2ee5e34fb40a3d0}{%
+           family={Kr{ø}igaard},
+           familyi={K\bibinitperiod},
+           given={Mikkel},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{4d23e42dd1aea43d3aa692879c224c42}
+      \strng{fullhash}{4d23e42dd1aea43d3aa692879c224c42}
+      \strng{bibnamehash}{4d23e42dd1aea43d3aa692879c224c42}
+      \strng{authorbibnamehash}{4d23e42dd1aea43d3aa692879c224c42}
+      \strng{authornamehash}{4d23e42dd1aea43d3aa692879c224c42}
+      \strng{authorfullhash}{4d23e42dd1aea43d3aa692879c224c42}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Information Security and Privacy}
+      \field{title}{Efficient and Secure Comparison for {On-Line} Auctions}
+      \field{year}{2007}
+      \field{pages}{416\bibrangedash 430}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-540-73458-1\_30
+      \endverb
+    \endentry
+    \entry{Libsodium-hk}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=73f4fa80a5750a74769050603b07a6c1}{%
+           family={Denis},
+           familyi={D\bibinitperiod},
+           given={Frank},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Github}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{73f4fa80a5750a74769050603b07a6c1}
+      \strng{fullhash}{73f4fa80a5750a74769050603b07a6c1}
+      \strng{bibnamehash}{73f4fa80a5750a74769050603b07a6c1}
+      \strng{authorbibnamehash}{73f4fa80a5750a74769050603b07a6c1}
+      \strng{authornamehash}{73f4fa80a5750a74769050603b07a6c1}
+      \strng{authorfullhash}{73f4fa80a5750a74769050603b07a6c1}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{libsodium: A modern, portable, easy to use crypto library}
+    \endentry
+    \entry{Dong2008-qw}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=375ad2afba0fa561cc5d35c616479a55}{%
+           family={Dong},
+           familyi={D\bibinitperiod},
+           given={Changyu},
+           giveni={C\bibinitperiod}}}%
+        {{hash=e122c0be42fa1789aa97202a51bb68c3}{%
+           family={Russello},
+           familyi={R\bibinitperiod},
+           given={Giovanni},
+           giveni={G\bibinitperiod}}}%
+        {{hash=bcdecafc3eac8e6cab492a526ba3e7d8}{%
+           family={Dulay},
+           familyi={D\bibinitperiod},
+           given={Naranker},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{415844328e42f9579fab3dded27cf7bf}
+      \strng{fullhash}{415844328e42f9579fab3dded27cf7bf}
+      \strng{bibnamehash}{415844328e42f9579fab3dded27cf7bf}
+      \strng{authorbibnamehash}{415844328e42f9579fab3dded27cf7bf}
+      \strng{authornamehash}{415844328e42f9579fab3dded27cf7bf}
+      \strng{authorfullhash}{415844328e42f9579fab3dded27cf7bf}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Lecture Notes in Computer Science}
+      \field{title}{Shared and Searchable Encrypted Data for Untrusted Servers}
+      \field{year}{2008}
+      \field{pages}{127\bibrangedash 143}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1007/978-3-540-70567-3\_10
+      \endverb
+    \endentry
+    \entry{Durst2005-xq}{report}{}
+      \name{author}{2}{}{%
+        {{hash=18b77075f928172b43a4a6b78c18dac5}{%
+           family={Dürst},
+           familyi={D\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1030939077c0853add00bf82203dc744}{%
+           family={Suignard},
+           familyi={S\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \strng{fullhash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \strng{bibnamehash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \strng{authorbibnamehash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \strng{authornamehash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \strng{authorfullhash}{1614caab4fac08d1ddb7c3d8d82ba67c}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Internationalized Resource Identifiers ({IRIs})}
+      \field{type}{techreport}
+      \field{year}{2005}
+      \verb{doi}
+      \verb 10.17487/RFC3987
+      \endverb
+    \endentry
+    \entry{Eclipse-RDF4J-developersUnknown-uu}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=4d607f2f8330f4986c27c8ad94b57b0a}{%
+           family={{Eclipse RDF4J developers}},
+           familyi={E\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \strng{fullhash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \strng{bibnamehash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \strng{authorbibnamehash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \strng{authornamehash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \strng{authorfullhash}{4d607f2f8330f4986c27c8ad94b57b0a}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Eclipse RDF4J}
+      \field{howpublished}{\url{https://rdf4j.org/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Eclipse {RDF4J}}
+    \endentry
+    \entry{Elgamal1985-rk}{article}{}
+      \name{author}{1}{}{%
+        {{hash=f21a6525fc6964c74b04097f0b136c99}{%
+           family={Elgamal},
+           familyi={E\bibinitperiod},
+           given={T},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{f21a6525fc6964c74b04097f0b136c99}
+      \strng{fullhash}{f21a6525fc6964c74b04097f0b136c99}
+      \strng{bibnamehash}{f21a6525fc6964c74b04097f0b136c99}
+      \strng{authorbibnamehash}{f21a6525fc6964c74b04097f0b136c99}
+      \strng{authornamehash}{f21a6525fc6964c74b04097f0b136c99}
+      \strng{authorfullhash}{f21a6525fc6964c74b04097f0b136c99}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0018-9448, 1557-9654}
+      \field{journaltitle}{IEEE Trans. Inf. Theory}
+      \field{month}{7}
+      \field{number}{4}
+      \field{title}{A public key cryptosystem and a signature scheme based on discrete logarithms}
+      \field{volume}{31}
+      \field{year}{1985}
+      \field{pages}{469\bibrangedash 472}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1109/TIT.1985.1057074
+      \endverb
+    \endentry
+    \entry{Evans2018-it}{article}{}
+      \name{author}{3}{}{%
+        {{hash=fdf60d29316eacfbd0fdc22e786afd78}{%
+           family={Evans},
+           familyi={E\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=ec6a46e9fc7690ef2035907eb07aef3a}{%
+           family={Kolesnikov},
+           familyi={K\bibinitperiod},
+           given={Vladimir},
+           giveni={V\bibinitperiod}}}%
+        {{hash=98419613b7fd8103780e4fc807177469}{%
+           family={Rosulek},
+           familyi={R\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Now Publishers}%
+      }
+      \strng{namehash}{077cadf2bd5d150495ff7409ad51b523}
+      \strng{fullhash}{077cadf2bd5d150495ff7409ad51b523}
+      \strng{bibnamehash}{077cadf2bd5d150495ff7409ad51b523}
+      \strng{authorbibnamehash}{077cadf2bd5d150495ff7409ad51b523}
+      \strng{authornamehash}{077cadf2bd5d150495ff7409ad51b523}
+      \strng{authorfullhash}{077cadf2bd5d150495ff7409ad51b523}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2474-1558}
+      \field{journaltitle}{Foundations and Trends®{} in Privacy and Security}
+      \field{number}{2-3}
+      \field{title}{A Pragmatic Introduction to Secure {Multi-Party} Computation}
+      \field{volume}{2}
+      \field{year}{2018}
+      \field{pages}{70\bibrangedash 246}
+      \range{pages}{177}
+      \verb{doi}
+      \verb 10.1561/3300000019
+      \endverb
+    \endentry
+    \entry{Fernandez2017-bh}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=af36897217a5a1639c394e8f944d418d}{%
+           family={Fernández},
+           familyi={F\bibinitperiod},
+           given={Javier\bibnamedelima D},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=5ddbf3af24e3802f8842794c8c86b60c}{%
+           family={Kirrane},
+           familyi={K\bibinitperiod},
+           given={Sabrina},
+           giveni={S\bibinitperiod}}}%
+        {{hash=a2be0ec850b04b1f5e9fe3aca6bf5226}{%
+           family={Polleres},
+           familyi={P\bibinitperiod},
+           given={Axel},
+           giveni={A\bibinitperiod}}}%
+        {{hash=e0d8a960eda803f468b7bfa8fec5e90a}{%
+           family={Steyskal},
+           familyi={S\bibinitperiod},
+           given={Simon},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{0141d6dcacc7e8ddc22cae420d08544c}
+      \strng{fullhash}{9687702e38a5f0477aa3ae325082a15e}
+      \strng{bibnamehash}{0141d6dcacc7e8ddc22cae420d08544c}
+      \strng{authorbibnamehash}{0141d6dcacc7e8ddc22cae420d08544c}
+      \strng{authornamehash}{0141d6dcacc7e8ddc22cae420d08544c}
+      \strng{authorfullhash}{9687702e38a5f0477aa3ae325082a15e}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{The Semantic Web}
+      \field{title}{{Self-Enforcing} Access Control for Encrypted {RDF}}
+      \field{year}{2017}
+      \field{pages}{607\bibrangedash 622}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/978-3-319-58068-5\_37
+      \endverb
+    \endentry
+    \entry{Ferreira2020-ze}{article}{}
+      \name{author}{6}{}{%
+        {{hash=5a005fb441aab15c7665c1ab4608ceaf}{%
+           family={Ferreira},
+           familyi={F\bibinitperiod},
+           given={Bernardo},
+           giveni={B\bibinitperiod}}}%
+        {{hash=bdba3cb5db2d48bfc6a5d022bdff2398}{%
+           family={Portela},
+           familyi={P\bibinitperiod},
+           given={Bernardo},
+           giveni={B\bibinitperiod}}}%
+        {{hash=aecca5d48ae793eeef39f49874e8ebee}{%
+           family={Oliveira},
+           familyi={O\bibinitperiod},
+           given={Tiago},
+           giveni={T\bibinitperiod}}}%
+        {{hash=bea31295b4e7c14a768876cd662753e6}{%
+           family={Borges},
+           familyi={B\bibinitperiod},
+           given={Guilherme},
+           giveni={G\bibinitperiod}}}%
+        {{hash=e4e6412e3b45db9452be0d37808f52f1}{%
+           family={Domingos},
+           familyi={D\bibinitperiod},
+           given={Henrique\bibnamedelima Joao},
+           giveni={H\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=106b679d45af07d117b237f56dc95469}{%
+           family={Leitao},
+           familyi={L\bibinitperiod},
+           given={Joao},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{c058b7284d576f7e617275af14c546fb}
+      \strng{fullhash}{19fd4334c32c814be42a3abf3ee8bf8a}
+      \strng{bibnamehash}{c058b7284d576f7e617275af14c546fb}
+      \strng{authorbibnamehash}{c058b7284d576f7e617275af14c546fb}
+      \strng{authornamehash}{c058b7284d576f7e617275af14c546fb}
+      \strng{authorfullhash}{19fd4334c32c814be42a3abf3ee8bf8a}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1941-0018}
+      \field{journaltitle}{IEEE Trans. Dependable Secure Comput.}
+      \field{title}{Boolean Searchable Symmetric Encryption with Filters on Trusted Hardware}
+      \field{year}{2020}
+      \field{pages}{1\bibrangedash 1}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1109/TDSC.2020.3012100
+      \endverb
+    \endentry
+    \entry{Flouris2010-bf}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=66225898d619dedc02fc3ff8df8ec077}{%
+           family={Flouris},
+           familyi={F\bibinitperiod},
+           given={Giorgos},
+           giveni={G\bibinitperiod}}}%
+        {{hash=d96dcb4c69fc0d6ffd5c43f6e2bb42f8}{%
+           family={Fundulaki},
+           familyi={F\bibinitperiod},
+           given={Irini},
+           giveni={I\bibinitperiod}}}%
+        {{hash=0bfd4ff72d6cf5ce68808b8e41d33a43}{%
+           family={Michou},
+           familyi={M\bibinitperiod},
+           given={Maria},
+           giveni={M\bibinitperiod}}}%
+        {{hash=3bedb033d421d9b43a2ec240debf37a0}{%
+           family={Antoniou},
+           familyi={A\bibinitperiod},
+           given={Grigoris},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{25b21c546ad4a10cdc912da8a30b46c6}
+      \strng{fullhash}{e61b4bfdf70f0a404eec17f710a893d4}
+      \strng{bibnamehash}{25b21c546ad4a10cdc912da8a30b46c6}
+      \strng{authorbibnamehash}{25b21c546ad4a10cdc912da8a30b46c6}
+      \strng{authornamehash}{25b21c546ad4a10cdc912da8a30b46c6}
+      \strng{authorfullhash}{e61b4bfdf70f0a404eec17f710a893d4}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{isbn}{9783642158766}
+      \field{issn}{0302-9743}
+      \field{title}{Controlling access to {RDF} graphs}
+      \field{volume}{6369 LNCS}
+      \field{year}{2010}
+      \field{pages}{107\bibrangedash 117}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1007/978-3-642-15877-3\_12
+      \endverb
+    \endentry
+    \entry{Fontaine2007-sv}{article}{}
+      \name{author}{2}{}{%
+        {{hash=7ed64c93009ebf6bc4d4adb6ab4f55e3}{%
+           family={Fontaine},
+           familyi={F\bibinitperiod},
+           given={Caroline},
+           giveni={C\bibinitperiod}}}%
+        {{hash=1bba5993290a141c722f869a59a8166c}{%
+           family={Galand},
+           familyi={G\bibinitperiod},
+           given={Fabien},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{f8176a8065bbb26ed80ad359605b18a9}
+      \strng{fullhash}{f8176a8065bbb26ed80ad359605b18a9}
+      \strng{bibnamehash}{f8176a8065bbb26ed80ad359605b18a9}
+      \strng{authorbibnamehash}{f8176a8065bbb26ed80ad359605b18a9}
+      \strng{authornamehash}{f8176a8065bbb26ed80ad359605b18a9}
+      \strng{authorfullhash}{f8176a8065bbb26ed80ad359605b18a9}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2510-523X}
+      \field{journaltitle}{Eurasip Journal on Information Security}
+      \field{title}{A survey of homomorphic encryption for nonspecialists}
+      \field{volume}{2007}
+      \field{year}{2007}
+      \verb{doi}
+      \verb 10.1155/2007/13801
+      \endverb
+    \endentry
+    \entry{Franz2011-sm}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=5441f66f51249100545f3eff6b64852a}{%
+           family={Franz},
+           familyi={F\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Technische Universität Darmstadt}%
+      }
+      \strng{namehash}{5441f66f51249100545f3eff6b64852a}
+      \strng{fullhash}{5441f66f51249100545f3eff6b64852a}
+      \strng{bibnamehash}{5441f66f51249100545f3eff6b64852a}
+      \strng{authorbibnamehash}{5441f66f51249100545f3eff6b64852a}
+      \strng{authornamehash}{5441f66f51249100545f3eff6b64852a}
+      \strng{authorfullhash}{5441f66f51249100545f3eff6b64852a}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Secure Computations on Non-Integer Values}
+      \field{year}{2011}
+    \endentry
+    \entry{noauthor_undated-if}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Gartner}
+      \field{howpublished}{\url{https://www.gartner.com/en/newsroom/press-releases/2022-10-31-gartner-forecasts-worldwide-public-cloud-end-user-spending-to-reach-nearly-600-billion-in-2023}}
+      \field{note}{Accessed: 2023-8-21}
+      \field{title}{Gartner forecasts worldwide public cloud end-user spending to reach nearly \$600 billion in 2023}
+    \endentry
+    \entry{Gentry2009-zv}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=bd007b2a3d698c39bd758b253f7c2ebf}{%
+           family={Gentry},
+           familyi={G\bibinitperiod},
+           given={Craig},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Stanford University}%
+      }
+      \strng{namehash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \strng{fullhash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \strng{bibnamehash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \strng{authorbibnamehash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \strng{authornamehash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \strng{authorfullhash}{bd007b2a3d698c39bd758b253f7c2ebf}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{A Fully Homomorphic Encryption Scheme}
+      \field{year}{2009}
+    \endentry
+    \entry{Goldreich2001-sr}{book}{}
+      \name{author}{1}{}{%
+        {{hash=66aba379c7d3adb8af5b662a65c4c140}{%
+           family={Goldreich},
+           familyi={G\bibinitperiod},
+           given={Oded},
+           giveni={O\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge University Press}%
+      }
+      \strng{namehash}{66aba379c7d3adb8af5b662a65c4c140}
+      \strng{fullhash}{66aba379c7d3adb8af5b662a65c4c140}
+      \strng{bibnamehash}{66aba379c7d3adb8af5b662a65c4c140}
+      \strng{authorbibnamehash}{66aba379c7d3adb8af5b662a65c4c140}
+      \strng{authornamehash}{66aba379c7d3adb8af5b662a65c4c140}
+      \strng{authorfullhash}{66aba379c7d3adb8af5b662a65c4c140}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{9780521830843}
+      \field{title}{Foundations of Cryptography: Volume 2, Basic Applications}
+      \field{year}{2001}
+    \endentry
+    \entry{Goldreich1996-yb}{article}{}
+      \name{author}{2}{}{%
+        {{hash=66aba379c7d3adb8af5b662a65c4c140}{%
+           family={Goldreich},
+           familyi={G\bibinitperiod},
+           given={Oded},
+           giveni={O\bibinitperiod}}}%
+        {{hash=a9721cf40a3150cd65a1b3d65d86fe94}{%
+           family={Ostrovsky},
+           familyi={O\bibinitperiod},
+           given={Rafail},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{1efbe2393ee2604620c93fc394944966}
+      \strng{fullhash}{1efbe2393ee2604620c93fc394944966}
+      \strng{bibnamehash}{1efbe2393ee2604620c93fc394944966}
+      \strng{authorbibnamehash}{1efbe2393ee2604620c93fc394944966}
+      \strng{authornamehash}{1efbe2393ee2604620c93fc394944966}
+      \strng{authorfullhash}{1efbe2393ee2604620c93fc394944966}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0004-5411}
+      \field{journaltitle}{J. ACM}
+      \field{month}{5}
+      \field{number}{3}
+      \field{title}{Software protection and simulation on oblivious {RAMs}}
+      \field{volume}{43}
+      \field{year}{1996}
+      \field{pages}{431\bibrangedash 473}
+      \range{pages}{43}
+      \verb{doi}
+      \verb 10.1145/233551.233553
+      \endverb
+    \endentry
+    \entry{Guo2005-ja}{article}{}
+      \name{author}{3}{}{%
+        {{hash=c342162a3fdfefca2b241060a8577aa0}{%
+           family={Guo},
+           familyi={G\bibinitperiod},
+           given={Yuanbo},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=ae30595f7babd1a7480222c11fbfd38f}{%
+           family={Pan},
+           familyi={P\bibinitperiod},
+           given={Zhengxiang},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=fd09a476f27d1e25d5bbe5a8e7fed1a7}{%
+           family={Heflin},
+           familyi={H\bibinitperiod},
+           given={Jeff},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{edb8f397a2611abc32f955194cac957a}
+      \strng{fullhash}{edb8f397a2611abc32f955194cac957a}
+      \strng{bibnamehash}{edb8f397a2611abc32f955194cac957a}
+      \strng{authorbibnamehash}{edb8f397a2611abc32f955194cac957a}
+      \strng{authornamehash}{edb8f397a2611abc32f955194cac957a}
+      \strng{authorfullhash}{edb8f397a2611abc32f955194cac957a}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1570-8268}
+      \field{journaltitle}{Journal of Web Semantics}
+      \field{month}{10}
+      \field{number}{2}
+      \field{title}{{LUBM}: A benchmark for {OWL} knowledge base systems}
+      \field{volume}{3}
+      \field{year}{2005}
+      \field{pages}{158\bibrangedash 182}
+      \range{pages}{25}
+      \verb{doi}
+      \verb 10.1016/j.websem.2005.06.005
+      \endverb
+    \endentry
+    \entry{Hahn2019-sg}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=ec620d415f009cc531db0743dd188ef9}{%
+           family={Hahn},
+           familyi={H\bibinitperiod},
+           given={Florian},
+           giveni={F\bibinitperiod}}}%
+        {{hash=f7a90eee556642ec46f78d646e6126bb}{%
+           family={Loza},
+           familyi={L\bibinitperiod},
+           given={Nicolas},
+           giveni={N\bibinitperiod}}}%
+        {{hash=faa07e8153d48318f4972fb2d27eb385}{%
+           family={Kerschbaum},
+           familyi={K\bibinitperiod},
+           given={Florian},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \strng{fullhash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \strng{bibnamehash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \strng{authorbibnamehash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \strng{authornamehash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \strng{authorfullhash}{864d624987aa8f1d3eb8186bb695cf9f}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2019 {IEEE} 35th International Conference on Data Engineering ({ICDE})}
+      \field{issn}{2375-026X}
+      \field{month}{4}
+      \field{title}{Joins Over Encrypted Data with Fine Granular Security}
+      \field{year}{2019}
+      \field{pages}{674\bibrangedash 685}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1109/ICDE.2019.00066
+      \endverb
+    \endentry
+    \entry{Harris2004-tf}{article}{}
+      \name{author}{60}{}{%
+        {{hash=30656a55e03929aabf0d383142b3b524}{%
+           family={Harris},
+           familyi={H\bibinitperiod},
+           given={M\bibnamedelima A},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=5abc8a5f199ff13afd3806380eb67c1d}{%
+           family={Clark},
+           familyi={C\bibinitperiod},
+           given={J},
+           giveni={J\bibinitperiod}}}%
+        {{hash=55c3c1c5a138d3c878ab198495847f44}{%
+           family={Ireland},
+           familyi={I\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod}}}%
+        {{hash=fcdcc733f4f7ed96a7bc06011fe58dc2}{%
+           family={Lomax},
+           familyi={L\bibinitperiod},
+           given={J},
+           giveni={J\bibinitperiod}}}%
+        {{hash=c81eebe803c1b2a7cac991c00026b0c6}{%
+           family={Ashburner},
+           familyi={A\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1e62a43a23fb909a13a41c8db008a28a}{%
+           family={Foulger},
+           familyi={F\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=97af977474810dcd6f9b93ae4d0c4b7a}{%
+           family={Eilbeck},
+           familyi={E\bibinitperiod},
+           given={K},
+           giveni={K\bibinitperiod}}}%
+        {{hash=778ea906680ea69d22dc941ec4fee1f7}{%
+           family={Lewis},
+           familyi={L\bibinitperiod},
+           given={S},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5c0bee617dfd663eb0dfb36e2227f815}{%
+           family={Marshall},
+           familyi={M\bibinitperiod},
+           given={B},
+           giveni={B\bibinitperiod}}}%
+        {{hash=ac37192e3dbe8fc96f1d67a64689d34c}{%
+           family={Mungall},
+           familyi={M\bibinitperiod},
+           given={C},
+           giveni={C\bibinitperiod}}}%
+        {{hash=90c669c081f411f39a94794438445f0e}{%
+           family={Richter},
+           familyi={R\bibinitperiod},
+           given={J},
+           giveni={J\bibinitperiod}}}%
+        {{hash=acbc8597912b0e94ef8dcf9b2192f682}{%
+           family={Rubin},
+           familyi={R\bibinitperiod},
+           given={G\bibnamedelima M},
+           giveni={G\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=32bc36dfcce625884e1c34bca5ecdb93}{%
+           family={Blake},
+           familyi={B\bibinitperiod},
+           given={J\bibnamedelima A},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=7f9c1fcdfb35462dbb8d7ae9efbb3ff2}{%
+           family={Bult},
+           familyi={B\bibinitperiod},
+           given={C},
+           giveni={C\bibinitperiod}}}%
+        {{hash=f6913b0c0d15920e2ffbadc206d7e3a5}{%
+           family={Dolan},
+           familyi={D\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c9777dbc1b712a0eeee422b2f7f8fba9}{%
+           family={Drabkin},
+           familyi={D\bibinitperiod},
+           given={H},
+           giveni={H\bibinitperiod}}}%
+        {{hash=f483bab4c7ed3cc2deae65b59891f331}{%
+           family={Eppig},
+           familyi={E\bibinitperiod},
+           given={J\bibnamedelima T},
+           giveni={J\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=8f375194937f37455439bfdf7b9213d4}{%
+           family={Hill},
+           familyi={H\bibinitperiod},
+           given={D\bibnamedelima P},
+           giveni={D\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=57abc1eda4dab93ad3671d172bb5dba2}{%
+           family={Ni},
+           familyi={N\bibinitperiod},
+           given={L},
+           giveni={L\bibinitperiod}}}%
+        {{hash=7e7a305540323cbc5d60138fc75dea19}{%
+           family={Ringwald},
+           familyi={R\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=875d926a178ac792d97cf21aafba7385}{%
+           family={Balakrishnan},
+           familyi={B\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=93feaa7b3b30edf2f20f57d1f7a6aa86}{%
+           family={Cherry},
+           familyi={C\bibinitperiod},
+           given={J\bibnamedelima M},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=40e047837189a33e0e435a2d05b0904a}{%
+           family={Christie},
+           familyi={C\bibinitperiod},
+           given={K\bibnamedelima R},
+           giveni={K\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=7be226a53239343f1bd0043afa82612f}{%
+           family={Costanzo},
+           familyi={C\bibinitperiod},
+           given={M\bibnamedelima C},
+           giveni={M\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=7cf657222e34b0b6efb91f7d273c287a}{%
+           family={Dwight},
+           familyi={D\bibinitperiod},
+           given={S\bibnamedelima S},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=c6fea2a9a5f913fc1ef208cc7c803e3c}{%
+           family={Engel},
+           familyi={E\bibinitperiod},
+           given={S},
+           giveni={S\bibinitperiod}}}%
+        {{hash=ef42f6ddfce99027a79feef70d49a07c}{%
+           family={Fisk},
+           familyi={F\bibinitperiod},
+           given={D\bibnamedelima G},
+           giveni={D\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=94c5bed1f9b8539a53dd019861ff9f11}{%
+           family={Hirschman},
+           familyi={H\bibinitperiod},
+           given={J\bibnamedelima E},
+           giveni={J\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=7f9b116be0c8cc3afa45e5433ea8020a}{%
+           family={Hong},
+           familyi={H\bibinitperiod},
+           given={E\bibnamedelima L},
+           giveni={E\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=3ef44e36a92a6ed7a475aaa8edd0ec4c}{%
+           family={Nash},
+           familyi={N\bibinitperiod},
+           given={R\bibnamedelima S},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=91980f98516ef4236f2282fd0fb5f3f9}{%
+           family={Sethuraman},
+           familyi={S\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b33b283d418326daa84beb141f07de7f}{%
+           family={Theesfeld},
+           familyi={T\bibinitperiod},
+           given={C\bibnamedelima L},
+           giveni={C\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=242d9f60e4717ffebea5cc6f504f3ce2}{%
+           family={Botstein},
+           familyi={B\bibinitperiod},
+           given={D},
+           giveni={D\bibinitperiod}}}%
+        {{hash=b4708319e9c11c324c761060ff6dcc2c}{%
+           family={Dolinski},
+           familyi={D\bibinitperiod},
+           given={K},
+           giveni={K\bibinitperiod}}}%
+        {{hash=fe8bd6f6f75a674aa58c7a4ffce0b0dd}{%
+           family={Feierbach},
+           familyi={F\bibinitperiod},
+           given={B},
+           giveni={B\bibinitperiod}}}%
+        {{hash=6356f275f824fa4ad0c46c3937071b29}{%
+           family={Berardini},
+           familyi={B\bibinitperiod},
+           given={T},
+           giveni={T\bibinitperiod}}}%
+        {{hash=f5bc640360401655a85681e53d4eafac}{%
+           family={Mundodi},
+           familyi={M\bibinitperiod},
+           given={S},
+           giveni={S\bibinitperiod}}}%
+        {{hash=1a429139fc19c590af6c2d6187febe1a}{%
+           family={Rhee},
+           familyi={R\bibinitperiod},
+           given={S\bibnamedelima Y},
+           giveni={S\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+        {{hash=ac6ef1962854c160a1acf7baf64c5a50}{%
+           family={Apweiler},
+           familyi={A\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=4cad5f744574e3888430e314a24e46b1}{%
+           family={Barrell},
+           familyi={B\bibinitperiod},
+           given={D},
+           giveni={D\bibinitperiod}}}%
+        {{hash=4bc20bf4d075d5aa166d22000b32f97e}{%
+           family={Camon},
+           familyi={C\bibinitperiod},
+           given={E},
+           giveni={E\bibinitperiod}}}%
+        {{hash=21de144c09716255e135b0220ced7c70}{%
+           family={Dimmer},
+           familyi={D\bibinitperiod},
+           given={E},
+           giveni={E\bibinitperiod}}}%
+        {{hash=4ae0d5ed11d35378ac88c57ea9f463d6}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={V},
+           giveni={V\bibinitperiod}}}%
+        {{hash=3869f5eb340cc62aaef6705cab579974}{%
+           family={Chisholm},
+           familyi={C\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=0cb29bc0846ee89e8e1e0a9663d94b68}{%
+           family={Gaudet},
+           familyi={G\bibinitperiod},
+           given={P},
+           giveni={P\bibinitperiod}}}%
+        {{hash=27cc4cfff60cf10eadabf36727f23e45}{%
+           family={Kibbe},
+           familyi={K\bibinitperiod},
+           given={W},
+           giveni={W\bibinitperiod}}}%
+        {{hash=d0cb0ee2f53495f272cd721e7dd5f6ea}{%
+           family={Kishore},
+           familyi={K\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=9a70a84cf17fd82d51d6b99bd00216f3}{%
+           family={Schwarz},
+           familyi={S\bibinitperiod},
+           given={E\bibnamedelima M},
+           giveni={E\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=f4aaca7dcf389a328905074b9cf088c2}{%
+           family={Sternberg},
+           familyi={S\bibinitperiod},
+           given={P},
+           giveni={P\bibinitperiod}}}%
+        {{hash=4c0500b761b91329637fded1a1cc31b3}{%
+           family={Gwinn},
+           familyi={G\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=e431b9a2b9c83884c65e2786b00849ac}{%
+           family={Hannick},
+           familyi={H\bibinitperiod},
+           given={L},
+           giveni={L\bibinitperiod}}}%
+        {{hash=b897ede7c75b5c589500dd5c5c9598fb}{%
+           family={Wortman},
+           familyi={W\bibinitperiod},
+           given={J},
+           giveni={J\bibinitperiod}}}%
+        {{hash=c84291a64eae86a994399f3e5baba9a6}{%
+           family={Berriman},
+           familyi={B\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=6c4334020fed4d8d69004bd4c7f2ddf3}{%
+           family={Wood},
+           familyi={W\bibinitperiod},
+           given={V},
+           giveni={V\bibinitperiod}}}%
+        {{hash=e8a1cd49d431ee2db9fcfb31e538c5e1}{%
+           family={Cruz},
+           familyi={C\bibinitperiod},
+           given={N},
+           giveni={N\bibinitperiod},
+           prefix={de\bibnamedelima la},
+           prefixi={d\bibinitperiod\bibinitdelim l\bibinitperiod}}}%
+        {{hash=beb2b20dfa31c8b697314a1b31e7538a}{%
+           family={Tonellato},
+           familyi={T\bibinitperiod},
+           given={P},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9a5626347dcd757202d407dd24713959}{%
+           family={Jaiswal},
+           familyi={J\bibinitperiod},
+           given={P},
+           giveni={P\bibinitperiod}}}%
+        {{hash=21105107288cb4c39945c9ed9099d462}{%
+           family={Seigfried},
+           familyi={S\bibinitperiod},
+           given={T},
+           giveni={T\bibinitperiod}}}%
+        {{hash=3edebb611fbe84ec1e310760be2b79d9}{%
+           family={White},
+           familyi={W\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+        {{hash=1d1bf05704706c875a6505070a3186b2}{%
+           family={{Gene Ontology Consortium}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{74b6c2a0542e06641644164413d811e4}
+      \strng{fullhash}{e931a3cc28c94043ba85e0c38ef0552e}
+      \strng{bibnamehash}{74b6c2a0542e06641644164413d811e4}
+      \strng{authorbibnamehash}{74b6c2a0542e06641644164413d811e4}
+      \strng{authornamehash}{74b6c2a0542e06641644164413d811e4}
+      \strng{authorfullhash}{e931a3cc28c94043ba85e0c38ef0552e}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0305-1048, 1362-4962}
+      \field{journaltitle}{Nucleic Acids Res.}
+      \field{month}{1}
+      \field{number}{Database issue}
+      \field{title}{The Gene Ontology ({GO}) database and informatics resource}
+      \field{volume}{32}
+      \field{year}{2004}
+      \field{pages}{D258\bibrangedash 61}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1093/nar/gkh036
+      \endverb
+    \endentry
+    \entry{noauthor_undated-yf}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://datatracker.ietf.org/doc/html/rfc2818}}
+      \field{note}{Accessed: 2022-2-18}
+      \field{title}{{HTTP} Over {TLS}}
+    \endentry
+    \entry{Ivan2003-uu}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=21b280368a96eaeeb1c4d3b624b45b24}{%
+           family={Ivan},
+           familyi={I\bibinitperiod},
+           given={Anca-Andreea},
+           giveni={A\bibinithyphendelim A\bibinitperiod}}}%
+        {{hash=21ac2ee1e3dbf5809549b834bf94ba2e}{%
+           family={Dodis},
+           familyi={D\bibinitperiod},
+           given={Yevgeniy},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Citeseer}%
+      }
+      \strng{namehash}{112c7c371600d2391d6d642b61e85bbb}
+      \strng{fullhash}{112c7c371600d2391d6d642b61e85bbb}
+      \strng{bibnamehash}{112c7c371600d2391d6d642b61e85bbb}
+      \strng{authorbibnamehash}{112c7c371600d2391d6d642b61e85bbb}
+      \strng{authornamehash}{112c7c371600d2391d6d642b61e85bbb}
+      \strng{authorfullhash}{112c7c371600d2391d6d642b61e85bbb}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{NDSS}}
+      \field{title}{Proxy Cryptography Revisited}
+      \field{year}{2003}
+    \endentry
+    \entry{Jain2006-zy}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=04fe29c7825a0c6770a45c7f6d35ea99}{%
+           family={Jain},
+           familyi={J\bibinitperiod},
+           given={Amit},
+           giveni={A\bibinitperiod}}}%
+        {{hash=118d578979dd2d02d727848f8ba06821}{%
+           family={Farkas},
+           familyi={F\bibinitperiod},
+           given={Csilla},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{e7e7d45a1c3551c108673dee86484369}
+      \strng{fullhash}{e7e7d45a1c3551c108673dee86484369}
+      \strng{bibnamehash}{e7e7d45a1c3551c108673dee86484369}
+      \strng{authorbibnamehash}{e7e7d45a1c3551c108673dee86484369}
+      \strng{authornamehash}{e7e7d45a1c3551c108673dee86484369}
+      \strng{authorfullhash}{e7e7d45a1c3551c108673dee86484369}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of {ACM} Symposium on Access Control Models and Technologies, {SACMAT}}
+      \field{isbn}{9781595933546}
+      \field{title}{Secure resource description framework: An access control model}
+      \field{volume}{2006}
+      \field{year}{2006}
+      \field{pages}{121\bibrangedash 129}
+      \range{pages}{9}
+    \endentry
+    \entry{Java-wf}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.oracle.com/java/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Java}
+    \endentry
+    \entry{Jutla2021-af}{article}{}
+      \name{author}{2}{}{%
+        {{hash=5ab4f25f092905760b7f7dbde95c0fec}{%
+           family={Jutla},
+           familyi={J\bibinitperiod},
+           given={Charanjit},
+           giveni={C\bibinitperiod}}}%
+        {{hash=bcbac4efe8585d7ad2950b72ccbfce96}{%
+           family={Patranabis},
+           familyi={P\bibinitperiod},
+           given={Sikhar},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{35335ef0622ffcb8daf50482e732bea4}
+      \strng{fullhash}{35335ef0622ffcb8daf50482e732bea4}
+      \strng{bibnamehash}{35335ef0622ffcb8daf50482e732bea4}
+      \strng{authorbibnamehash}{35335ef0622ffcb8daf50482e732bea4}
+      \strng{authornamehash}{35335ef0622ffcb8daf50482e732bea4}
+      \strng{authorfullhash}{35335ef0622ffcb8daf50482e732bea4}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Cryptology ePrint Archive}
+      \field{title}{Efficient Searchable Symmetric Encryption for Join Queries}
+      \field{year}{2021}
+    \endentry
+    \entry{Kamara2012-lm}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=2c260bb1ac4ba4df50d3b5e30487cfd6}{%
+           family={Kamara},
+           familyi={K\bibinitperiod},
+           given={Seny},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5431c56f2cf763edae635e05168625f2}{%
+           family={Papamanthou},
+           familyi={P\bibinitperiod},
+           given={Charalampos},
+           giveni={C\bibinitperiod}}}%
+        {{hash=465a9a3bb733bdf12b31ae5865298a7d}{%
+           family={Roeder},
+           familyi={R\bibinitperiod},
+           given={Tom},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Raleigh, North Carolina, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{70a405eafc4975f10408946dfdbb1334}
+      \strng{fullhash}{70a405eafc4975f10408946dfdbb1334}
+      \strng{bibnamehash}{70a405eafc4975f10408946dfdbb1334}
+      \strng{authorbibnamehash}{70a405eafc4975f10408946dfdbb1334}
+      \strng{authornamehash}{70a405eafc4975f10408946dfdbb1334}
+      \strng{authorfullhash}{70a405eafc4975f10408946dfdbb1334}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 2012 {ACM} conference on Computer and communications security}
+      \field{isbn}{9781450316514}
+      \field{month}{10}
+      \field{series}{CCS '12}
+      \field{title}{Dynamic searchable symmetric encryption}
+      \field{year}{2012}
+      \field{pages}{965\bibrangedash 976}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1145/2382196.2382298
+      \endverb
+    \endentry
+    \entry{Kasten2013-rf}{report}{}
+      \name{author}{2}{}{%
+        {{hash=1c26da94f2581dec19317aa235c83de4}{%
+           family={Kasten},
+           familyi={K\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ddb1778dd6aa7aeff8c730b7da2d96be}{%
+           family={Scherp},
+           familyi={S\bibinitperiod},
+           given={Ansgar},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Universität Koblenz-Landau}%
+      }
+      \list{location}{1}{%
+        {Mainz}%
+      }
+      \strng{namehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{fullhash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{bibnamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authorbibnamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authornamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authorfullhash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \field{extraname}{1}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{3}
+      \field{title}{Iterative Signing of {RDF(S}) Graphs, Named Graphs, and {OWL} Graphs: Formalization and Application}
+      \field{type}{techreport}
+      \field{year}{2013}
+    \endentry
+    \entry{Kasten2014-ru}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=1c26da94f2581dec19317aa235c83de4}{%
+           family={Kasten},
+           familyi={K\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ddb1778dd6aa7aeff8c730b7da2d96be}{%
+           family={Scherp},
+           familyi={S\bibinitperiod},
+           given={Ansgar},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{fullhash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{bibnamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authorbibnamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authornamehash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \strng{authorfullhash}{bf0e54491ac1a34fd159af481e1ff27c}
+      \field{extraname}{2}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{CEUR} Workshop Proceedings}
+      \field{issn}{1613-0073}
+      \field{title}{Towards a configurable framework for iterative signing of distributed graph data}
+      \field{volume}{1121}
+      \field{year}{2014}
+    \endentry
+    \entry{Kasten2014-ny}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=1c26da94f2581dec19317aa235c83de4}{%
+           family={Kasten},
+           familyi={K\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=ddb1778dd6aa7aeff8c730b7da2d96be}{%
+           family={Scherp},
+           familyi={S\bibinitperiod},
+           given={Ansgar},
+           giveni={A\bibinitperiod}}}%
+        {{hash=603e530e271da48b67eec37283b4dac5}{%
+           family={Schau{ß}},
+           familyi={S\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Verlag}%
+      }
+      \strng{namehash}{56dcc5bae77217bca08a89f5d2778446}
+      \strng{fullhash}{56dcc5bae77217bca08a89f5d2778446}
+      \strng{bibnamehash}{56dcc5bae77217bca08a89f5d2778446}
+      \strng{authorbibnamehash}{56dcc5bae77217bca08a89f5d2778446}
+      \strng{authornamehash}{56dcc5bae77217bca08a89f5d2778446}
+      \strng{authorfullhash}{56dcc5bae77217bca08a89f5d2778446}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{isbn}{9783319074429}
+      \field{issn}{1611-3349}
+      \field{title}{A framework for iterative signing of graph data on the web}
+      \field{volume}{8465 LNCS}
+      \field{year}{2014}
+      \field{pages}{146\bibrangedash 160}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-319-07443-6\_11
+      \endverb
+    \endentry
+    \entry{Kirrane2013-ef}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=5ddbf3af24e3802f8842794c8c86b60c}{%
+           family={Kirrane},
+           familyi={K\bibinitperiod},
+           given={Sabrina},
+           giveni={S\bibinitperiod}}}%
+        {{hash=299203da4377834da1981a94d70929d4}{%
+           family={Abdelrahman},
+           familyi={A\bibinitperiod},
+           given={Ahmed},
+           giveni={A\bibinitperiod}}}%
+        {{hash=371d015f4e46228b8659322eb7c027e6}{%
+           family={Mileo},
+           familyi={M\bibinitperiod},
+           given={Alessandra},
+           giveni={A\bibinitperiod}}}%
+        {{hash=2a1e6ec26f3229ee6817fdc4087dc2b0}{%
+           family={Decker},
+           familyi={D\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{0d4350add805256758689d2dd2c44ed3}
+      \strng{fullhash}{e139400e900e33da4b9ed8c3d36f9e45}
+      \strng{bibnamehash}{0d4350add805256758689d2dd2c44ed3}
+      \strng{authorbibnamehash}{0d4350add805256758689d2dd2c44ed3}
+      \strng{authornamehash}{0d4350add805256758689d2dd2c44ed3}
+      \strng{authorfullhash}{e139400e900e33da4b9ed8c3d36f9e45}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{issn}{0302-9743}
+      \field{title}{Secure manipulation of linked data}
+      \field{volume}{8218 LNCS}
+      \field{year}{2013}
+      \verb{doi}
+      \verb 10.1007/978-3-642-41335-3\_16
+      \endverb
+    \endentry
+    \entry{Ladwig2013-xp}{book}{}
+      \name{author}{1}{}{%
+        {{hash=0cb94d9b5626e76b3cc6d78f63433615}{%
+           family={Ladwig},
+           familyi={L\bibinitperiod},
+           given={Günter},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{publisher}{1}{%
+        {KIT Scientific Publishing}%
+      }
+      \strng{namehash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \strng{fullhash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \strng{bibnamehash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \strng{authorbibnamehash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \strng{authornamehash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \strng{authorfullhash}{0cb94d9b5626e76b3cc6d78f63433615}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{9783731500155}
+      \field{title}{Efficient Optimization and Processing of Queries Over Text-rich Graph-structured Data}
+      \field{year}{2013}
+      \verb{doi}
+      \verb 10.5445/KSP/1000034423
+      \endverb
+    \endentry
+    \entry{Leach2005-rf}{report}{}
+      \name{author}{3}{}{%
+        {{hash=b02d4916a516d9ce8550642ddd60faaa}{%
+           family={Leach},
+           familyi={L\bibinitperiod},
+           given={P},
+           giveni={P\bibinitperiod}}}%
+        {{hash=a7595546f375582a7aae8ab596d7aced}{%
+           family={Mealling},
+           familyi={M\bibinitperiod},
+           given={M},
+           giveni={M\bibinitperiod}}}%
+        {{hash=dd6ea2407b175dae91fd92e04ec79cd7}{%
+           family={Salz},
+           familyi={S\bibinitperiod},
+           given={R},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {RFC Editor}%
+      }
+      \strng{namehash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \strng{fullhash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \strng{bibnamehash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \strng{authorbibnamehash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \strng{authornamehash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \strng{authorfullhash}{572a12aa028eda9d18c4f3c34c8e6ac7}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{7}
+      \field{title}{A Universally Unique {IDentifier} ({UUID}) {URN} Namespace}
+      \field{type}{techreport}
+      \field{year}{2005}
+      \verb{doi}
+      \verb 10.17487/rfc4122
+      \endverb
+    \endentry
+    \entry{Letelier2013-rs}{article}{}
+      \name{author}{4}{}{%
+        {{hash=33be0207a4d992de9cc204233b0eb13d}{%
+           family={Letelier},
+           familyi={L\bibinitperiod},
+           given={Andrés},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a991f832b9236d272602bb0cce8717ce}{%
+           family={Pérez},
+           familyi={P\bibinitperiod},
+           given={Jorge},
+           giveni={J\bibinitperiod}}}%
+        {{hash=cadffb5409dc893418959e24b79ea72c}{%
+           family={Pichler},
+           familyi={P\bibinitperiod},
+           given={Reinhard},
+           giveni={R\bibinitperiod}}}%
+        {{hash=4535f71cb928db238ad4c1ed64450f1d}{%
+           family={Skritek},
+           familyi={S\bibinitperiod},
+           given={Sebastian},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{4e06e565e45e84e9cf170e06c029de5e}
+      \strng{fullhash}{6c06b71616e588c457e75ba684bbd111}
+      \strng{bibnamehash}{4e06e565e45e84e9cf170e06c029de5e}
+      \strng{authorbibnamehash}{4e06e565e45e84e9cf170e06c029de5e}
+      \strng{authornamehash}{4e06e565e45e84e9cf170e06c029de5e}
+      \strng{authorfullhash}{6c06b71616e588c457e75ba684bbd111}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0362-5915}
+      \field{journaltitle}{ACM Trans. Database Syst.}
+      \field{month}{12}
+      \field{number}{4}
+      \field{title}{Static analysis and optimization of semantic web queries}
+      \field{volume}{38}
+      \field{year}{2013}
+      \field{pages}{1\bibrangedash 45}
+      \range{pages}{45}
+      \verb{doi}
+      \verb 10.1145/2500130
+      \endverb
+    \endentry
+    \entry{Lua-gq}{misc}{}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.lua.org/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Lua}
+    \endentry
+    \entry{Makkes2010-qb}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=d9b886e037b1b6b55f83811c215feac5}{%
+           family={Makkes},
+           familyi={M\bibinitperiod},
+           given={M\bibnamedelima X},
+           giveni={M\bibinitperiod\bibinitdelim X\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Eindhoven University of Technology}%
+      }
+      \strng{namehash}{d9b886e037b1b6b55f83811c215feac5}
+      \strng{fullhash}{d9b886e037b1b6b55f83811c215feac5}
+      \strng{bibnamehash}{d9b886e037b1b6b55f83811c215feac5}
+      \strng{authorbibnamehash}{d9b886e037b1b6b55f83811c215feac5}
+      \strng{authornamehash}{d9b886e037b1b6b55f83811c215feac5}
+      \strng{authorfullhash}{d9b886e037b1b6b55f83811c215feac5}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Efficient implementation of homomorphic cryptosystems}
+      \field{year}{2010}
+    \endentry
+    \entry{Mana2011-bm}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=962a116dc06171ca49b27b96ab6a6c9a}{%
+           family={Maña},
+           familyi={M\bibinitperiod},
+           given={Antonio},
+           giveni={A\bibinitperiod}}}%
+        {{hash=d30e7abfcdcfc86cf5da7a741f931ef3}{%
+           family={Pujol},
+           familyi={P\bibinitperiod},
+           given={Gimena},
+           giveni={G\bibinitperiod}}}%
+        {{hash=9535c65018643f1e2d9681d8ff877e1d}{%
+           family={Pandolfo},
+           familyi={P\bibinitperiod},
+           given={Claudia},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \strng{fullhash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \strng{bibnamehash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \strng{authorbibnamehash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \strng{authornamehash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \strng{authorfullhash}{f1ef1abc7c707cbdc87285c27b522e5f}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings - 5th {IEEE} International Conference on Semantic Computing, {ICSC} 2011}
+      \field{title}{A distributed secure ontology for certified services oriented applications}
+      \field{year}{2011}
+      \verb{doi}
+      \verb 10.1109/ICSC.2011.105
+      \endverb
+    \endentry
+    \entry{MarkLogic2020-pb}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=b4df4c0505d673de3e756e2eb622c243}{%
+           family={{MarkLogic}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{b4df4c0505d673de3e756e2eb622c243}
+      \strng{fullhash}{b4df4c0505d673de3e756e2eb622c243}
+      \strng{bibnamehash}{b4df4c0505d673de3e756e2eb622c243}
+      \strng{authorbibnamehash}{b4df4c0505d673de3e756e2eb622c243}
+      \strng{authornamehash}{b4df4c0505d673de3e756e2eb622c243}
+      \strng{authorfullhash}{b4df4c0505d673de3e756e2eb622c243}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{MarkLogic}}
+      \field{howpublished}{\url{https://www.marklogic.com/product/marklogic-database-overview/}}
+      \field{month}{2}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{{MarkLogic} server - multi-model database}
+      \field{year}{2020}
+    \endentry
+    \entry{McCrae_undated-or}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=067389e3b9828f90f2a5800428dbabe7}{%
+           family={McCrae},
+           familyi={M\bibinitperiod},
+           given={John\bibnamedelima P},
+           giveni={J\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{067389e3b9828f90f2a5800428dbabe7}
+      \strng{fullhash}{067389e3b9828f90f2a5800428dbabe7}
+      \strng{bibnamehash}{067389e3b9828f90f2a5800428dbabe7}
+      \strng{authorbibnamehash}{067389e3b9828f90f2a5800428dbabe7}
+      \strng{authornamehash}{067389e3b9828f90f2a5800428dbabe7}
+      \strng{authorfullhash}{067389e3b9828f90f2a5800428dbabe7}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://lod-cloud.net/}}
+      \field{note}{Accessed: 2022-2-8}
+      \field{title}{The linked open data cloud}
+    \endentry
+    \entry{McKay2014-zb}{article}{}
+      \name{author}{2}{}{%
+        {{hash=f4b53184c02d91105a428c12f3f437cc}{%
+           family={McKay},
+           familyi={M\bibinitperiod},
+           given={Brendan\bibnamedelima D},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=939fedd4d01e887a147e9bfc0637b133}{%
+           family={Piperno},
+           familyi={P\bibinitperiod},
+           given={Adolfo},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{a48467f55e696248489a9b397818b98b}
+      \strng{fullhash}{a48467f55e696248489a9b397818b98b}
+      \strng{bibnamehash}{a48467f55e696248489a9b397818b98b}
+      \strng{authorbibnamehash}{a48467f55e696248489a9b397818b98b}
+      \strng{authornamehash}{a48467f55e696248489a9b397818b98b}
+      \strng{authorfullhash}{a48467f55e696248489a9b397818b98b}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0747-7171}
+      \field{journaltitle}{J. Symbolic Comput.}
+      \field{month}{1}
+      \field{title}{Practical graph isomorphism, {II}}
+      \field{volume}{60}
+      \field{year}{2014}
+      \field{pages}{94\bibrangedash 112}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1016/j.jsc.2013.09.003
+      \endverb
+    \endentry
+    \entry{Miller1995-ic}{article}{}
+      \name{author}{1}{}{%
+        {{hash=52cf88006a41a8cd9aab3bcb5e428b80}{%
+           family={Miller},
+           familyi={M\bibinitperiod},
+           given={George\bibnamedelima A},
+           giveni={G\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \strng{fullhash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \strng{bibnamehash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \strng{authorbibnamehash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \strng{authornamehash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \strng{authorfullhash}{52cf88006a41a8cd9aab3bcb5e428b80}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0001-0782}
+      \field{journaltitle}{Commun. ACM}
+      \field{month}{11}
+      \field{number}{11}
+      \field{title}{{WordNet}: a lexical database for English}
+      \field{volume}{38}
+      \field{year}{1995}
+      \field{pages}{39\bibrangedash 41}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1145/219717.219748
+      \endverb
+    \endentry
+    \entry{Modoni2014-cz}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=7389386218a109be036ad94e22acf6af}{%
+           family={Modoni},
+           familyi={M\bibinitperiod},
+           given={Gianfranco\bibnamedelima E},
+           giveni={G\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=3cdd78414b6e8988aed8a7443d2051fa}{%
+           family={Sacco},
+           familyi={S\bibinitperiod},
+           given={Marco},
+           giveni={M\bibinitperiod}}}%
+        {{hash=d5c0d9d995a8c8436e60c40cc1007edf}{%
+           family={Terkaj},
+           familyi={T\bibinitperiod},
+           given={Walter},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{d32c381937a726027113856e29f19246}
+      \strng{fullhash}{d32c381937a726027113856e29f19246}
+      \strng{bibnamehash}{d32c381937a726027113856e29f19246}
+      \strng{authorbibnamehash}{d32c381937a726027113856e29f19246}
+      \strng{authornamehash}{d32c381937a726027113856e29f19246}
+      \strng{authorfullhash}{d32c381937a726027113856e29f19246}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2014 International Conference on Engineering, Technology and Innovation: Engineering Responsible Innovation in Products and Services, {ICE} 2014}
+      \field{title}{A survey of {RDF} store solutions}
+      \field{year}{2014}
+      \verb{doi}
+      \verb 10.1109/ICE.2014.6871541
+      \endverb
+    \endentry
+    \entry{noauthor_undated-ds}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{MongoDB}}
+      \field{howpublished}{\url{https://www.mongodb.com/docs/v7.0/core/queryable-encryption/}}
+      \field{note}{Accessed: 2023-8-21}
+      \field{title}{{MongoDB} Manual: Queryable encryption}
+    \endentry
+    \entry{Musen2015-kh}{article}{}
+      \name{author}{2}{}{%
+        {{hash=daa3f61cc04957ea4bf038da94584e07}{%
+           family={Musen},
+           familyi={M\bibinitperiod},
+           given={Mark\bibnamedelima A},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=d1a0f089dc1b667ec35ddcd2db7a33f1}{%
+           family={{Protégé Team}},
+           familyi={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{2fa4d907109f08f010fd0e352d76a406}
+      \strng{fullhash}{2fa4d907109f08f010fd0e352d76a406}
+      \strng{bibnamehash}{2fa4d907109f08f010fd0e352d76a406}
+      \strng{authorbibnamehash}{2fa4d907109f08f010fd0e352d76a406}
+      \strng{authornamehash}{2fa4d907109f08f010fd0e352d76a406}
+      \strng{authorfullhash}{2fa4d907109f08f010fd0e352d76a406}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2372-3483}
+      \field{journaltitle}{AI Matters}
+      \field{month}{6}
+      \field{number}{4}
+      \field{title}{The Protégé Project: A Look Back and a Look Forward}
+      \field{volume}{1}
+      \field{year}{2015}
+      \field{pages}{4\bibrangedash 12}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1145/2757001.2757003
+      \endverb
+    \endentry
+    \entry{Neches1991-lx}{article}{}
+      \name{author}{7}{}{%
+        {{hash=1ee78bc039f38683efebd654ba8e37bc}{%
+           family={Neches},
+           familyi={N\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=07c68caca47097ed5e6affa563450bec}{%
+           family={Fikes},
+           familyi={F\bibinitperiod},
+           given={Richard},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f72951f82953c1fa5d859938ba2882f5}{%
+           family={Finin},
+           familyi={F\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=57f998ec37009b5de582c83e8c1fa294}{%
+           family={Gruber},
+           familyi={G\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=84f62172dff6b55f1b0eb8d10d6e8d25}{%
+           family={Patil},
+           familyi={P\bibinitperiod},
+           given={Ramesh},
+           giveni={R\bibinitperiod}}}%
+        {{hash=8247f30f7105d65f7998f66fb463672e}{%
+           family={Senator},
+           familyi={S\bibinitperiod},
+           given={Ted},
+           giveni={T\bibinitperiod}}}%
+        {{hash=ebe8d8f090da1583415dcdf9d420fbad}{%
+           family={Swartout},
+           familyi={S\bibinitperiod},
+           given={William\bibnamedelima R},
+           giveni={W\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \strng{namehash}{cdbb12bbf1325008af2245393b7e4433}
+      \strng{fullhash}{a49b6362ce67a0f323ce29c601f9cade}
+      \strng{bibnamehash}{cdbb12bbf1325008af2245393b7e4433}
+      \strng{authorbibnamehash}{cdbb12bbf1325008af2245393b7e4433}
+      \strng{authornamehash}{cdbb12bbf1325008af2245393b7e4433}
+      \strng{authorfullhash}{a49b6362ce67a0f323ce29c601f9cade}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0738-4602}
+      \field{journaltitle}{AI Magazine}
+      \field{number}{3}
+      \field{title}{Enabling technology for knowledge sharing}
+      \field{volume}{12}
+      \field{year}{1991}
+    \endentry
+    \entry{Nejjahi2019-ig}{article}{}
+      \name{author}{3}{}{%
+        {{hash=4d0f060bf746a97dfa1278a05ac298de}{%
+           family={Nejjahi},
+           familyi={N\bibinitperiod},
+           given={Redouane},
+           giveni={R\bibinitperiod}}}%
+        {{hash=13dcdca53736472c68066ec3d7082f76}{%
+           family={Marzouk},
+           familyi={M\bibinitperiod},
+           given={Abderrahim},
+           giveni={A\bibinitperiod}}}%
+        {{hash=1577881427781be6c20d964628eebc79}{%
+           family={Gherabi},
+           familyi={G\bibinitperiod},
+           given={Noreddine},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {European Open Access Publishing (Europa Publishing)}%
+      }
+      \strng{namehash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \strng{fullhash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \strng{bibnamehash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \strng{authorbibnamehash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \strng{authornamehash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \strng{authorfullhash}{9cf8aef22c1f120046f3ed51c1d0ab66}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2506-9853}
+      \field{journaltitle}{European Journal of Electrical Engineering and Computer Science}
+      \field{month}{7}
+      \field{number}{4}
+      \field{title}{An Enhanced Method for Web Ontologies Encryption}
+      \field{volume}{3}
+      \field{year}{2019}
+      \verb{doi}
+      \verb 10.24018/ejece.2019.3.4.99
+      \endverb
+    \endentry
+    \entry{Neo4j_Inc_undated-ft}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=2c62f21ebf40e60bcbdb27fa929899f6}{%
+           family={{Neo4j, Inc.}},
+           familyi={N\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \strng{fullhash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \strng{bibnamehash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \strng{authorbibnamehash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \strng{authornamehash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \strng{authorfullhash}{2c62f21ebf40e60bcbdb27fa929899f6}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Neo4j Graph Data Platform}
+      \field{howpublished}{\url{https://neo4j.com/developer/cypher/}}
+      \field{note}{Accessed: 2023-8-24}
+      \field{title}{Cypher Query Language}
+    \endentry
+    \entry{NirUnknown-mk}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=14de5ea3aa4217cf6aa1601f73af32d8}{%
+           family={Nir},
+           familyi={N\bibinitperiod},
+           given={Yoav},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=9f7c1bea618246029e139c169baaf321}{%
+           family={Langley},
+           familyi={L\bibinitperiod},
+           given={Adam},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{5c62c25db8932d45c482f6273020745a}
+      \strng{fullhash}{5c62c25db8932d45c482f6273020745a}
+      \strng{bibnamehash}{5c62c25db8932d45c482f6273020745a}
+      \strng{authorbibnamehash}{5c62c25db8932d45c482f6273020745a}
+      \strng{authornamehash}{5c62c25db8932d45c482f6273020745a}
+      \strng{authorfullhash}{5c62c25db8932d45c482f6273020745a}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{IETF Datatracker}
+      \field{howpublished}{\url{https://datatracker.ietf.org/doc/html/rfc8439}}
+      \field{note}{Accessed: 2024-10-26}
+      \field{title}{{RFC} 8439: {ChaCha20} and {Poly1305} for {IETF} protocols}
+    \endentry
+    \entry{Nist-dy}{misc}{}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://pages.nist.gov/800-63-3/sp800-63b.html}}
+      \field{note}{Accessed: 2024-9-18}
+      \field{title}{{NIST} Special Publication 800-{63B}}
+    \endentry
+    \entry{Noy2019-lj}{article}{}
+      \name{author}{6}{}{%
+        {{hash=9fde1aa5b492b93191de9ca1adec407d}{%
+           family={Noy},
+           familyi={N\bibinitperiod},
+           given={Natasha},
+           giveni={N\bibinitperiod}}}%
+        {{hash=7de11cbee64f536344d8b5a94ce10f0c}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Yuqing},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=326803eee1b4ed91f5ed3e5f692e76f1}{%
+           family={Jain},
+           familyi={J\bibinitperiod},
+           given={Anshu},
+           giveni={A\bibinitperiod}}}%
+        {{hash=f3a972f98579c8c7dc759d18c35d01c5}{%
+           family={Narayanan},
+           familyi={N\bibinitperiod},
+           given={Anant},
+           giveni={A\bibinitperiod}}}%
+        {{hash=48fd70bd3bbf01d65884aebfaf4a30af}{%
+           family={Patterson},
+           familyi={P\bibinitperiod},
+           given={Alan},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a28e183ec849a77f08443fb86b58e2be}{%
+           family={Taylor},
+           familyi={T\bibinitperiod},
+           given={Jamie},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{4226edbd4771e765771a78ccae7c6470}
+      \strng{fullhash}{a0e050f9ebd6d56f8f032722cb7979c2}
+      \strng{bibnamehash}{4226edbd4771e765771a78ccae7c6470}
+      \strng{authorbibnamehash}{4226edbd4771e765771a78ccae7c6470}
+      \strng{authornamehash}{4226edbd4771e765771a78ccae7c6470}
+      \strng{authorfullhash}{a0e050f9ebd6d56f8f032722cb7979c2}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0001-0782, 1557-7317}
+      \field{journaltitle}{Commun. ACM}
+      \field{number}{8}
+      \field{title}{Industry-scale knowledge graphs: Lessons and challenges}
+      \field{volume}{62}
+      \field{year}{2019}
+      \verb{doi}
+      \verb 10.1145/3331166
+      \endverb
+    \endentry
+    \entry{Ontotext_undated-mj}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=dffe7dd6f49490d80de4a82fd13d8179}{%
+           family={{Ontotext}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \strng{fullhash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \strng{bibnamehash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \strng{authorbibnamehash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \strng{authornamehash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \strng{authorfullhash}{dffe7dd6f49490d80de4a82fd13d8179}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://graphdb.ontotext.com/documentation/}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{{GraphDB}}
+    \endentry
+    \entry{OpenLink_Software_undated-km}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=c54b92a865da25e5eca3496144baeaa5}{%
+           family={{OpenLink Software}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{c54b92a865da25e5eca3496144baeaa5}
+      \strng{fullhash}{c54b92a865da25e5eca3496144baeaa5}
+      \strng{bibnamehash}{c54b92a865da25e5eca3496144baeaa5}
+      \strng{authorbibnamehash}{c54b92a865da25e5eca3496144baeaa5}
+      \strng{authornamehash}{c54b92a865da25e5eca3496144baeaa5}
+      \strng{authorfullhash}{c54b92a865da25e5eca3496144baeaa5}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://virtuoso.openlinksw.com/}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{Virtuoso Universal Server}
+    \endentry
+    \entry{OpenSSL-jb}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=90a97d68cacba4966e7bf191b803e11c}{%
+           family={{OpenSSL Software Foundation}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Github}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{90a97d68cacba4966e7bf191b803e11c}
+      \strng{fullhash}{90a97d68cacba4966e7bf191b803e11c}
+      \strng{bibnamehash}{90a97d68cacba4966e7bf191b803e11c}
+      \strng{authorbibnamehash}{90a97d68cacba4966e7bf191b803e11c}
+      \strng{authornamehash}{90a97d68cacba4966e7bf191b803e11c}
+      \strng{authorfullhash}{90a97d68cacba4966e7bf191b803e11c}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{openssl: {TLS}/{SSL} and crypto library}
+    \endentry
+    \entry{Owlcs_undated-im}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=389dbe6bb5ce120c971a30b1b29d86ea}{%
+           family={{owl.cs}},
+           familyi={o\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \strng{fullhash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \strng{bibnamehash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \strng{authorbibnamehash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \strng{authornamehash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \strng{authorfullhash}{389dbe6bb5ce120c971a30b1b29d86ea}
+      \field{sortinit}{o}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://github.com/owlcs/owlapi}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{{OWL} {API} repository}
+    \endentry
+    \entry{Paillier1999-js}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=c77e6f958b91a9ee6ddc9d92d55bbbbd}{%
+           family={Paillier},
+           familyi={P\bibinitperiod},
+           given={Pascal},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \strng{fullhash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \strng{bibnamehash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \strng{authorbibnamehash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \strng{authornamehash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \strng{authorfullhash}{c77e6f958b91a9ee6ddc9d92d55bbbbd}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Advances in Cryptology --- {EUROCRYPT} '99}
+      \field{title}{{Public-Key} Cryptosystems Based on Composite Degree Residuosity Classes}
+      \field{year}{1999}
+      \field{pages}{223\bibrangedash 238}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/3-540-48910-X\_16
+      \endverb
+    \endentry
+    \entry{Papakonstantinou2012-cu}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=12e9f2af8fd694decc7e6a8f94e7a1a2}{%
+           family={Papakonstantinou},
+           familyi={P\bibinitperiod},
+           given={Vassilis},
+           giveni={V\bibinitperiod}}}%
+        {{hash=0bfd4ff72d6cf5ce68808b8e41d33a43}{%
+           family={Michou},
+           familyi={M\bibinitperiod},
+           given={Maria},
+           giveni={M\bibinitperiod}}}%
+        {{hash=d96dcb4c69fc0d6ffd5c43f6e2bb42f8}{%
+           family={Fundulaki},
+           familyi={F\bibinitperiod},
+           given={Irini},
+           giveni={I\bibinitperiod}}}%
+        {{hash=66225898d619dedc02fc3ff8df8ec077}{%
+           family={Flouris},
+           familyi={F\bibinitperiod},
+           given={Giorgos},
+           giveni={G\bibinitperiod}}}%
+        {{hash=3bedb033d421d9b43a2ec240debf37a0}{%
+           family={Antoniou},
+           familyi={A\bibinitperiod},
+           given={Grigoris},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{8246c37bd27a3b45385eaa43e6f0145b}
+      \strng{fullhash}{7f16271d28edaf4ddf6d40afeb1ce40e}
+      \strng{bibnamehash}{8246c37bd27a3b45385eaa43e6f0145b}
+      \strng{authorbibnamehash}{8246c37bd27a3b45385eaa43e6f0145b}
+      \strng{authornamehash}{8246c37bd27a3b45385eaa43e6f0145b}
+      \strng{authorfullhash}{7f16271d28edaf4ddf6d40afeb1ce40e}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of {ACM} Symposium on Access Control Models and Technologies, {SACMAT}}
+      \field{title}{Access control for {RDF} graphs using abstract models}
+      \field{year}{2012}
+      \verb{doi}
+      \verb 10.1145/2295136.2295155
+      \endverb
+    \endentry
+    \entry{Pearson2017-ve}{book}{}
+      \name{author}{1}{}{%
+        {{hash=cc481347d3ba235c7128c2973c47bc20}{%
+           family={Pearson},
+           familyi={P\bibinitperiod},
+           given={William},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Pearson Education}%
+      }
+      \strng{namehash}{cc481347d3ba235c7128c2973c47bc20}
+      \strng{fullhash}{cc481347d3ba235c7128c2973c47bc20}
+      \strng{bibnamehash}{cc481347d3ba235c7128c2973c47bc20}
+      \strng{authorbibnamehash}{cc481347d3ba235c7128c2973c47bc20}
+      \strng{authornamehash}{cc481347d3ba235c7128c2973c47bc20}
+      \strng{authorfullhash}{cc481347d3ba235c7128c2973c47bc20}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{7}
+      \field{isbn}{9781292158587}
+      \field{title}{Cryptography and Network Security: Principles and Practice, Global Edition}
+      \field{year}{2017}
+    \endentry
+    \entry{Peng2017-ia}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=811f8f87c891dbd7226c4e8598c5a282}{%
+           family={Peng},
+           familyi={P\bibinitperiod},
+           given={Zhiniang},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=54ad89070cb2638be2da738d1fc97a43}{%
+           family={Tang},
+           familyi={T\bibinitperiod},
+           given={Shaohua},
+           giveni={S\bibinitperiod}}}%
+        {{hash=6dcf78e74a699028eba09b984d31c853}{%
+           family={Jiang},
+           familyi={J\bibinitperiod},
+           given={Linzhi},
+           giveni={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{5564ca166c3a23b83b607c4f43c72251}
+      \strng{fullhash}{5564ca166c3a23b83b607c4f43c72251}
+      \strng{bibnamehash}{5564ca166c3a23b83b607c4f43c72251}
+      \strng{authorbibnamehash}{5564ca166c3a23b83b607c4f43c72251}
+      \strng{authornamehash}{5564ca166c3a23b83b607c4f43c72251}
+      \strng{authorfullhash}{5564ca166c3a23b83b607c4f43c72251}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Cloud Computing and Security}
+      \field{title}{A Symmetric Authenticated Proxy Re-encryption Scheme with Provable Security}
+      \field{year}{2017}
+      \field{pages}{86\bibrangedash 99}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1007/978-3-319-68542-7\_8
+      \endverb
+    \endentry
+    \entry{Picalausa2011-ca}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=1f8f93338c6dead3f850f45f105ccc36}{%
+           family={Picalausa},
+           familyi={P\bibinitperiod},
+           given={Francois},
+           giveni={F\bibinitperiod}}}%
+        {{hash=0513d6c015a5a5024674490b9ba508cd}{%
+           family={Vansummeren},
+           familyi={V\bibinitperiod},
+           given={Stijn},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Athens, Greece}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \strng{fullhash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \strng{bibnamehash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \strng{authorbibnamehash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \strng{authornamehash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \strng{authorfullhash}{d1fc25c9fbd77213a91497c4181e11a5}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the International Workshop on Semantic Web Information Management}
+      \field{isbn}{9781450306515}
+      \field{month}{6}
+      \field{number}{Article 7}
+      \field{series}{SWIM '11}
+      \field{title}{What are real {SPARQL} queries like?}
+      \field{year}{2011}
+      \field{pages}{1\bibrangedash 6}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1145/1999299.1999306
+      \endverb
+    \endentry
+    \entry{Poh2012-qs}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=dc5607b46d5102d921c93482003a3acb}{%
+           family={Poh},
+           familyi={P\bibinitperiod},
+           given={Geong\bibnamedelima Sen},
+           giveni={G\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=36f5cf1315153bcc85c74f14f8ecda48}{%
+           family={Mohamad},
+           familyi={M\bibinitperiod},
+           given={Moesfa\bibnamedelima Soeheila},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=2442f1ee53559f205ed2ad9c4322919c}{%
+           family={Z'Aba},
+           familyi={Z\bibinitperiod},
+           given={Muhammad\bibnamedelima Reza},
+           giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Verlag}%
+      }
+      \strng{namehash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \strng{fullhash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \strng{bibnamehash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \strng{authorbibnamehash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \strng{authornamehash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \strng{authorfullhash}{fb2956b5660ce40a37dbdd01bd7a5b9c}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)}
+      \field{isbn}{9783642341168}
+      \field{issn}{1611-3349}
+      \field{title}{Structured encryption for conceptual graphs}
+      \field{volume}{7631 LNCS}
+      \field{year}{2012}
+      \field{pages}{105\bibrangedash 122}
+      \range{pages}{18}
+      \verb{doi}
+      \verb 10.1007/978-3-642-34117-5\_7
+      \endverb
+    \endentry
+    \entry{Popa2011-ci}{article}{}
+      \name{author}{3}{}{%
+        {{hash=1515e7691b44e03de1fba5cc6063d474}{%
+           family={Popa},
+           familyi={P\bibinitperiod},
+           given={Raluca\bibnamedelima Ada},
+           giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=2dc9857d6c0665433be9d19a7c0e7b5b}{%
+           family={Zeldovich},
+           familyi={Z\bibinitperiod},
+           given={Nickolai},
+           giveni={N\bibinitperiod}}}%
+        {{hash=ec394c5150bcaf5dac455aa9e3221f4e}{%
+           family={Balakrishnan},
+           familyi={B\bibinitperiod},
+           given={Hari},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \strng{fullhash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \strng{bibnamehash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \strng{authorbibnamehash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \strng{authornamehash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \strng{authorfullhash}{b8cad9b7a10c8fcb93527ee78fc6387a}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0163-6669}
+      \field{journaltitle}{Designfax}
+      \field{title}{{CryptDB} : A Practical Encrypted Relational {DBMS}}
+      \field{year}{2011}
+    \endentry
+    \entry{Popa2012-bw}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=1515e7691b44e03de1fba5cc6063d474}{%
+           family={Popa},
+           familyi={P\bibinitperiod},
+           given={Raluca\bibnamedelima Ada},
+           giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=1c042a3ac11c48ff74be38f31e392b5d}{%
+           family={Redfield},
+           familyi={R\bibinitperiod},
+           given={Catherine\bibnamedelimb M\bibnamedelima S},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=2dc9857d6c0665433be9d19a7c0e7b5b}{%
+           family={Zeldovich},
+           familyi={Z\bibinitperiod},
+           given={Nickolai},
+           giveni={N\bibinitperiod}}}%
+        {{hash=ec394c5150bcaf5dac455aa9e3221f4e}{%
+           family={Balakrishnan},
+           familyi={B\bibinitperiod},
+           given={Hari},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{fullhash}{39f6e0f584d0bccd13da4465d25f7e4b}
+      \strng{bibnamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authorbibnamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authornamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authorfullhash}{39f6e0f584d0bccd13da4465d25f7e4b}
+      \field{extraname}{1}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Communications of the {ACM}}
+      \field{issn}{0001-0782}
+      \field{title}{{CryptDB}: Processing queries on an encrypted database}
+      \field{volume}{55}
+      \field{year}{2012}
+      \verb{doi}
+      \verb 10.1145/2330667.2330691
+      \endverb
+    \endentry
+    \entry{Popa2011-zb}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=1515e7691b44e03de1fba5cc6063d474}{%
+           family={Popa},
+           familyi={P\bibinitperiod},
+           given={Raluca\bibnamedelima Ada},
+           giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=1c042a3ac11c48ff74be38f31e392b5d}{%
+           family={Redfield},
+           familyi={R\bibinitperiod},
+           given={Catherine\bibnamedelimb M\bibnamedelima S},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=2dc9857d6c0665433be9d19a7c0e7b5b}{%
+           family={Zeldovich},
+           familyi={Z\bibinitperiod},
+           given={Nickolai},
+           giveni={N\bibinitperiod}}}%
+        {{hash=ec394c5150bcaf5dac455aa9e3221f4e}{%
+           family={Balakrishnan},
+           familyi={B\bibinitperiod},
+           given={Hari},
+           giveni={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{fullhash}{39f6e0f584d0bccd13da4465d25f7e4b}
+      \strng{bibnamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authorbibnamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authornamehash}{8cc5828349b893846e8232861b8b0a9d}
+      \strng{authorfullhash}{39f6e0f584d0bccd13da4465d25f7e4b}
+      \field{extraname}{2}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{SOSP'11} - Proceedings of the 23rd {ACM} Symposium on Operating Systems Principles}
+      \field{title}{{CryptDB}: Protecting confidentiality with encrypted query processing}
+      \field{year}{2011}
+      \verb{doi}
+      \verb 10.1145/2043556.2043566
+      \endverb
+    \endentry
+    \entry{PorterUnknown-fs}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=bc872dcc5cfc2c17bb8895f4f1f14e2b}{%
+           family={Porter},
+           familyi={P\bibinitperiod},
+           given={Brett},
+           giveni={B\bibinitperiod}}}%
+        {{hash=44077f627fff22e5d3da0bdb160dedbf}{%
+           family={Zyl},
+           familyi={Z\bibinitperiod},
+           given={Jason},
+           giveni={J\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+        {{hash=d9604e31490252ae8104881c6f609335}{%
+           family={Lamy},
+           familyi={L\bibinitperiod},
+           given={Olivier},
+           giveni={O\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{4d27659275616fbba26a6e8e571da311}
+      \strng{fullhash}{4d27659275616fbba26a6e8e571da311}
+      \strng{bibnamehash}{4d27659275616fbba26a6e8e571da311}
+      \strng{authorbibnamehash}{4d27659275616fbba26a6e8e571da311}
+      \strng{authornamehash}{4d27659275616fbba26a6e8e571da311}
+      \strng{authorfullhash}{4d27659275616fbba26a6e8e571da311}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://maven.apache.org/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Apache Maven}
+    \endentry
+    \entry{DGKLibrary-ln}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=8e1480ca3671098038e8ca2df45c2dda}{%
+           family={Quijano},
+           familyi={Q\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{8e1480ca3671098038e8ca2df45c2dda}
+      \strng{fullhash}{8e1480ca3671098038e8ca2df45c2dda}
+      \strng{bibnamehash}{8e1480ca3671098038e8ca2df45c2dda}
+      \strng{authorbibnamehash}{8e1480ca3671098038e8ca2df45c2dda}
+      \strng{authornamehash}{8e1480ca3671098038e8ca2df45c2dda}
+      \strng{authorfullhash}{8e1480ca3671098038e8ca2df45c2dda}
+      \field{sortinit}{Q}
+      \field{sortinithash}{ce69a400a872ddd02ee7fdb3b38c6abd}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Homomorphic\_Encryption}}
+    \endentry
+    \entry{Quijano2019-au}{proceedings}{}
+      \name{author}{2}{}{%
+        {{hash=8e1480ca3671098038e8ca2df45c2dda}{%
+           family={Quijano},
+           familyi={Q\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=d8ba2268e790d5c2429523bb64100e82}{%
+           family={Akkaya},
+           familyi={A\bibinitperiod},
+           given={Kemal},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \strng{fullhash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \strng{bibnamehash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \strng{authorbibnamehash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \strng{authornamehash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \strng{authorfullhash}{8b555dc15bcffb4c4461c48f3739cba7}
+      \field{sortinit}{Q}
+      \field{sortinithash}{ce69a400a872ddd02ee7fdb3b38c6abd}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{11}
+      \field{title}{Server-Side Fingerprint-Based Indoor Localization Using Encrypted Sorting}
+      \field{year}{2019}
+      \field{pages}{53\bibrangedash 57}
+      \range{pages}{5}
+    \endentry
+    \entry{Ratliff2022-ae}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=354e687e36e01b9b1a366040fd1000d8}{%
+           family={Ratliff},
+           familyi={R\bibinitperiod},
+           given={Simeon},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{354e687e36e01b9b1a366040fd1000d8}
+      \strng{fullhash}{354e687e36e01b9b1a366040fd1000d8}
+      \strng{bibnamehash}{354e687e36e01b9b1a366040fd1000d8}
+      \strng{authorbibnamehash}{354e687e36e01b9b1a366040fd1000d8}
+      \strng{authornamehash}{354e687e36e01b9b1a366040fd1000d8}
+      \strng{authorfullhash}{354e687e36e01b9b1a366040fd1000d8}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Docker}
+      \field{howpublished}{\url{https://www.docker.com/}}
+      \field{month}{5}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Docker: Accelerated container application development}
+      \field{year}{2022}
+    \endentry
+    \entry{noauthor_undated-ev}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{RDF} 1.1: On semantics of {RDF} datasets}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdf11-datasets/}}
+      \field{note}{Accessed: 2023-10-14}
+      \field{title}{{RDF} 1.1: On semantics of {RDF} datasets}
+    \endentry
+    \entry{Redis-xq}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://redis.io/docs/latest/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Redis Docs}
+    \endentry
+    \entry{Redis-rq}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://redis.io/docs/latest/operate/oss\_and\_stack/management/persistence/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Redis persistence}
+    \endentry
+    \entry{Redis-vf}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://redis.io/docs/latest/develop/interact/programmability/}}
+      \field{note}{Accessed: 2024-10-15}
+      \field{title}{Redis programmability}
+    \endentry
+    \entry{Rivest1978-vt}{article}{}
+      \name{author}{3}{}{%
+        {{hash=6a630bbc1f4da3f000de53a8c3fcda9a}{%
+           family={Rivest},
+           familyi={R\bibinitperiod},
+           given={R\bibnamedelima L},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=4a8266f26fefcaad4dc64bfd4220a4ae}{%
+           family={Adleman},
+           familyi={A\bibinitperiod},
+           given={L},
+           giveni={L\bibinitperiod}}}%
+        {{hash=ac83fc9c2ca6131a36d31651a7d284c2}{%
+           family={Dertouzos},
+           familyi={D\bibinitperiod},
+           given={M\bibnamedelima L},
+           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Citeseer}%
+      }
+      \strng{namehash}{095486dc502bfb4c450b8199c7e39ed6}
+      \strng{fullhash}{095486dc502bfb4c450b8199c7e39ed6}
+      \strng{bibnamehash}{095486dc502bfb4c450b8199c7e39ed6}
+      \strng{authorbibnamehash}{095486dc502bfb4c450b8199c7e39ed6}
+      \strng{authornamehash}{095486dc502bfb4c450b8199c7e39ed6}
+      \strng{authorfullhash}{095486dc502bfb4c450b8199c7e39ed6}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Foundations of secure}
+      \field{title}{On data banks and privacy homomorphisms}
+      \field{year}{1978}
+    \endentry
+    \entry{Rivest1978-mu}{article}{}
+      \name{author}{3}{}{%
+        {{hash=6a630bbc1f4da3f000de53a8c3fcda9a}{%
+           family={Rivest},
+           familyi={R\bibinitperiod},
+           given={R\bibnamedelima L},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=7b33764dee51f9ccad6bf7f94f4a5328}{%
+           family={Shamir},
+           familyi={S\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod}}}%
+        {{hash=4a8266f26fefcaad4dc64bfd4220a4ae}{%
+           family={Adleman},
+           familyi={A\bibinitperiod},
+           given={L},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery (ACM)}%
+      }
+      \strng{namehash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \strng{fullhash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \strng{bibnamehash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \strng{authorbibnamehash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \strng{authornamehash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \strng{authorfullhash}{e6041f1e6bea0c7f11abe539180c7aa5}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0001-0782, 1557-7317}
+      \field{journaltitle}{Commun. ACM}
+      \field{month}{2}
+      \field{number}{2}
+      \field{title}{A method for obtaining digital signatures and public-key cryptosystems}
+      \field{volume}{21}
+      \field{year}{1978}
+      \field{pages}{120\bibrangedash 126}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1145/359340.359342
+      \endverb
+    \endentry
+    \entry{Sakurai2017-ui}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=f2f941d0a953878e96cdad9d901e6d84}{%
+           family={Sakurai},
+           familyi={S\bibinitperiod},
+           given={Kouichi},
+           giveni={K\bibinitperiod}}}%
+        {{hash=e44460c8fe2101712d1953d8cb5ab3a1}{%
+           family={Nishide},
+           familyi={N\bibinitperiod},
+           given={Takashi},
+           giveni={T\bibinitperiod}}}%
+        {{hash=2e8e1a6d91ec8c8278969d6e8fee3059}{%
+           family={Syalim},
+           familyi={S\bibinitperiod},
+           given={Amril},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{6f553629e70f82e76102d9a1c914a659}
+      \strng{fullhash}{6f553629e70f82e76102d9a1c914a659}
+      \strng{bibnamehash}{6f553629e70f82e76102d9a1c914a659}
+      \strng{authorbibnamehash}{6f553629e70f82e76102d9a1c914a659}
+      \strng{authornamehash}{6f553629e70f82e76102d9a1c914a659}
+      \strng{authorfullhash}{6f553629e70f82e76102d9a1c914a659}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{2017 International Workshop on Big Data and Information Security (IWBIS)}
+      \field{title}{Improved proxy re-encryption scheme for symmetric key cryptography}
+      \field{year}{2017}
+      \verb{doi}
+      \verb 10.1109/iwbis.2017.8275110
+      \endverb
+    \endentry
+    \entry{Security_Compass2021-sh}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=5441318dd4d818f412fb11acb6ff37ff}{%
+           family={{Security Compass}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{5441318dd4d818f412fb11acb6ff37ff}
+      \strng{fullhash}{5441318dd4d818f412fb11acb6ff37ff}
+      \strng{bibnamehash}{5441318dd4d818f412fb11acb6ff37ff}
+      \strng{authorbibnamehash}{5441318dd4d818f412fb11acb6ff37ff}
+      \strng{authornamehash}{5441318dd4d818f412fb11acb6ff37ff}
+      \strng{authorfullhash}{5441318dd4d818f412fb11acb6ff37ff}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://resources.securitycompass.com/reports/2021-state-of-cloud-adoption}}
+      \field{month}{9}
+      \field{note}{Accessed: 2022-2-9}
+      \field{title}{The 2021 State of Cloud Adoption}
+      \field{year}{2021}
+    \endentry
+    \entry{Shafieinejad2021-rb}{article}{}
+      \name{author}{5}{}{%
+        {{hash=8dc5af0a1ae0e7bdd25b1b7bbd29169e}{%
+           family={Shafieinejad},
+           familyi={S\bibinitperiod},
+           given={Masoumeh},
+           giveni={M\bibinitperiod}}}%
+        {{hash=56dc556946574c93bb41745de49874cd}{%
+           family={Gupta},
+           familyi={G\bibinitperiod},
+           given={Suraj},
+           giveni={S\bibinitperiod}}}%
+        {{hash=2e201a09f15616b351eff33ecf54fb20}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Jin\bibnamedelima Yang},
+           giveni={J\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+        {{hash=5a729afaf95f4ceeb66ca5c2b8ee433f}{%
+           family={Karabina},
+           familyi={K\bibinitperiod},
+           given={Koray},
+           giveni={K\bibinitperiod}}}%
+        {{hash=faa07e8153d48318f4972fb2d27eb385}{%
+           family={Kerschbaum},
+           familyi={K\bibinitperiod},
+           given={Florian},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{422ad351c80f3bc271dc017ebf854583}
+      \strng{fullhash}{035bea06887be58fd2f4d4a347630c05}
+      \strng{bibnamehash}{422ad351c80f3bc271dc017ebf854583}
+      \strng{authorbibnamehash}{422ad351c80f3bc271dc017ebf854583}
+      \strng{authornamehash}{422ad351c80f3bc271dc017ebf854583}
+      \strng{authorfullhash}{035bea06887be58fd2f4d4a347630c05}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{cs.CR}
+      \field{eprinttype}{arXiv}
+      \field{month}{3}
+      \field{title}{{Equi-Joins} Over Encrypted Data for Series of Queries}
+      \field{year}{2021}
+      \verb{eprint}
+      \verb 2103.05792
+      \endverb
+    \endentry
+    \entry{Sioutos2007-ep}{article}{}
+      \name{author}{6}{}{%
+        {{hash=1da20855435c807e4adb31a08754e371}{%
+           family={Sioutos},
+           familyi={S\bibinitperiod},
+           given={Nicholas},
+           giveni={N\bibinitperiod}}}%
+        {{hash=c7f695046b864fc3ba6cdb91e35167f1}{%
+           family={Coronado},
+           familyi={C\bibinitperiod},
+           given={Sherri},
+           giveni={S\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=7c893c2374b2968fa6e8ae587a3f9278}{%
+           family={Haber},
+           familyi={H\bibinitperiod},
+           given={Margaret\bibnamedelima W},
+           giveni={M\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=b87da205a8ac7d840f0958651ac4364b}{%
+           family={Hartel},
+           familyi={H\bibinitperiod},
+           given={Frank\bibnamedelima W},
+           giveni={F\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=12860ee83541a5fe9f4fe0e5e6ea0c9d}{%
+           family={Shaiu},
+           familyi={S\bibinitperiod},
+           given={Wen-Ling},
+           giveni={W\bibinithyphendelim L\bibinitperiod}}}%
+        {{hash=25b37ab05b91863279ecd5fb5cb153e2}{%
+           family={Wright},
+           familyi={W\bibinitperiod},
+           given={Lawrence\bibnamedelima W},
+           giveni={L\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{4c19a743e3de506b73ce2be305dd3d53}
+      \strng{fullhash}{5c0eae6176e310f8ca293eff35e0d72a}
+      \strng{bibnamehash}{4c19a743e3de506b73ce2be305dd3d53}
+      \strng{authorbibnamehash}{4c19a743e3de506b73ce2be305dd3d53}
+      \strng{authornamehash}{4c19a743e3de506b73ce2be305dd3d53}
+      \strng{authorfullhash}{5c0eae6176e310f8ca293eff35e0d72a}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1532-0464, 1532-0480}
+      \field{journaltitle}{J. Biomed. Inform.}
+      \field{month}{2}
+      \field{number}{1}
+      \field{title}{{NCI} Thesaurus: a semantic model integrating cancer-related clinical and molecular information}
+      \field{volume}{40}
+      \field{year}{2007}
+      \field{pages}{30\bibrangedash 43}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1016/j.jbi.2006.02.013
+      \endverb
+    \endentry
+    \entry{Sirin2007-lo}{article}{}
+      \name{author}{5}{}{%
+        {{hash=612a45e4b96f8bb391a930cf99cd7be8}{%
+           family={Sirin},
+           familyi={S\bibinitperiod},
+           given={Evren},
+           giveni={E\bibinitperiod}}}%
+        {{hash=d3a5757e7ae6ee7b209f2b76e6997a42}{%
+           family={Parsia},
+           familyi={P\bibinitperiod},
+           given={Bijan},
+           giveni={B\bibinitperiod}}}%
+        {{hash=f22941a164b228f0b54b85ee025e1e3f}{%
+           family={Grau},
+           familyi={G\bibinitperiod},
+           given={Bernardo\bibnamedelima Cuenca},
+           giveni={B\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=e0d31f5d176c659833a81c1fe3de7302}{%
+           family={Kalyanpur},
+           familyi={K\bibinitperiod},
+           given={Aditya},
+           giveni={A\bibinitperiod}}}%
+        {{hash=1f46d76236a8cfc35c7dd9ad093d1854}{%
+           family={Katz},
+           familyi={K\bibinitperiod},
+           given={Yarden},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{5d177b07356fb4581ce89499d25e5914}
+      \strng{fullhash}{78fd437402413ebc2fc2896c3108b961}
+      \strng{bibnamehash}{5d177b07356fb4581ce89499d25e5914}
+      \strng{authorbibnamehash}{5d177b07356fb4581ce89499d25e5914}
+      \strng{authornamehash}{5d177b07356fb4581ce89499d25e5914}
+      \strng{authorfullhash}{78fd437402413ebc2fc2896c3108b961}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1570-8268}
+      \field{journaltitle}{Journal of Web Semantics}
+      \field{month}{6}
+      \field{number}{2}
+      \field{title}{Pellet: A practical {OWL-DL} reasoner}
+      \field{volume}{5}
+      \field{year}{2007}
+      \field{pages}{51\bibrangedash 53}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1016/j.websem.2007.03.004
+      \endverb
+    \endentry
+    \entry{Song2000-hu}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=4933ed25bdc8bf2c0328344f98fc7239}{%
+           family={Song},
+           familyi={S\bibinitperiod},
+           given={Dawn\bibnamedelima Xiaoding},
+           giveni={D\bibinitperiod\bibinitdelim X\bibinitperiod}}}%
+        {{hash=4b2fa3a8d45766a5aaafe9c01bd7c28e}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={D},
+           giveni={D\bibinitperiod}}}%
+        {{hash=e1cd502d6532a5ad6eeb3334e99964ed}{%
+           family={Perrig},
+           familyi={P\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{fullhash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{bibnamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authorbibnamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authornamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authorfullhash}{a79782000ed2a9f47b9592867cd5de28}
+      \field{extraname}{1}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceeding 2000 {IEEE} Symposium on Security and Privacy. {S} {P} 2000}
+      \field{issn}{1081-6011}
+      \field{month}{5}
+      \field{title}{Practical techniques for searches on encrypted data}
+      \field{year}{2000}
+      \field{pages}{44\bibrangedash 55}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1109/SECPRI.2000.848445
+      \endverb
+    \endentry
+    \entry{Song2000-ir}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=4933ed25bdc8bf2c0328344f98fc7239}{%
+           family={Song},
+           familyi={S\bibinitperiod},
+           given={Dawn\bibnamedelima Xiaoding},
+           giveni={D\bibinitperiod\bibinitdelim X\bibinitperiod}}}%
+        {{hash=4b2fa3a8d45766a5aaafe9c01bd7c28e}{%
+           family={Wagner},
+           familyi={W\bibinitperiod},
+           given={D},
+           giveni={D\bibinitperiod}}}%
+        {{hash=e1cd502d6532a5ad6eeb3334e99964ed}{%
+           family={Perrig},
+           familyi={P\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{fullhash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{bibnamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authorbibnamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authornamehash}{a79782000ed2a9f47b9592867cd5de28}
+      \strng{authorfullhash}{a79782000ed2a9f47b9592867cd5de28}
+      \field{extraname}{2}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceeding 2000 {IEEE} Symposium on Security and Privacy. {S} {P} 2000}
+      \field{issn}{1081-6011}
+      \field{month}{5}
+      \field{title}{Practical techniques for searches on encrypted data}
+      \field{year}{2000}
+      \field{pages}{44\bibrangedash 55}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.1109/SECPRI.2000.848445
+      \endverb
+    \endentry
+    \entry{Studer1998-kp}{article}{}
+      \name{author}{3}{}{%
+        {{hash=e0c7ea82e283188bb50d580b79aae9e3}{%
+           family={Studer},
+           familyi={S\bibinitperiod},
+           given={Rudi},
+           giveni={R\bibinitperiod}}}%
+        {{hash=d8f37ab4d5ba02ef7b90fd41ad8e6a81}{%
+           family={Benjamins},
+           familyi={B\bibinitperiod},
+           given={V\bibnamedelima Richard},
+           giveni={V\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=ba4603066ec9f23db109035b8d738b0c}{%
+           family={Fensel},
+           familyi={F\bibinitperiod},
+           given={Dieter},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{4675b4441d3416cb08130a000e8220a8}
+      \strng{fullhash}{4675b4441d3416cb08130a000e8220a8}
+      \strng{bibnamehash}{4675b4441d3416cb08130a000e8220a8}
+      \strng{authorbibnamehash}{4675b4441d3416cb08130a000e8220a8}
+      \strng{authornamehash}{4675b4441d3416cb08130a000e8220a8}
+      \strng{authorfullhash}{4675b4441d3416cb08130a000e8220a8}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0169-023X}
+      \field{journaltitle}{Data Knowl. Eng.}
+      \field{month}{3}
+      \field{number}{1}
+      \field{title}{Knowledge engineering: Principles and methods}
+      \field{volume}{25}
+      \field{year}{1998}
+      \field{pages}{161\bibrangedash 197}
+      \range{pages}{37}
+      \verb{doi}
+      \verb 10.1016/S0169-023X(97)00056-6
+      \endverb
+    \endentry
+    \entry{Suntaxi2021-sj}{article}{}
+      \name{author}{3}{}{%
+        {{hash=6f4f181eceebf2a13b2467c4908bdbf5}{%
+           family={Suntaxi},
+           familyi={S\bibinitperiod},
+           given={Gabriela},
+           giveni={G\bibinitperiod}}}%
+        {{hash=91a79d0909d693b13b7696db16d06aa5}{%
+           family={El\bibnamedelima Ghazi},
+           familyi={E\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={Aboubakr\bibnamedelima Achraf},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=3e69bfdc9d95ce817570962f0a79c16b}{%
+           family={Böhm},
+           familyi={B\bibinitperiod},
+           given={Klemens},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{38b6493ff672f9041afa34f9f5385626}
+      \strng{fullhash}{38b6493ff672f9041afa34f9f5385626}
+      \strng{bibnamehash}{38b6493ff672f9041afa34f9f5385626}
+      \strng{authorbibnamehash}{38b6493ff672f9041afa34f9f5385626}
+      \strng{authornamehash}{38b6493ff672f9041afa34f9f5385626}
+      \strng{authorfullhash}{38b6493ff672f9041afa34f9f5385626}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1573-7578}
+      \field{journaltitle}{Distributed and Parallel Databases}
+      \field{month}{3}
+      \field{number}{1}
+      \field{title}{Secrecy and performance models for query processing on outsourced graph data}
+      \field{volume}{39}
+      \field{year}{2021}
+      \field{pages}{35\bibrangedash 77}
+      \range{pages}{43}
+      \verb{doi}
+      \verb 10.1007/s10619-020-07284-0
+      \endverb
+    \endentry
+    \entry{Sutton2018-ya}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=d30231ca058741738645b836fef78764}{%
+           family={Sutton},
+           familyi={S\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=041e9b3eb6ac7d5af01ec4719cab6c9a}{%
+           family={Samavi},
+           familyi={S\bibinitperiod},
+           given={Reza},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery, Inc}%
+      }
+      \strng{namehash}{790ac1db5995481c8814766dfd8b08a0}
+      \strng{fullhash}{790ac1db5995481c8814766dfd8b08a0}
+      \strng{bibnamehash}{790ac1db5995481c8814766dfd8b08a0}
+      \strng{authorbibnamehash}{790ac1db5995481c8814766dfd8b08a0}
+      \strng{authornamehash}{790ac1db5995481c8814766dfd8b08a0}
+      \strng{authorfullhash}{790ac1db5995481c8814766dfd8b08a0}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the International Workshop on Semantic Big Data, {SBD} 2018 - In conjunction with the 2018 {ACM} {SIGMOD/PODS} Conference}
+      \field{isbn}{9781450357791}
+      \field{month}{6}
+      \field{title}{Timestamp-based Integrity Proofs for Linked Data}
+      \field{year}{2018}
+      \verb{doi}
+      \verb 10.1145/3208352.3208353
+      \endverb
+    \endentry
+    \entry{Syalim2011-fb}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=2e8e1a6d91ec8c8278969d6e8fee3059}{%
+           family={Syalim},
+           familyi={S\bibinitperiod},
+           given={Amril},
+           giveni={A\bibinitperiod}}}%
+        {{hash=e44460c8fe2101712d1953d8cb5ab3a1}{%
+           family={Nishide},
+           familyi={N\bibinitperiod},
+           given={Takashi},
+           giveni={T\bibinitperiod}}}%
+        {{hash=f2f941d0a953878e96cdad9d901e6d84}{%
+           family={Sakurai},
+           familyi={S\bibinitperiod},
+           given={Kouichi},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \strng{fullhash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \strng{bibnamehash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \strng{authorbibnamehash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \strng{authornamehash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \strng{authorfullhash}{38f03e8cff861795a7cac9ceaf18e3be}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Informatics Engineering and Information Science}
+      \field{title}{Realizing Proxy Re-encryption in the Symmetric World}
+      \field{year}{2011}
+      \field{pages}{259\bibrangedash 274}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/978-3-642-25327-0\_23
+      \endverb
+    \endentry
+    \entry{Talk-to-salesUnknown-oe}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=9a46ffc29b9d669d57d7f5e648c89c41}{%
+           family={{Talk to sales}},
+           familyi={T\bibinitperiod}}}%
+        {{hash=34c818678f3f1d3948a50ad767b11713}{%
+           family={{Talk to an engineer}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \strng{fullhash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \strng{bibnamehash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \strng{authorbibnamehash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \strng{authornamehash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \strng{authorfullhash}{e5ffb88bbee79bf85c8e1d20a05ac6c3}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Artillery}
+      \field{howpublished}{\url{https://www.artillery.io/}}
+      \field{note}{Accessed: 2025-9-28}
+      \field{title}{Artillery · Full-stack performance \& reliability testing}
+    \endentry
+    \entry{Lazysodium-vo}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=16091e27bad6ecc6143474c83d6f6351}{%
+           family={{Terl Tech Ltd}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Github}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{16091e27bad6ecc6143474c83d6f6351}
+      \strng{fullhash}{16091e27bad6ecc6143474c83d6f6351}
+      \strng{bibnamehash}{16091e27bad6ecc6143474c83d6f6351}
+      \strng{authorbibnamehash}{16091e27bad6ecc6143474c83d6f6351}
+      \strng{authornamehash}{16091e27bad6ecc6143474c83d6f6351}
+      \strng{authorfullhash}{16091e27bad6ecc6143474c83d6f6351}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{lazysodium-java: A Java implementation of the Libsodium crypto library. For the lazy dev}
+    \endentry
+    \entry{The_Apache_Software_Foundation_undated-wk}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=f57c55dac81a8285538aae51dacc9857}{%
+           family={{The Apache Software Foundation}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{bibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorbibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authornamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhash}{f57c55dac81a8285538aae51dacc9857}
+      \field{extraname}{1}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://jena.apache.org/}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{Apache Jena}
+    \endentry
+    \entry{The_Apache_Software_Foundation_undated-mg}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=f57c55dac81a8285538aae51dacc9857}{%
+           family={{The Apache Software Foundation}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{bibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorbibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authornamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhash}{f57c55dac81a8285538aae51dacc9857}
+      \field{extraname}{2}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://jena.apache.org/documentation/tdb/index.html}}
+      \field{note}{Accessed: 2022-2-17}
+      \field{title}{Apache Jena - {TDB}}
+    \endentry
+    \entry{noauthor_undated-kt}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://datatracker.ietf.org/doc/html/rfc8446}}
+      \field{note}{Accessed: 2022-2-18}
+      \field{title}{The Transport Layer Security ({TLS}) Protocol Version 1.3}
+    \endentry
+    \entry{Tudorache2009-ja}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=919a9c101fe03e693b5cdd78e861c8be}{%
+           family={Tudorache},
+           familyi={T\bibinitperiod},
+           given={Tania},
+           giveni={T\bibinitperiod}}}%
+        {{hash=7e465dbc8f8f8c1ce8fa4b42d3d4530e}{%
+           family={Vendetti},
+           familyi={V\bibinitperiod},
+           given={Jennifer},
+           giveni={J\bibinitperiod}}}%
+        {{hash=459277a9c8ad3e369a89c831df64a660}{%
+           family={Noy},
+           familyi={N\bibinitperiod},
+           given={Natalya\bibnamedelima F},
+           giveni={N\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+      }
+      \strng{namehash}{aac6221c5d09cd2468b765f9503c9e48}
+      \strng{fullhash}{aac6221c5d09cd2468b765f9503c9e48}
+      \strng{bibnamehash}{aac6221c5d09cd2468b765f9503c9e48}
+      \strng{authorbibnamehash}{aac6221c5d09cd2468b765f9503c9e48}
+      \strng{authornamehash}{aac6221c5d09cd2468b765f9503c9e48}
+      \strng{authorfullhash}{aac6221c5d09cd2468b765f9503c9e48}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{CEUR} Workshop Proceedings}
+      \field{issn}{1613-0073}
+      \field{title}{{Web-Protégé}: A lightweight {OWL} ontology editor for the web}
+      \field{volume}{432}
+      \field{year}{2009}
+    \endentry
+    \entry{Tudorache2008-tu}{article}{}
+      \name{author}{4}{}{%
+        {{hash=919a9c101fe03e693b5cdd78e861c8be}{%
+           family={Tudorache},
+           familyi={T\bibinitperiod},
+           given={Tania},
+           giveni={T\bibinitperiod}}}%
+        {{hash=459277a9c8ad3e369a89c831df64a660}{%
+           family={Noy},
+           familyi={N\bibinitperiod},
+           given={Natalya\bibnamedelima F},
+           giveni={N\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=e42e4e4bc4d9eb2ed9fa00509a364403}{%
+           family={Tu},
+           familyi={T\bibinitperiod},
+           given={Samson},
+           giveni={S\bibinitperiod}}}%
+        {{hash=daa3f61cc04957ea4bf038da94584e07}{%
+           family={Musen},
+           familyi={M\bibinitperiod},
+           given={Mark\bibnamedelima A},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Verlag}%
+      }
+      \strng{namehash}{adc2bcfe877a9d3eb0d256a388f9b63a}
+      \strng{fullhash}{3cf565e673328a8b53d70a6dd0d8b222}
+      \strng{bibnamehash}{adc2bcfe877a9d3eb0d256a388f9b63a}
+      \strng{authorbibnamehash}{adc2bcfe877a9d3eb0d256a388f9b63a}
+      \strng{authornamehash}{adc2bcfe877a9d3eb0d256a388f9b63a}
+      \strng{authorfullhash}{3cf565e673328a8b53d70a6dd0d8b222}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0302-9743, 1611-3349}
+      \field{journaltitle}{Lect. Notes Comput. Sci.}
+      \field{title}{Supporting collaborative ontology development in Protégé}
+      \field{volume}{5318 LNCS}
+      \field{year}{2008}
+      \field{pages}{17\bibrangedash 32}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1007/978-3-540-88564-1\_2
+      \endverb
+    \endentry
+    \entry{Tummarello2005-qb}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=ae7a17f85420da50fcc34a74813bee15}{%
+           family={Tummarello},
+           familyi={T\bibinitperiod},
+           given={Giovanni},
+           giveni={G\bibinitperiod}}}%
+        {{hash=37a6c158a5cfc6201e4c62f8ec8abd34}{%
+           family={Morbidoni},
+           familyi={M\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod}}}%
+        {{hash=bb8e89448783463f39925a7d704c0df1}{%
+           family={Puliti},
+           familyi={P\bibinitperiod},
+           given={Paolo},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9e65b0569c2949c06f4fccf0d5a43488}{%
+           family={Piazza},
+           familyi={P\bibinitperiod},
+           given={Francesco},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{ea05a3bf9c93cae613e967ee613c8d88}
+      \strng{fullhash}{a4ac0b097aa03733cdf936477f281889}
+      \strng{bibnamehash}{ea05a3bf9c93cae613e967ee613c8d88}
+      \strng{authorbibnamehash}{ea05a3bf9c93cae613e967ee613c8d88}
+      \strng{authornamehash}{ea05a3bf9c93cae613e967ee613c8d88}
+      \strng{authorfullhash}{a4ac0b097aa03733cdf936477f281889}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{14th International World Wide Web Conference, {WWW2005}}
+      \field{isbn}{9781595930514}
+      \field{title}{Signing individual fragments of an {RDF} graph}
+      \field{year}{2005}
+      \field{pages}{1020\bibrangedash 1021}
+      \range{pages}{2}
+      \verb{doi}
+      \verb 10.1145/1062745.1062848
+      \endverb
+    \endentry
+    \entry{W3c_undated-ep}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{1}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/xml/}}
+      \field{note}{Accessed: 2022-2-11}
+      \field{title}{Extensible markup language ({XML}) 1.0 (fifth edition)}
+    \endentry
+    \entry{W3c_undated-xs}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{2}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/REC-owl2-direct-semantics-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language direct semantics (second edition)}
+    \endentry
+    \entry{W3c_undated-dr}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{3}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/owl2-overview/}}
+      \field{note}{Accessed: 2022-2-11}
+      \field{title}{{OWL} 2 web ontology language document overview (second edition)}
+    \endentry
+    \entry{W3c_undated-dg}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{4}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/NOTE-owl2-manchester-syntax-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language Manchester syntax (second edition)}
+    \endentry
+    \entry{W3c_undated-jk}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{5}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/REC-owl2-profiles-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language profiles (second edition)}
+    \endentry
+    \entry{W3c_undated-ls}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{6}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/owl2-quick-reference/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language quick reference guide (second edition)}
+    \endentry
+    \entry{W3c_undated-ae}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{7}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/REC-owl2-rdf-based-semantics-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language {RDF-based} semantics (second edition)}
+    \endentry
+    \entry{W3c_undated-xm}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{8}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/REC-owl2-syntax-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language structural specification and functional-style syntax (second edition)}
+    \endentry
+    \entry{W3c_undated-gr}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{9}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/2012/REC-owl2-xml-serialization-20121211/}}
+      \field{note}{Accessed: 2022-2-14}
+      \field{title}{{OWL} 2 web ontology language {XML} serialization (second edition)}
+    \endentry
+    \entry{W3c_undated-vq}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{10}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdf11-concepts/}}
+      \field{note}{Accessed: 2022-2-11}
+      \field{title}{{RDF} 1.1 concepts and abstract syntax}
+    \endentry
+    \entry{W3c_undated-uz}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{11}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/trig/}}
+      \field{note}{Accessed: 2022-2-13}
+      \field{title}{{RDF} 1.1 {TriG}}
+    \endentry
+    \entry{W3c_undated-kq}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{12}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/turtle/}}
+      \field{note}{Accessed: 2022-2-13}
+      \field{title}{{RDF} 1.1 turtle}
+    \endentry
+    \entry{W3c_undated-hv}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{13}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdf-syntax-grammar/}}
+      \field{note}{Accessed: 2022-2-13}
+      \field{title}{{RDF} 1.1 {XML} syntax}
+    \endentry
+    \entry{W3c_undated-mp}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{14}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdf-schema/}}
+      \field{note}{Accessed: 2022-2-11}
+      \field{title}{{RDF} Schema 1.1}
+    \endentry
+    \entry{W3c_undated-qb}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{15}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommentdation}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdfa-core/}}
+      \field{note}{Accessed: 2022-2-13}
+      \field{title}{{RDFa} core 1.1 - third edition}
+    \endentry
+    \entry{W3c_undated-pd}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{16}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Semantic Web}
+      \field{howpublished}{\url{https://www.w3.org/2001/sw/sweo/public/UseCases/}}
+      \field{note}{Accessed: 2022-2-8}
+      \field{title}{Semantic Web Case Studies and Use Cases}
+    \endentry
+    \entry{W3c2013-rr}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{17}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/sparql11-http-rdf-update/}}
+      \field{month}{3}
+      \field{note}{Accessed: 2022-2-4}
+      \field{title}{{SPARQL} 1.1 graph store {HTTP} protocol}
+      \field{year}{2013}
+    \endentry
+    \entry{W3c2013-hd}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{18}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/sparql11-overview/}}
+      \field{month}{3}
+      \field{title}{{SPARQL} 1.1 Overview}
+      \field{year}{2013}
+    \endentry
+    \entry{W3c_undated-tw}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{19}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/sparql11-update/}}
+      \field{note}{Accessed: 2022-2-15}
+      \field{title}{{SPARQL} 1.1 update}
+    \endentry
+    \entry{W3c2008-vf}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{20}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Recommendation}
+      \field{howpublished}{\url{https://www.w3.org/TR/rdf-sparql-query/}}
+      \field{month}{1}
+      \field{title}{{SPARQL} Query Language for {RDF}}
+      \field{year}{2008}
+    \endentry
+    \entry{W3c2004-rn}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=446a1ae6601a5c59360c7d591c3992da}{%
+           family={{W3C}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{fullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{bibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorbibnamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authornamehash}{446a1ae6601a5c59360c7d591c3992da}
+      \strng{authorfullhash}{446a1ae6601a5c59360c7d591c3992da}
+      \field{extraname}{21}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{{W3C} Member Submission}
+      \field{howpublished}{\url{https://www.w3.org/Submission/SWRL/}}
+      \field{month}{5}
+      \field{title}{{SWRL}: A Semantic Web Rule Language Combining {OWL} and {RuleML}}
+      \field{year}{2004}
+    \endentry
+    \entry{SNOMED-gi}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{SNOMED International}
+      \field{howpublished}{\url{https://www.snomed.org/what-is-snomed-ct}}
+      \field{note}{Accessed: 2024-9-24}
+      \field{title}{What is {SNOMED} {CT}}
+    \endentry
+    \entry{Wikipedia_contributors_undated-bj}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=b6aea1a416c89509a7df1cbb69249cb6}{%
+           family={{Wikipedia contributors}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \strng{fullhash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \strng{bibnamehash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \strng{authorbibnamehash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \strng{authornamehash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \strng{authorfullhash}{b6aea1a416c89509a7df1cbb69249cb6}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Wikipedia, The Free Encyclopedia}
+      \field{howpublished}{\url{https://en.wikipedia.org/wiki/File:Semantic_web_stack.svg}}
+      \field{note}{Accessed: 2022-2-15}
+      \field{title}{Semantic web stack}
+    \endentry
+    \entry{XChaCha20-ur}{misc}{}
+      \list{language}{1}{%
+        {en}%
+      }
+      \field{sortinit}{X}
+      \field{sortinithash}{1965c258adceecf23ce3d67b05113442}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://libsodium.gitbook.io/doc/secret-key\_cryptography/aead/chacha20-poly1305/xchacha20-poly1305\_construction}}
+      \field{note}{Accessed: 2024-10-26}
+      \field{title}{{XChaCha20}-{Poly1305} construction}
+    \endentry
+  \enddatalist
+\endrefsection
+
+\refsection{1}
+  \datalist[entry]{nty/global//global/global}
+    \entry{novathesis-manual}{manual}{}
+      \name{author}{1}{}{%
+        {{hash=419e7851ce9e726652864635d63207af}{%
+           family={Lourenço},
+           familyi={L\bibinitperiod},
+           given={João\bibnamedelima M.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {NOVA University Lisbon}%
+      }
+      \strng{namehash}{419e7851ce9e726652864635d63207af}
+      \strng{fullhash}{419e7851ce9e726652864635d63207af}
+      \strng{bibnamehash}{419e7851ce9e726652864635d63207af}
+      \strng{authorbibnamehash}{419e7851ce9e726652864635d63207af}
+      \strng{authornamehash}{419e7851ce9e726652864635d63207af}
+      \strng{authorfullhash}{419e7851ce9e726652864635d63207af}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{The NOVAthesis \LaTeX{} Template User's Manual}}
+      \field{year}{2021}
+      \verb{urlraw}
+      \verb https://github.com/joaomlourenco/novathesis/raw/master/template.pdf
+      \endverb
+      \verb{url}
+      \verb https://github.com/joaomlourenco/novathesis/raw/master/template.pdf
+      \endverb
+      \keyw{novathesis-manual}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
