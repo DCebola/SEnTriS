@@ -12,7 +12,7 @@ In Section \ref{ch5:setup-methodology}, we present the experimental evaluation c
 
 In Section \ref{ch5:security-analysis}, we evaluate the security of \gls{SEnTriS}: we analyze the security guaranties of the SSE-SPARQL-EVAL; and define the security properties of \gls{SEnTriS}. 
 
-Finally, in Section \ref{ch5:final-discussion}, we conclude with an analyisis of the security and performance trade-offs between each version of the protocol.
+Finally, in Section \ref{ch5:final-discussion}, we conclude with an analysis of the security and performance trade-offs between each version of the protocol.
 
 \section{Complexity Analysis}
 \label{ch5:complexity-analysis}
@@ -145,7 +145,7 @@ The execution of the $job_{\text{DISTINCT}}$ consist in checking if a boolean fl
 
 Finally, during a $job_{\text{PROJECT}}$ we simply keep the bindings and patterns referenced by the $v_p$ variables in the projection.
 
-Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC\_SEARCH}}$ and $D_{CRYPTO}(\cdot)$ be the deryption function using the CRYPTO algorithm, we can re-define the complexity function as:
+Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC\_SEARCH}}$ and $D_{CRYPTO}(\cdot)$ be the decryption function using the CRYPTO algorithm, we can re-define the complexity function as:
 
 \begin{align}
     \label{equation:query-evaluation-v1-jobs}
@@ -164,9 +164,9 @@ Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC
 
 To define $O_{Res}$, lets analyse the generation of query results at the Client. We have to consider the four possible types of \gls{SPARQL} query types SELECT, DESCRIBE, ASK and CONSTRUCT. 
 
-Let $R_b$ and $R_v$ be the bindings and vars in the intermediate results. For ASK queries, the Client simply checks if the result is not empty. For DESCRIBE queries, it deobfuscates the variables in $R_v$, iterates over $R_b$ and constructs a frequency table. For SELECT queries, the Client deobfuscates the variables in $R_v$, decrypts each binding in $R_b$ and applies sorting and slicing modifiers, if required. For CONSTRUCT queries, after the deobfuscation of variables, decryption of bindings and application of modifiers, a new \gls{RDF} graph is created by matching every decrypted binding in $R_b$, againts the triple patterns provided in the construct template $C_t$.
+Let $R_b$ and $R_v$ be the bindings and vars in the intermediate results. For ASK queries, the Client simply checks if the result is not empty. For DESCRIBE queries, it deobfuscates the variables in $R_v$, iterates over $R_b$ and constructs a frequency table. For SELECT queries, the Client deobfuscates the variables in $R_v$, decrypts each binding in $R_b$ and applies sorting and slicing modifiers, if required. For CONSTRUCT queries, after the deobfuscation of variables, decryption of bindings and application of modifiers, a new \gls{RDF} graph is created by matching every decrypted binding in $R_b$, against the triple patterns provided in the construct template $C_t$.
 
-Let SORT and SLICE be boolean flags, which dictate if sorting and slice modifiers should be applied to the final results (1 if yes, 0 otherwise). Additionally, let $s_o$ and $s_l$ be the \emph{offset} and \emph{lenght} parameters of the slice modifier. We can define  $O_{\text{RES}}$ as:
+Let SORT and SLICE be boolean flags, which dictate if sorting and slice modifiers should be applied to the final results (1 if yes, 0 otherwise). Additionally, let $s_o$ and $s_l$ be the \emph{offset} and \emph{length} parameters of the slice modifier. We can define  $O_{\text{RES}}$ as:
 
 \begin{align}
     \label{equation:query-evaluation-v1-res}
@@ -197,7 +197,7 @@ Consequently, the complete complexity definition for $O_{\text{Eval V1}}$ is:
     \end{split}
 \end{align}
 
-\paragraph{Query Evaluation Complexity V2} In \gls{SEnTriS} V2, there is an additional communication round during the generation of the final result. The multiplicative blinding of the equality tags is reverted, and these are used to fecth the final bindings, which are then decrypted and used to compute the final query results.
+\paragraph{Query Evaluation Complexity V2} In \gls{SEnTriS} V2, there is an additional communication round during the generation of the final result. The multiplicative blinding of the equality tags is reverted, and these are used to fetch the final bindings, which are then decrypted and used to compute the final query results.
 
 Let $mask^{-1}$ represent a function that reverts multiplicative blinding, $O_{\text{Eval V2}}$ is defined as:
 
@@ -216,9 +216,9 @@ Let $mask^{-1}$ represent a function that reverts multiplicative blinding, $O_{\
     \end{split}
 \end{align}
 
-\paragraph{Discussion} From the complexity analyisis, we can conclude that the number of query jobs scales linearly with the contents of the queries. Furthermore, we can also observe that the complexity of the query preparation phase scales linearly with the number of search jobs and the frequency of the keywords in searches.
+\paragraph{Discussion} From the complexity analysis, we can conclude that the number of query jobs scales linearly with the contents of the queries. Furthermore, we can also observe that the complexity of the query preparation phase scales linearly with the number of search jobs and the frequency of the keywords in searches.
 
-Regarding the query evaluation phase, we can observe that the complexity of the binary query jobs is quadratic. However, if we consider that the major complexity factor, during query evaluation, continues to be the execution of cryptographic operations, and that the number of bindings returned to the Client is smaller than the ones used to construct the binding tables, we can argue that it scales linerly to the latter volume of bindings and to the number of search jobs.  
+Regarding the query evaluation phase, we can observe that the complexity of the binary query jobs is quadratic. However, if we consider that the major complexity factor, during query evaluation, continues to be the execution of cryptographic operations, and that the number of bindings returned to the Client is smaller than the ones used to construct the binding tables, we can argue that it scales linearly to the latter volume of bindings and to the number of search jobs.  
 
 \subsubsection{Inference Complexity Cost}
 
@@ -234,7 +234,7 @@ When we introduce inference capabilities to the query evaluation protocol, we au
     \end{split} 
 \end{align}
 
-\paragraph{Query rewriting} To understand how $q_{\text{jobs}}$ varies, we first need to analyse the the time complexity for the query rewriting algorithm. It depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
+\paragraph{Query rewriting} To understand how $q_{\text{jobs}}$ varies, we first need to analyse the time complexity for the query rewriting algorithm. It depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
 
 \begin{itemize}
     \item \textbf{Ontology Structure:} The depth and breadth of class and property hierarchies, presence of transitive and inverse properties, and defined class restrictions.
@@ -275,7 +275,7 @@ The asymptotic complexity of the query rewriting algorithm is exponential in ter
 
 %TODO: Explain how job number is modified, actually revisit, the join pipeline is only for joining the searches... the order of the other jobs does not change. Number only increased based on branching. Will need to add jobs created to the complexity of the expansion because that is what is interesting
 
-\paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expantion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
+\paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expansion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
 
 \begin{table}[h]
     \centering
@@ -350,7 +350,7 @@ We converted the experiment scenarios in \gls{LUBM} to \emph{Artillery} test sce
 
 The test datasets were generated using the \gls{LUBM} data generation tool \emph{UBA1.7}, in single thread mode and with the \emph{consolidate} flag set to \emph{Full}. This allowed us to have 1 file per dataset.
 
-The experimental evaluation was conducted in a system running \emph{Ubuntu~24.04.3 LTS}, with an \emph{AMD Ryzen~7 1700} cpu (16 cores) and 128GiB of DDR4 RAM.
+The experimental evaluation was conducted in a system running \emph{Ubuntu~24.04.3 LTS}, with an \emph{AMD Ryzen~7 1700} CPU (16 cores) and 128GiB of DDR4 RAM.
 
 \subsubsection{LUBM Scenarios}
 
@@ -370,7 +370,7 @@ Succintely, the test scenario run was the following:
   \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload the dataset (\emph{Abox}), set \emph{schema} query string to \emph{true}.
   \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload \gls{LUBM} ontology (TBox), set \emph{schema} query string to \emph{true}.
   \item \textbf{GET} \emph{/Client/api/triplestores/<triplestoreID>/<username>} - Retrieve triplestore size information.
-  \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information, returned answers lenght. If the query is executed againts lubm(1), capture \emph{soundness} and \emph{completeness}.
+  \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information, returned answers length. If the query is executed against lubm(1), capture \emph{soundness} and \emph{completeness}. Repeat 10 times.
   \item \textbf{DELETE} \emph{/Client/api/triplestores/encrypted/<version>/<triplestoreID>/<username>} - Delete triplestore.
 \end{enumerate}
 
@@ -397,46 +397,48 @@ In this Section we will present the experimental results captured.
     \label{plot-latency-vs-triples}
 \end{figure}
 
-We present the dataset size and upload latency, per dataset, in Figures \ref{plot:upload-size}, \ref{plot:upload-latency}. In Figures \ref{plot-size-vs-triples} and \ref{plot-latency-vs-triples}, we plot the dataset size, and upload latency, againts their volume of triples. Finally, in Figure \ref{plot:upload-ontology-latency}, we present the ontology upload latency.
+We present the dataset size and upload latency, per dataset, in Figures \ref{plot:upload-size}, \ref{plot:upload-latency}. In Figures \ref{plot-size-vs-triples} and \ref{plot-latency-vs-triples}, we plot the dataset size, and upload latency, against their volume of triples. Finally, in Figure \ref{plot:upload-ontology-latency}, we present the ontology upload latency.
 
 Upload latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1. Both upload latency and dataset size increase, as the number of triples in the datasets also increases. The ontology upload latency is similar for both versions, and consistent between datasets. 
 
-This results are in line with the expections: the ontology size is constant and its storage complexity is the equivalent in both versions; storage complexity in \gls{SEnTriS} V2 is higher, hence the higher latency and dataset size.
+These results are in line with the expectations: the ontology size is constant, and its storage complexity is the equivalent in both versions; storage complexity in \gls{SEnTriS} V2 is higher, hence the higher latency and dataset size.
 
 \subsubsection{Query Response Latency}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/latency_all.png}
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/latency_all.png}
     \caption{Query response latency.}
     \label{plot-query-latency-all}
 \end{figure}
 
+
+We present the query response latency size, for each dataset, per \gls{SEnTriS} version, in Figures \ref{plot-latency-0}, \ref{plot-latency-1}, \ref{plot-latency-2}, \ref{plot-latency-3}, \ref{plot-latency-4}, \ref{plot-latency-5}. 
+
+In Figure \ref{plot-query-latency-all} we plot the query response latency size, for all datasets, per \gls{SEnTriS} version. Furthermore, in Figures \ref{plot-query-latency-vs-triples-v1} and \ref{plot-query-latency-vs-triples-v2}, we plot the query response latency, against the target dataset volume of triples. 
+
+Query response latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1, for each query. Furthermore, for each version, it increases linearly has the number of triples in the datasets also increase. 
+
+These results are again, in line with the expectations. The number of generated query jobs, depends uniquely on the \emph{transitivityDepth}, \emph{expansionDepth} and the queries' content. With fixed query contents, and inference parameters, they would only increase if the ontology size also increased, but it remains constant for each dataset. Hence, the number of query jobs is the same for each query, independent of the size of the \emph{Abox} size.
+
+However, the number of \emph{Abox} triples does increase between datasets, which results in higher keyword frequencies. The query evaluation complexity scales linearly to the keyword frequency. With a constant number of query jobs, variation for each version of \gls{SEnTriS} only depends on the variation of \emph{Abox} triples, which explains the linear increase, as the size of datasets grows.
+
+Finally, between \gls{SEnTriS} versions, the higher latency of version V2, is explained by the extra round of communication between the Client and Triplestore, before generating the final result. Furthermore, the size of the ciphertexts produced by the \gls{DGK} cryptosystem tend to be higher, which also hinders performance.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v1.png}
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v1.png}
     \caption{Query response latency versus triples (\gls{SEnTriS} V1).}
     \label{plot-query-latency-vs-triples-v1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v2.png}
+    \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v2.png}
     \caption{Query response latency versus triples (\gls{SEnTriS} V2).}
     \label{plot-query-latency-vs-triples-v2}
 \end{figure}
 
-We present the query response latency size, for each dataset, per \gls{SEnTriS} version, in Figures \ref{plot-latency-0}, \ref{plot-latency-1}, \ref{plot-latency-2}, \ref{plot-latency-3}, \ref{plot-latency-4}, \ref{plot-latency-5}. 
-
-In Figure \ref{plot-query-latency-all} we plot the query response latency size, for all datasets, per \gls{SEnTriS} version. Furthermore, in Figures \ref{plot-query-latency-vs-triples-v1} and \ref{plot-query-latency-vs-triples-v2}, we plot the query response latency, againts the target dataset volume of triples. 
-
-Query response latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1, for each query. Furthermore, for each version, it increases linearly has the number of triples in the datasets also increase. 
-
-This results are again, in line with the expections. The number of generated query jobs, depends uniquely on the \emph{transitivityDepth}, \emph{expansionDepth} and the queries' content. With fixed query contents, and inference parameters, they would only increase if the ontology size also increased, but it remains constant for each dataset. Hence, the number of query jobs is the same for each query, independent of the size of the \emph{Abox} size.
-
-However, the number of \emph{Abox} triples does increase between datasets, which results in higher keyword frequencies. The query evaluation complexity scales linearly to the keyword frenquency. With a constant number of query jobs, variation for each version of \gls{SEnTriS} only depends on the variation of \emph{Abox} triples, which explains the linear increase, as the size of datasets grows.
-
-Finally, between \gls{SEnTriS} versions, the higher latency of version V2, is explained by the extra round of communication between the Client and Triplestore, before generating the final result. Furthermore, the size of the ciphertexts produced by the \gls{DGK} cryptosystem tend to be higher, which also hinders performance.
 
 \subsubsection{Query Completeness \& Soundness}
 
