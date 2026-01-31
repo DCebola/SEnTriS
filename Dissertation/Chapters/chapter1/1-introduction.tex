@@ -27,7 +27,7 @@ To develop and maintain ontologies, advanced semantic editors are the standard t
 
 With datasets gradually growing in dimension, the industry is currently evolving towards the use of collaborative solutions \autocite{Tudorache2008-tu,Tudorache2009-ja} and outsourcing heavy computations, relying on cloud infrastructures or other shared computing platforms. These approaches, albeit inevitable, present new security concerns and engineering challenges.
 
-By 2021, 50 percent of all enterprise workloads were already hosted in \emph{public clouds} \autocite{Security_Compass2021-sh}. As of 2023, worldwide end-user spending on public cloud services is forecast to grow 20.7\% more than the growth forecast for 2022 of 18.8\% \autocite{noauthor_undated-if}.
+By 2021, 50 percent of all enterprise workloads were already hosted in \emph{public clouds} \autocite{Security_Compass2021-sh}. As of 2025 the global cloud computing market size is valued at USD 912.77 billion and is expected to grow from 2026 to 2035 at a compound annual growth rate of 20.61\% \autocite{PrecedenceResearchCloudMarketSize2025-zd}.
 
 Research on secure cloud computing \autocite{Carroll2011-me} studies such adoption but also discusses security concerns. Adoption can be explained with the cost efficiency\footnote{Cloud services reduce implementation, maintenance, power, cooling, floor space, storage and operational costs.}, high scalability, flexibility and availability that cloud provides. Additionally, the pay-per-use model is an easy entry point to the ecosystem.
 
@@ -72,18 +72,13 @@ Although, a lot of progress has been made in this field of research there are st
     \item \emph{How can we add reasoning capabilities to the solution?}
     
     A simple \gls{SPARQL} engine does not possess reasoning capabilities. The query results may or may not possess inferred values, depending on the underlying storage solution. When working with ontologies, a system should have reasoning capabilities to take full advantage of the semantics preserved within the data.
-
-    \item \emph{How can we minimize the information leakage and enforce access control?}
-    
-    A data outsourcing solution should support granular access control over the shared datasets. \gls{SSE} solutions always leak some information about the data, we will investigate how to minimize such leakage during query execution.
-
 \end{enumerate}
 
 
 \section{Contributions}
 \label{ch1:sec:contributions}
 
-In this thesis we aim to develop a practical and secure solution for the collaborative development, distribution and usage of semantic data knowledge bases. Our main contributions are the following:
+In this thesis we aim to develop a practical and secure solution for the development of semantic data knowledge bases, which remain queryable after being encrypted. Our main contributions are the following:
 
 
 \begin{description}
@@ -92,17 +87,13 @@ In this thesis we aim to develop a practical and secure solution for the collabo
     \item \textbf{SSE-TP - A distributed two-party triple pattern \gls{SSE} protocol:} 
     SSE-TP is protocol for encrypting \gls{RDF} data in a way that the data remains searchable via the specification of triple patterns. 
 
-    \item \textbf{SSE-SPARQL-EVAL - A distributed three-party \gls{SPARQL} query evaluation protocol} \linebreak \textbf{ for SSE-TP encrypted triplestores:}   
-    SSE-SPARQL-EVAL is an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted triplestores. 
-
-    \item \textbf{\gls{SEnTriS} - A multiparty searchable encrypted triplestore sharing protocol:}
-    
-    \gls{SEnTriS} is an adaptation of the SSE-SPARQL-EVAL protocol for a multiuser setting. Encrypted triplestores are shareable, remain queryable, possess reasoning capabilities and support role based access control. Access to triplestores is controlled with the usage of ephemeral access tokens. Concurrent writes are resolved with a lock-based strategy. Secrets are distributed among user with access to the triplestores. The protocol is implemented in two versions:
+    \item \textbf{\gls{SEnTriQ} - A distributed three-party \gls{SPARQL} query evaluation protocol} \linebreak \textbf{ for SSE-TP encrypted triplestores:}   
+    \gls{SEnTriQ} is an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted triplestores. The protocol is implemented in two versions:
     \begin{itemize} 
     
-        \item \emph{\gls{SEnTriS} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer of the encryption onions and compare the values. This implementation achieves \gls{IND-CKA1} security guaranties.
+        \item \emph{\gls{SEnTriQ} V1}: Data encryption retains elements from \emph{CryptDB} \autocite{Popa2011-zb, Popa2012-bw, Popa2011-ci}. Subjects, predicates and objects are encrypted in two layers. The outer layer is probabilistically encrypted, whereas the second is deterministically encrypted. When equality checks are required, we peel the outer layer of the encryption onions and compare the values. This implementation achieves \gls{IND-CKA1} security guaranties.
     
-        \item \emph{\gls{SEnTriS} V2}: We use multiplicative blinding techniques with the aim of reducing leakage during query evaluation. The value of a subject, predicate or object is mapped to an \emph{equality tag}, an integer value encrypted with the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index the equality tags and equality tags reference probabilistically encrypted subjects, predicates and objects. During query evaluation, we mask the values of the equality tags, via multiplicative blinding. Equality checks are done by partially decrypting the blinded encryption tags, stripping only the randomized layer of the ciphertexts. These values remain deterministic but different for every query evaluation. This implementation achieves \gls{IND-CKA2} security guaranties.
+        \item \emph{\gls{SEnTriQ} V2}: We use multiplicative blinding techniques with the aim of reducing leakage during query evaluation. The value of a subject, predicate or object is mapped to an \emph{equality tag}, an integer value encrypted with the \gls{DGK} cryptosystem \autocite{Damgard2007-km, Damgard2009-my, Franz2011-sm, Makkes2010-qb}. Trapdoors index the equality tags and equality tags reference probabilistically encrypted subjects, predicates and objects. During query evaluation, we mask the values of the equality tags, via multiplicative blinding. Equality checks are done by partially decrypting the blinded encryption tags, stripping only the randomized layer of the ciphertexts. These values remain deterministic but different for every query evaluation. This implementation achieves \gls{IND-CKA2} security guaranties.
     \end{itemize}
 \end{description}
 
@@ -115,6 +106,6 @@ The remaining of the document will be organized as follows:
     \item [Chapter 2] discusses related work on \emph{Semantic Web} and \emph{Secure Computations} and compares existing solutions for secure semantic data outsourcing and \gls{SPARQL} evaluation.
     \item [Chapter 3] presents the solution.
     \item [Chapter 4] describes the implementation details of each of the system's components.
-    \item [Chapter 5] evaluates the solutions in terms of complexity and security.It also presents the experimental evaluation procedures, describes and discusses the obtained results.
+    \item [Chapter 5] evaluates the solutions in terms of complexity and security. It also presents the experimental evaluation procedures, describes and discusses the obtained results.
     \item [Chapter 6] summarizes main conclusions from the research and suggests future work.
 \end{description}
