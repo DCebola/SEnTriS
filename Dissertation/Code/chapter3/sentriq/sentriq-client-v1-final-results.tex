@@ -35,7 +35,7 @@ function orderResults($distinct$, $ob\textrm{\emph{f}}uscatedSortConditions$, $d
         sort($sortedBindings$, $comparator$)
     return $sortedBindings$
 
-// {$sparqlFinalResult$, :bot} := $\textrm{SSE-SPARQL-EVAL}$.generateFinalResult($triplestoreID$, $variables$, $queryType$, $bindings$, $construct$, $upload$, $delete$):
+// {$sparqlFinalResult$, :bot} := $\textrm{SEnTriQ}$.generateFinalResult($triplestoreID$, $variables$, $queryType$, $bindings$, $construct$, $upload$, $delete$):
 function generateFinalResult($triplestoreID$, $queryType$, $variables$, $bindings$, $construct_{template}$, $upload_{template}$, $delete_{template}$, $scheme$)
     if $queryType$ == "SELECT":
         return generateSELECTResults($variables$, $bindings$)

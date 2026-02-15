@@ -1,6 +1,6 @@
 State:
     $storageEngine$ := createStorageEngine()
 
-// $\{ searchID, \; \bot \} \leftarrow \textrm{SSE-SPARQL-EVAL}.PrepareBindings([E(binding_0),...,E(binding_n)])$
+// $\{ searchID, \; \bot \} \leftarrow \textrm{SEnTriQ}.PrepareBindings([E(binding_0),...,E(binding_n)])$
 function prepareBindings($bindings$):
     return $storageEngine$.save($bindings$) 
