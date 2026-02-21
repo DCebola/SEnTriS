@@ -215,25 +215,24 @@ Now that we have explained how we manage access in the \gls{M/M} setting, we are
 \begin{definition}[\textbf{SEnTriS}]\label{ch4:definition:SEnTriS}
     Let \gls{SEnTriS} be a protocol that supports the collaborative development and sharing of \gls{SEnTriQ} encrypted triplestores . It is a tuple $\textrm{SEnTriS} = (\textrm{IAM}.Init, \linebreak \textrm{IAM}.CreateSession, \; \textrm{IAM}.SaveUser, \; \textrm{IAM}.DeleteUser, \; \textrm{IAM}.IssueGrantRoleRequest, \linebreak \textrm{IAM}.GetPendingRoleRequests, \; \textrm{IAM}.ProcessRoleRequest, \; \textrm{IAM}.CreateTriplestoreAccess\textrm{-}\linebreak List, \; \textrm{IAM}.GetTriplestores, \; \textrm{IAM}.GetUsersWithAccess, \; \textrm{IAM}.ChangeTriplestoreOwner, \linebreak \textrm{IAM}.DeleteTriplestoreAccessList, \; \textrm{IAM}.GrantTriplestoreAccess, \; \textrm{IAM}.RevokeTriple\textrm{-}\linebreak storeAccess, \; \textrm{IAM}.IssueAccessRequest, \; \textrm{IAM}.GetPendingAccessRequests, \; \textrm{IAM}.Process\textrm{-}\linebreak AccessRequest, \; \textrm{IAM}.CreateAccessToken, \; \textrm{IAM}.DeleteAccessToken, \; \textrm{IAM}.CheckRead\textrm{-}\linebreak Access, \; \textrm{IAM}.CheckWriteAccess, \; \textrm{IAM}.CheckOwnerAccess, \; \textrm{IAM}.CheckI\textrm{\emph{f}}Active, \; \textrm{IAM}.\textrm{-}\linebreak AcquireTriplestoreLock, \; \textrm{IAM}.ReleaseTriplestoreLock, \; \textrm{IAM}.Auth, \; \textrm{IAM}.RegisterUser, \linebreak \textrm{IAM}.UnregisterUser, \; \textrm{IAM}.IssueUpgradeRequest, \; \textrm{IAM}.issueDowngradeRequest, \; \textrm{IAM}.\textrm{-}\linebreak ListPendingRoleRequests, \; \textrm{IAM}.IssueRoleDecision, \; \textrm{IAM}.ListTriplestores, \; \textrm{IAM}.Update\textrm{-}\linebreak TriplestoreOwner, \; \textrm{IAM}.GrantAccess, \; \textrm{IAM}.RevokeAccess, \; \textrm{IAM}.RequestAccess, \; \textrm{IAM}.List\textrm{-}\linebreak PendingAccessRequests, \; \textrm{IAM}.IssueAccessDecision, \; \textrm{IAM}.ListUsersWithAccess, \; \textrm{IAM}.\textrm{-}\linebreak SaveSecrets, \; \textrm{IAM}.DeleteSecrets, \; \textrm{IAM}.GetSecrets, \; \textrm{SSE-TP}.Setup, \; \textrm{SSE-TP}.ReInitialize, \linebreak \textrm{SSE-TP}.Encrypt, \; \textrm{SSE-TP}.Decrypt, \; \textrm{SSE-TP}.Trapdoor, \; \textrm{SSE-TP}.Upload, \; IAM.CreateTriple\textrm{-}\linebreak store, \; UploadTriples, \; DeleteTriplestore, \; SearchSchema, \; ExecuteSPARQLQuery, \; Pre\textrm{-}\linebreak pareSearch, \; Search, \; PrepareUpload, \; PrepareDelete, \; Update, \; DeleteAll, \; PrepareBind\textrm{-}\linebreak ings, \; EvaluateQuery)$ of 62 algorithms where:
 
-    \begin{itemize}
+        \begin{itemize}
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{UploadTriples(cookie, \; triplestoreID, \; [t_0, t_1, ..., t_n], \; schema)}$: \linebreak Takes as input a cookie, a triplestore identifier, a set of triples and a boolean parameter, which is set to true if the triples are schema triples. If $schema$ is false generates a \gls{SPARQL} Update query with the provided triples, and executes SEnTriS.$Execute\textrm{-}\linebreak SPARQLQuery$. If $schema$ is true, tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestore\textrm{-}\linebreak Lock$ request. Upon successfully generating the token, and locking the triplestore, issues a IAM.$GetSecrets$ request and executes SSE-TP.$ReInitialize$. With the encryption scheme fully initialized, executes a modified implementation of SSE-TP.$Upload$ where the issued requests follow the definitions of SEnTriS.$PrepareDelete$, SEnTriS.-\linebreak$PrepareUpload$ and SEnTriS.$Update$. In case of any error, issues a IAM.$DeleteAc\textrm{-}\linebreak cessToken$ and outputs $\bot$.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{UploadTriples(cookie, \; triplestoreID, \; [t_0, t_1, ..., t_n], \; schema)}$: \linebreak Takes as input a cookie, a triplestore identifier, a set of triples and a boolean parameter, which is set to true if the triples are schema triples. If $schema$ is false generates a \gls{SPARQL} Update query with the provided triples, and executes SEnTriQ.$Execute\textrm{-}\linebreak SPARQLQuery$. If $schema$ is true, tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestore\textrm{-}\linebreak Lock$ request. Upon successfully generating the token, and locking the triplestore, issues a IAM.$GetSecrets$ request and executes SSE-TP.$ReInitialize$. With the encryption scheme fully initialized, executes a modified implementation of SSE-TP.$Upload$ where the issued requests follow the definitions of SEnTriQ.$PrepareDelete$, SEnTriQ.-\linebreak$PrepareUpload$ and SEnTriQ.$Update$. In case of any error, issues a IAM.$DeleteAc\textrm{-}\linebreak cessToken$ and outputs $\bot$.
+        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteTriplestore(cookie, \; triplestoreID)}$: Takes as input the \linebreak triplestore identifier. Tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestoreLock$ request. Upon successful generation of the access token, and locking of the triplestore, issues a SEnTriS.$DeleteAll$, followed by the issuing of a IAM.$DeleteSecrets$ request and a IAM.$DeleteTriplestoreAccessList$ request. Outputs SUCCESS if the triplestore is deleted, $\bot$ otherwise. In case of any error, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
 
-        \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{DeleteTriplestore(cookie, \; triplestoreID)}$: Takes as input the \linebreak triplestore identifier. Tries to create an access token and lock the triplestore, by issuing a IAM.$CreateAccessToken$ followed by a IAM.$AcquireTriplestoreLock$ request. Upon successful generation of the access token, and locking of the triplestore, issues a SEnTriQ.$DeleteAll$, followed by the issuing of a IAM.$DeleteSecrets$ request and a IAM.$DeleteTriplestoreAccessList$ request. Outputs SUCCESS if the triplestore is deleted, $\bot$ otherwise. In case of any error, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
-
-        \item $\{[t_0, t_1, ..., t_n], \; \bot\} \leftarrow \mathbf{SearchSchema(cookie, \; triplestoreID)}$: Takes as input a cookie, a triplestore identifier. Tries to create an access token, by issuing a IAM.$CreateAc\textrm{-}\linebreak cessToken$ request. Upon successful generation of the token, executes a modified implementation of SSE-TP.$SearchSchema$, where the search requests issued follow the SEnTriQ.$Search$ definition. Outputs a collection of triples. In case of any error, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
+        \item $\{[t_0, t_1, ..., t_n], \; \bot\} \leftarrow \mathbf{SearchSchema(cookie, \; triplestoreID)}$: Takes as input a cookie, a triplestore identifier. Tries to create an access token, by issuing a IAM.$CreateAc\textrm{-}\linebreak cessToken$ request. Upon successful generation of the token, executes a modified implementation of SSE-TP.$SearchSchema$, where the search requests issued follow the SEnTriS.$Search$ definition. Outputs a collection of triples. In case of any error, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
         
-        \item $\{sparqlFinalResult, \; \bot\} \leftarrow \mathbf{ExecuteSPARQLQuery(cookie, \; query, \; triplestoreID,}$ \linebreak $\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: Takes as input a cookie, a \linebreak \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered.  Firstly, the client will try to generate an access token, by issuing a IAM.$CreateAccessToken$ request, if it is a \gls{SPARQL} update query it will also issue a IAM.$AcquireTriplestoreLock$ request to lock the triplestore. Upon the successful generation of the access token, it will issue a IAM.$GetSecrets$ request to fetch the secrets and execute SSE-TP.$ReInitialize$. If no error occurs, it starts executing the SEnTriQ.$GeneratePlan$, followed by a modified implementation of SEnTriQ.$PreparePlan$, where requests issued follow the definition of SEnTriQ.$PrepareSearch$, and carry the access token. Issues a SEnTriQ.$EvaluateQuery$ request and, upon receiving the encrypted bindings, executes SEnTriQ.$GenerateFinalResult$. In case of success, outputs a $sparqlFinalResult$. If any error occurs, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
+        \item $\{sparqlFinalResult, \; \bot\} \leftarrow \mathbf{ExecuteSPARQLQuery(cookie, \; query, \; triplestoreID,}$ \linebreak $\mathbf{ inference, \; expansionDepth, \; transitivityDepth)}$: Takes as input a cookie, a \linebreak \gls{SPARQL} query, a triplestore identifier, a boolean which indicates if the query needs to be rewritten and two integer parameters that control the rewriting depth. The $expansionDepth$ specifies the number of rounds and the $transitivityDepth$ specifies the number of transitivity relationships to considered.  Firstly, the client will try to generate an access token, by issuing a IAM.$CreateAccessToken$ request, if it is a \gls{SPARQL} update query it will also issue a IAM.$AcquireTriplestoreLock$ request to lock the triplestore. Upon the successful generation of the access token, it will issue a IAM.$GetSecrets$ request to fetch the secrets and execute SSE-TP.$ReInitialize$. If no error occurs, it starts executing the SEnTriQ.$GeneratePlan$, followed by a modified implementation of SEnTriQ.$PreparePlan$, where requests issued follow the definition of SEnTriS.$PrepareSearch$, and carry the access token. Issues a SEnTriS.$EvaluateQuery$ request and, upon receiving the encrypted bindings, executes SEnTriQ.$GenerateFinalResult$. In case of success, outputs a $sparqlFinalResult$. If any error occurs, issues a IAM.$DeleteAccessToken$ and outputs $\bot$.
         
         %Triplestore algorithms
 
-        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareSearch(triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n], }$ \linebreak $\mathbf{ at)}$: Takes as input a triplestore identifier, a masking value, a collection of trapdoors and an access token. If the provided access token has sufficient permissions, executes a modified implementation of SEnTriQ.$PrepareSearch$ where the requests issued follow the definition of SEnTriQ.$PrepareBindings$. Outputs the received result.
+        \item $\{ searchID, \; \bot \} \leftarrow \mathbf{PrepareSearch(triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n], }$ \linebreak $\mathbf{ at)}$: Takes as input a triplestore identifier, a masking value, a collection of trapdoors and an access token. If the provided access token has sufficient permissions, executes a modified implementation of SEnTriQ.$PrepareSearch$ where the requests issued follow the definition of SEnTriS.$PrepareBindings$. Outputs the received result.
 
         \item $\{[E(node_0), ..., E(node_n)], \; \bot\} \leftarrow \mathbf{Search(triplestoreID, \; [trapdoor_0, ..., trapdoor_n], \; at)}$: \linebreak Takes as input the triplestore identifier, a collection of trapdoors and an access token. Issues a IAM.$CheckReadAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, executes SSE-TP.$Search$ and outputs the result.
 
-        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes), \; at)}$: Takes as input the triplestore identifier, a map of encrypted nodes, indexed by trapdoors, and an access token. Issues a IAM.$CheckWriteAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, starts execution and executes SSE-TP.$PrepareUpload$ . Outputs the identifiers of the uploads to be applied during the execution of a SEnTriQ.$Update$ operation, $\bot$ in case of an error.
+        \item $\{uploadID, \bot\} \leftarrow \mathbf{PrepareUpload(triplestoreID, \; E(nodes), \; at)}$: Takes as input the triplestore identifier, a map of encrypted nodes, indexed by trapdoors, and an access token. Issues a IAM.$CheckWriteAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, starts execution and executes SSE-TP.$PrepareUpload$ . Outputs the identifiers of the uploads to be applied during the execution of a SEnTriS.$Update$ operation, $\bot$ in case of an error.
 
-        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n], \; at)}$: \linebreak Takes as input the triplestore identifier, a collection of trapdoors, whose entries should be deleted, and an access token. Issues a IAM.$CheckWriteAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, executes SSE-TP.$PrepareDelete$ and outputs the identifier of the deletions to be applied during the execution of a SEnTriQ.$Update$ operation, $\bot$ in case of an error.
+        \item $\{deletionID, \bot\} \leftarrow \mathbf{PrepareDelete(triplestoreID, \; [trapdoor_0, ..., trapdoor_n], \; at)}$: \linebreak Takes as input the triplestore identifier, a collection of trapdoors, whose entries should be deleted, and an access token. Issues a IAM.$CheckWriteAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, executes SSE-TP.$PrepareDelete$ and outputs the identifier of the deletions to be applied during the execution of a SEnTriS.$Update$ operation, $\bot$ in case of an error.
 
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Update(triplestoreID, \; [uploadID_0, ..., uploadID_n], \; [deletionID_0,}$ \linebreak $\mathbf{ ..., deletionID_n], \; at)}$: Takes as input the triplestore identifier, a collection of upload identifiers, a collection of deletion identifiers and an access token. Issues a IAM.$CheckWriteAccess$ request to validate if the access token has sufficient permission against the specified triplestore. In case of a positive result, executes SSE-TP.$Update$ and outputs the result.
 
@@ -246,13 +245,13 @@ Now that we have explained how we manage access in the \gls{M/M} setting, we are
         \item $\{E(sparqlResult), \; \bot\} \leftarrow \mathbf{EvaluateQuery(preparedPlan_{rnd}, \; K, \; at)}$: Takes as input a randomized prepared query execution plan, a secret key and an access token. Issues a IAM.$CheckI\textrm{\emph{f}}Active$ request to validate if the access token is still active. In case of a positive result, executes SEnTriQ.$EvaluateQuery$ and outputs the results.
     \end{itemize}
 
-    \gls{SEnTriS} is distributed, multi-party protocols between a \emph{client}, a \emph{IAM provider}, a \emph{vault}, a \emph{triplestore} and a secure computation \emph{proxy} component. The client is the public facing component, that users interact with. It provides a unified view of the system (hiding the internal communication logic and interaction between the other components) and abstracts the logic for generating access tokens and locking resources. It is also responsible for the encryption and decryption of data, as well as, generation of trapdoors. During query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers if necessary). The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. The vault component stores and distributes triplestore secrets. Search and storage of encrypted data is scoped to the triplestore component. Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
+    \gls{SEnTriS} is distributed, multi-party protocol between a \emph{client}, a \emph{IAM provider}, a \emph{vault}, a \emph{triplestore} and a secure computation \emph{proxy} component. The client is the public facing component, that users interact with. It provides a unified view of the system (hiding the internal communication logic and interaction between the other components) and abstracts the logic for generating access tokens and locking resources. It is also responsible for the encryption and decryption of data, as well as, generation of trapdoors. During query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers if necessary). The IAM provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources. The vault component stores and distributes triplestore secrets. Search and storage of encrypted data is scoped to the triplestore component. Finally, the secure computation proxy evaluates query execution plans, over encrypted bindings.
 
 \end{definition}
 
+\pagebreak
 
-
-\section{General Considerations}
+\section{General Implementation Considerations}
 
 The Semantic Web domain is still in development, as such the choice of available technology is limited. This created a few challenges during the implementation of \gls{SEnTriS}.
 
@@ -296,18 +295,25 @@ We separate the component logic between two layers, the presentation and applica
 
 \section{Component Architecture \& Implementation Details}
 
-In this section, we will dive into the implementation the \gls{SEnTriS} components. For each one, we will describe their architecture and provide explanation about relevant implementation details. We will focus on providing mappings between the implementation and formal abstractions and algorithms, rather than describing and explaining code. The reasoning behind this approach, is that the code implementation follows closely the formal algorithms, for which we have provided extensive pseudocode listings.
+In this section, we will dive into the implementation the \gls{SEnTriS} components. For each one, we will describe their architecture and provide explanation about relevant implementation details. We will focus on providing mappings between the implementation and the protocol algorithms, rather than describing and explaining code. The reasoning behind this approach, is that the code implementation follows closely the formal algorithms, for which we have provided extensive pseudocode listings.
 
 \subsection{Client}
 
 The client is the public facing component of \gls{SEnTriS}. It provides a unified view of the system and abstracts any internal logic from the underlying protocol. It is responsible for the encryption and decryption of data, and generation of trapdoors. Furthermore, during query evaluation, it constructs, and prepares, the query execution plan and computes the final results (applying solution modifiers when necessary).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapter4/client-presentation.png}
+    \caption{Client Presentation Layer.}
+    \label{fig:client-presentation-layer}
+\end{figure}
 
 \paragraph*{Presentation Layer} Figure \ref{fig:client-presentation-layer} shows the Client presentation layer. It exposes three different \gls{API}s: the \emph{UserAPI}; the \emph{TriplestoreAPI}; and the \emph{EncryptedTriplestoreAPI}.
 
 
 The first two expose the entry points for the \gls{IAM} algorithms, whereas the latter is scoped to the data management and query algorithms.
 
-More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints used to querying plaintext triplestores, following the SPARQL-EVAL protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
+More specifically, the \emph{UserAPI} contains the endpoints related to authentication and user  management. The \emph{TriplestoreAPI} is composed by the endpoints related to triplestore access management and sharing. Additionally, it also exposes endpoints used for querying plaintext triplestores, following the SPARQL-EVAL-II protocol. This functionally has been used for testing and validation of the query results obtained from \gls{SEnTriS}. Finally, the \emph{EncryptedTriplestoreAPI} contains the endpoints which allow an authenticated user to create and delete encrypted triplestores, upload, modify or delete their data, and execute encrypted \gls{SPARQL} queries, with or without reasoning.
 
 We will now provide a mapping between the \gls{API}s and the formal algorithms from the \gls{SEnTriS} protocol:
 
@@ -320,21 +326,7 @@ We will now provide a mapping between the \gls{API}s and the formal algorithms f
 
 \end{itemize}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{chapter4/client-presentation.png}
-    \caption{Client Presentation Layer.}
-    \label{fig:client-presentation-layer}
-\end{figure}
-
 \paragraph*{Application Layer} Figure \ref{fig:client-application-layer} shows the Client application layer, where we implement all the internal components and libraries. These are grouped into four domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Query} and \emph{Ontologies}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{chapter4/client-application.png}
-    \caption{Client Application Layer.}
-    \label{fig:client-application-layer}
-\end{figure}
 
 In the \emph{Communication Clients} domain, we implement the clients that abstract the internal communication between \gls{SEnTriS} components. Compared to the other three components, which have a single \gls{API} each, the Triplestore component exposes three. One is used for querying plaintext triplestores (during testing) and the other two for querying encrypted triplestores (one per version of the \gls{SEnTriS} protocol, respectively). Consequently, we have three Triplestore clients and one \gls{IAM}, one Vault, and one Proxy client.
 
@@ -344,11 +336,18 @@ In the \emph{Query} domain we, implement all logical components scoped to query 
 
 Finally, in the \emph{Ontologies} domain, we implement the ontology abstractions, used for query rewriting. The \emph{DefaultOntology} is used by the \emph{DefaultSPARQLPlanner}, whereas the \emph{SecureOntology} is used by the \emph{SecureSPARQLPlanner}.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chapter4/client-application.png}
+    \caption{Client Application Layer.}
+    \label{fig:client-application-layer}
+\end{figure}
+
 \subsection{Triplestore} This component stores the triplestores' encrypted data. Furthermore, it supports read and atomic write operations against the stored data. 
 
 \paragraph*{Presentation Layer} Figure \ref{fig:triplestore-presentation-layer} shows the triplestore presentation layer. It exposes two different \gls{API}s: the \emph{Triplestore API}; and the \emph{EncryptedTriplestoreAPI}.
 
-The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL protocol.
+The \emph{Triplestore API} is used only for testing. It has endpoints that allow an authenticated user to upload, delete and execute \gls{SPARQL} queries against plaintext triplestores, following the SPARQL-EVAL-II protocol.
 
 The \emph{EncryptedTriplestoreAPI} contains the endpoints for the SEnTriS.$PrepareSearch$, SEnTriS.$Search$, SEnTriS.$PrepareUpload$, SEnTriS.$PrepareDelete$, SEnTriS.$Update$, SEn\textrm{-}\linebreak.TriS.$DeleteAll$ algorithms. 
 
@@ -372,11 +371,8 @@ In the \emph{Communication Clients} domain, we implement the clients that abstra
 
 Under the \emph{Query} domain, we implement the logical components scoped to plaintext \gls{SPARQL} query evaluation: the query plan, execution, worker, jobs and result. The \emph{DefaultSPARQLExecution} implements the plan execution and work delegation logic. The \emph{DefaultSPARQLWorker} implements the execution of query jobs.
 
-Finally, in the \emph{Storage} domain, we implement the storage components for both the SPARQL-EVAL and \gls{SEnTriS} protocols. The \emph{TriplestoreStorageEngine} implements the indexing and storage algorithms of SPARQL-EVAL. Additionally, the \emph{MemBindingsTable} is the auxiliary data structure against which the query worker executes set operations.
+Finally, in the \emph{Storage} domain, we implement the storage components for both the SPARQL-EVAL-II and \gls{SEnTriS} protocols. The \emph{TriplestoreStorageEngine} implements the indexing and storage algorithms of SPARQL-EVAL-II. Additionally, the \emph{MemBindingsTable} is the auxiliary data structure against which the query worker executes set operations.
 The \emph{EncryptedTriplestoreStorageEngineV1} and \emph{EncryptedTriplestoreStorageEngineV2} implement, respectively, the data storage and retrieval algorithms of \gls{SEnTriS} V1 and \gls{SEnTriS} V2.
-
-\vfill
-\pagebreak
 
 \subsection{IAM Provider} The \gls{IAM} provider validates sessions, manages user data and triplestore access policies, stores role and permission change requests, validates permission rules, emits session cookies and ephemeral access tokens, validates access requests and controls the locking and unlocking of resources.
 
@@ -395,8 +391,12 @@ The initialization procedure of the \gls{IAM} component, where a new admin user 
     \label{fig:iam-presentation-layer}
 \end{figure}
 
-
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{chapter4/iam-application.png}
+    \caption{\gls{IAM} Provider Application Layer.}
+    \label{fig:iam-application-layer}
+\end{figure}
 
 \paragraph*{Application Layer} Figure \ref{fig:iam-application-layer} shows the \gls{IAM} provider application layer, where we implement its internal components and libraries. These are grouped into two domains: \emph{Storage} and \emph{Cryptography}.
 
@@ -404,14 +404,9 @@ In the \emph{Cryptography} domain, we implement the operations related password 
 
 Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} and \emph{LocksClient} components. The first contains the logic for the creation, update and retrieval of user data and triplestore \gls{ACL}s. The second is where we define the resource locking operations. 
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{chapter4/iam-application.png}
-    \caption{\gls{IAM} Provider Application Layer.}
-    \label{fig:iam-application-layer}
-\end{figure}
-\vfill
-\pagebreak
+\subsection{Proxy}  The secure computation proxy evaluates query execution plans over encrypted bindings.
+
+\paragraph*{Presentation Layer} Figure \ref{fig:proxy-presentation-layer} shows the Proxy presentation layer. It exposes one single \gls{API}: the \emph{QueriesAPI}. This \gls{API} contains the endpoints for the SEnTriS.$PrepareBindings$ and SEnTriS.$EvaluateQuery$ algorithms.
 
 \begin{figure}[H]
     \centering
@@ -419,10 +414,6 @@ Finally, in the \emph{Storage} domain, we implement both the \emph{IAMStorage} a
     \caption{Proxy Presentation Layer.}
     \label{fig:proxy-presentation-layer}
 \end{figure}
-
-\subsection{Proxy}  The secure computation proxy evaluates query execution plans over encrypted bindings.
-
-\paragraph*{Presentation Layer} Figure \ref{fig:proxy-presentation-layer} shows the Proxy presentation layer. It exposes one single \gls{API}: the \emph{QueriesAPI}. This \gls{API} contains the endpoints for the SEnTriS.$PrepareBindings$ and SEnTriS.$EvaluateQuery$ algorithms.
 
 \paragraph*{Application Layer} Figure \ref{fig:proxy-application-layer} shows the  Proxy application layer, where we implement its internal components and libraries. These are grouped into three domains: \emph{Communication Clients}; \emph{Cryptography}; \emph{Storage} and \emph{Query}.
 
