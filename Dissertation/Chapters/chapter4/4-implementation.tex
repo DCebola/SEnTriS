@@ -6,16 +6,18 @@
 
 \prependtographicspath{{Figures/}}
 
-In this chapter we will present the implementation scenario, and the adaptations to the formal solutions. We will explain general considerations regarding technology limitations, challenges, design and architectural choices. Furthermore, for each component of the final solution, we will specify their internal architecture, exposed API and relevant details on how component specific challenges were resolved.
+In this chapter we will present the implementation scenario, and the adaptations to the formal solution. We will explain general considerations regarding technology limitations, challenges, design and architectural choices. Furthermore, for each component of the final solution, we will specify their internal architecture, exposed API and relevant details on how specific challenges were resolved.
 
 \section{Implementation Scenario: SEnTriS, a naive triplestore sharing protocol}
 
+The formal solution scoped to this thesis, will be the \gls{SEnTriQ} protocol, for which we will prove its security properties. Nevertheless, we experimented with a more realistic implemantation scenario, a very simple extension of the \gls{SEnTriQ} protocol to the \gls{M/M} setting. We denominate this new protocol: \gls{SEnTriS}. It is a naive sharing protocol of encrypted triplesores, by means of secret sharing, that introduces \gls{RBAC} features as well.
+
 \subsection{The M/M Setting}
-\label{ch3:sec:solution-definition:mm-setting}
+\label{ch4:sec:implementation:mm-setting}
 
-So far we have specified the building blocks for the secure evaluation of \gls{SPARQL} queries, but \gls{SEnTriS} is not solely a query evaluation protocol. It is also a triplestore management and sharing protocol: users can create, manage and share encrypted triplestores with varying degrees of access.
+So far we have specified the building blocks for the secure evaluation of \gls{SPARQL} queries, with the \gls{SEnTriQ} protocol. However, the implemented solution, \gls{SEnTriS}, is also a triplestore management and sharing protocol: authenticated users can create, manage and share encrypted triplestores with varying degrees of access.
 
-To adapt the previous protocols to the \gls{M/M} setting we will introduce an identity and access management protocol, with secret sharing between authorized users.
+To adapt \gls{SEnTriQ} to the \gls{M/M} setting we will introduce a naive identity and access management protocol, with secret sharing between authorized users.
 
 Authentication is validated with \emph{sessions}, management of access to triplestores is supported with the definition of triplestore \glsxtrlong{ACL}s and strict enforcement of permissions.
 Furthermore, to ensure that concurrent access is done in a controlled and safe manner, we rely on a lock-based access strategy, and \emph{ephemeral access tokens}.
@@ -28,8 +30,28 @@ Finally, roles grant different execution rights to users, which restrict the typ
 
 \emph{Admin} users possess all the permissions of a \emph{privileged} user, but they are also able to manage any triplestore and process role change requests.
 
+\subsection{Extended Core Elements}
+To define \gls{SEnTriS} we will need to slightly alter the data structure used in \gls{SEnTriQ}. 
 
-\begin{definition}[\textbf{Identity and Access Management Protocol with Secret Sharing}]\label{ch3:definition:iam-protocol}
+\paragraph{Triplestores} A \gls{RDF} dataset within \gls{SEnTriS} is represented as a single named triplestore. A triplestore $T = (triplestoreID,\; nodes, \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $nodes = \{(idx_{0}, node_{0}), ... ,(idx_{n},\allowbreak node_{n})\}$ is a map of predicate, subject or object \emph{nodes}, $node \in I \cup B \cup L$, and each node is uniquely identified by its pattern index, $idx$, which is a hash of the \emph{triple pattern}. The $acl$ is the triplestore's \gls{ACL}.
+
+\paragraph{Triplestore Access Control List} A triplestore's \gls{ACL} $acl = (owner, \; read,\; write,\; acrl)$, is a tuple where $owner$ is the username of the owner of the triplestore, $read$ and $write$ are both collections of usernames and $acrl$ is a collection of \emph{access change requests}. An access change request $accessRequest = (requestID, \; username, \; write)$ is a tuple where $requestID$ is a \gls{UUID} (version 4) \autocite{Leach2005-rf}, $username$ identifies the user that this request affects and $write$ is a boolean, that specifies if the user desires write access (true) or read access (false).
+
+\paragraph{Encrypted Triplestores} An encrypted triplestore $E(T) = (triplestoreID,\; E(nodes), \; acl)$ is a key value store, where $triplestoreID$ is a unique string that identifies the dataset, $E(nodes)$ is an encrypted map of predicate, subject or object \emph{nodes} and the $acl$ is the triplestore's \gls{ACL}. $E(nodes)$ will be defined in Section \ref{chapter3:definition:triple-pattern-encryption-schemes}
+
+\paragraph{Users} A user $u = (username, \; password, \; owned, \; role)$ is a tuple, where $username$ and $password$ are unique strings, $owned = [triplestoreID_0,...,triplestoreID_n]$ is a collection of user's owned triplestores identifiers and $role$ is the user's role.
+
+\paragraph{Role Change Request} A role change request $roleRequest = (requestID, username, role)$ is a tuple where $requestID$ is a \gls{UUID} (version 4), $username$ identifies the user that this request affects and $role$ specifies the desired new role.
+
+\paragraph{Sessions} A user's session $s = (sessionID,\; username)$ is a tuple, where  $sessionID$ is a \gls{UUID} (version 4), $username$ belongs to a valid registered $user$. Sessions remain active until they expire, or are terminated. The duration of a session will be configurable.
+
+\paragraph{Locks} A lock is $l = (lockID,\; resourceID)$ is a tuple, where  $lockID$ is a \gls{UUID} (version 4) and $resourceID$ is either a valid $username$ or $triplestoreID$. Locks remain valid until they expire, or are released. The duration of a lock will be configurable.
+
+\paragraph{Ephemeral Access tokens} An access token $at = (tokenID, \; username, \; sessionID, \linebreak triplestoreID, \; lockID)$ is a tuple, where $tokenID$ is a \gls{UUID} (version 4), $username$ is the identifier of the user who holds the token, $sessionID$ is the identifier of the token holder's active session, at the time of its creation, $triplestoreID$ is the identifier of the triplestore whose access is being requested and $lockID$ can either be $\bot$ (for \emph{read} access requests) or the identifier of the current lock, against the targeted triplestore (for \emph{write} access requests). Access tokens are ephemeral and will expire after a certain amount of configurable time.
+
+\paragraph{Secret Maps} A secret map $smap = (triplestoreID, \; secrets)$ is a tuple where $triplestoreID$ is the identifier of an existing triplestore, $secrets = \{(key_0, \; secret_0), ..., \allowbreak (key_n, \; secret_n)\}$ is a map and $key_i$ is a unique string that identifies $secret_i$, the serialized value of a secret parameter.
+
+\begin{definition}[\textbf{Identity and Access Management Protocol with Secret Sharing}]\label{ch4:implementation:iam-protocol}
     Let IAM be an identity and access management protocol between authenticated users, where temporary access to triplestores is granted using ephemeral access tokens. It is a tuple $\textrm{IAM} = (Init, \; CreateSession, \; SaveUser, \; DeleteUser, \; IssueGrantRoleRequest, \; GetPend\textrm{-}\linebreak ingRoleRequests, \; ProcessRoleRequest, \; CreateTriplestoreAccessList, \; GetTriplestores, \linebreak GetUsersWithAccess, \; ChangeTriplestoreOwner, \; DeleteTriplestoreAccessList, \; Grant\textrm{-}\linebreak TriplestoreAccess, \; RevokeTriplestoreAccess, \; IssueAccessRequest, \; GetPendingAccessRe\textrm{-}\linebreak quests, \; ProcessAccessRequest, \; CreateAccessToken, \; DeleteAccessToken, \; CheckReadAc\textrm{-}\linebreak cess, \; CheckWriteAccess, \; CheckOwnerAccess, \; CheckI\textrm{\emph{f}}Active, \; AcquireTriplestoreLock, \linebreak ReleaseTriplestoreLock, \; Auth, \; RegisterUser, \; UnregisterUser, \; IssueUpgradeRequest, \linebreak IssueDowngradeRequest, \; ListPendingRoleRequests, \; IssueRoleDecision, \; ListTriple\textrm{-}\linebreak stores, \; UpdateTriplestoreOwner, \; GrantAccess, \; RevokeAccess, \; RequestAccess, \; ListPend\textrm{-}\linebreak ingAccessRequests, \; IssueAccessDecision, \; ListUsersWithAccess, \; CreateTriplestore, \linebreak DeleteTriplestore, \; SaveSecrets, \; DeleteSecrets, \; GetSecrets, \; SSE\textrm{-}TP.Setup)$ of 46 algorithms where:
     \begin{itemize}
         \item $\{\textrm{SUCCESS}, \bot\} \leftarrow \mathbf{Init()}$: initializes the protocol by registering a default admin user. Outputs $\textrm{SUCCESS}$ if the user is created and registered, $\bot$ otherwise.
