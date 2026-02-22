@@ -653,6 +653,6 @@ Both implementations come with a trade-off between security and performance.
 
 \gls{SEnTriQ} V1 provides data confidentiality, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore, which allows the computation of the frequency distribution of all observed terms and simplifying the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
 
-\gls{SEnTriQ} V2 also provides provides data confidentiality, and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
+\gls{SEnTriQ} V2 provides provides data confidentiality and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
 
 From the experimental evaluation results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
