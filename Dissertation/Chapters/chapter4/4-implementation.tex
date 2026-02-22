@@ -456,10 +456,8 @@ In the \emph{Storage} domain, we implement the \emph{VaultStorage}. This compone
     \label{fig:vault-application-layer}
 \end{figure}
 
-\section{Summary} In this Section, we started by specifying the implementation scenario: collaborative development of encrypted triplestores, by means of secret sharing and the usage of the \gls{SEnTriQ} protocol.
+\section{Summary} In this Section, we started by specifying the implementation scenario. Consequently, we defined two new protocols: a very naive \gls{IAM} protocol; and \gls{SEnTriS}, an adaptation of \gls{SEnTriQ} to the \gls{M/M} setting, using the former \gls{IAM} protocol.
 
-Consequently, we defined two new protocols: a very naive \gls{IAM} protocol;and \gls{SEnTriS}, an adaptation of \gls{SEnTriQ} to the \gls{M/M} setting, using the former \gls{IAM} protocol.
+Furthermore, we presented the technology stack used, mentioned the reasoning behind each teachnology choice and presented their limitations. We then explained the general design and architecture of a \gls{SEnTriS} component.
 
-Furthermore, we presented the technology stack used, mentioning the reasoning behind each technology choice and presenting any limitations found. We then explained the general design and architecture of a \gls{SEnTriS} component.
-
-We finished with an explanation of the internal architecture of each of the \gls{SEnTriS} components. For each component, we described their \emph{Presentation} and \emph{Application} layers, presenting mappings between the implementation, algorithms and abstractions found in \gls{SEnTriS}.
+We finished with an explanation of the internal architecture of the implemented components. For each, we described their \emph{Presentation} and \emph{Application} layers and presented mappings between the implementation and formal algorithms and abstractions.
