@@ -473,7 +473,7 @@ We have defined the security model in Section \ref{ch3:sec:solution-models:secur
 
 \subsubsection{Leakage Definition}
 
-Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
+Let $T(n)$, $E(n)$, $T(eq)$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
 
 Furthermore, $n$ is a $k$-bit \gls{RSA} modulus, $m' \in \mathbb{Z}^*_n$ is a masking value and the multiplicative blinding operator is denoted as $B(\cdot)$. The encryption and decryption schemes are specified as $E_{\text{CRYPTO}}(\cdot)$ and $D_{\text{CRYPTO}}(\cdot)$, where $\text{CRYPTO}$ is the cryptographic algorithm. The cryptographic keys are specified as $K_{\text{CRYPTO}}$. 
 
@@ -630,13 +630,9 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
 \subsection{Security Properties}
 
-From the security analysis of the SEnTriQ protocol, and taking into account the \gls{RBAC} features of \gls{SEnTriQ} we can now define a set of security properties:
+Given the security guaranties of \gls{SEnTriQ} we can now define a set of security properties:
 
 \begin{enumerate}
-    \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
-    \item A user will be able to interact with a triplestore, if and only if they have a valid access token.
-    \item A user will not be able to query triplestores which they have not been given access to.
-    \item A user will only be able to execute operations according to its role.
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component.
     \item An attacker will not be able to tamper with messages sent between components.
@@ -648,15 +644,15 @@ From the security analysis of the SEnTriQ protocol, and taking into account the 
         \end{enumerate}
 \end{enumerate}
 
-Properties 1-4 are derived from the \gls{RBAC} features of \gls{SEnTriQ}, properties 5-7 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Finally, property 8-9 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SEnTriQ protocol.
+Properties 1, 2 and 3 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Properties 4 and 5 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SEnTriQ protocol.
 
 \section{Final Discussion}
 \label{ch5:final-discussion}
 
-Both implementations come with a trade-off between security guaranties and performance.
+Both implementations come with a trade-off between security and performance.
 
-\gls{SEnTriQ} V1 provides both data confidentiality and access control, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
+\gls{SEnTriQ} V1 provides data confidentiality, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore, which allows the computation of the frequency distribution of all observed terms and simplifying the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
 
-\gls{SEnTriQ} V2 provides both data confidentiality, access control and \gls{IND-CKA2} security. This is achieved at the cost of an increase in time and space complexity.
+\gls{SEnTriQ} V2 also provides provides data confidentiality, and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
 
-From the \gls{LUBM} benchmark results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
+From the experimental evaluation results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
