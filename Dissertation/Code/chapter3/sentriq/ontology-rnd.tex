@@ -1,0 +1,51 @@
+State:
+    $subClasses$ := {}
+    $equivalentClasses$ := {}
+    $classRestrictions$ := {}
+    $intersectionClasses$ := {}
+    $intersectionsWhereClassIsOperand$ := {}
+    $subProperties$ := {}
+    $equivalentProperties$ := {}
+    $inverseProperties$ := {}
+    $symmetricProperties$ := createLinkedList()
+    $transitiveProperties$ := createLinkedList()
+    $transitivityDepth$ := :bot
+    $expansionDepth$ := :bot
+
+function execInference($schema$, $e$, $t$):
+    $expansionDepth$ := $e$
+    $transitivityDepth$ := $t$
+    $tbox$ = JENA$_{ModelFactory}$.createOntologyModel(JENA$_{spec}$.OWL_MEM)
+    JENA$_{GraphUtil}$.add($tbox$.getGraph(), $schema$)
+    $model$ = JENA$_{ModelFactory}$.createOntologyModel(JENA$_{spec}$.OWL_MEM_TRANS_INF, $tbox$)
+    execClassInference($model$.listClasses())
+    execPropertyInference($model$.listAllOntProperties())
+
+function execClassInference($classes$, $restrictions$, $intersections$):
+    foreach $class = (subclasses, \; equivalentClasses)$ in $classes$:
+        $subClasses$[convertToNode($class$)] := shuffle($subclasses$)
+        $equivalentClasses$[convertToNode($class$)] := shuffle($equivalentClasses$)
+    foreach $restriction = (type, \; property, \; value)$ in $restrictions$:
+        $type \in \{$"owl:hasValue", "owl:isSomeValuesFrom", "owl:allValuesFrom"$\}$:
+            $classRestrictions$[convertToNode($restriction$)] := $restriction$
+    foreach $intersection = (id, operands)$ in $intersections$: // Intersections are anonymous classes with a set of other classes (operands)
+        foreach $operand$ in $operands$:
+            $intersectionsDirectSuperclasses$ := $intersectionsWhereClassIsOperand$[convertToNode($operand$)]
+            if $intersectionsDirectSuperclasses$ == :bot:
+                $intersectionsDirectSuperclasses$ := createLinkedList()
+            $intersectionsDirectSuperclasses$.add($intersection$)
+            $intersectionsWhereClassIsOperand$[convertToNode($operand$)] := $intersectionsDirectSuperclasses$
+        $intersectionClasses$[convertToNode($intersection$)] := shuffle($operands$)
+    foreach ($node$, $intersectionsDirectSuperclasses$) in $intersectionsWhereClassIsOperand$:
+        $intersectionsWhereClassIsOperand$[$node$] := shuffle($intersectionsDirectSuperclasses$)        
+
+function execPropertyInference($properties$):
+    foreach $p = (type, \; value, \; subproperties, \; equivalentProperties, \; inverseProperties)$ in $properties$:
+        if $type$ == "owl:SymmetricProperty":
+            $symmetricProperties$.add($p$)
+        elif $type$ == "owl:TransitiveProperty":
+            $transitiveProperties$.add($p$)
+        $subProperties$[convertToNode($p$)] := shuffle($subproperties$)
+        $equivalentProperties$[convertToNode($p$)] := shuffle($equivalentProperties$)
+        $inverseProperties$[convertToNode($p$)] := shuffle($inverseProperties$)
+

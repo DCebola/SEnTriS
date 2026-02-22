@@ -7,9 +7,9 @@ Additionally, ontologies themselves can have an inherent private, and monetary, 
 
 With ontologies growing in dimension, the industry is currently evolving towards the use of collaborative solutions and the outsourcing of heavy computations. This approach, albeit inevitable, presents new security concerns.
 
-In this thesis, we investigate secure computation techniques, encryption protocols and semantic data storage systems with the finality of developing a practical and secure solution for the collaborative development and distribution of semantic data knowledge bases.
+In this thesis, we investigate secure computation techniques, encryption protocols and semantic data storage systems with the finality of developing a practical and secure solution for the development of semantic data knowledge bases, which remain queriable after being encrypted.
 
-Our main contributions are: (i) SPARQL-EVAL and SPARQL-EVAL-II, two \gls{SPARQL} query evaluation protocols, in the former we apply query rewriting techniques; (ii) SSE-TP, a triple pattern \gls{SSE} protocol, where encrypted \gls{RDF} data remains searchable via triple patterns; (iii) SSE-SPARQL-EVAL, an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted data; (iv) \gls{SEnTriS}, an adaptation of SSE-SPARQL-EVAL for a \gls{M/M} setting which offers data confidentiality and \gls{RBAC}.
+Our main contributions are: (i) SPARQL-EVAL and SPARQL-EVAL-II, two \gls{SPARQL} query evaluation protocols, in the former we apply query rewriting techniques; (ii) SSE-TP, a triple pattern \gls{SSE} protocol, where encrypted \gls{RDF} data remains searchable via triple patterns; (iii) \gls{SEnTriQ}, an adaptation of the SPARQL-EVAL-II protocol that works with SSE-TP encrypted data.
 
 The solution has been evaluated using the \gls{LUBM}, and the results indicate that the it achieves high inference capabilities. The solution has been implemented with various levels of security, which offer a trade-off between security and performance. We argue that the solution remains practical to use, even at the highest level of security guaranties.
 

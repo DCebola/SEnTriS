@@ -1,0 +1,35 @@
+State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
+    $bindings$ := {}
+    $eqTags$ := {}
+
+function search($K_{DGK_{priv}} = (p, \; vp, \; n, \; u)$, $variables$, $searches$, $execID$):
+    $table$ := createBindingsTable()
+    $table$.setVariables($variables$)
+    $searchResults$ := {}
+    foreach $variable$ in $variables$:
+        $searchBindings_{var}$ := $bindings$[$searches$[$variable$]]
+        for $i$ in range(0, $\#bindings_{var}$):
+            $searchResults$[$variable$][$i$] := $searchBindings_{var}$
+    $groupedEqTags$ := {}
+    foreach $variable$ in $variables$:
+        $groupedEqTags$[$variable$] := {}
+    for $i$ in range(0, $\#searchResults$[$variables$[0]]):
+        $patternID$ := generateID()
+        foreach $variable$ in $variables$:
+            $eqTag$ := $searchResults$[$variable$][$i$]
+            $binding$ := removeRNDLayer($K_{DGK_{priv}}$, $eqTag$)
+            if $eqTags$[$execID$] is :bot:
+                $eqTags$[$execID$] := {}
+            $eqTags$[$execID$][$binding$] := $eqTag$
+            $table$.add($patternID$, $variable$, $eqTagGroup$)
+    return $table$
+
+function getEqTags($execID$):  
+    return $eqTags$[$execID$]
+
+function deleteEqTags($execID$):
+    $eqTags$[$exeID$] := :bot
+
+function removeRNDLayer($K_{DGK_{priv}} = (vp, \; p)$, $ct$):
+    return $ct^{vp} \; \textrm{mod} \; p$

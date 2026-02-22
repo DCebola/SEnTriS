@@ -1,0 +1,13 @@
+State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
+    $triplestores$ := {}
+    $uploads$ := {}
+    $deletions$ := {}
+
+function search($triplestoreID$, $mask = (m, \; n)$, $trapdoors$):
+    $result$ := createArrayList($\#trapdoors$)
+    for $i$ in range(0, $\#trapdoor$):
+        $binding$ := $triplestores$[$triplestoreID$][$trapdoors$[$i$]]
+        if $binding$ :neq :bot
+            $result$.add($binding \; * \; m \; \textrm{mod} \; n$)
+    return $result$

@@ -1,0 +1,17 @@
+State:
+    $TIMEOUT$ := fetchConfig($TIMEOUT$)
+    $bindings$ := {}
+
+function save($bindings$): 
+    $searchID$ := generateID()
+    $bindings$[$searchID$] := $bindings$
+    schedule(expireBindings($searchID$), $TIMEOUT$)
+    return $searchID$
+
+function delete($searchIDs$):
+    foreach $searchID$ in $searchIDs$:
+        expireBindings($searchID$)
+
+function expireBindings($searchID$):
+    if $bindings$[$searchID$] :neq :bot:
+        $bindings$[$searchID$] := :bot

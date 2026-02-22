@@ -1,0 +1,44 @@
+State:
+    $queryEngine$ := createSPARQLQueryEngine()
+    $planner$ := :bot
+    $secrets$ := {}
+
+function executeSPARQLQuery($triplestoreID$,$query$,$in\textrm{\emph{f}}erence$,$expansionDepth$,$transitivityDepth$):
+    if $secrets$[$triplestoreID$] == :bot
+        return :bot
+    try:
+        $scheme$ := createEncryptionScheme()
+        $scheme$.ReInitialize($secrets$[$triplestoreID$])
+        ($plan_{rnd}$, $construct$, $upload$, $delete$) := planQuery($query$, $triplestoreID$, $in\textrm{\emph{f}}erence$, $expansionDepth$, $transitivityDepth$) 
+        $queryType$ := $planner$.getQueryType()
+        if $queryType \in \{$ $SELECT$, $CONSTRUCT$, $ASK$, $DESCRIBE$, $MODIFY$, $DELETE\_WHERE$ $\}$:
+            $(mask, \; inverseMask)$ := generateMask($scheme$.getPubDGK(), $scheme$.getPrivKey())
+            $preparedPlan$ := prepareQuery($triplestoreID$, $plan_{rnd}$, $scheme$, $mask$)
+            $sparqlResult$ := Proxy.evaluateQuery($preparedPlan$, $scheme$.getEqKey())
+            $deob\textrm{\emph{f}}uscationMap$ := $planner$.getDeobfuscationMap()
+            $bindings$ := fetchAndDecryptBindings($triplestoreID$, $inverseMask$, $sparqlResult$.$bindings$, $deob\textrm{\emph{f}}uscationMap$, $scheme$)
+            $bindings$ := applyModifiers($sparqlResult$, $deob\textrm{\emph{f}}uscationMap$, $bindings$)
+        return generateFinalResult($triplestoreID$, $queryType$, $plan$.$vars$, $bindings$, $construct$, $upload$, $delete$)
+    catch Exception:
+        return :bot
+
+function generateMask($K_{DGK_{pub}} = (n, \; g, \; h, \; u)$, $K_{DGK_{priv}} = (vp, \; p, \; vq, \; q)$):
+    while true:
+        $r$ := generateRandomWithNBits($n$.bitCount()) // Generate random n-bit value
+        $m$ := $r \; mod \; n$
+        if $m$ = 1 or $m$ = 0:
+            continue
+        if $m^{vp} \; mod \; p$ = 1:
+            continue
+        if $m^{vq} \; mod \; q$ = 1:
+            continue
+        if $m^{vp} \; mod \; n$ = 1:
+            continue
+        if $m^{vq} \; mod \; n$ = 1:
+            continue
+        if $m^{vp*vq} \; mod \; n$ = 1:
+            continue
+        if $m^{vp*vq*u} \; mod \; n$ = 1:
+            continue
+        if $gcd(m, n)$ = 1:
+            return $(m, \; m^{-1} \; \textrm{mod} \; n)$

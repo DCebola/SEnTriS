@@ -1,0 +1,8 @@
+State:
+    $storageEngine$ := createStorageEngine()
+
+// $\{searchID, \bot\} \leftarrow \textrm{SSE-SPARQL}.PrepareSearch(triplestoreID, \; mask, \; [trapdoor_0, ..., trapdoor_n])$ 
+function prepareSearch($triplestoreID$, $mask$, $trapdoors$):
+    if $mask$ == :bot:
+        return Proxy.prepareBindings($storageEngine$.search($triplestoreID$, $trapdoors$))
+    return Proxy.prepareBindings($storageEngine$.search($triplestoreID$, $mask$, $trapdoors$)) 

@@ -6,28 +6,28 @@
 
 \prependtographicspath{{Figures/}}
 
-In this Chapter we present the experimental evaluation of \gls{SEnTriS}. We start by analyzing and discussing the solution's storage and query evaluation complexity, in Section \ref{ch5:complexity-analysis}. 
+In this Chapter we present the experimental evaluation and formal security proofs. We start by analyzing and discussing the \gls{SEnTriQ}'s storage and query evaluation complexity, in Section \ref{ch5:complexity-analysis}. 
 
-In Section \ref{ch5:setup-methodology}, we present the experimental evaluation conducted: we describe the testing environments; explain the experimental evaluation scenarios; and present and discuss the results. 
+In Section \ref{ch5:setup-methodology}, we present the experimental evaluation conducted: we describe the testing environments; explain the experimental evaluation scenarios; and discuss the results obtained. 
 
-In Section \ref{ch5:security-analysis}, we evaluate the security of \gls{SEnTriS}: we analyze the security guaranties of the SSE-SPARQL-EVAL; and define the security properties of \gls{SEnTriS}. 
+In Section \ref{ch5:security-analysis}, we evaluate the security of \gls{SEnTriQ}: we prove the security guaranties of the protocol; and define  security properties. 
 
-Finally, in Section \ref{ch5:final-discussion}, we conclude with an analysis of the security and performance trade-offs between each version of the protocol.
+Finally, in Section \ref{ch5:final-discussion}, we conclude with an analysis of the security and performance trade-offs between each version of \gls{SEnTriQ}.
 
 \section{Complexity Analysis}
 \label{ch5:complexity-analysis}
 
-In this Section we will be evaluating \gls{SEnTriS} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
+In this Section we will be evaluating \gls{SEnTriQ} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
 
 \subsection{Storage Complexity}
 
-When evaluating the storage complexity of \gls{SEnTriS}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
+When evaluating the storage complexity of \gls{SEnTriQ}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
 
-\paragraph{SEnTriS V1 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. Furthermore, we also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies. 
+\paragraph{SEnTriQ V1 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
 
-\paragraph{SEnTriS V2 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+\paragraph{SEnTriQ V2 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
 
-\paragraph{SEnTriS V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
+\paragraph{SEnTriQ V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
 
 Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{\emph{Abox}}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
 
@@ -45,7 +45,7 @@ Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of 
     \label{tbl:storage-complexity:count}
 \end{table}
 
-Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriS} versions.
+Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriQ} versions.
 
 \begin{table}[H]
     \centering
@@ -63,11 +63,11 @@ Now, let $\overline{S}$ be the average size of a ciphertext generated with the X
 \end{table}
 
 
-To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriS} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriS} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
+To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriQ} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriQ} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
 
 \subsection{Query Evaluation Complexity}
 
-In this Section, we will analyze the time complexity of \gls{SEnTriS} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and executions of cryptographic functions.
+In this Section, we will analyze the time complexity of \gls{SEnTriQ} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and executions of cryptographic functions.
 
 \subsubsection{SPARQL Query Evaluation Complexity}
 
@@ -83,9 +83,9 @@ Let $V \in \{V1, V2\}$, the full complexity formula for the evaluation of read q
 \paragraph{Query Parsing} Before evaluating $O_{\text{Prep V}}$ and $O_{\text{Eval V}}$ we will analyze the quantity and kind of query jobs generated after parsing a \gls{SPARQL} query.
 
 Let $q_S$, $q_J$, $q_M$, $q_O$, $q_U$, $q_P$, $q_{SO}$, $q_D$, $q_{SL}$ be the number of $job_{\text{SEC\_SEARCH}}$, $job_{\text{JOIN}}$, $job_{\text{MINUS}}$, $job_{\text{OPTIONAL}}$, $job_{\text{UNION}}$, $job_{\text{PROJECT}}$, $job_{\text{SORT}}$, $job_{\text{DISTINCT}}$ and $job_{\text{SLICE}}$ generated uniquely from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm.
-During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriS} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEC\_SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEC\_SEARCH}}$ (or alternative the number o triple patterns) scoped to the \gls{BGP}. 
+During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriQ} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEC\_SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEC\_SEARCH}}$ (or alternative the number o triple patterns) from a \gls{BGP}. 
 
-During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEC\_SEARCH}}$ generated for the respective \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the \gls{BGP} scoped $job_{\text{SEC\_SEARCH}}$, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
+During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEC\_SEARCH}}$ of the \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the $job_{\text{SEC\_SEARCH}}$ created from \gls{BGP}s, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
 
 Consequently, the number of jobs generated during query parsing is:
 
@@ -106,7 +106,7 @@ Consequently, the number of jobs generated during query parsing is:
     \end{split}
 \end{align}
 
-\paragraph{Query Preparation V2} Compared to \gls{SEnTriS} V1, each binding sent to the Proxy component is also masked. Let $mask$ be a masking operation, the complexity of this phase is defined as:
+\paragraph{Query Preparation V2} Compared to \gls{SEnTriQ} V1, each binding sent to the Proxy component is also masked. Let $mask$ be a masking operation, the complexity of this phase is defined as:
 
 \begin{align}
     \label{equation:query-preparation-v2}
@@ -197,7 +197,7 @@ Consequently, the complete complexity definition for $O_{\text{Eval V1}}$ is:
     \end{split}
 \end{align}
 
-\paragraph{Query Evaluation Complexity V2} In \gls{SEnTriS} V2, there is an additional communication round during the generation of the final result. The multiplicative blinding of the equality tags is reverted, and these are used to fetch the final bindings, which are then decrypted and used to compute the final query results.
+\paragraph{Query Evaluation Complexity V2} In \gls{SEnTriQ} V2, there is an additional communication round during the generation of the final result. The multiplicative blinding of the equality tags is reverted, and these are used to fetch the final bindings, which are then decrypted and used to compute the final query results.
 
 Let $mask^{-1}$ represent a function that reverts multiplicative blinding, $O_{\text{Eval V2}}$ is defined as:
 
@@ -344,17 +344,17 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 
 \subsection{Setup \& Methodology} 
 
-To measure the performance and inference capabilities of \gls{SEnTriS} we used the \gls{LUBM} benchmark \autocite{Guo2005-ja}, which is considered a reference in the domain. To run the experiments we utilized \emph{Artillery} \autocite{Talk-to-salesUnknown-oe}, a load testing tool. 
+To measure the performance and inference capabilities of \gls{SEnTriQ} we used the \gls{LUBM} benchmark \autocite{Guo2005-ja}, which is considered a reference in the domain. To run the experiments we utilized \emph{Artillery} \autocite{Talk-to-salesUnknown-oe}, a load testing tool. 
 
 We converted the experiment scenarios in \gls{LUBM} to \emph{Artillery} test scenarios: configuration files written in their YAML-based \gls{DSL}. Complementary to the test scenarios we also implemented a custom processor, to output \gls{LUBM} specific metrics, such as \emph{completeness} and \emph{soundness}.
 
-The test datasets were generated using the \gls{LUBM} data generation tool \emph{UBA1.7}, in single thread mode and with the \emph{consolidate} flag set to \emph{Full}. This allowed us to have 1 file per dataset.
+The test datasets were generated using the \gls{LUBM} data generation tool \emph{UBA1.7}, in single thread mode and with the \emph{consolidate} flag set to \emph{full}. This allowed us to have 1 file per dataset.
 
 The experimental evaluation was conducted in a system running \emph{Ubuntu~24.04.3 LTS}, with an \emph{AMD Ryzen~7 1700} CPU (16 cores) and 128GiB of DDR4 RAM.
 
 \subsubsection{LUBM Scenarios}
 
-The test scenario and custom processor implementations can be consulted in Listings \ref{lubm-artillery-scenario} and \ref{lubm-artillery-config}. The experiment was run for each dataset, and for both versions of \gls{SEnTriS}. To represent the datasets we will use a notation similar to that in \autocite{Guo2005-ja}. We denote lubm(N) as the dataset that contains N universities beginning at University0 and is generated using a seed with value 0. We used the example dataset lubm(0) found in \autocite{UnknownUnknown-ni}, containing a single university and department, and generated 5 other datasets: lubm(1), lubm(2), lubm(3), lubm(4), lubm(5). 
+The test scenario and custom processor implementations can be consulted in Listings \ref{lubm-artillery-scenario} and \ref{lubm-artillery-config}. The experiment was run for each dataset, and for both versions of \gls{SEnTriQ}. To represent the datasets we will use a notation similar to that in \autocite{Guo2005-ja}. We denote lubm(N) as the dataset that contains N universities beginning at University0 and is generated using a seed with value 0. We used the example dataset lubm(0) found in \autocite{UnknownUnknown-ni}, containing a single university and department, and generated 5 other datasets: lubm(1), lubm(2), lubm(3), lubm(4), lubm(5). 
 
 Succintely, the test scenario run was the following:
 
@@ -368,9 +368,9 @@ Succintely, the test scenario run was the following:
   \item \textbf{POST} \emph{/Client/api/users/auth} - Re-authenticate the user.
   \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>} - Create a new random triplestore.
   \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload the dataset (\emph{Abox}), set \emph{schema} query string to \emph{true}.
-  \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload \gls{LUBM} ontology (TBox), set \emph{schema} query string to \emph{true}.
+  \item \textbf{POST} \emph{/Client/api/triplestores/encrypted/<version>/upload} - Upload the \gls{LUBM} ontology (TBox), set \emph{schema} query string to \emph{true}.
   \item \textbf{GET} \emph{/Client/api/triplestores/<triplestoreID>/<username>} - Retrieve triplestore size information.
-  \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information, returned answers length. If the query is executed against lubm(1), capture \emph{soundness} and \emph{completeness}. Repeat 10 times.
+  \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information and answer length. If the query is executed against lubm(1), evaluate \emph{soundness} and \emph{completeness}. Repeat 10 times.
   \item \textbf{DELETE} \emph{/Client/api/triplestores/encrypted/<version>/<triplestoreID>/<username>} - Delete triplestore.
 \end{enumerate}
 
@@ -399,11 +399,15 @@ In this Section we will present the experimental results captured.
 
 We present the dataset size and upload latency, per dataset, in Figures \ref{plot:upload-size}, \ref{plot:upload-latency}. In Figures \ref{plot-size-vs-triples} and \ref{plot-latency-vs-triples}, we plot the dataset size, and upload latency, against their volume of triples. Finally, in Figure \ref{plot:upload-ontology-latency}, we present the ontology upload latency.
 
-Upload latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1. Both upload latency and dataset size increase, as the number of triples in the datasets also increases. The ontology upload latency is similar for both versions, and consistent between datasets. 
+Upload latency is higher for \gls{SEnTriQ} V2 and varies similarly to \gls{SEnTriQ} V1. Both upload latency and dataset size increase, as the number of triples in the datasets also increases. The ontology upload latency is similar for both versions, and consistent between datasets. 
 
-These results are in line with the expectations: the ontology size is constant, and its storage complexity is the equivalent in both versions; storage complexity in \gls{SEnTriS} V2 is higher, hence the higher latency and dataset size.
+These results are in line with the expectations: the ontology size is constant, and its storage complexity is the equivalent in both versions; storage complexity in \gls{SEnTriQ} V2 is higher, hence the higher latency and dataset size.
 
 \subsubsection{Query Response Latency}
+
+We present the query response latency size, for each dataset, per \gls{SEnTriQ} version, in Figures \ref{plot-latency-0}, \ref{plot-latency-1}, \ref{plot-latency-2}, \ref{plot-latency-3}, \ref{plot-latency-4}, \ref{plot-latency-5}. 
+
+In Figure \ref{plot-query-latency-all} we plot the query response latency size, for all datasets, per \gls{SEnTriQ} version. Furthermore, in Figures \ref{plot-query-latency-vs-triples-v1} and \ref{plot-query-latency-vs-triples-v2}, we plot the query response latency, against the target dataset volume of triples. 
 
 \begin{figure}[H]
     \centering
@@ -412,32 +416,29 @@ These results are in line with the expectations: the ontology size is constant, 
     \label{plot-query-latency-all}
 \end{figure}
 
-
-We present the query response latency size, for each dataset, per \gls{SEnTriS} version, in Figures \ref{plot-latency-0}, \ref{plot-latency-1}, \ref{plot-latency-2}, \ref{plot-latency-3}, \ref{plot-latency-4}, \ref{plot-latency-5}. 
-
-In Figure \ref{plot-query-latency-all} we plot the query response latency size, for all datasets, per \gls{SEnTriS} version. Furthermore, in Figures \ref{plot-query-latency-vs-triples-v1} and \ref{plot-query-latency-vs-triples-v2}, we plot the query response latency, against the target dataset volume of triples. 
-
-Query response latency is higher for \gls{SEnTriS} V2 and varies similarly to \gls{SEnTriS} V1, for each query. Furthermore, for each version, it increases linearly has the number of triples in the datasets also increase. 
+Query response latency is higher for \gls{SEnTriQ} V2 and varies similarly to \gls{SEnTriQ} V1, for each query. Furthermore, for each version, it increases linearly has the number of triples in the datasets also increase. 
 
 These results are again, in line with the expectations. The number of generated query jobs, depends uniquely on the \emph{transitivityDepth}, \emph{expansionDepth} and the queries' content. With fixed query contents, and inference parameters, they would only increase if the ontology size also increased, but it remains constant for each dataset. Hence, the number of query jobs is the same for each query, independent of the size of the \emph{Abox} size.
-
-However, the number of \emph{Abox} triples does increase between datasets, which results in higher keyword frequencies. The query evaluation complexity scales linearly to the keyword frequency. With a constant number of query jobs, variation for each version of \gls{SEnTriS} only depends on the variation of \emph{Abox} triples, which explains the linear increase, as the size of datasets grows.
-
-Finally, between \gls{SEnTriS} versions, the higher latency of version V2, is explained by the extra round of communication between the Client and Triplestore, before generating the final result. Furthermore, the size of the ciphertexts produced by the \gls{DGK} cryptosystem tend to be higher, which also hinders performance.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v1.png}
-    \caption{Query response latency versus triples (\gls{SEnTriS} V1).}
+    \caption{Query response latency versus triples (\gls{SEnTriQ} V1).}
     \label{plot-query-latency-vs-triples-v1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/query_latency_vs_triples_v2.png}
-    \caption{Query response latency versus triples (\gls{SEnTriS} V2).}
+    \caption{Query response latency versus triples (\gls{SEnTriQ} V2).}
     \label{plot-query-latency-vs-triples-v2}
 \end{figure}
+
+However, the number of \emph{Abox} triples does increase between datasets, which results in higher keyword frequencies. The query evaluation complexity scales linearly to the keyword frequency. With a constant number of query jobs, variation for each version of \gls{SEnTriQ} only depends on the variation of \emph{Abox} triples, which explains the linear increase, as the size of datasets grows.
+
+Finally, between \gls{SEnTriQ} versions, the higher latency of version V2, is explained by the extra round of communication between the Client and Triplestore, before generating the final result. Furthermore, the size of the ciphertexts produced by the \gls{DGK} cryptosystem tend to be higher, which also hinders performance.
+
+
 
 
 \subsubsection{Query Completeness \& Soundness}
@@ -445,34 +446,34 @@ Finally, between \gls{SEnTriS} versions, the higher latency of version V2, is ex
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/soundness_completeness_lubm-1_v1.png}
-    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriS} V1).}
+    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriQ} V1).}
     \label{plot-soundness-completeness-v1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\linewidth]{Figures/chapter5/lubm/soundness_completeness_lubm-1_v2.png}
-    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriS} V2).}
+    \caption{Soundness and correctness, for lubm(1) (\gls{SEnTriQ} V2).}
     \label{plot-soundness-completeness-v2}
 \end{figure}
 
-Completeness and soundness was only evaluated for lubm(1), for which we found the reference answers \autocite{noauthor_undated-hl}. Figures \ref{plot-soundness-completeness-v1} and \ref{plot-soundness-completeness-v2} show perfect soundness and completeness, for both versions of \gls{SEnTriS}.
+Completeness and soundness was only evaluated for lubm(1), for which we found the reference answers \autocite{noauthor_undated-hl}. Figures \ref{plot-soundness-completeness-v1} and \ref{plot-soundness-completeness-v2} show perfect soundness and completeness, for both versions of \gls{SEnTriQ}.
 
-For correctness, we evaluated if the number of bindings returned for each query, remained consisted between both versions. Figures \ref{plot-query-results-0}, \ref{plot-query-results-1}, \ref{plot-query-results-2}, \ref{plot-query-results-3}, \ref{plot-query-results-4}, \ref{plot-query-results-5} show that the number remains consistent between both versions, for each dataset, which is justified by the fact that they share the same \gls{SPARQL} query evaluation protocol, which does not depend on the data encryption.
+For correctness, we evaluated if the number of bindings returned for each query, remained consisted between both versions. Figures \ref{plot-query-results-0}, \ref{plot-query-results-1}, \ref{plot-query-results-2}, \ref{plot-query-results-3}, \ref{plot-query-results-4}, \ref{plot-query-results-5} show that the number remains consistent between both versions.
 
 
 \section{Security Analysis}
 \label{ch5:security-analysis}
 
-In this Section we will discuss the security of \gls{SEnTriS}, taking into consideration its security model. We will start by formalizing the security guaranties of the SSE-SPARQL-EVAL protocol, and finish by defining the security properties of \gls{SEnTriS}.
+In this Section we will discuss the security of \gls{SEnTriQ}, taking into consideration its security model. We will start by formalizing the security guaranties, and finish by defining the security properties.
 
-\subsection{SSE-SPARQL-EVAL Security Guaranties}
+\subsection{SEnTriQ Security Guaranties}
 
 We have defined the security model in Section \ref{ch3:sec:solution-models:security-model}, but we will additionally consider that an adversary $\mathcal{A}$ can only compromise either the Triplestore or the Proxy components, not both simultaneously.
 
 \subsubsection{Leakage Definition}
 
-Let $T(n)$, $E(n)$, $T_{eq}$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
+Let $T(n)$, $E(n)$, $T(eq)$, and $E(eq)$ be respectively, node trapdoors, encrypted nodes, equality tag trapdoors, and encrypted trapdoors, stored at the triplestore. Let $Bt$, $O(V)$, $Q_r$ be, respectively, the set of binding tables, obfuscated variables and query result, temporarily stored in memory during query evaluation at the Proxy. We will denote the randomized query execution plan as $\pi(Qp)$. 
 
 Furthermore, $n$ is a $k$-bit \gls{RSA} modulus, $m' \in \mathbb{Z}^*_n$ is a masking value and the multiplicative blinding operator is denoted as $B(\cdot)$. The encryption and decryption schemes are specified as $E_{\text{CRYPTO}}(\cdot)$ and $D_{\text{CRYPTO}}(\cdot)$, where $\text{CRYPTO}$ is the cryptographic algorithm. The cryptographic keys are specified as $K_{\text{CRYPTO}}$. 
 
@@ -502,7 +503,7 @@ For each version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, 
 
 \begin{enumerate}
     \item \textbf{Adversary}: $\mathcal{A}$, restricted to component $C$, chooses two challenge query sets $Q_0$ and $Q_1$.
-    \item \textbf{Challenger}: Flips a fair random bit $b \in \{0,1\}$, then runs the SSE-SPARQL-EVAL protocol version $V$ on query set $Q_b$.
+    \item \textbf{Challenger}: Flips a fair random bit $b \in \{0,1\}$, then runs the SEnTriQ protocol version $V$ on query set $Q_b$.
     \item \textbf{Challenger}: sends $\mathcal{A}$ the resulting \emph{real view} $\mathrm{RealView}_C^{V}$ seen by component $C$.
     \item \textbf{Simulator}: $\mathcal{S}_C^{V}$, given only leakage $\mathcal{L}_C^{V}(Q_b)$, produces a \emph{simulated view} $\mathrm{SimView}_C^{V}$.
     \item \textbf{Adversary}: $\mathcal{A}$ receives either $\mathrm{RealView}_C^{V}$ or $\mathrm{SimView}_C^{V}$, chosen at random, and attempts to guess $b$.
@@ -521,10 +522,10 @@ The adversary's advantage is measured as
 IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-time adversary $\mathcal{A}$.
 
 
-\subsubsection{Security Proofs (SSE-SPARQL-EVAL V1)}
+\subsubsection{Security Proofs (SEnTriQ V1)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SEnTriQ V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -542,7 +543,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Triplestore}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Triplestore}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V1}$ receives $\mathcal{L}_{Triplestore}^{V1}$ and outputs $\mathrm{SimView}_{Triplestore}^{V1}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -563,20 +564,20 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Proxy}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Proxy}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V1}$ receives $\mathcal{L}_{Proxy}^{V1}$ and outputs $\mathrm{SimView}_{Proxy}^{V1}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
 
     The semantic security of the cryptographic primitives in use, ensure that \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ is negligible, even after consecutive runs. 
     
-    Due to the deterministic encryption of bindings, with a single run of $G^{V1}_{proxy}$, \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. However, consecutive runs of $G^{V1}_{Proxy}$ will allow $\mathcal{A}$ to keep track of past views, their respective plan size, variable count, ciphertexts and frequency. Because ciphertexts are deterministic, $\mathcal{A}$ will be able to associate ciphertext between different views and construct frequency tables. If they always choose the same set of queries, eventually they will see repeated views. Thus, $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ stops being negligible.
+    Due to the deterministic encryption of bindings, with a single run of $G^{V1}_{proxy}$, \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. However, consecutive runs of $G^{V1}_{Proxy}$ will allow $\mathcal{A}$ to keep track of past views, their respective plan size, variable count, ciphertexts and frequency. Because ciphertexts are deterministic, $\mathcal{A}$ will be able to associate ciphertext between different views and construct frequency tables. If they always choose the same set of queries, eventually they will see repeated views. Thus, $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V1}$ is no longer negligible.
 \end{proof}
 
-\subsubsection{Security Proofs (SSE-SPARQL-EVAL V2)}
+\subsubsection{Security Proofs (SEnTriQ V2)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SSE-SPARQL-EVAL V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SEnTriQ V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -595,7 +596,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Triplestore}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Triplestore}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V2}$ receives $\mathcal{L}_{Triplestore}^{V2}$ and outputs $\mathrm{SimView}_{Triplestore}^{V2}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -616,7 +617,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SSE-SPARQL-EVAL on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Proxy}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Proxy}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V2}$ receives $\mathcal{L}_{Proxy}^{V2}$ and outputs $\mathrm{SimView}_{Proxy}^{V2}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -629,33 +630,29 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
 \subsection{Security Properties}
 
-From the security analysis of the SSE-SPARQL-EVAL protocol, and taking into account the \gls{RBAC} features of \gls{SEnTriS} we can now define a set of security properties:
+Given the security guaranties of \gls{SEnTriQ} we can now define a set of security properties:
 
 \begin{enumerate}
-    \item A user will be able to create triplestores and access tokens, if and only if they have an active session.
-    \item A user will be able to interact with a triplestore, if and only if they have a valid access token.
-    \item A user will not be able to query triplestores which they have not been given access to.
-    \item A user will only be able to execute operations according to its role.
     \item An external observer will not be able to learn any useful information from eavesdropping messages sent between components.
     \item An attacker will not be able to impersonate any component.
     \item An attacker will not be able to tamper with messages sent between components.
     \item An attacker with access to the \emph{Triplestore} component will learn nothing more than the size of a triplestore and its \emph{search} and \emph{access} patterns.
     \item Regarding \emph{term equality} during intermediate set operations between \emph{bindings}, an attacker with access to the \emph{Proxy} component will learn nothing more than:
         \begin{enumerate}
-            \item \emph{\gls{SEnTriS} V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
-            \item \emph{\gls{SEnTriS} V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
+            \item \emph{\gls{SEnTriQ} V1}: the equality of all terms, belonging to a series of queries, targeting the same triplestore.
+            \item \emph{\gls{SEnTriQ} V2} the equality of all terms present in the graph patterns of individual queries. The bindings of different queries are indistinguishable.
         \end{enumerate}
 \end{enumerate}
 
-Properties 1-4 are derived from the \gls{RBAC} features of \gls{SEnTriS}, properties 5-7 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Finally, property 8-9 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SSE-SPARQL-EVAL protocol.
+Properties 1, 2 and 3 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Properties 4 and 5 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SEnTriQ protocol.
 
 \section{Final Discussion}
 \label{ch5:final-discussion}
 
-Both implementations come with a trade-off between security guaranties and performance.
+Both implementations come with a trade-off between security and performance.
 
-\gls{SEnTriS} V1 provides both data confidentiality and access control, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore. This facilitates the computation of the frequency distribution of all observed terms, which simplifies the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
+\gls{SEnTriQ} V1 provides data confidentiality, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore, which allows the computation of the frequency distribution of all observed terms and simplifying the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
 
-\gls{SEnTriS} V2 provides both data confidentiality, access control and \gls{IND-CKA2} security. This is achieved at the cost of an increase in time and space complexity.
+\gls{SEnTriQ} V2 provides provides data confidentiality and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
 
-From the \gls{LUBM} benchmark results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
+From the experimental evaluation results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.

@@ -9,9 +9,9 @@ Adicionalmente, as ontologias podem ter um valor privado, e monetário, associad
 
 Atualmente, com o gradual aumento da dimensão das ontologia, a indústria está evoluir no sentido da utilização de ferramentas colaborativas e \emph{outsourcing} de computações pesadas. Esta solução, embora inevitável, apresenta novas questões de segurança.
 
-Nesta tese, investigamos técnicas de computação seguras, protocolos de encriptação e sistemas de armazenamento de dados semânticos com a finalidade de desenvolver uma solução prática e segura para o desenvolvimento colaborativo e distribuição de fontes de conhecimento semânticas.
+Nesta tese, investigamos técnicas de computação seguras, protocolos de encriptação e sistemas de armazenamento de dados semânticos com a finalidade de conceber uma solução prática e segura para o desenvolvimento de fontes de conhecimento semânticas, que se mantém pesquisáveis após terem sido encriptadas.
 
-As principais contribuições da investigação são: (i) SPARQL-EVAL e SPARQL-EVAL-II, dois protocolos para a avaliação de queries \gls{SPARQL}, no segundo utilizamos técnicas de rescrita das queries; (ii) SSE-TP, um protocolo de encriptação simétrica pesquisável de padrões de triplos \gls{RDF}; (iii) SSE-SPARQL-EVAL, uma adaptação do protocolo SPARQL-EVAL-II que funciona com dados encriptados através do protocolo SSE-TP; (iv) \gls{SEnTriS}, uma adaptação do protocolo SSE-SPARQL-EVAL para um contexto de multi-utilizador, com escritas e leituras concorrentes, e que oferece confidencialidade de dados e \gls{RBAC}.
+As principais contribuições da investigação são: (i) SPARQL-EVAL e SPARQL-EVAL-II, dois protocolos para a avaliação de queries \gls{SPARQL}, no segundo utilizamos técnicas de rescrita das queries; (ii) SSE-TP, um protocolo de encriptação simétrica pesquisável de padrões de triplos \gls{RDF}; (iii) \gls{SEnTriQ}, uma adaptação do protocolo SPARQL-EVAL-II que funciona com dados encriptados através do protocolo SSE-TP.
 
 O sistema foi avaliado com o \gls{LUBM} \emph{benchmark} e os resultados indicam que possui alta capacidade de inferência. Implementamos a solução com um grau variável de segurança, o que oferece um \emph{trade-off} entre garantias de segurança e \emph{performance}. Argumentamos que a solução continua a ser prática, mesmo na sua configuração de segurança mais elevada.
 

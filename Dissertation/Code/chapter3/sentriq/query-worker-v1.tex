@@ -1,0 +1,44 @@
+State:
+    $searchIDs$ := {}
+    $key$ := :bot
+    $sparqlResult$ := ({}, false, false, false, :bot, :bot)
+    $storageEngine$ := :bot
+
+function setContext($k$, $storage$):
+    $key$ := $k$
+    $storageEngine$ := $storage$
+
+function exec($job$):
+    if $job$ is SEC_SEARCH:
+        $searches$ := $job$.getSearches()
+        foreach $(var, \; searchID)$ in $searches$
+            $searchIDs$ :=  $searchIDs$ :U { $searchID$ }
+        return $storageEngine$.search($key$, $job$.getVariables(), $searches$)
+    elif $job$ is EMPTY:
+        return createBindingsTable($job$.vars)
+    throw JobInstanceException()
+
+function generateResults($jobResults$):
+    $bindings$ := :bot
+    if $sparqlResult$.$distinct$ == true:
+        $bindings$ := generateBindings(createHashSet(), $jobResults$)
+    else
+        $bindings$ := generateBindings(createLinkedList(), $jobResults$)
+    $sparqlResult$.$bindings$ := $bindings$
+    return $sparqlResult$.$bindings$
+
+function generateBindings($collector$, $jobResults$):
+    vars = $jobResults$.getVariables()
+    values := {}
+    foreach $patterns$ in $jobResults$.getPatterns():
+        $binding$ := {}
+        $i$ := 0
+        foreach $encryptedBinding$ in $patterns$:
+            if $encryptedBinding$ :neq :bot:
+                $binding$[$vars$[$i$]] := $encryptedBinding$
+            $i$++
+        $collector$.add($binding$)
+    return $collector$
+
+function getSearchIDs():
+    return $searchIDs$
