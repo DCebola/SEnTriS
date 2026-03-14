@@ -356,7 +356,7 @@ For any UPDATE query that includes a \textit{WHERE} clause, the evaluation of th
     \begin{split}
         O^{\text{Search}}_V
         &= O_{\text{Prep V}} + O_{\text{Eval V}} \\
-        &= O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}\;.
+        &= O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}
     \end{split}
 \end{align}
 
@@ -376,35 +376,54 @@ In \gls{SEnTriQ}, to avoid duplication of terms, an insertion of triples is alwa
 
 \paragraph{Deletions Complexity}
 
-The delete component captures the work of removing $T_{\text{del}}$ existing \emph{Abox} triples from the encrypted index.
-For each triple to be deleted, \gls{SEnTriQ} must:
+In \gls{SEnTriQ} V1, for each triple to be deleted, we compute the trapdoors associated to its keyword frequencies, 9 in total. We search the triplestore for matches against these trapdoors. For each valid result, we decrypt the keyword frequency value, and generate the associated trapdoor. All trapdoors are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
 
-\begin{itemize}
-    \item Regenerate the $9$ pattern trapdoors via \textit{generatePatternTrapdoors}: for each of the $9$ pattern keywords of the triple, one deterministic encryption is performed keyed by the triple's SPO keyword, producing the trapdoor that points to the corresponding index entry.
-    \item Regenerate the $9$ frequency trapdoors: one deterministic encryption per pattern keyword, used to locate and update the encrypted frequency counters.
-    \item Update the $9$ keyword frequency counters: one deterministic and one randomized encryption per keyword to re-encrypt the updated frequency value.
-    \item Commit the deletion to the storage engine: the $9$ trapdoors are pushed to a temporary Redis list via \textit{commitDelete} and later applied by the Lua update script, which pops each trapdoor and issues a \textit{DEL} call. This costs $O(9 * T_{\text{del}})$ storage engine operations, which is linear in $T_{\text{del}}$ and asymptotically absorbed.
-\end{itemize}
+In \gls{SEnTriQ} V2, valid results of the search operation, yield the term frequency which is used to compute trapdoors referencing \emph{equality tags}. As such, we require a second search, to retrieve the \emph{equality tags}, which reference the encrypted keywords. All trapdoors and equality tags are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
 
-Let $E_{\text{DET}}$ and $E_{\text{RND}}$ denote the cost of a single deterministic and randomized encryption, respectively.
-We can therefore express the delete component as:
+Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm. Let $\overline{t_{\text{del}}} \leq 9 * T_{\text{del}}$ be the average count of valid results returned from the first search operation. The complexity cost for deletions, in \gls{SEnTriQ} V1 is:
+
 
 \begin{align}
-    \label{equation:update-delete-layout}
+    \label{equation:update-delete-v1-complexity}
     \begin{split}
-        O^{\text{Delete}}_V &=
+        O^{\text{Delete}}_{V1} &=
         O\Big(
-            T_{\text{del}} * 9 * E_{\text{DET}}                       % pattern trapdoor regeneration
-            + T_{\text{del}} * 9 * E_{\text{DET}}                     % frequency trapdoors
-            + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}}) % frequency updates
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + \overline{t_{\text{del}}} * \big(D_{\text{RND}} +  E_{\text{DET}}\big)             
+            + 2 * \overline{t_{\text{del}}}
         \Big) \\
         &= O\Big(
-            T_{\text{del}} * 9 * \big( 3 * E_{\text{DET}} + E_{\text{RND}} \big)
-        \Big)\;.
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + T_{\text{del}} * 9 * (D_{\text{RND}} +  E_{\text{DET}})             
+            + 2 * T_{\text{del}} * 9
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * \big( 2 * E_{\text{DET}} + D_{\text{RND}} +  2 \big)\Big) \\
+        &= O\Big(T_{\text{del}} * \big(E_{\text{DET}} + E_{\text{DET}}\big)\Big) \\
     \end{split}
 \end{align}
 
-The delete component is the same for both V1 and V2, as neither the pattern trapdoor regeneration nor the frequency update procedures differ between the two versions with respect to the delete path.
+Let $\overline{eq_{\text{del}}} \leq \overline{t_{\text{del}}} \leq 9 * T_{\text{del}}$ be the average count of valid results returned from the second search operation. The complexity cost for deletions, in \gls{SEnTriQ} V2 is:
+
+\begin{align}
+    \label{equation:update-delete-v2-complexity}
+    \begin{split}
+        O^{\text{Delete}}_{V2} &=
+        O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + \overline{t_{\text{del}}} * \big(D_{\text{RND}} +  E_{\text{DET}}\big)             
+            + 2 * \overline{t_{\text{del}}} + \overline{eq_{\text{del}}}
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + T_{\text{del}} * 9 * (D_{\text{RND}} +  E_{\text{DET}})             
+            + 3 * T_{\text{del}} * 9
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * \big( 2 * E_{\text{DET}} + D_{\text{RND}} +  3 \big)\Big) \\
+        &= O\Big(T_{\text{del}} * \big(E_{\text{DET}} + E_{\text{DET}}\big)\Big) \\
+    \end{split}
+\end{align}
 
 \paragraph{Insertions Complexity}
 
@@ -435,7 +454,7 @@ We therefore write:
         \Big) \\
         &= O\Big(
             T_{\text{ins}} * 9 * \big( 6 * E_{\text{DET}} + 3 * E_{\text{RND}} \big)
-        \Big)\;.
+        \Big)
     \end{split}
 \end{align}
 
@@ -454,7 +473,7 @@ We therefore write:
             + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})                % frequency updates
         \Big) \\
         &= O^{\text{Delete}}_{\text{V2}}\big|_{T_{\text{del}} = T_{\text{ins}}}
-           + O\Big( T_{\text{ins}} * 9 * \big( 3 * E_{\text{DET}} + 2 * E_{\text{RND}} + E_{\text{DGK}} \big) \Big)\;.
+           + O\Big( T_{\text{ins}} * 9 * \big( 3 * E_{\text{DET}} + 2 * E_{\text{RND}} + E_{\text{DGK}} \big) \Big)
     \end{split}
 \end{align}
 
