@@ -23,13 +23,13 @@ In this Section we will be evaluating \gls{SEnTriQ} in terms of space complexity
 
 When evaluating the storage complexity of \gls{SEnTriQ}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
 
-\paragraph{SEnTriQ V1 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
+\paragraph{SEnTriQ V1 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
 
-\paragraph{SEnTriQ V2 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+\paragraph{SEnTriQ V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
 
 \paragraph{SEnTriQ V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
 
-Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{\emph{Abox}}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
+Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{Abox}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
 
 %Space complexity in terms of RDF terms
 
@@ -273,8 +273,6 @@ Since there is a maximum depth of expansion, the total complexity for expanding 
 
 The asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
 
-%TODO: Explain how job number is modified, actually revisit, the join pipeline is only for joining the searches... the order of the other jobs does not change. Number only increased based on branching. Will need to add jobs created to the complexity of the expansion because that is what is interesting
-
 \paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expansion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
 
 \begin{table}[h]
@@ -333,11 +331,287 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 
 \subsubsection{SPARQL UPDATE Query Evaluation Complexity}
 
-%TODO: Complexity of delete 
-%      Compleity of upload
-%      Explain Cases
-%          - Generate triples
-%          - 
+\gls{SPARQL} UPDATE queries in \gls{SEnTriQ} can have four variants: \textit{INSERT DATA}, \textit{DELETE DATA}, \textit{INSERT/DELETE WHERE} and \textit{DELETE WHERE}. When an update query contains a \textit{WHERE} clause, we will first conduct a normal \gls{SPARQL} query, withouth inference, and retrieve the corresponding bindings. These results will be used to generate the triples to upload or delete. Additionally, for each batch of uploads and deletions, we will have to search for term frequencies. 
+
+Consequently, we can decompose the complexity of these queries into a \emph{search} component, $O^{\text{Search}}$, which reuses the complexity of regular \gls{SPARQL} queries, and a \emph{write} component, $O^{\text{Write}}$, which captures the additional cost asssociated with modifying the triplestore contents: searching for keyword frequencies, regenerating pattern trapdoors, encrypting new data and committing changes.
+
+Intuitively, the the number of triples to be uploaded, or deleted, and the indexing scheme (number of trapdoors and pattern keywords per triple) control the \textit{write} component's cost.
+
+Let $V \in \{\text{V1}, \text{V2}\}$, we will define the complexity of evaluating a \gls{SPARQL} UPDATE query as:
+
+\begin{align}
+    \label{equation:sparql-update-complexity-general}
+    \begin{split}
+        O^{\text{UPDATE}}_V &= O^{\text{Search}}_V + O^{\text{Write}}_V
+    \end{split}
+\end{align}
+
+
+\paragraph{Search Component Complexity}
+
+For any UPDATE query that includes a \textit{WHERE} clause, the evaluation of that clause is equivalent to a \textit{SELECT} query over the same pattern. So the compexity of the \emph{search} component will be:
+
+\begin{align}
+    \label{equation:update-where-select}
+    \begin{split}
+        O^{\text{Search}}_V
+        &= O_{\text{Prep V}} + O_{\text{Eval V}} \\
+        &= O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}\;.
+    \end{split}
+\end{align}
+
+\paragraph{Write Component Complexity}
+
+The remaining cost of an UPDATE query will be determined by the number of insertions and deletions. Let $T_{\text{ins}}$ and $T_{\text{del}}$ be, respectively, the number of \emph{Abox} triples inserted and deleted by an UPDATE query. 
+
+In \gls{SEnTriQ}, to avoid duplication of terms, an insertion of triples is always preceded by a deletion of the same triples, so every insertion implicitly includes a delete step for $T_{\text{ins}}$ triples. As such, the complexity formula for the \emph{write} component will be:
+
+\begin{align}
+    \label{equation:update-write-componenet}
+    \begin{split}
+        O^{\text{Write}}_V
+        &= O_{\text{Deletions}} + O_{\text{Insertions}}
+    \end{split}
+\end{align}
+
+\paragraph{Deletions Complexity}
+
+The delete component captures the work of removing $T_{\text{del}}$ existing \emph{Abox} triples from the encrypted index.
+For each triple to be deleted, \gls{SEnTriQ} must:
+
+\begin{itemize}
+    \item Regenerate the $9$ pattern trapdoors via \textit{generatePatternTrapdoors}: for each of the $9$ pattern keywords of the triple, one deterministic encryption is performed keyed by the triple's SPO keyword, producing the trapdoor that points to the corresponding index entry.
+    \item Regenerate the $9$ frequency trapdoors: one deterministic encryption per pattern keyword, used to locate and update the encrypted frequency counters.
+    \item Update the $9$ keyword frequency counters: one deterministic and one randomized encryption per keyword to re-encrypt the updated frequency value.
+    \item Commit the deletion to the storage engine: the $9$ trapdoors are pushed to a temporary Redis list via \textit{commitDelete} and later applied by the Lua update script, which pops each trapdoor and issues a \textit{DEL} call. This costs $O(9 * T_{\text{del}})$ storage engine operations, which is linear in $T_{\text{del}}$ and asymptotically absorbed.
+\end{itemize}
+
+Let $E_{\text{DET}}$ and $E_{\text{RND}}$ denote the cost of a single deterministic and randomized encryption, respectively.
+We can therefore express the delete component as:
+
+\begin{align}
+    \label{equation:update-delete-layout}
+    \begin{split}
+        O^{\text{Delete}}_V &=
+        O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}                       % pattern trapdoor regeneration
+            + T_{\text{del}} * 9 * E_{\text{DET}}                     % frequency trapdoors
+            + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}}) % frequency updates
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * \big( 3 * E_{\text{DET}} + E_{\text{RND}} \big)
+        \Big)\;.
+    \end{split}
+\end{align}
+
+The delete component is the same for both V1 and V2, as neither the pattern trapdoor regeneration nor the frequency update procedures differ between the two versions with respect to the delete path.
+
+\paragraph{Insertions Complexity}
+
+The insert component captures the work of inserting $T_{\text{ins}}$ new \emph{Abox} triples into the encrypted index.
+For each triple, \gls{SEnTriQ} generates $9$ encrypted index entries (one per pattern keyword), the encrypted frequency entries and the pattern trapdoors required to support secure search.
+Moreover, before inserting, the same triples are first deleted to avoid duplication; this preliminary delete corresponds to applying $O^{\text{Delete}}_V$ with $T_{\text{del}} = T_{\text{ins}}$.
+
+For each inserted triple in \gls{SEnTriQ} V1:
+
+\begin{itemize}
+    \item $9$ index node encryptions: each node value is encrypted with a deterministic layer followed by a randomized layer.
+    \item $9$ pattern trapdoors via \textit{generatePatternTrapdoors}: one deterministic encryption per pattern keyword keyed by the SPO triple keyword.
+    \item $9$ keyword frequency updates: one deterministic and one randomized encryption per keyword.
+    \item Commit to the storage engine: encrypted nodes and trapdoors are pushed to a temporary Redis list via \textit{commitUpload} (one \textit{LPUSH} per entry, alternating key/value), and later applied by the Lua update script, which pops pairs and issues \textit{SET} calls. This costs $O(9 * T_{\text{ins}})$ storage engine operations, asymptotically absorbed.
+\end{itemize}
+
+We therefore write:
+
+\begin{align}
+    \label{equation:update-insert-v1-layout}
+    \begin{split}
+        O^{\text{Insert}}_{\text{V1}} &=
+        O\Big(
+            \overbrace{T_{\text{ins}} * 9 * ( 3 * E_{\text{DET}} + E_{\text{RND}} )}^{O^{\text{Delete}}_V}    % preliminary delete
+            + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})        % index node encryptions
+            + T_{\text{ins}} * 9 * E_{\text{DET}}                           % pattern trapdoors
+            + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})        % frequency updates
+        \Big) \\
+        &= O\Big(
+            T_{\text{ins}} * 9 * \big( 6 * E_{\text{DET}} + 3 * E_{\text{RND}} \big)
+        \Big)\;.
+    \end{split}
+\end{align}
+
+For \gls{SEnTriQ} V2, additionally, each of the $9$ index entries requires a DGK encryption to generate an equality tag for the node value.
+The storage engine commit additionally stores equality tags as extra encrypted entries, also processed linearly by the Lua script.
+We therefore write:
+
+\begin{align}
+    \label{equation:update-insert-v2-layout}
+    \begin{split}
+        O^{\text{Insert}}_{\text{V2}} &=
+        O^{\text{Delete}}_{\text{V2}}\big|_{T_{\text{del}} = T_{\text{ins}}} \\
+        &\quad + O\Big(
+            T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}} + E_{\text{DGK}}) % index + eq tags
+            + T_{\text{ins}} * 9 * E_{\text{DET}}                                   % pattern trapdoors
+            + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})                % frequency updates
+        \Big) \\
+        &= O^{\text{Delete}}_{\text{V2}}\big|_{T_{\text{del}} = T_{\text{ins}}}
+           + O\Big( T_{\text{ins}} * 9 * \big( 3 * E_{\text{DET}} + 2 * E_{\text{RND}} + E_{\text{DGK}} \big) \Big)\;.
+    \end{split}
+\end{align}
+
+\paragraph{Total UPDATE Complexity and Archetypes}
+
+With these components, the total complexity of an UPDATE query is:
+
+\begin{align}
+    \label{equation:update-total}
+    \begin{split}
+        O^{\text{Upd}}_V =
+        O^{\text{Search}}_V + O^{\text{Delete}}_V + O^{\text{Insert}}_V\;,
+    \end{split}
+\end{align}
+
+where:
+\begin{itemize}
+    \item $O^{\text{Search}}_V$ is given by equation \ref{equation:update-where-select} and is $O(1)$ for UPDATE forms without \textit{WHERE};
+    \item $O^{\text{Delete}}_V$ is given by equation \ref{equation:update-delete-layout};
+    \item $O^{\text{Insert}}_{\text{V1}}$ and $O^{\text{Insert}}_{\text{V2}}$ are given by equations \ref{equation:update-insert-v1-layout} and \ref{equation:update-insert-v2-layout}.
+\end{itemize}
+
+Different SPARQL UPDATE archetypes simply correspond to enabling or disabling these three components, and, in the case of insertions, to the implicit preliminary delete of the triples being inserted.
+Note that LOAD is equivalent to INSERT\_DATA applied to all triples in the source graph, and therefore shares the same complexity.
+Tables \ref{tbl:update-complexity:v1} and \ref{tbl:update-complexity:v2} summarize this composition for \gls{SEnTriQ} V1 and V2, respectively.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+        \textbf{SEnTriQ V1} & \textbf{Read} & \textbf{Write} & \textbf{Total} \\
+    \hline
+        INSERT\_DATA / LOAD &
+        $O(1)$ &
+        $\displaystyle
+            O^{\text{Delete}}_{\text{V1}}\big|_{T_{\text{del}} = T_{\text{ins}}}
+            + O\Big(
+                T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+                + T_{\text{ins}} * 9 * E_{\text{DET}}
+                + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Insert}}_{\text{V1}}$ \\
+    \hline
+        DELETE\_DATA &
+        $O(1)$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Delete}}_{\text{V1}}$ \\
+    \hline
+        DELETE\_WHERE &
+        $\displaystyle O_{\text{Prep V1}} + O_{\text{Eval V1}}$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $\displaystyle O_{\text{Prep V1}} + O_{\text{Eval V1}} + O^{\text{Delete}}_{\text{V1}}$ \\
+    \hline
+        MODIFY &
+        $\displaystyle O_{\text{Prep V1}} + O_{\text{Eval V1}}$ &
+        $\displaystyle O^{\text{Delete}}_{\text{V1}} + O^{\text{Insert}}_{\text{V1}}$ &
+        $\displaystyle O_{\text{Prep V1}} + O_{\text{Eval V1}} + O^{\text{Delete}}_{\text{V1}} + O^{\text{Insert}}_{\text{V1}}$ \\
+    \hline
+        CLEAR &
+        $O(1)$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Delete}}_{\text{V1}}$ with $T_{\text{ins}} = 0$ \\
+    \hline
+    \end{tabular}
+    \caption{Read, write and total complexity for SPARQL UPDATE forms in \gls{SEnTriQ} V1.}
+    \label{tbl:update-complexity:v1}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+        \textbf{SEnTriQ V2} & \textbf{Read} & \textbf{Write} & \textbf{Total} \\
+    \hline
+        INSERT\_DATA / LOAD &
+        $O(1)$ &
+        $\displaystyle
+            O^{\text{Delete}}_{\text{V2}}\big|_{T_{\text{del}} = T_{\text{ins}}}
+            + O\Big(
+                T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}} + E_{\text{DGK}})
+                + T_{\text{ins}} * 9 * E_{\text{DET}}
+                + T_{\text{ins}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Insert}}_{\text{V2}}$ \\
+    \hline
+        DELETE\_DATA &
+        $O(1)$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Delete}}_{\text{V2}}$ \\
+    \hline
+        DELETE\_WHERE &
+        $\displaystyle O_{\text{Prep V2}} + O_{\text{Eval V2}}$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $\displaystyle O_{\text{Prep V2}} + O_{\text{Eval V2}} + O^{\text{Delete}}_{\text{V2}}$ \\
+    \hline
+        MODIFY &
+        $\displaystyle O_{\text{Prep V2}} + O_{\text{Eval V2}}$ &
+        $\displaystyle O^{\text{Delete}}_{\text{V2}} + O^{\text{Insert}}_{\text{V2}}$ &
+        $\displaystyle O_{\text{Prep V2}} + O_{\text{Eval V2}} + O^{\text{Delete}}_{\text{V2}} + O^{\text{Insert}}_{\text{V2}}$ \\
+    \hline
+        CLEAR &
+        $O(1)$ &
+        $\displaystyle
+            O\Big(
+                T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * E_{\text{DET}}
+                + T_{\text{del}} * 9 * (E_{\text{DET}} + E_{\text{RND}})
+            \Big)
+        $ &
+        $O^{\text{Delete}}_{\text{V2}}$ with $T_{\text{ins}} = 0$ \\
+    \hline
+    \end{tabular}
+    \caption{Read, write and total complexity for SPARQL UPDATE forms in \gls{SEnTriQ} V2.}
+    \label{tbl:update-complexity:v2}
+\end{table}
+
+\paragraph{Discussion}
+
+From the previous analysis, we can conclude that the asymptotic behaviour of SPARQL UPDATE queries in \gls{SEnTriQ} is governed by the same crypto-intensive components as read-only queries.
+For UPDATE forms with a \textit{WHERE} clause, the dominant terms are still the preparation and evaluation of the encrypted search pipeline, including the decryption of bindings at the Client, as captured by $O_{\text{Prep V}} + O_{\text{Eval V}}$ and $O_{\text{SELECT}}$.
+On the write side, both the delete and insert components scale linearly with the number of affected triples: each deleted triple triggers $9 * (3 * E_{\text{DET}} + E_{\text{RND}})$ cryptographic operations, and each inserted triple triggers $9 * (3 * E_{\text{DET}} + 2 * E_{\text{RND}})$ operations in V1, plus an additional $9 * E_{\text{DGK}}$ per triple in V2 for equality tags.
+The preliminary delete performed before every insertion to avoid duplication increases the constant factors of $O^{\text{Insert}}_V$, but does not change the overall asymptotic complexity classes of the UPDATE forms.
+The storage engine operations (Redis \textit{LPUSH}, \textit{LPOP}, \textit{SET} and \textit{DEL} calls in the commit and Lua update script) are all linear in the number of encrypted entries processed, and are therefore asymptotically dominated by the cryptographic costs.
+Consequently, the main performance gap between \gls{SEnTriQ} V1 and V2 in the context of UPDATE queries stems from the additional DGK-based equality-tag operations in V2, rather than from structural differences in the query plans.
+
 
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
