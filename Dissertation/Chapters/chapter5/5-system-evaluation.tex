@@ -19,52 +19,6 @@ Finally, in Section \ref{ch5:final-discussion}, we conclude with an analysis of 
 
 In this Section we will be evaluating \gls{SEnTriQ} in terms of space complexity for storage of the encrypted data, and time complexity for query evaluation.
 
-\subsection{Storage Complexity}
-
-When evaluating the storage complexity of \gls{SEnTriQ}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
-
-\paragraph{SEnTriQ V1 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
-
-\paragraph{SEnTriQ V2 (\emph{\emph{Abox}})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
-
-\paragraph{SEnTriQ V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
-
-Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{\emph{Abox}}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
-
-%Space complexity in terms of RDF terms
-
-\begin{table}[!ht]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-    \hline
-         \textbf{Version} & \textbf{Deterministic} & \textbf{Probabilistic} & \textbf{DGK} \\ \hline
-        V1 & $27T_a + K_a + 3T_t$ & $18T_a + Ka + 3T_t$ & 0 \\ \hline
-        V2 & $18T_a + K_a + N_a + 3T_t$ & $18T_a + K_a + N_a + 3T_t$ & $18T_a$ \\ \hline
-    \end{tabular}
-    \caption{Count of encryption operations.}
-    \label{tbl:storage-complexity:count}
-\end{table}
-
-Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriQ} versions.
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l|l|l|}
-    \hline
-        \textbf{Version} & \textbf{Storage Formula} & \textbf{Asymptotic Storage} \\
-        \hline
-        V1 & $(45T_a + 2K_a + 6T_t) * \overline{S}$ & $O\!\left((T_a + K_a + T_t) * \overline{S}\right)$ \\
-        \hline
-        V2 & $(36T_a + 2K_a + 2N_a + 6T_t) * \overline{S} + 18T_a * \overline{N}$  & $O\!\left((T_a + K_a + N_a + T_t) * \overline{S} + T_a * \overline{N}\right)$ \\
-        \hline
-    \end{tabular}
-    \caption{Storage complexity comparison.}
-    \label{tbl:storage-complexity:formulas}
-\end{table}
-
-
-To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriQ} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriQ} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
-
 \subsection{Query Evaluation Complexity}
 
 In this Section, we will analyze the time complexity of \gls{SEnTriQ} for \gls{SPARQL} query evaluation. We will do this analysis with and without inference, starting with read queries and then write queries. We will define complexity in terms of query jobs and executions of cryptographic functions.
@@ -82,7 +36,7 @@ Let $V \in \{V1, V2\}$, the full complexity formula for the evaluation of read q
 
 \paragraph{Query Parsing} Before evaluating $O_{\text{Prep V}}$ and $O_{\text{Eval V}}$ we will analyze the quantity and kind of query jobs generated after parsing a \gls{SPARQL} query.
 
-Let $q_S$, $q_J$, $q_M$, $q_O$, $q_U$, $q_P$, $q_{SO}$, $q_D$, $q_{SL}$ be the number of $job_{\text{SEC\_SEARCH}}$, $job_{\text{JOIN}}$, $job_{\text{MINUS}}$, $job_{\text{OPTIONAL}}$, $job_{\text{UNION}}$, $job_{\text{PROJECT}}$, $job_{\text{SORT}}$, $job_{\text{DISTINCT}}$ and $job_{\text{SLICE}}$ generated uniquely from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using the CRYPTO algorithm.
+Let $q_S$, $q_J$, $q_M$, $q_O$, $q_U$, $q_P$, $q_{SO}$, $q_D$, $q_{SL}$ be the number of $job_{\text{SEC\_SEARCH}}$, $job_{\text{JOIN}}$, $job_{\text{MINUS}}$, $job_{\text{OPTIONAL}}$, $job_{\text{UNION}}$, $job_{\text{PROJECT}}$, $job_{\text{SORT}}$, $job_{\text{DISTINCT}}$ and $job_{\text{SLICE}}$ generated uniquely from explicitly defined terms, after parsing a \gls{SPARQL} query $q$. Finally, let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm.
 During this initial step, we parse the query and generate the query jobs, to include in the query execution plan. Besides the explicitly defined operations in the query body, for each \gls{BGP} pattern, we construct a randomized pipeline of $job_{JOIN}$. We will specify the count of \gls{BGP} patterns as $q_{\text{bgp}}$. Contrary to Jena, the \gls{SEnTriQ} protocol does not possess a job abstraction that directly maps to their $op_{\text{BGP}}$, instead we interpret it as a series of $job_{\text{SEC\_SEARCH}}$ followed by $(n - 1) * job_{\text{JOIN}}$, where $n$ is the number of $job_{\text{SEC\_SEARCH}}$ (or alternative the number o triple patterns) from a \gls{BGP}. 
 
 During the generation of this pipeline we construct an adjacency matrix to determine the compatibility for join operations, which requires pairwise comparisons between the $job_{\text{SEC\_SEARCH}}$ of the \gls{BGP}. We then do breadth first searches, starting from a randomly selected job, until we find a valid path between all jobs. Complexity wise the matrix generation dominates this part of the query parsing, it is quadratic in the number of the $job_{\text{SEC\_SEARCH}}$ created from \gls{BGP}s, but we are more interested in the number of jobs created, which is $(n - 1)$ new $job_{\text{JOIN}}$.
@@ -145,7 +99,7 @@ The execution of the $job_{\text{DISTINCT}}$ consist in checking if a boolean fl
 
 Finally, during a $job_{\text{PROJECT}}$ we simply keep the bindings and patterns referenced by the $v_p$ variables in the projection.
 
-Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC\_SEARCH}}$ and $D_{CRYPTO}(\cdot)$ be the decryption function using the CRYPTO algorithm, we can re-define the complexity function as:
+Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC\_SEARCH}}$ and $D_{CRYPTO}(\cdot)$ be the decryption function using a CRYPTO algorithm, we can re-define the complexity function as:
 
 \begin{align}
     \label{equation:query-evaluation-v1-jobs}
@@ -273,8 +227,6 @@ Since there is a maximum depth of expansion, the total complexity for expanding 
 
 The asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
 
-%TODO: Explain how job number is modified, actually revisit, the join pipeline is only for joining the searches... the order of the other jobs does not change. Number only increased based on branching. Will need to add jobs created to the complexity of the expansion because that is what is interesting
-
 \paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expansion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
 
 \begin{table}[h]
@@ -333,11 +285,312 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 
 \subsubsection{SPARQL UPDATE Query Evaluation Complexity}
 
-%TODO: Complexity of delete 
-%      Compleity of upload
-%      Explain Cases
-%          - Generate triples
-%          - 
+\gls{SPARQL} UPDATE queries in \gls{SEnTriQ}, can have six variants: LOAD, CLEAR, INSERT DATA, DELETE DATA, INSERT/DELETE WHERE and DELETE WHERE. When an update query contains a WHERE clause, we will first conduct a normal \gls{SPARQL} query, withouth inference, and retrieve the corresponding bindings. These results will be used to generate the triples to upload or delete. Additionally, for each batch of uploads and deletions, we will have to search for term frequencies. 
+
+Consequently, we can decompose the complexity of these queries into a \emph{search} component, $O^{\text{Search}}$, which reuses the complexity of regular \gls{SPARQL} queries, and a \emph{write} component, $O^{\text{Write}}$, which captures the additional cost asssociated with modifying the triplestore contents: searching for keyword frequencies, regenerating pattern trapdoors, encrypting new data and committing changes.
+
+Intuitively, the the number of triples to be uploaded, or deleted, and the indexing scheme (number of trapdoors and pattern keywords per triple) control the \textit{write} component's cost.
+
+Let $V \in \{\text{V1}, \text{V2}\}$, we will define the complexity of evaluating a \gls{SPARQL} UPDATE query as:
+
+\begin{align}
+    \label{equation:sparql-update-complexity-general}
+    \begin{split}
+        O^{\text{UPDATE}}_V &= O^{\text{Search}}_V + O^{\text{Write}}_V
+    \end{split}
+\end{align}
+
+
+\paragraph{Search Component Complexity}
+
+For any UPDATE query that includes a \textit{WHERE} clause, the evaluation of that clause is equivalent to a \textit{SELECT} query over the same pattern. So the compexity of the \emph{search} component will be:
+
+\begin{align}
+    \label{equation:update-where-select}
+    \begin{split}
+        O^{\text{Search}}_V
+        &= O_{\text{Prep V}} + O_{\text{Eval V}} \\
+        &= O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}
+    \end{split}
+\end{align}
+
+\paragraph{Write Component Complexity}
+
+The remaining cost of an UPDATE query will be determined by the number of insertions and deletions. Let $T_{\text{ins}}$ and $T_{\text{del}}$ be, respectively, the number of \emph{Abox} triples inserted and deleted by an UPDATE query. 
+
+In \gls{SEnTriQ}, to avoid duplication of terms, an insertion of triples is always preceded by a deletion of the same triples, so every insertion implicitly includes a delete step for $T_{\text{ins}}$ triples. As such, the complexity formula for the \emph{write} component will be:
+
+\begin{align}
+    \label{equation:update-write-componenet}
+    \begin{split}
+        O^{\text{Write}}_V
+        &= O^{\text{Deletions}}_V + O^{\text{Insertions}}_V
+    \end{split}
+\end{align}
+
+\paragraph{Deletions Complexity}
+
+In \gls{SEnTriQ} V1, for each triple to be deleted, we compute the trapdoors associated to its keyword frequencies, 9 in total. We search the triplestore for matches against these trapdoors. For each valid result, we decrypt the keyword frequency value, and generate the associated trapdoor. All trapdoors are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
+
+In \gls{SEnTriQ} V2, valid results of the search operation, yield the term frequency which is used to compute trapdoors referencing equality tags. As such, we require a second search, to retrieve the equality tags, which reference the encrypted keywords. All trapdoors and equality tags are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
+
+Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $\overline{t_{\text{del}}} \leq 9 * T_{\text{del}}$ be the average count of valid results returned from the first search operation. The complexity cost for deletions, in \gls{SEnTriQ} V1 is:
+
+
+\begin{align}
+    \label{equation:update-delete-v1-complexity}
+    \begin{split}
+        O^{\text{Delete}}_{V1} &=
+        O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + \overline{t_{\text{del}}} * \big(D_{\text{RND}} +  E_{\text{DET}}\big)             
+            + 2 * \overline{t_{\text{del}}}
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + T_{\text{del}} * 9 * (D_{\text{RND}} +  E_{\text{DET}})             
+            + 2 * T_{\text{del}} * 9
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * \big( 2 * E_{\text{DET}} + D_{\text{RND}} +  2 \big)\Big) \\
+        &= O\Big(T_{\text{del}} * \big(E_{\text{DET}} + E_{\text{DET}}\big)\Big) \\
+    \end{split}
+\end{align}
+
+Let $\overline{eq_{\text{del}}} \leq \overline{t_{\text{del}}} \leq 9 * T_{\text{del}}$ be the average count of valid results returned from the second search operation. The complexity cost for deletions, in \gls{SEnTriQ} V2 is:
+
+\begin{align}
+    \label{equation:update-delete-v2-complexity}
+    \begin{split}
+        O^{\text{Delete}}_{V2} &=
+        O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + \overline{t_{\text{del}}} * \big(D_{\text{RND}} +  E_{\text{DET}}\big)             
+            + 2 * \overline{t_{\text{del}}} + \overline{eq_{\text{del}}}
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * E_{\text{DET}}
+            + T_{\text{del}} * 9 * (D_{\text{RND}} +  E_{\text{DET}})             
+            + 3 * T_{\text{del}} * 9
+        \Big) \\
+        &= O\Big(
+            T_{\text{del}} * 9 * \big( 2 * E_{\text{DET}} + D_{\text{RND}} +  3 \big)\Big) \\
+        &= O\Big(T_{\text{del}} * \big(E_{\text{DET}} + E_{\text{DET}}\big)\Big) \\
+    \end{split}
+\end{align}
+
+\paragraph{Insertions Complexity (\emph{Abox} Triples)}
+
+The insertion complexity is influenced by the number of new \emph{Abox} triples to insert, which we will denote $T_{\text{ins}}$. Before each insertion, we will first try to delete every new triple from the triplestore, to avoid duplicates. This preliminary step has the cost of $O^{\text{Delete}}_V$ where $T_{\text{del}} = T_{\text{ins}}$.
+
+In \gls{SEnTriQ} V1, for each \emph{Abox} triple to be uploaded, we search the triplestore for its keywords' frequencies, 6 in total. In case of a positive responses, the frequency values are decrypted and the encryption protocol state is updated. Each triple generates 9 trapdoors, one per keyword
+combination, and their respective encrypted node. We also compute the trapdoors pointing to the encrypted frequencies of the triple constituents. Lastly, for each keyword, we generate a trapdoor referencing their encrypted frequencies. All trapdoors and encrypted nodes are then commited in the triplestore. Upon an update request, the insertions are finalized.
+
+In \gls{SEnTriQ} V2, similarly, we start by searching for keyword frequencies. Additionally, we search for existing equality tags, decrypt positive results, and update the encryption protocol state with both keyword frequency and equality tag values. During encryption, each triple generates 9 trapdoors, one per keyword combination, their respective encrypted node and the node's equality tag. Furthermore, we compute the trapdoors pointing to the
+encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node, we generate a trapdoor pointing to its encrypted equality tag. All trapdoors, encrypted equality tags and encrypted nodes are then commited in the triplestore. Upon an update request, the insertions are finalized.
+
+Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $K_{\text{ins}}$ be the unique number of keywords from the triples to be uploaded and let $\overline{t_{\text{ins}}} \leq 6 * T_{\text{ins}}$ be the average count of valid results returned from the first search operation. The complexity cost for insertions, without deletions, in \gls{SEnTriQ} V1 is:
+
+\begin{align}
+    \label{equation:update-insert-v1-layout}
+    \begin{split}
+        O^{\text{Insert}}_{V1} &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * 6 * E_{\text{DET}} + \overline{t_{\text{ins}}} * D_{\text{RND}} \\% Set Keyword Frequencies 
+            &\;\;\;\;\;\;\;\;\;+ T_{\text{ins}} * \big( 9 * (2 * E_{\text{DET}} + E_{\text{RND}}) + 9 * (E_{\text{DET}} + E_{\text{RND}})\big) \\ % Triple Encryption
+            &\;\;\;\;\;\;\;\;\;+ K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) % Contextual Information Encryption
+            + 2 * 9 * T_{\text{ins}} + K_{\text{ins}} % Insertions
+        \Big) \\
+        &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * 6 * \big(E_{\text{DET}} + D_{\text{RND}} \big) 
+            + T_{\text{ins}} * \big( 9 * (3 * E_{\text{DET}} + 2 * E_{\text{RND}})\big) \\
+            &\;\;\;\;\;\;\;\;\;+ K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) +  18 * T_{\text{ins}} + K_{\text{ins}} 
+        \Big) \\
+        &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * \big( 6 * E_{\text{DET}} + 6 * D_{\text{RND}} + 27 * E_{\text{DET}} + 18 * E_{\text{RND}} \big) \\ 
+        &\;\;\;\;\;\;\;\;\; + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big)
+        \Big) \\
+        &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * \big( 33 * E_{\text{DET}} + 18 * E_{\text{RND}} + 6 + D_{\text{RND}} \big) 
+            + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big)
+        \Big) \\
+        &=  O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} + D_{\text{RND}}\big) + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big)  
+        \Big) \\
+    \end{split}
+\end{align}
+
+Let $N_{\text{ins}}$ be the unique number of nodes to be uploaded and let $\overline{eq_{\text{ins}}} \leq N_{\text{ins}}$ be the average count of valid results returned from the second search operation. The complexity cost for insertions, in \gls{SEnTriQ} V2 is:
+
+\begin{align}
+    \label{equation:update-insert-v2-layout}
+    \begin{split}
+        O^{\text{Insert}}_{V2} &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} +
+        O\Big(
+            T_{\text{ins}} * 6 * E_{\text{DET}} + \overline{t_{\text{ins}}} * D_{\text{RND}} % Set Keyword Frequencies 
+            + N_{\text{ins}} * E_{\text{DET}} + \overline{eq_{\text{ins}}} * D_{\text{DGK}} \\ % Set Equality Tags Frequencies 
+            &\;\;\;\;\;\;\;\;\; + T_{\text{ins}} * \big( 9 * (E_{\text{DET}} + E_{\text{RND}} + E_{\text{DGK}}) + 9 * (E_{\text{DET}} + E_{\text{RND}})\big) \\ % Triple Encryption
+            &\;\;\;\;\;\;\;\;\; + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) + N_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) % Contextual Information Encryption
+            + 3 * 9 * T_{\text{ins}} + K_{\text{ins}} + N_{\text{ins}} % Insertions
+        \Big) \\
+        &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} + 
+        O\Big(
+            T_{\text{ins}} * 6 * \big(  E_{\text{DET}} + D_{\text{RND}} \big)
+            + N_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{DGK}} \big) \\ 
+            &\;\;\;\;\;\;\;\;\; + T_{\text{ins}} * \big( 9 * ( 2 * E_{\text{DET}} + 2 * E_{\text{RND}} + E_{\text{DGK}}) \big) \\ 
+            &\;\;\;\;\;\;\;\;\; + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) + N_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) 
+            + 27 * T_{\text{ins}} + K_{\text{ins}} + N_{\text{ins}} 
+        \Big) \\
+        &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} + 
+        O\Big(
+            N_{\text{ins}} * \big( 2 * E_{\text{DET}} + D_{\text{DGK}} + E_{\text{RND}} \big) + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) \\ 
+            &\;\;\;\;\;\;\;\;\; + T_{\text{ins}} * \big( 6 * E_{\text{DET}} + 6 * D_{\text{RND}} + 18 * E_{\text{DET}} + 18 * E_{\text{RND}} + 9 * E_{\text{DGK}} \big)
+        \Big) \\     
+        &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} + 
+        O\Big(
+            N_{\text{ins}} * \big( 2 * E_{\text{DET}} + D_{\text{DGK}} + E_{\text{RND}} \big) + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) \\ 
+            &\;\;\;\;\;\;\;\;\; + T_{\text{ins}} * \big( 27 * E_{\text{DET}} + 6 * D_{\text{RND}} + 18 * E_{\text{RND}} + 9 * E_{\text{DGK}} \big)
+        \Big) \\   
+        &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} + 
+        O\Big(
+            N_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{DGK}} + E_{\text{RND}} \big) + K_{\text{ins}} * \big( E_{\text{DET}} + E_{\text{RND}} \big) \\ 
+            &\;\;\;\;\;\;\;\;\; + T_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{RND}} + E_{\text{RND}} + E_{\text{DGK}} \big)
+        \Big) \\ 
+    \end{split}
+\end{align}
+
+\paragraph{Insertions Complexity (\emph{TBox} Triples)}
+
+The insertion complexity for \emph{TBox} triples is equal for both protocols. 
+
+We start by searching for the keyword frequency of the \emph{TBox} set. In case of a valid response, we decrypt the frequency, and generate the respective trapdoors. All trapdoors are commited for deletion in the triplestore. Upon an update request, the deletions are finalized.
+
+For each \emph{TBox} triple to be uploaded, we generate 3 trapdoors referencing, respectively, the triple's subject, predicate and object. Each node is also encrypted. The trapdoors and encrypted nodes are commited to the triplestore. Upon an update request, the insertions are finalized. 
+
+Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $T_{\text{ins}}$ be the unique number of triples to be uploaded and let $\overline{f}$ be the average frequency value of a triplestore's \emph{Tbox}. The complexity cost can be defined as:
+
+\begin{align}
+    \label{equation:update-insert-tbox}
+    \begin{split}
+        O^{\text{Insert}}_{V} &=
+        O\Big(
+            E_{\text{DET}} + D_{\text{RND}} + \overline{f} * E_{\text{DET}}
+            + T_{\text{ins}} * 3 * \big( E_{\text{DET}} + D_{\text{RND}} \big)
+            + \overline{f} + 3 * T_{\text{ins}}           
+        \Big) \\
+        &=
+        O\Big(
+            E_{\text{DET}} + D_{\text{RND}} + \overline{f} * E_{\text{DET}}
+            + T_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{RND}} \big)          
+        \Big) \\
+    \end{split}
+\end{align}
+
+\paragraph{Complexity of Uploads (LOAD) and Triplestore Deletions (CLEAR)}
+
+The LOAD and CLEAR query variants are implemented with dedicated operations, respectively, to create and upload, or delete, a triplestore. 
+
+Informally, the complexity of a LOAD query is equivalent as that of an INSERT DATA query: we create the new triplestore and generate an INSERT DATA query, where we specify all \emph{ABox} triples to be uploaded to the newly created triplestore.
+
+The complexity of a CLEAR query is linear with the size of the triplestore. We scan all the keys of the target triplestore and delete them.
+
+\paragraph{SPARQL UPDATE Complexity Summary}
+
+In Table \ref{tbl:update-complexity-summary}, we summarize  the complexity of the various variants of \gls{SPARQL} UPDATE queries using the complexity formulas previously defined.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|}
+    \hline
+        \textbf{Query Variant} &
+        \textbf{Read Component} &
+        \textbf{Write Component} \\
+    \hline
+        INSERT\_DATA / LOAD (\emph{Abox}) &
+        $O(1)$ &
+        $O^{\text{Delete}}_{V(T_{\text{ins}})} + O^{\text{Insert}}_V$ \\
+    \hline
+        LOAD (\emph{Tbox}) &
+        $E_{\text{DET}} + D_{\text{RND}} + \overline{f} * E_{\text{DET}}$ &
+        $T_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{RND}} \big)$ \\
+    \hline
+        DELETE\_DATA &
+        $O(1)$ &
+        $O^{\text{Delete}}_{V(T_{\text{del}})}$ \\
+    \hline
+        CLEAR &
+        $O(1)$ &
+        $O(\text{Tbox} + \text{ABox})$ \\
+    \hline
+        DELETE\_WHERE &
+        $O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}$ &
+        $O^{\text{Delete}}_{V(T_{\text{del}})}$ \\
+    \hline
+        INSERT/DELETE WHERE &
+        $O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}$ &
+        $O^{\text{Delete}}_{V(T_{\text{del}} + T_{\text{ins}})} + O^{\text{Insert}}_V$ \\
+    \hline
+    \end{tabular}
+    \caption{\gls{SPARQL} UPDATE query evaluation complexity in \gls{SEnTriQ}.}
+    \label{tbl:update-complexity-summary}
+\end{table}
+
+Overall, we can conclude that the complexity of evaluating \gls{SPARQL} UPDATE queries in \gls{SEnTriQ} is mainly influenced by the cryptographic operations, which scale linearly to the number of triples to upload or delete. Naturarly, the presence of a WHERE clause will increase the evaluation cost.
+
+The delete before insertions strategy, to avoid duplication, does not change the asymptotic complexity class of insertions, but it does add a constant extra cost factor.
+
+In \gls{SEnTriQ} V2, the additional there is always an extra communication round in deletions and insertions, making write operations more expensive than in V1, even though both versions remain linear.
+
+
+\subsection{Storage Complexity}
+
+When evaluating the storage complexity of \gls{SEnTriQ}, we need to take into consideration that two different types of encryption operations are done, which generate ciphertexts with different sizes. The size of a ciphertext generated with the XChaCha20-Poly1305 algorithm, depends on the size of the plaintext (plus a constant 16 bytes tag), whereas the size of the ciphertexts generated with the \gls{DGK} cryptosystem depend on the size of the modulus $n$ (usually with 1024 or 2048 bits).
+
+\paragraph{SEnTriQ V1 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
+
+\paragraph{SEnTriQ V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+
+\paragraph{SEnTriQ V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
+
+Let $T_a$, $K_a$ and $N_a$ be, respectively, the triples, keywords and nodes of a dataset's \emph{Abox}. Let $T_t$, $K_t$ and $N_t$ be, respectively, the triples, keywords and nodes of the same dataset's \emph{Tbox}. In Table \ref{tbl:storage-complexity:count} we summarize the count of encryption functions executed during an upload (considering no deletions).
+
+%Space complexity in terms of RDF terms
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+    \hline
+         \textbf{Version} & \textbf{Deterministic} & \textbf{Probabilistic} & \textbf{DGK} \\ \hline
+        V1 & $27T_a + K_a + 3T_t$ & $18T_a + Ka + 3T_t$ & 0 \\ \hline
+        V2 & $18T_a + K_a + N_a + 3T_t$ & $18T_a + K_a + N_a + 3T_t$ & $18T_a$ \\ \hline
+    \end{tabular}
+    \caption{Count of encryption operations.}
+    \label{tbl:storage-complexity:count}
+\end{table}
+
+Now, let $\overline{S}$ be the average size of a ciphertext generated with the XChaCha20-Poly1305 and $\overline{N}$ the size of a ciphertext generated with the \gls{DGK} cryptosystem. In Table \ref{tbl:storage-complexity:formulas} we show the storage complexity for each of the \gls{SEnTriQ} versions.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+    \hline
+        \textbf{Version} & \textbf{Storage Formula} & \textbf{Asymptotic Storage} \\
+        \hline
+        V1 & $(45T_a + 2K_a + 6T_t) * \overline{S}$ & $O\!\left((T_a + K_a + T_t) * \overline{S}\right)$ \\
+        \hline
+        V2 & $(36T_a + 2K_a + 2N_a + 6T_t) * \overline{S} + 18T_a * \overline{N}$  & $O\!\left((T_a + K_a + N_a + T_t) * \overline{S} + T_a * \overline{N}\right)$ \\
+        \hline
+    \end{tabular}
+    \caption{Storage complexity comparison.}
+    \label{tbl:storage-complexity:formulas}
+\end{table}
+
+
+To conclude, in both versions storage complexity scales linearly. Although, in \gls{SEnTriQ} V2 the number of ciphertexts increases by approximately $9T_a + 2N_a$ relative to \gls{SEnTriQ} V1, the storage overhead is substantially higher due to the increase in size of the ciphertexts generated with the \gls{DGK} cryptosystem.
 
 \section{Experimental Evaluation}
 \label{ch5:setup-methodology}
