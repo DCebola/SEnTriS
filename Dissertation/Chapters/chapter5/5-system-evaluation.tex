@@ -328,7 +328,7 @@ In \gls{SEnTriQ}, to avoid duplication of terms, an insertion of triples is alwa
     \end{split}
 \end{align}
 
-\paragraph{Deletions Complexity}
+\paragraph{Deletions Complexity (\emph{ABox} Triples)}
 
 In \gls{SEnTriQ} V1, for each triple to be deleted, we compute the trapdoors associated to its keyword frequencies, 9 in total. We search the triplestore for matches against these trapdoors. For each valid result, we decrypt the keyword frequency value, and generate the associated trapdoor. All trapdoors are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
 
@@ -394,7 +394,7 @@ Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encry
 \begin{align}
     \label{equation:update-insert-v1-layout}
     \begin{split}
-        O^{\text{Insert}}_{V1} &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
+        O^{\text{Insert}}_{V1 (ABox)} &= O^{\text{Delete}}_{V1 (T_{\text{ins}})} +
         O\Big(
             T_{\text{ins}} * 6 * E_{\text{DET}} + \overline{t_{\text{ins}}} * D_{\text{RND}} \\% Set Keyword Frequencies 
             &\;\;\;\;\;\;\;\;\;+ T_{\text{ins}} * \big( 9 * (2 * E_{\text{DET}} + E_{\text{RND}}) + 9 * (E_{\text{DET}} + E_{\text{RND}})\big) \\ % Triple Encryption
@@ -429,7 +429,7 @@ Let $N_{\text{ins}}$ be the unique number of nodes to be uploaded and let $\over
 \begin{align}
     \label{equation:update-insert-v2-layout}
     \begin{split}
-        O^{\text{Insert}}_{V2} &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} +
+        O^{\text{Insert}}_{V2 (ABox)} &= O^{\text{Delete}}_{V2 (T_{\text{ins}})} +
         O\Big(
             T_{\text{ins}} * 6 * E_{\text{DET}} + \overline{t_{\text{ins}}} * D_{\text{RND}} % Set Keyword Frequencies 
             + N_{\text{ins}} * E_{\text{DET}} + \overline{eq_{\text{ins}}} * D_{\text{DGK}} \\ % Set Equality Tags Frequencies 
@@ -476,7 +476,7 @@ Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encry
 \begin{align}
     \label{equation:update-insert-tbox}
     \begin{split}
-        O^{\text{Insert}}_{V} &=
+        O^{\text{Insert}}_{V (TBox)} &=
         O\Big(
             E_{\text{DET}} + D_{\text{RND}} + \overline{f} * E_{\text{DET}}
             + T_{\text{ins}} * 3 * \big( E_{\text{DET}} + D_{\text{RND}} \big)
@@ -492,11 +492,11 @@ Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encry
 
 \paragraph{Complexity of Uploads (LOAD) and Triplestore Deletions (CLEAR)}
 
-The LOAD and CLEAR query variants are implemented with dedicated operations, respectively, to create and upload, or delete, a triplestore. 
+The LOAD and CLEAR query variants are implemented with dedicated operations.
 
-Informally, the complexity of a LOAD query is equivalent as that of an INSERT DATA query: we create the new triplestore and generate an INSERT DATA query, where we specify all \emph{ABox} triples to be uploaded to the newly created triplestore.
+Informally, the complexity of a LOAD query, for \emph{ABox} triples, is equivalent as that of an INSERT DATA query: we generate an INSERT DATA query, where we specify all \emph{ABox} triples to be uploaded to the newly created triplestore. The insertion of \emph{TBox} data is only possible via a LOAD operation, and its complexity is defined in Equation \ref{equation:update-insert-tbox}.
 
-The complexity of a CLEAR query is linear with the size of the triplestore. We scan all the keys of the target triplestore and delete them.
+The complexity of a CLEAR query is linear with the size of the triplestore. We scan all the keys of the target triplestore and delete them. Consequently, we can define it as $O(\text{Tbox} + \text{ABox})$. 
 
 \paragraph{SPARQL UPDATE Complexity Summary}
 
@@ -512,11 +512,11 @@ In Table \ref{tbl:update-complexity-summary}, we summarize  the complexity of th
     \hline
         INSERT\_DATA / LOAD (\emph{Abox}) &
         $O(1)$ &
-        $O^{\text{Delete}}_{V(T_{\text{ins}})} + O^{\text{Insert}}_V$ \\
+        $O^{\text{Insert}}_{V (ABox)}$ \\
     \hline
         LOAD (\emph{Tbox}) &
-        $E_{\text{DET}} + D_{\text{RND}} + \overline{f} * E_{\text{DET}}$ &
-        $T_{\text{ins}} * \big( E_{\text{DET}} + D_{\text{RND}} \big)$ \\
+        $O(1)$ &
+        $O^{\text{Insert}}_{V (TBox)}$ \\
     \hline
         DELETE\_DATA &
         $O(1)$ &
@@ -532,7 +532,7 @@ In Table \ref{tbl:update-complexity-summary}, we summarize  the complexity of th
     \hline
         INSERT/DELETE WHERE &
         $O_{\text{Prep V}} + \sum_{i=1}^{q_{\text{jobs}}} O(J_i) + O_{\text{SELECT}}$ &
-        $O^{\text{Delete}}_{V(T_{\text{del}} + T_{\text{ins}})} + O^{\text{Insert}}_V$ \\
+        $O^{\text{Delete}}_{V(T_{\text{del}})} + O^{\text{Insert}}_{V (ABox)}$ \\
     \hline
     \end{tabular}
     \caption{\gls{SPARQL} UPDATE query evaluation complexity in \gls{SEnTriQ}.}
