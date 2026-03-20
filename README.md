@@ -35,7 +35,7 @@ DELETE Client/api/triplestores/{TriplestoreID}/{issuer}               #Delete tr
 POST   Client/api/triplestores/encrypted/{version}                    #Create encrypted triplestore.           (Privileged)
 POST   Client/api/triplestores/encrypted/{version}/upload             #Upload data to encrypted triplestore.   (Write Access)
 POST   Client/api/triplestores/encrypted/{version}/query  #Exec. a SPARQL query over an enc. triplestore.      (Read Access)
-POST    Client/api/triplestore/encrypted/{version}/schema             #Fetch triplestore schema.               (Read Access)
+POST   Client/api/triplestore/encrypted/{version}/schema              #Fetch triplestore schema.               (Read Access)
 DELETE Client/api/triplestores/encrypted/{version}/{TriplestoreID}/{issuer} #Delete encrypted triplestore.     (Owner)
 ```
 ### IAM Provider API
