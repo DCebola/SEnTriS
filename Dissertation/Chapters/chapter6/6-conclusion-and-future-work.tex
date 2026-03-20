@@ -7,3 +7,48 @@
 \prependtographicspath{{Figures/}}
 
 \mytodo{Do not forget to mention verification of authenticity and data integrity as future work}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In the present times, data is one of the backbones of the modern economy. However, data is as useful it can be interpreted. Hence the importance of knowledge representation, and consequently of ontologies.
+
+Datasets are growing, and with that, there is an increase in the usage of collaborative solutions, where heavy computations and data storage are outsourced to third parties.
+
+Not only does this new model present security risks, but ontologies themselves have an inherent private, and monetary, value, and need to be secured. Furthermore, it is very often that we see ontologies being used in the medical field, where data is sensitive. 
+
+Consequently, in this thesis, we focused on answering the following two questions: 1) \emph{How to support secure and expressive read and write \gls{SPARQL} queries over encrypted data?}; 2)\emph{How can we add reasoning capabilities to the solution?}
+
+Through the investigation of secure computation techniques, encryption protocols and semantic data storage systems we developed \gls{SEnTriQ}, a solution for the secure development of semantic data knowledge bases, which remain queriable while encrypted.
+
+\gls{SEnTriQ} has been developed in two variants: \gls{SEnTriQ} V1 provides higher performance, at the cost of lower security guarantees; \gls{SEnTriQ} V2 provides higher security guaranties, at the cost of higher time and space complexity.
+
+We have evaluated \gls{SEnTriQ} using the \gls{LUBM} benchmark, a reference in the field, and our results indicate that both variants achieve high inference capabilities. From the latencies observed,we argue that the solution remains practical to use, even at the highest level of security guaranties.
+
+\gls{SEnTriQ} shows that, by using a combination of \gls{SSE} encrytion techniques, it is possible to develop a solution capable of evaluating a subset of read and write \gls{SPARQL} queries, againts encrypted data. It also demonstrates that, by using query rewritting techniques, such solution can keep its reasoning capabilities.
+
+\section{Future Work}
+\label{sec:future-work}
+
+Although \gls{SEnTriQ} proved that it is possible to evaluate \gls{SPARQL} queries against encrypted datasets, it is still very primordial work, and possesses a lot of limitation. 
+
+In no particular order, we present future lines of research ... :
+
+\paragraph*{Extension of query support} The subset of supported queries is quite extensive, but still limited. It does not cover the full suite of modifiers, property paths, nor subqueries. It would be interesting to research how to add these capabilities to the query evaluation algorithms.
+
+\paragraph*{Research other query rewritting tehcniques} The algorithm developed requires bounding parameters, otherwise it continuously expands a query. Additionally, it does expansion with very basic approach. Research for the usage of more sophisticated rule engines, or other expansion techniques should be conducted.
+
+\paragraph*{Support for named graphs and multiple ontologies} \gls{SEnTriQ} can only evaluate queries agains a default triplestore, using a single ontology. Furthermore, it does not support partial updates of the ontologies, nor support for combined usage of multiple ontologies during query evaluation.
+
+\paragraph*{Robust \gls{RBAC}} The implementation of \gls{RBAC} in \gls{SEnTriS}, the developed prototype, is very naive. It would be interesting to research how to integrate secure and robust \gls{RBAC} in \gls{SEnTriQ}.
+
+\paragraph*{Extension to the \gls{M/M} setting} The support for multiple users in the implemented prototype was done via \textit{secret sharing}. It is relevant to research how to adapt \gls{SEnTriQ} to securily support multiple users, distribute secrets, and revoke deleted users.
+
+\paragraph*{Performance Research} The developed algorithms were designed with the intent to minimise the complexity overhead of the cryptographic primitives. Nevertheless, performance was not the major focus of this thesis. It would be valuable to investigate the usage of other cryptographic primitives and different query planning schemes (e.g. that use heuristics) or query evaluation schemes (e.g. using concurrent \emph{query workers}, introducing parallelization).
+
+\paragraph*{Tool Integration} \emph{Protégé} is one of the most popular ontology editors and knowledge management system. It would be interesting to try and integrate \gls{SEnTriQ} with such tools used in the industry. 
+
+\paragraph*{Develop a more realistic prototype} The implemented prototype works in a local development environment. Evaluation of a pratical prototype, whose components run in a cloud environment, would be valuable to understand running costs and trully assess its practically.
+
+\paragraph*{Strengthening the security model}
+While the current system provides different levels of confidentiality, future work could study stronger adversarial models, refined leakage analysis, and additional countermeasures against access-pattern and frequency-based attacks.
