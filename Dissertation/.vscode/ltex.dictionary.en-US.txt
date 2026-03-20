@@ -15,3 +15,7 @@ cryptosystem
 generateIndex
 archictural
 subproperties
+homomorphisms
+subqueries
+atomicity
+equi-joins

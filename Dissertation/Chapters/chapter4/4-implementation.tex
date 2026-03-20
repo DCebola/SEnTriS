@@ -10,7 +10,7 @@ In this chapter we will present the implementation scenario, and the adaptations
 
 \section{Implementation Scenario: SEnTriS, a naive triplestore sharing protocol}
 
-The formal solution scoped to this thesis, will be the \gls{SEnTriQ} protocol, for which we will prove its security properties. Nevertheless, we experimented with a more realistic implemantation scenario, a very simple extension of the \gls{SEnTriQ} protocol to the \gls{M/M} setting. We denominate this new protocol: \gls{SEnTriS}. It is a naive sharing protocol of encrypted triplesores, by means of secret sharing, that introduces \gls{RBAC} features as well.
+The formal solution scoped to this thesis, will be the \gls{SEnTriQ} protocol, for which we will prove its security properties. Nevertheless, we experimented with a more realistic implementation scenario, a very simple extension of the \gls{SEnTriQ} protocol to the \gls{M/M} setting. We denominate this new protocol: \gls{SEnTriS}. It is a naive sharing protocol of encrypted triplestores, by means of secret sharing, that introduces \gls{RBAC} features as well.
 
 \subsection{The M/M Setting}
 \label{ch4:sec:implementation:mm-setting}
@@ -26,7 +26,7 @@ Finally, roles grant different execution rights to users, which restrict the typ
 
 \emph{Basic} users are allowed query existing triplestores, if they have been given access to do so. They can request \emph{read} or \emph{write} access to existing triplestores.
 
-\emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are be able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting triplestores they own.
+\emph{Privileged} users have all the permissions of a \emph{basic} user. Additionally, they are able to create new triplestores, grant or revoke read/write access to their triplestores, transfer ownership to other users and process access requests targeting triplestores they own.
 
 \emph{Admin} users possess all the permissions of a \emph{privileged} user, but they are also able to manage any triplestore and process role change requests.
 
@@ -269,7 +269,7 @@ Parsing utilities and the creation of ontological models worked as expected. How
 \paragraph{Cryptography Libraries} For the cryptography operations we utilized a variety of well known libraries. We choose the Bouncy Castle library \autocite{BouncyCastle2023-og} for the key derivation operations and Lazysodium \autocite{Lazysodium-vo}, a Java wrapper of the Libsodium library \autocite{Libsodium-hk}, because it provides support for XChaCha20-Poly1305 encryption \autocite{NirUnknown-mk, XChaCha20-ur}. The \gls{DGK} encryption library used is an adaptation of the one developed by Andrew Quijano \autocite{DGKLibrary-ln}, where we removed the unused methods and implemented abstractions used in the \gls{SEnTriS} protocol.
 For \gls{SSL} certificate generation and management we used the OpenSSL library \autocite{OpenSSL-jb}.
 
-\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine. Altough we could have configured Redis with persistence enabled, we decided not to do it \autocite{Redis-xq, Redis-rq}. This choice was deliberate, the correctness of the protocol is not dependent on persistent storage. Persistence was out of scope of this thesis, and will be proposed as future work.
+\paragraph{Storage Engine} Persistent data structures in \gls{SEnTriS} are all key value stores. For simplicity and ease of development we decided to use Redis as our storage engine. Although we could have configured Redis with persistence enabled, we decided not to do it \autocite{Redis-xq, Redis-rq}. This choice was deliberate, the correctness of the protocol is not dependent on persistent storage. Persistence was out of scope of this thesis, and will be proposed as future work.
 
 To guarantee atomicity in the creation of locks, updates and full deletions of triplestores, we implemented these operations using Lua scripts \autocite{Lua-gq}, which are executed directly in the Redis servers. This approach ensured that the logic was either fully executed server side, or not executed at all. 
 
@@ -290,7 +290,7 @@ Our aim is to develop and implement an extensible and flexible solution. As such
 
 To respect such requirements, we standardized the base architecture of the \gls{SEnTriS} components. Each individual component is a server that exposes a \glsxtrshort{REST} \gls{API}. All communication channels between components are secure and reliable. They follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Regarding the cryptography schemes chosen, we opted to use XChaCha20-Poly1305 encryption instead of the \gls{AES-GCM}. This decision is justified by the fact that the performance gains of \gls{AES-GCM} are dependent on hardware acceleration, which would reduce the portability of \gls{SEnTriS}. Furthermore, the components are deployed as containerized applications. Figure \ref{fig:generic-component-architecture} shows the architectural scheme of a generic component.
 
-We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. A component will always include a \emph{ControlAPI}, where administration enpoints are exposed (e.g. for retrieving version information) In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
+We separate the component logic between two layers, the presentation and application layer. The first layer is where we implement: the \gls{API}s for the necessary \gls{REST} resources (e.g. triplestores, users); the \gls{DTO}s; and the controllers, which implement a specific \gls{API} and are the bridge between the presentation and application logic. A component will always include a \emph{ControlAPI}, where administration endpoints are exposed (e.g. for retrieving version information) In the second layer we implement: the storage clients, which handle the communication logic between the component and its storage solutions; the communication clients, that handle the communication logic with other \gls{SEnTriS} components; and any other component specific internal abstraction (e.g. cryptography libraries, query parsers, query engine).
 
 
 \section{Component Architecture \& Implementation Details}

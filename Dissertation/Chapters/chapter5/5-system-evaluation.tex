@@ -85,7 +85,7 @@ After all query jobs are executed, an intermediate query result is generated and
 
 As such, we will analyze the complexity of each query job. 
 
-During the execution of a $job_{\text{SEC\_SEARCH}}$ a bindings table is generated. During this process, the randomized encryption of the bindings is decrypted. 
+During the execution of a $job_{\text{SEC\_SEARCH}}$ a bindings' table is generated. During this process, the randomized encryption of the bindings is decrypted. 
 
 Let $l_t$, $l_b$, $l_v$, $r_t$, $r_b$ and $r_v$ be the triple patterns, bindings and variables in a \emph{left} and \emph{right} binding tables. When a $job_{\text{JOIN}}$ is executed, we iterate over $l_b$, verify if the bindings are  contained in $r_b$. When a binding is also contained in $r_b$, we check for equality between the left and right triple patterns that have the binding, scoping the equality check to the common variables between the two tables. In case the equality check is positive, we generate a new pattern, whose value is the union of the bindings in both patterns, and save it to the result table.
 
@@ -116,7 +116,7 @@ Let $\overline{b}$ be the average number of bindings scoped to a $job_{\text{SEC
     \end{split}
 \end{align}
 
-To define $O_{Res}$, lets analyse the generation of query results at the Client. We have to consider the four possible types of \gls{SPARQL} query types SELECT, DESCRIBE, ASK and CONSTRUCT. 
+To define $O_{Res}$, lets analyze the generation of query results at the Client. We have to consider the four possible types of \gls{SPARQL} query types SELECT, DESCRIBE, ASK and CONSTRUCT. 
 
 Let $R_b$ and $R_v$ be the bindings and vars in the intermediate results. For ASK queries, the Client simply checks if the result is not empty. For DESCRIBE queries, it deobfuscates the variables in $R_v$, iterates over $R_b$ and constructs a frequency table. For SELECT queries, the Client deobfuscates the variables in $R_v$, decrypts each binding in $R_b$ and applies sorting and slicing modifiers, if required. For CONSTRUCT queries, after the deobfuscation of variables, decryption of bindings and application of modifiers, a new \gls{RDF} graph is created by matching every decrypted binding in $R_b$, against the triple patterns provided in the construct template $C_t$.
 
@@ -188,7 +188,7 @@ When we introduce inference capabilities to the query evaluation protocol, we au
     \end{split} 
 \end{align}
 
-\paragraph{Query rewriting} To understand how $q_{\text{jobs}}$ varies, we first need to analyse the time complexity for the query rewriting algorithm. It depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
+\paragraph{Query rewriting} To understand how $q_{\text{jobs}}$ varies, we first need to analyze the time complexity for the query rewriting algorithm. It depends heavily on two main factors: the \emph{ontology structure} and the \emph{query content}.
 
 \begin{itemize}
     \item \textbf{Ontology Structure:} The depth and breadth of class and property hierarchies, presence of transitive and inverse properties, and defined class restrictions.
@@ -203,7 +203,7 @@ More formally, given class $c$, let $SC(c)$, $EC(c)$, $IC(c)$ be, respectively, 
 
 Given a property $p$, let $SP(p)$, $EP(p)$ and $INV(p)$, be, respectively, the count of its direct subproperties, equivalent and inverse properties. $SYM(p)$ and $TRANS(p)$ are boolean flags that indicate whether $p$ is symmetric and transitive (1 if yes, 0 otherwise).
 
-Furthermore, let $n$ be the number of triple patterns present in the query, $E$ be the parameter that configures the maximum expansion depth (how many rounds of expansion are allowed for a property $p$ or class $c$) and $T$ be the parameter that configures the maximum transitivity depth (a process requires nested loops).  
+Furthermore, let $n$ be the number of triple patterns present in the query, $E$ be the parameter that configures the maximum expansion depth (how many rounds of expansion are allowed for a property $p$ or class $c$) and $T$ be the parameter that configures the maximum transitivity depth (a process that requires nested loops).  
 
 With these values, we can specify the branching factors for both the class expansion $B_c$, and the property expansion $B_p$:
 
@@ -227,7 +227,7 @@ Since there is a maximum depth of expansion, the total complexity for expanding 
 
 The asymptotic complexity of the query rewriting algorithm is exponential in terms of maximum expansion depth $E$ and quadratic in terms of transitivity depth $T$.
 
-\paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyse how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expansion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
+\paragraph{Increase in Query Jobs} With the complexity for the query rewriting algorithm defined, can analyze how $q_{\text{jobs}}$ grows by seeing, for each kind of pattern expansion, how many new jobs are created. In Table \ref{cha5:table:inference-branching-jobs}, we show the number of jobs created:
 
 \begin{table}[h]
     \centering
@@ -285,11 +285,11 @@ Finally, with the branching factor specified in terms of query jobs, we can defi
 
 \subsubsection{SPARQL UPDATE Query Evaluation Complexity}
 
-\gls{SPARQL} UPDATE queries in \gls{SEnTriQ}, can have six variants: LOAD, CLEAR, INSERT DATA, DELETE DATA, INSERT/DELETE WHERE and DELETE WHERE. When an update query contains a WHERE clause, we will first conduct a normal \gls{SPARQL} query, withouth inference, and retrieve the corresponding bindings. These results will be used to generate the triples to upload or delete. Additionally, for each batch of uploads and deletions, we will have to search for term frequencies. 
+\gls{SPARQL} UPDATE queries in \gls{SEnTriQ}, can have six variants: LOAD, CLEAR, INSERT DATA, DELETE DATA, INSERT/DELETE WHERE and DELETE WHERE. When an update query contains a WHERE clause, we will first conduct a normal \gls{SPARQL} query, without inference, and retrieve the corresponding bindings. These results will be used to generate the triples to upload or delete. Additionally, for each batch of uploads and deletions, we will have to search for term frequencies. 
 
-Consequently, we can decompose the complexity of these queries into a \emph{search} component, $O^{\text{Search}}$, which reuses the complexity of regular \gls{SPARQL} queries, and a \emph{write} component, $O^{\text{Write}}$, which captures the additional cost asssociated with modifying the triplestore contents: searching for keyword frequencies, regenerating pattern trapdoors, encrypting new data and committing changes.
+Consequently, we can decompose the complexity of these queries into a \emph{search} component, $O^{\text{Search}}$, which reuses the complexity of regular \gls{SPARQL} queries, and a \emph{write} component, $O^{\text{Write}}$, which captures the additional cost associated with modifying the triplestore contents: searching for keyword frequencies, regenerating pattern trapdoors, encrypting new data and committing changes.
 
-Intuitively, the the number of triples to be uploaded, or deleted, and the indexing scheme (number of trapdoors and pattern keywords per triple) control the \textit{write} component's cost.
+Intuitively, the number of triples to be uploaded, or deleted, and the indexing scheme (number of trapdoors and pattern keywords per triple) control the \textit{write} component's cost.
 
 Let $V \in \{\text{V1}, \text{V2}\}$, we will define the complexity of evaluating a \gls{SPARQL} UPDATE query as:
 
@@ -303,7 +303,7 @@ Let $V \in \{\text{V1}, \text{V2}\}$, we will define the complexity of evaluatin
 
 \paragraph{Search Component Complexity}
 
-For any UPDATE query that includes a \textit{WHERE} clause, the evaluation of that clause is equivalent to a \textit{SELECT} query over the same pattern. So the compexity of the \emph{search} component will be:
+For any UPDATE query that includes a \textit{WHERE} clause, the evaluation of that clause is equivalent to a \textit{SELECT} query over the same pattern. So the complexity of the \emph{search} component will be:
 
 \begin{align}
     \label{equation:update-where-select}
@@ -330,9 +330,9 @@ In \gls{SEnTriQ}, to avoid duplication of terms, an insertion of triples is alwa
 
 \paragraph{Deletions Complexity (\emph{ABox} Triples)}
 
-In \gls{SEnTriQ} V1, for each triple to be deleted, we compute the trapdoors associated to its keyword frequencies, 9 in total. We search the triplestore for matches against these trapdoors. For each valid result, we decrypt the keyword frequency value, and generate the associated trapdoor. All trapdoors are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
+In \gls{SEnTriQ} V1, for each triple to be deleted, we compute the trapdoors associated to its keyword frequencies, 9 in total. We search the triplestore for matches against these trapdoors. For each valid result, we decrypt the keyword frequency value, and generate the associated trapdoor. All trapdoors are then committed for deletion, in the triplestore. Upon an update request, the deletions are finalized.
 
-In \gls{SEnTriQ} V2, valid results of the search operation, yield the term frequency which is used to compute trapdoors referencing equality tags. As such, we require a second search, to retrieve the equality tags, which reference the encrypted keywords. All trapdoors and equality tags are then commited for deletion, in the triplestore. Upon an update request, the deletions are finalized.
+In \gls{SEnTriQ} V2, valid results of the search operation, yield the term frequency which is used to compute trapdoors referencing equality tags. As such, we require a second search, to retrieve the equality tags, which reference the encrypted keywords. All trapdoors and equality tags are then committed for deletion, in the triplestore. Upon an update request, the deletions are finalized.
 
 Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $\overline{t_{\text{del}}} \leq 9 * T_{\text{del}}$ be the average count of valid results returned from the first search operation. The complexity cost for deletions, in \gls{SEnTriQ} V1 is:
 
@@ -383,11 +383,11 @@ Let $\overline{eq_{\text{del}}} \leq \overline{t_{\text{del}}} \leq 9 * T_{\text
 
 The insertion complexity is influenced by the number of new \emph{Abox} triples to insert, which we will denote $T_{\text{ins}}$. Before each insertion, we will first try to delete every new triple from the triplestore, to avoid duplicates. This preliminary step has the cost of $O^{\text{Delete}}_V$ where $T_{\text{del}} = T_{\text{ins}}$.
 
-In \gls{SEnTriQ} V1, for each \emph{Abox} triple to be uploaded, we search the triplestore for its keywords' frequencies, 6 in total. In case of a positive responses, the frequency values are decrypted and the encryption protocol state is updated. Each triple generates 9 trapdoors, one per keyword
-combination, and their respective encrypted node. We also compute the trapdoors pointing to the encrypted frequencies of the triple constituents. Lastly, for each keyword, we generate a trapdoor referencing their encrypted frequencies. All trapdoors and encrypted nodes are then commited in the triplestore. Upon an update request, the insertions are finalized.
+In \gls{SEnTriQ} V1, for each \emph{Abox} triple to be uploaded, we search the triplestore for its keywords' frequencies, 6 in total. In case of a positive response, the frequency values are decrypted and the encryption protocol state is updated. Each triple generates 9 trapdoors, one per keyword
+combination, and their respective encrypted node. We also compute the trapdoors pointing to the encrypted frequencies of the triple constituents. Lastly, for each keyword, we generate a trapdoor referencing their encrypted frequencies. All trapdoors and encrypted nodes are then committed in the triplestore. Upon an update request, the insertions are finalized.
 
 In \gls{SEnTriQ} V2, similarly, we start by searching for keyword frequencies. Additionally, we search for existing equality tags, decrypt positive results, and update the encryption protocol state with both keyword frequency and equality tag values. During encryption, each triple generates 9 trapdoors, one per keyword combination, their respective encrypted node and the node's equality tag. Furthermore, we compute the trapdoors pointing to the
-encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node, we generate a trapdoor pointing to its encrypted equality tag. All trapdoors, encrypted equality tags and encrypted nodes are then commited in the triplestore. Upon an update request, the insertions are finalized.
+encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node, we generate a trapdoor pointing to its encrypted equality tag. All trapdoors, encrypted equality tags and encrypted nodes are then committed in the triplestore. Upon an update request, the insertions are finalized.
 
 Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $K_{\text{ins}}$ be the unique number of keywords from the triples to be uploaded and let $\overline{t_{\text{ins}}} \leq 6 * T_{\text{ins}}$ be the average count of valid results returned from the first search operation. The complexity cost for insertions, without deletions, in \gls{SEnTriQ} V1 is:
 
@@ -467,9 +467,9 @@ Let $N_{\text{ins}}$ be the unique number of nodes to be uploaded and let $\over
 
 The insertion complexity for \emph{TBox} triples is equal for both protocols. 
 
-We start by searching for the keyword frequency of the \emph{TBox} set. In case of a valid response, we decrypt the frequency, and generate the respective trapdoors. All trapdoors are commited for deletion in the triplestore. Upon an update request, the deletions are finalized.
+We start by searching for the keyword frequency of the \emph{TBox} set. In case of a valid response, we decrypt the frequency, and generate the respective trapdoors. All trapdoors are committed for deletion in the triplestore. Upon an update request, the deletions are finalized.
 
-For each \emph{TBox} triple to be uploaded, we generate 3 trapdoors referencing, respectively, the triple's subject, predicate and object. Each node is also encrypted. The trapdoors and encrypted nodes are commited to the triplestore. Upon an update request, the insertions are finalized. 
+For each \emph{TBox} triple to be uploaded, we generate 3 trapdoors referencing, respectively, the triple's subject, predicate and object. Each node is also encrypted. The trapdoors and encrypted nodes are committed to the triplestore. Upon an update request, the insertions are finalized. 
 
 Let $D_{\text{CRYPTO}}$ and $E_{\text{CRYPTO}}$ represent a decryption and encryption function using a CRYPTO algorithm. Let $T_{\text{ins}}$ be the unique number of triples to be uploaded and let $\overline{f}$ be the average frequency value of a triplestore's \emph{Tbox}. The complexity cost can be defined as:
 
@@ -539,9 +539,9 @@ In Table \ref{tbl:update-complexity-summary}, we summarize  the complexity of th
     \label{tbl:update-complexity-summary}
 \end{table}
 
-Overall, we can conclude that the complexity of evaluating \gls{SPARQL} UPDATE queries in \gls{SEnTriQ} is mainly influenced by the cryptographic operations, which scale linearly to the number of triples to upload or delete. Naturarly, the presence of a WHERE clause will increase the evaluation cost.
+Overall, we can conclude that the complexity of evaluating \gls{SPARQL} UPDATE queries in \gls{SEnTriQ} is mainly influenced by the cryptographic operations, which scale linearly to the number of triples to upload or delete. Naturally, the presence of a WHERE clause will increase the evaluation cost.
 
-The delete before insertions strategy, to avoid duplication, does not change the asymptotic complexity class of insertions, but it does add a constant extra cost factor.
+The delete-before-insertions strategy, to avoid duplication, does not change the asymptotic complexity class of insertions, but it does add a constant extra cost factor.
 
 In \gls{SEnTriQ} V2, the additional there is always an extra communication round in deletions and insertions, making write operations more expensive than in V1, even though both versions remain linear.
 
@@ -552,7 +552,7 @@ When evaluating the storage complexity of \gls{SEnTriQ}, we need to take into co
 
 \paragraph{SEnTriQ V1 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination) and their respective encrypted node. We also generate the trapdoors pointing to the encrypted frequencies of the triple constituents. For each keyword we generate a trapdoor referencing their encrypted frequencies. 
 
-\paragraph{SEnTriQ V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
+\paragraph{SEnTriQ V2 (\emph{Abox})} For every triple parsed, we generate 9 trapdoors (one per keyword combination), their respective encrypted node and the nodes' equality tag, which is also encrypted and stored twice. Furthermore, we generate the trapdoors pointing to the encrypted frequencies of the triple constituents. Finally, for each keyword we generate a trapdoor referencing their encrypted frequencies, and for each node we generate a trapdoor pointing to its encrypted equality tag.
 
 \paragraph{SEnTriQ V1 \& V2 (\emph{Tbox})} For every triple, we generate 3 trapdoors referencing each of its nodes, which are also encrypted.
 
@@ -609,7 +609,7 @@ The experimental evaluation was conducted in a system running \emph{Ubuntu~24.04
 
 The test scenario and custom processor implementations can be consulted in Listings \ref{lubm-artillery-scenario} and \ref{lubm-artillery-config}. The experiment was run for each dataset, and for both versions of \gls{SEnTriQ}. To represent the datasets we will use a notation similar to that in \autocite{Guo2005-ja}. We denote lubm(N) as the dataset that contains N universities beginning at University0 and is generated using a seed with value 0. We used the example dataset lubm(0) found in \autocite{UnknownUnknown-ni}, containing a single university and department, and generated 5 other datasets: lubm(1), lubm(2), lubm(3), lubm(4), lubm(5). 
 
-Succintely, the test scenario run was the following:
+Succinctely, the test scenario run was the following:
 
 \begin{enumerate}
   \item \textbf{POST} \emph{/Client/api/users} - Create a new basic user with random username and password.
@@ -626,9 +626,6 @@ Succintely, the test scenario run was the following:
   \item \textbf{POST (loop over \gls{LUBM} queries)} \emph{/Client/api/triplestores/encrypted/<version>/query} - Execute \gls{SPARQL} query, with \emph{transitivityDepth} set to 2 and \emph{expansionDepth} set to 3. Capture latency information and answer length. If the query is executed against lubm(1), evaluate \emph{soundness} and \emph{completeness}. Repeat 10 times.
   \item \textbf{DELETE} \emph{/Client/api/triplestores/encrypted/<version>/<triplestoreID>/<username>} - Delete triplestore.
 \end{enumerate}
-
-\vfill
-\pagebreak
 
 \subsection{Experimental Results}
 
@@ -756,7 +753,7 @@ For each version $V \in \{V1,V2\}$ and component $C \in \{\mathrm{Triplestore}, 
 
 \begin{enumerate}
     \item \textbf{Adversary}: $\mathcal{A}$, restricted to component $C$, chooses two challenge query sets $Q_0$ and $Q_1$.
-    \item \textbf{Challenger}: Flips a fair random bit $b \in \{0,1\}$, then runs the SEnTriQ protocol version $V$ on query set $Q_b$.
+    \item \textbf{Challenger}: Flips a fair random bit $b \in \{0,1\}$, then runs the \gls{SEnTriQ} protocol version $V$ on query set $Q_b$.
     \item \textbf{Challenger}: sends $\mathcal{A}$ the resulting \emph{real view} $\mathrm{RealView}_C^{V}$ seen by component $C$.
     \item \textbf{Simulator}: $\mathcal{S}_C^{V}$, given only leakage $\mathcal{L}_C^{V}(Q_b)$, produces a \emph{simulated view} $\mathrm{SimView}_C^{V}$.
     \item \textbf{Adversary}: $\mathcal{A}$ receives either $\mathrm{RealView}_C^{V}$ or $\mathrm{SimView}_C^{V}$, chosen at random, and attempts to guess $b$.
@@ -778,7 +775,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 \subsubsection{Security Proofs (SEnTriQ V1)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SEnTriQ V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the \gls{SEnTriQ} V1 protocol achieves \gls{IND-CKA1} security, but not \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -796,7 +793,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Triplestore}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol \gls{SEnTriQ} on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Triplestore}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V1}$ receives $\mathcal{L}_{Triplestore}^{V1}$ and outputs $\mathrm{SimView}_{Triplestore}^{V1}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -817,7 +814,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Proxy}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol \gls{SEnTriQ} on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V1}_{Proxy}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V1}$ receives $\mathcal{L}_{Proxy}^{V1}$ and outputs $\mathrm{SimView}_{Proxy}^{V1}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -830,7 +827,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 \subsubsection{Security Proofs (SEnTriQ V2)}
 
 \begin{theorem} 
-    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the SEnTriQ V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
+    Against an \emph{honest-but-curious} adversary which can compromise either the Triplestore or the Proxy component, but not both simultaneously, the \gls{SEnTriQ} V2 protocol achieves \gls{IND-CKA1} and \gls{IND-CKA2} security.
 \end{theorem}
 
 \begin{proof} \hfill
@@ -849,7 +846,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Triplestore}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol \gls{SEnTriQ} on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Triplestore}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Triplestore}^{V2}$ receives $\mathcal{L}_{Triplestore}^{V2}$ and outputs $\mathrm{SimView}_{Triplestore}^{V2}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -870,7 +867,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     \begin{enumerate}
         \item \textbf{Adversary}: $\mathcal{A}$ picks query sets $Q_0, Q_1$.
-        \item \textbf{Challenger}: flips $b$, runs protocol SEnTriQ on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Proxy}$.
+        \item \textbf{Challenger}: flips $b$, runs protocol \gls{SEnTriQ} on $Q_b$ and outputs \linebreak$\mathrm{RealView}^{V2}_{Proxy}$.
         \item \textbf{Simulator}: $\mathcal{S}_{Proxy}^{V2}$ receives $\mathcal{L}_{Proxy}^{V2}$ and outputs $\mathrm{SimView}_{Proxy}^{V2}$.
         \item \textbf{Adversary}: $\mathcal{A}$ attempts to output $b$. 
     \end{enumerate}
@@ -897,7 +894,7 @@ Given the security guaranties of \gls{SEnTriQ} we can now define a set of securi
         \end{enumerate}
 \end{enumerate}
 
-Properties 1, 2 and 3 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Properties 4 and 5 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the SEnTriQ protocol.
+Properties 1, 2 and 3 are guaranteed by the secure communication between components, which follow the \glsxtrshort{HTTPS} \autocite{noauthor_undated-yf} protocol and \glsxtrshort{TLS} \autocite{noauthor_undated-kt} data encryption with mutual authentication. Properties 4 and 5 are held by the \gls{IND-CKA1} and \gls{IND-CKA2} security guaranties of the \gls{SEnTriQ} protocol.
 
 \section{Final Discussion}
 \label{ch5:final-discussion}
@@ -906,6 +903,6 @@ Both implementations come with a trade-off between security and performance.
 
 \gls{SEnTriQ} V1 provides data confidentiality, but does not achieve \gls{IND-CKA2} security. An adversary can associate the leakage produced by multiple queries targeting the same triplestore, which allows the computation of the frequency distribution of all observed terms and simplifying the execution of \emph{leakage-abuse} attacks \autocite{Jutla2021-af, Hahn2019-sg, Shafieinejad2021-rb}. This can be especially problematic during \gls{SPARQL} query evaluation, as these may require a high volume of equality checks. A situation further aggravated when we apply query rewriting techniques.
 
-\gls{SEnTriQ} V2 provides provides data confidentiality and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
+\gls{SEnTriQ} V2 provides data confidentiality and achieves \gls{IND-CKA2} security. However, the enhanced security guaranties come at the expense of higher time and space complexity.
 
 From the experimental evaluation results, we argue that both versions remain practical to use. They support a wide range of \gls{SPARQL} queries, provide reasonable upload and query response latency, and achieve perfect results for soundness and completeness.
