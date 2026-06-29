@@ -874,7 +874,7 @@ IND-CKA1 or IND-CKA2 holds if the advantage is negligible for any polynomial-tim
 
     The semantic security of the cryptographic primitives in use, ensure that \linebreak $\mathrm{Adv}_{\mathcal{A}}^{Triplestore, \; V2}$ is negligible, even after consecutive runs. 
     
-    Like in version V1, $G^{V2}_{proxy}$, $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$ is negligible. On the contrary, consecutive runs of $G^{V2}_{Proxy}$ do not provide any change in $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V1}$. The multiplicative blinding ensures that deterministically encrypted equality tags are not linkable between different views.
+    Like in version V1, with a single run of $G^{V2}_{proxy}$, $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V2}$ is negligible. On the contrary, consecutive runs of $G^{V2}_{Proxy}$ do not provide any change in $\mathrm{Adv}_{\mathcal{A}}^{Proxy, \; V2}$. The multiplicative blinding ensures that deterministically encrypted equality tags are not linkable between different views.
 \end{proof}
 
 
